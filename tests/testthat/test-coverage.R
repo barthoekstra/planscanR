@@ -33,3 +33,18 @@ test_that("DE coverage row exposes the procedure / bundesland vocabularies", {
   expect_true("Baden-Württemberg" %in% f$bundesland)
   expect_true("obj_class_zv" %in% f$procedure)
 })
+
+test_that("AT coverage row signals metadata-only status and exposes typology", {
+  c <- get_assessments_coverage()
+  at <- c[c$country == "at", ]
+  expect_identical(at$source_portal, "umweltbundesamt.at/uvpdb")
+  expect_false(at$requires_auth)
+  expect_identical(at$status, "supported (metadata-only)")
+  f <- at$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("bundesland", "type", "type_group"))
+  expect_true("Wien" %in% f$bundesland)
+  expect_true("Burgenland" %in% f$bundesland)
+  expect_true("Windkraftanlagen" %in% f$type)
+  expect_true("Energie" %in% f$type_group)
+})

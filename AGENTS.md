@@ -12,13 +12,22 @@ in spatial energy planning). It provides a single, unified R API
 follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad).
 
-**v0.1 scope.** Two country handlers ship:
+**v0.1 scope.** Three country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
   `uvp-verbund.de`.
+- Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
+  `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
+  pages and document attachments sit behind a Keycloak login wall; only
+  three open JSON service handlers (`mapsdata`, `mapsgeom`, `vorhabenInfo`)
+  expose record metadata anonymously. The handler returns rich tibble
+  rows but `attachment_urls` and `local_path` are always empty, and
+  `date_decision` is always `NA` (the portal only exposes a `year`).
+  Reflected in `get_assessments_coverage()$status` as `"supported
+  (metadata-only)"`.
 
-The architecture is multi-country from day one — adding DK / AT / etc. is a
+The architecture is multi-country from day one — adding DK / etc. is a
 pure additive change.
 
 **Out of scope for v0.1.** Spatial output (`sf`), zoning/plan documents,

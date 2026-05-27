@@ -44,10 +44,14 @@ req_retry_planscanr <- function(req, max_tries = NULL) {
 }
 
 #' Perform a request, parsing as JSON.
+#'
+#' Skips the Content-Type check because real portals (notably AT's UVP-DB
+#' service handlers) serve valid JSON with the wrong MIME (`text/html`).
+#' We still abort if the body isn't actually JSON-parseable.
 #' @noRd
 perform_json <- function(req) {
   resp <- httr2::req_perform(req)
-  httr2::resp_body_json(resp, simplifyVector = FALSE)
+  httr2::resp_body_json(resp, check_type = FALSE, simplifyVector = FALSE)
 }
 
 #' Perform a request, parsing as XML.

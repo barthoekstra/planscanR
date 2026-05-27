@@ -14,12 +14,42 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de"),
-    source_portal = c("commissiemer.nl", "uvp-verbund.de"),
-    base_url = c("https://www.commissiemer.nl", "https://www.uvp-verbund.de"),
-    requires_auth = c(FALSE, FALSE),
-    status = c("supported", "supported"),
-    facets = list(commissiemer_facets(), uvp_facets())
+    country = c("nl", "de", "at"),
+    source_portal = c("commissiemer.nl", "uvp-verbund.de", "umweltbundesamt.at/uvpdb"),
+    base_url = c(
+      "https://www.commissiemer.nl",
+      "https://www.uvp-verbund.de",
+      "https://secure.umweltbundesamt.at/uvpdb/public"
+    ),
+    requires_auth = c(FALSE, FALSE, FALSE),
+    status = c("supported", "supported", "supported (metadata-only)"),
+    facets = list(commissiemer_facets(), uvp_facets(), uvpdb_at_facets())
+  )
+}
+
+#' Static lookup of the UVP-DB (Austria) facet vocabularies.
+#'
+#' The portal classifies each procedure by a 1-based `type` integer (1 =
+#' Abfallwirtschaft, ..., 23 = Windkraftanlagen) and groups those into
+#' broader categories (Energie, Infrastruktur, Freizeit, Agrar, Industrie,
+#' Fehler, Sonstige). Documented here for reference; only `bundesland`
+#' is honoured as a runtime filter (via the `jurisdiction` argument).
+#' @noRd
+uvpdb_at_facets <- function() {
+  list(
+    bundesland = c(
+      "Burgenland",
+      "Kärnten",
+      "Niederösterreich",
+      "Oberösterreich",
+      "Salzburg",
+      "Steiermark",
+      "Tirol",
+      "Vorarlberg",
+      "Wien"
+    ),
+    type = at_typology_legend(),
+    type_group = c("Energie", "Infrastruktur", "Freizeit", "Agrar", "Industrie", "Fehler", "Sonstige")
   )
 }
 

@@ -13,7 +13,7 @@
 #' parameter surface and the vocabulary of valid values.
 #'
 #' @param country Character scalar, ISO-3166-1 alpha-2 country code (any case).
-#'   v0.1 supports `"nl"`. See [supported_countries()].
+#'   v0.1 supports `"nl"`, `"de"`, and `"at"`. See [supported_countries()].
 #' @param date_range Optional length-2 vector `c(from, to)` of `Date`,
 #'   `POSIXct`, or character. Filters by `date_published` / `date_decision`
 #'   semantics decided per handler.
@@ -126,6 +126,7 @@ select_assessments_handler <- function(country) {
     country,
     nl = get_assessments_nl,
     de = get_assessments_de,
+    at = get_assessments_at,
     abort_unsupported_country(country)
   )
 }
