@@ -55,3 +55,4 @@ inst/doc
 tests/manual/
 .positai
 .DS_Store
+.vscode/
