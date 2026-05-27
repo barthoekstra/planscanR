@@ -1,0 +1,1164 @@
+<!doctype html>
+<html class="no-js" lang="nl-NL">
+
+<head> <script>
+var gform;gform||(document.addEventListener("gform_main_scripts_loaded",function(){gform.scriptsLoaded=!0}),document.addEventListener("gform/theme/scripts_loaded",function(){gform.themeScriptsLoaded=!0}),window.addEventListener("DOMContentLoaded",function(){gform.domLoaded=!0}),gform={domLoaded:!1,scriptsLoaded:!1,themeScriptsLoaded:!1,isFormEditor:()=>"function"==typeof InitializeEditor,callIfLoaded:function(o){return!(!gform.domLoaded||!gform.scriptsLoaded||!gform.themeScriptsLoaded&&!gform.isFormEditor()||(gform.isFormEditor()&&console.warn("The use of gform.initializeOnLoaded() is deprecated in the form editor context and will be removed in Gravity Forms 3.1."),o(),0))},initializeOnLoaded:function(o){gform.callIfLoaded(o)||(document.addEventListener("gform_main_scripts_loaded",()=>{gform.scriptsLoaded=!0,gform.callIfLoaded(o)}),document.addEventListener("gform/theme/scripts_loaded",()=>{gform.themeScriptsLoaded=!0,gform.callIfLoaded(o)}),window.addEventListener("DOMContentLoaded",()=>{gform.domLoaded=!0,gform.callIfLoaded(o)}))},hooks:{action:{},filter:{}},addAction:function(o,r,e,t){gform.addHook("action",o,r,e,t)},addFilter:function(o,r,e,t){gform.addHook("filter",o,r,e,t)},doAction:function(o){gform.doHook("action",o,arguments)},applyFilters:function(o){return gform.doHook("filter",o,arguments)},removeAction:function(o,r){gform.removeHook("action",o,r)},removeFilter:function(o,r,e){gform.removeHook("filter",o,r,e)},addHook:function(o,r,e,t,n){null==gform.hooks[o][r]&&(gform.hooks[o][r]=[]);var d=gform.hooks[o][r];null==n&&(n=r+"_"+d.length),gform.hooks[o][r].push({tag:n,callable:e,priority:t=null==t?10:t})},doHook:function(r,o,e){var t;if(e=Array.prototype.slice.call(e,1),null!=gform.hooks[r][o]&&((o=gform.hooks[r][o]).sort(function(o,r){return o.priority-r.priority}),o.forEach(function(o){"function"!=typeof(t=o.callable)&&(t=window[t]),"action"==r?t.apply(null,e):e[0]=t.apply(null,e)})),"filter"==r)return e[0]},removeHook:function(o,r,t,n){var e;null!=gform.hooks[o][r]&&(e=(e=gform.hooks[o][r]).filter(function(o,r,e){return!!(null!=n&&n!=o.tag||null!=t&&t!=o.priority)}),gform.hooks[o][r]=e)}});
+</script>
+<meta charset="UTF-8" /><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1#")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>(()=>{class RocketLazyLoadScripts{constructor(){this.v="2.0.5",this.userEvents=["keydown","keyup","mousedown","mouseup","mousemove","mouseover","mouseout","touchmove","touchstart","touchend","touchcancel","wheel","click","dblclick","input"],this.attributeEvents=["onblur","onclick","oncontextmenu","ondblclick","onfocus","onmousedown","onmouseenter","onmouseleave","onmousemove","onmouseout","onmouseover","onmouseup","onmousewheel","onscroll","onsubmit"]}async t(){this.i(),this.o(),/iP(ad|hone)/.test(navigator.userAgent)&&this.h(),this.u(),this.l(this),this.m(),this.k(this),this.p(this),this._(),await Promise.all([this.R(),this.L()]),this.lastBreath=Date.now(),this.S(this),this.P(),this.D(),this.O(),this.M(),await this.C(this.delayedScripts.normal),await this.C(this.delayedScripts.defer),await this.C(this.delayedScripts.async),await this.T(),await this.F(),await this.j(),await this.A(),window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this.everythingLoaded=!0,this.lastTouchEnd&&await new Promise(t=>setTimeout(t,500-Date.now()+this.lastTouchEnd)),this.I(),this.H(),this.U(),this.W()}i(){this.CSPIssue=sessionStorage.getItem("rocketCSPIssue"),document.addEventListener("securitypolicyviolation",t=>{this.CSPIssue||"script-src-elem"!==t.violatedDirective||"data"!==t.blockedURI||(this.CSPIssue=!0,sessionStorage.setItem("rocketCSPIssue",!0))},{isRocket:!0})}o(){window.addEventListener("pageshow",t=>{this.persisted=t.persisted,this.realWindowLoadedFired=!0},{isRocket:!0}),window.addEventListener("pagehide",()=>{this.onFirstUserAction=null},{isRocket:!0})}h(){let t;function e(e){t=e}window.addEventListener("touchstart",e,{isRocket:!0}),window.addEventListener("touchend",function i(o){o.changedTouches[0]&&t.changedTouches[0]&&Math.abs(o.changedTouches[0].pageX-t.changedTouches[0].pageX)<10&&Math.abs(o.changedTouches[0].pageY-t.changedTouches[0].pageY)<10&&o.timeStamp-t.timeStamp<200&&(window.removeEventListener("touchstart",e,{isRocket:!0}),window.removeEventListener("touchend",i,{isRocket:!0}),"INPUT"===o.target.tagName&&"text"===o.target.type||(o.target.dispatchEvent(new TouchEvent("touchend",{target:o.target,bubbles:!0})),o.target.dispatchEvent(new MouseEvent("mouseover",{target:o.target,bubbles:!0})),o.target.dispatchEvent(new PointerEvent("click",{target:o.target,bubbles:!0,cancelable:!0,detail:1,clientX:o.changedTouches[0].clientX,clientY:o.changedTouches[0].clientY})),event.preventDefault()))},{isRocket:!0})}q(t){this.userActionTriggered||("mousemove"!==t.type||this.firstMousemoveIgnored?"keyup"===t.type||"mouseover"===t.type||"mouseout"===t.type||(this.userActionTriggered=!0,this.onFirstUserAction&&this.onFirstUserAction()):this.firstMousemoveIgnored=!0),"click"===t.type&&t.preventDefault(),t.stopPropagation(),t.stopImmediatePropagation(),"touchstart"===this.lastEvent&&"touchend"===t.type&&(this.lastTouchEnd=Date.now()),"click"===t.type&&(this.lastTouchEnd=0),this.lastEvent=t.type,t.composedPath&&t.composedPath()[0].getRootNode()instanceof ShadowRoot&&(t.rocketTarget=t.composedPath()[0]),this.savedUserEvents.push(t)}u(){this.savedUserEvents=[],this.userEventHandler=this.q.bind(this),this.userEvents.forEach(t=>window.addEventListener(t,this.userEventHandler,{passive:!1,isRocket:!0})),document.addEventListener("visibilitychange",this.userEventHandler,{isRocket:!0})}U(){this.userEvents.forEach(t=>window.removeEventListener(t,this.userEventHandler,{passive:!1,isRocket:!0})),document.removeEventListener("visibilitychange",this.userEventHandler,{isRocket:!0}),this.savedUserEvents.forEach(t=>{(t.rocketTarget||t.target).dispatchEvent(new window[t.constructor.name](t.type,t))})}m(){const t="return false",e=Array.from(this.attributeEvents,t=>"data-rocket-"+t),i="["+this.attributeEvents.join("],[")+"]",o="[data-rocket-"+this.attributeEvents.join("],[data-rocket-")+"]",s=(e,i,o)=>{o&&o!==t&&(e.setAttribute("data-rocket-"+i,o),e["rocket"+i]=new Function("event",o),e.setAttribute(i,t))};new MutationObserver(t=>{for(const n of t)"attributes"===n.type&&(n.attributeName.startsWith("data-rocket-")||this.everythingLoaded?n.attributeName.startsWith("data-rocket-")&&this.everythingLoaded&&this.N(n.target,n.attributeName.substring(12)):s(n.target,n.attributeName,n.target.getAttribute(n.attributeName))),"childList"===n.type&&n.addedNodes.forEach(t=>{if(t.nodeType===Node.ELEMENT_NODE)if(this.everythingLoaded)for(const i of[t,...t.querySelectorAll(o)])for(const t of i.getAttributeNames())e.includes(t)&&this.N(i,t.substring(12));else for(const e of[t,...t.querySelectorAll(i)])for(const t of e.getAttributeNames())this.attributeEvents.includes(t)&&s(e,t,e.getAttribute(t))})}).observe(document,{subtree:!0,childList:!0,attributeFilter:[...this.attributeEvents,...e]})}I(){this.attributeEvents.forEach(t=>{document.querySelectorAll("[data-rocket-"+t+"]").forEach(e=>{this.N(e,t)})})}N(t,e){const i=t.getAttribute("data-rocket-"+e);i&&(t.setAttribute(e,i),t.removeAttribute("data-rocket-"+e))}k(t){Object.defineProperty(HTMLElement.prototype,"onclick",{get(){return this.rocketonclick||null},set(e){this.rocketonclick=e,this.setAttribute(t.everythingLoaded?"onclick":"data-rocket-onclick","this.rocketonclick(event)")}})}S(t){function e(e,i){let o=e[i];e[i]=null,Object.defineProperty(e,i,{get:()=>o,set(s){t.everythingLoaded?o=s:e["rocket"+i]=o=s}})}e(document,"onreadystatechange"),e(window,"onload"),e(window,"onpageshow");try{Object.defineProperty(document,"readyState",{get:()=>t.rocketReadyState,set(e){t.rocketReadyState=e},configurable:!0}),document.readyState="loading"}catch(t){console.log("WPRocket DJE readyState conflict, bypassing")}}l(t){this.originalAddEventListener=EventTarget.prototype.addEventListener,this.originalRemoveEventListener=EventTarget.prototype.removeEventListener,this.savedEventListeners=[],EventTarget.prototype.addEventListener=function(e,i,o){o&&o.isRocket||!t.B(e,this)&&!t.userEvents.includes(e)||t.B(e,this)&&!t.userActionTriggered||e.startsWith("rocket-")||t.everythingLoaded?t.originalAddEventListener.call(this,e,i,o):(t.savedEventListeners.push({target:this,remove:!1,type:e,func:i,options:o}),"mouseenter"!==e&&"mouseleave"!==e||t.originalAddEventListener.call(this,e,t.savedUserEvents.push,o))},EventTarget.prototype.removeEventListener=function(e,i,o){o&&o.isRocket||!t.B(e,this)&&!t.userEvents.includes(e)||t.B(e,this)&&!t.userActionTriggered||e.startsWith("rocket-")||t.everythingLoaded?t.originalRemoveEventListener.call(this,e,i,o):t.savedEventListeners.push({target:this,remove:!0,type:e,func:i,options:o})}}J(t,e){this.savedEventListeners=this.savedEventListeners.filter(i=>{let o=i.type,s=i.target||window;return e!==o||t!==s||(this.B(o,s)&&(i.type="rocket-"+o),this.$(i),!1)})}H(){EventTarget.prototype.addEventListener=this.originalAddEventListener,EventTarget.prototype.removeEventListener=this.originalRemoveEventListener,this.savedEventListeners.forEach(t=>this.$(t))}$(t){t.remove?this.originalRemoveEventListener.call(t.target,t.type,t.func,t.options):this.originalAddEventListener.call(t.target,t.type,t.func,t.options)}p(t){let e;function i(e){return t.everythingLoaded?e:e.split(" ").map(t=>"load"===t||t.startsWith("load.")?"rocket-jquery-load":t).join(" ")}function o(o){function s(e){const s=o.fn[e];o.fn[e]=o.fn.init.prototype[e]=function(){return this[0]===window&&t.userActionTriggered&&("string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=i(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach(t=>{const e=arguments[0][t];delete arguments[0][t],arguments[0][i(t)]=e})),s.apply(this,arguments),this}}if(o&&o.fn&&!t.allJQueries.includes(o)){const e={DOMContentLoaded:[],"rocket-DOMContentLoaded":[]};for(const t in e)document.addEventListener(t,()=>{e[t].forEach(t=>t())},{isRocket:!0});o.fn.ready=o.fn.init.prototype.ready=function(i){function s(){parseInt(o.fn.jquery)>2?setTimeout(()=>i.bind(document)(o)):i.bind(document)(o)}return"function"==typeof i&&(t.realDomReadyFired?!t.userActionTriggered||t.fauxDomReadyFired?s():e["rocket-DOMContentLoaded"].push(s):e.DOMContentLoaded.push(s)),this},s("on"),s("one"),s("off"),t.allJQueries.push(o)}e=o}t.allJQueries=[],o(window.jQuery),Object.defineProperty(window,"jQuery",{get:()=>e,set(t){o(t)}})}P(){const t=new Map;document.write=document.writeln=function(e){const i=document.currentScript,o=document.createRange(),s=i.parentElement;let n=t.get(i);void 0===n&&(n=i.nextSibling,t.set(i,n));const c=document.createDocumentFragment();o.setStart(c,0),c.appendChild(o.createContextualFragment(e)),s.insertBefore(c,n)}}async R(){return new Promise(t=>{this.userActionTriggered?t():this.onFirstUserAction=t})}async L(){return new Promise(t=>{document.addEventListener("DOMContentLoaded",()=>{this.realDomReadyFired=!0,t()},{isRocket:!0})})}async j(){return this.realWindowLoadedFired?Promise.resolve():new Promise(t=>{window.addEventListener("load",t,{isRocket:!0})})}M(){this.pendingScripts=[];this.scriptsMutationObserver=new MutationObserver(t=>{for(const e of t)e.addedNodes.forEach(t=>{"SCRIPT"!==t.tagName||!t.src||t.noModule||t.isWPRocket||this.pendingScripts.push({script:t,promise:new Promise(e=>{const i=()=>{const i=this.pendingScripts.findIndex(e=>e.script===t);i>=0&&this.pendingScripts.splice(i,1),e()};t.addEventListener("load",i,{isRocket:!0}),t.addEventListener("error",i,{isRocket:!0}),setTimeout(i,1e3)})})})}),this.scriptsMutationObserver.observe(document,{childList:!0,subtree:!0})}async F(){await this.X(),this.pendingScripts.length?(await this.pendingScripts[0].promise,await this.F()):this.scriptsMutationObserver.disconnect()}D(){this.delayedScripts={normal:[],async:[],defer:[]},document.querySelectorAll("script[type$=rocketlazyloadscript]").forEach(t=>{t.hasAttribute("data-rocket-src")?t.hasAttribute("async")&&!1!==t.async?this.delayedScripts.async.push(t):t.hasAttribute("defer")&&!1!==t.defer||"module"===t.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(t):this.delayedScripts.normal.push(t):this.delayedScripts.normal.push(t)})}async _(){await this.L();let t=[];document.querySelectorAll("script[type$=rocketlazyloadscript][data-rocket-src]").forEach(e=>{let i=e.getAttribute("data-rocket-src");if(i&&!i.startsWith("data:")){i.startsWith("//")&&(i=location.protocol+i);try{const o=new URL(i).origin;o!==location.origin&&t.push({src:o,crossOrigin:e.crossOrigin||"module"===e.getAttribute("data-rocket-type")})}catch(t){}}}),t=[...new Map(t.map(t=>[JSON.stringify(t),t])).values()],this.Y(t,"preconnect")}async G(t){if(await this.K(),!0!==t.noModule||!("noModule"in HTMLScriptElement.prototype))return new Promise(e=>{let i;function o(){(i||t).setAttribute("data-rocket-status","executed"),e()}try{if(navigator.userAgent.includes("Firefox/")||""===navigator.vendor||this.CSPIssue)i=document.createElement("script"),[...t.attributes].forEach(t=>{let e=t.nodeName;"type"!==e&&("data-rocket-type"===e&&(e="type"),"data-rocket-src"===e&&(e="src"),i.setAttribute(e,t.nodeValue))}),t.text&&(i.text=t.text),t.nonce&&(i.nonce=t.nonce),i.hasAttribute("src")?(i.addEventListener("load",o,{isRocket:!0}),i.addEventListener("error",()=>{i.setAttribute("data-rocket-status","failed-network"),e()},{isRocket:!0}),setTimeout(()=>{i.isConnected||e()},1)):(i.text=t.text,o()),i.isWPRocket=!0,t.parentNode.replaceChild(i,t);else{const i=t.getAttribute("data-rocket-type"),s=t.getAttribute("data-rocket-src");i?(t.type=i,t.removeAttribute("data-rocket-type")):t.removeAttribute("type"),t.addEventListener("load",o,{isRocket:!0}),t.addEventListener("error",i=>{this.CSPIssue&&i.target.src.startsWith("data:")?(console.log("WPRocket: CSP fallback activated"),t.removeAttribute("src"),this.G(t).then(e)):(t.setAttribute("data-rocket-status","failed-network"),e())},{isRocket:!0}),s?(t.fetchPriority="high",t.removeAttribute("data-rocket-src"),t.src=s):t.src="data:text/javascript;base64,"+window.btoa(unescape(encodeURIComponent(t.text)))}}catch(i){t.setAttribute("data-rocket-status","failed-transform"),e()}});t.setAttribute("data-rocket-status","skipped")}async C(t){const e=t.shift();return e?(e.isConnected&&await this.G(e),this.C(t)):Promise.resolve()}O(){this.Y([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}Y(t,e){this.trash=this.trash||[];let i=!0;var o=document.createDocumentFragment();t.forEach(t=>{const s=t.getAttribute&&t.getAttribute("data-rocket-src")||t.src;if(s&&!s.startsWith("data:")){const n=document.createElement("link");n.href=s,n.rel=e,"preconnect"!==e&&(n.as="script",n.fetchPriority=i?"high":"low"),t.getAttribute&&"module"===t.getAttribute("data-rocket-type")&&(n.crossOrigin=!0),t.crossOrigin&&(n.crossOrigin=t.crossOrigin),t.integrity&&(n.integrity=t.integrity),t.nonce&&(n.nonce=t.nonce),o.appendChild(n),this.trash.push(n),i=!1}}),document.head.appendChild(o)}W(){this.trash.forEach(t=>t.remove())}async T(){try{document.readyState="interactive"}catch(t){}this.fauxDomReadyFired=!0;try{await this.K(),this.J(document,"readystatechange"),document.dispatchEvent(new Event("rocket-readystatechange")),await this.K(),document.rocketonreadystatechange&&document.rocketonreadystatechange(),await this.K(),this.J(document,"DOMContentLoaded"),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this.K(),this.J(window,"DOMContentLoaded"),window.dispatchEvent(new Event("rocket-DOMContentLoaded"))}catch(t){console.error(t)}}async A(){try{document.readyState="complete"}catch(t){}try{await this.K(),this.J(document,"readystatechange"),document.dispatchEvent(new Event("rocket-readystatechange")),await this.K(),document.rocketonreadystatechange&&document.rocketonreadystatechange(),await this.K(),this.J(window,"load"),window.dispatchEvent(new Event("rocket-load")),await this.K(),window.rocketonload&&window.rocketonload(),await this.K(),this.allJQueries.forEach(t=>t(window).trigger("rocket-jquery-load")),await this.K(),this.J(window,"pageshow");const t=new Event("rocket-pageshow");t.persisted=this.persisted,window.dispatchEvent(t),await this.K(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}catch(t){console.error(t)}}async K(){Date.now()-this.lastBreath>45&&(await this.X(),this.lastBreath=Date.now())}async X(){return document.hidden?new Promise(t=>setTimeout(t)):new Promise(t=>requestAnimationFrame(t))}B(t,e=window){return e===document&&"readystatechange"===t||(e===document&&"DOMContentLoaded"===t||(e===window&&"DOMContentLoaded"===t||(e===window&&"load"===t||e===window&&"pageshow"===t)))}static run(){(new RocketLazyLoadScripts).t()}}RocketLazyLoadScripts.run()})();
+</script>
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+
+<!-- Google Tag Manager for WordPress by gtm4wp.com -->
+<script data-cfasync="false" data-pagespeed-no-defer>
+	var gtm4wp_datalayer_name = "dataLayer";
+	var dataLayer = dataLayer || [];
+</script>
+<!-- End Google Tag Manager for WordPress by gtm4wp.com -->
+	<!-- This site is optimized with the Yoast SEO plugin v27.6 - https://yoast.com/product/yoast-seo-wordpress/ -->
+	<title>Fabriek voor de productie van aromaten uit niet-herbruikbaar afvalplastic in Delfzijl - Commissie mer</title>
+	<meta name="description" content="Fabriek voor de productie van aromaten uit niet-herbruikbaar afvalplastic in Delfzijl" />
+	<link rel="canonical" href="https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/" />
+	<meta property="og:locale" content="nl_NL" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Fabriek voor de productie van aromaten uit niet-herbruikbaar afvalplastic in Delfzijl - Commissie mer" />
+	<meta property="og:url" content="https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/" />
+	<meta property="og:site_name" content="Commissie mer" />
+	<meta property="article:modified_time" content="2026-05-26T10:30:07+00:00" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https:\/\/schema.org","@graph":[{"@type":"WebPage","@id":"https:\/\/www.commissiemer.nl\/advies\/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl\/","url":"https:\/\/www.commissiemer.nl\/advies\/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl\/","name":"Fabriek voor de productie van aromaten uit niet-herbruikbaar afvalplastic in Delfzijl - Commissie mer","isPartOf":{"@id":"https:\/\/www.commissiemer.nl\/#website"},"datePublished":"2025-03-18T13:30:16+00:00","dateModified":"2026-05-26T10:30:07+00:00","breadcrumb":{"@id":"https:\/\/www.commissiemer.nl\/advies\/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl\/#breadcrumb"},"inLanguage":"nl-NL","potentialAction":[{"@type":"ReadAction","target":["https:\/\/www.commissiemer.nl\/advies\/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl\/"]}]},{"@type":"BreadcrumbList","@id":"https:\/\/www.commissiemer.nl\/advies\/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/www.commissiemer.nl\/"},{"@type":"ListItem","position":2,"name":"Fabriek voor de productie van aromaten uit niet-herbruikbaar afvalplastic in Delfzijl"}]},{"@type":"WebSite","@id":"https:\/\/www.commissiemer.nl\/#website","url":"https:\/\/www.commissiemer.nl\/","name":"Commissie MER","description":"","potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/www.commissiemer.nl\/zoeken\/?_search_search={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"nl-NL"}]}</script>
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel='dns-prefetch' href='//www.commissiemer.nl' />
+<link rel='dns-prefetch' href='//cdnjs.cloudflare.com' />
+<link rel='dns-prefetch' href='//kit.fontawesome.com' />
+
+<link rel="alternate" type="application/rss+xml" title="Commissie mer &raquo; feed" href="https://www.commissiemer.nl/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Commissie mer &raquo; reacties feed" href="https://www.commissiemer.nl/comments/feed/" />
+<style id='wp-img-auto-sizes-contain-inline-css'>
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<style id='classic-theme-styles-inline-css'>
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+/*# sourceURL=/wp-includes/css/classic-themes.min.css */
+</style>
+<style id='global-styles-inline-css'>
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+
+<link data-minify="1" rel='stylesheet' id='basel-style-css' href='https://www.commissiemer.nl/wp-content/cache/min/1/wp-content/plugins/stuurlui-basel/assets/css/style.css?ver=1779758698' media='all' />
+<link rel='stylesheet' id='searchwp-live-search-css' href='https://www.commissiemer.nl/wp-content/plugins/searchwp-live-ajax-search/assets/styles/style.min.css?ver=1.8.7' media='all' />
+<style id='searchwp-live-search-inline-css'>
+.searchwp-live-search-result .searchwp-live-search-result--title a {
+  font-size: 16px;
+}
+.searchwp-live-search-result .searchwp-live-search-result--price {
+  font-size: 14px;
+}
+.searchwp-live-search-result .searchwp-live-search-result--add-to-cart .button {
+  font-size: 14px;
+}
+
+/*# sourceURL=searchwp-live-search-inline-css */
+</style>
+<link rel='stylesheet' id='vendors-css' href='https://www.commissiemer.nl/wp-content/themes/stuurlui/assets/vendors.min.css?ver=1777362602' media='all' />
+<link data-minify="1" rel='stylesheet' id='frontend-css' href='https://www.commissiemer.nl/wp-content/cache/min/1/wp-content/themes/stuurlui/assets/frontend.min.css?ver=1779758698' media='all' />
+<style id='rocket-lazyload-inline-css'>
+.rll-youtube-player{position:relative;padding-bottom:56.23%;height:0;overflow:hidden;max-width:100%;}.rll-youtube-player:focus-within{outline: 2px solid currentColor;outline-offset: 5px;}.rll-youtube-player iframe{position:absolute;top:0;left:0;width:100%;height:100%;z-index:100;background:0 0}.rll-youtube-player img{bottom:0;display:block;left:0;margin:auto;max-width:100%;width:100%;position:absolute;right:0;top:0;border:none;height:auto;-webkit-transition:.4s all;-moz-transition:.4s all;transition:.4s all}.rll-youtube-player img:hover{-webkit-filter:brightness(75%)}.rll-youtube-player .play{height:100%;width:100%;left:0;top:0;position:absolute;background:url(https://www.commissiemer.nl/wp-content/plugins/wp-rocket/assets/img/youtube.png) no-repeat center;background-color: transparent !important;cursor:pointer;border:none;}
+/*# sourceURL=rocket-lazyload-inline-css */
+</style>
+<script data-minify="1" data-cookieconsent="ignore" src="https://www.commissiemer.nl/wp-content/cache/min/1/ajax/libs/jquery/3.6.0/jquery.min.js?ver=1779758698" id="jquery-js"></script>
+<link rel='shortlink' href='https://www.commissiemer.nl/?p=5795' />
+
+<!-- Google Tag Manager for WordPress by gtm4wp.com -->
+<!-- GTM Container placement set to automatic -->
+<script data-cfasync="false" data-pagespeed-no-defer>
+	var dataLayer_content = {"pagePostType":"advice","pagePostType2":"single-advice","pagePostAuthor":"StuurluiDevelopment"};
+	dataLayer.push( dataLayer_content );
+</script>
+<script type="text/rocketlazyloadscript" data-cfasync="false" data-pagespeed-no-defer>
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-K5XPWBQM');
+</script>
+<!-- End Google Tag Manager for WordPress by gtm4wp.com --><link rel="icon" type="image/png" href="/wp-content/uploads/fbrfg/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/wp-content/uploads/fbrfg/favicon.svg" />
+<link rel="shortcut icon" href="/wp-content/uploads/fbrfg/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/wp-content/uploads/fbrfg/apple-touch-icon.png" />
+<link rel="manifest" href="/wp-content/uploads/fbrfg/site.webmanifest" /><link rel="icon" href="https://www.commissiemer.nl/wp-content/smush-webp/2026/05/cropped-Bumper-40jaarMER-1-32x32.jpg.webp" sizes="32x32" />
+<link rel="icon" href="https://www.commissiemer.nl/wp-content/smush-webp/2026/05/cropped-Bumper-40jaarMER-1-192x192.jpg.webp" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://www.commissiemer.nl/wp-content/smush-webp/2026/05/cropped-Bumper-40jaarMER-1-180x180.jpg.webp" />
+<meta name="msapplication-TileImage" content="https://www.commissiemer.nl/wp-content/smush-webp/2026/05/cropped-Bumper-40jaarMER-1-270x270.jpg.webp" />
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			const overviewSection = document.querySelector('section.case-law-overview');
+			const searchBlock = document.querySelector('section.search-block');
+			const adviceSection = document.querySelector('section.advice-overview ');
+			if (overviewSection || searchBlock || adviceSection) {
+				const resultCountContainer = document.querySelector(".result-count");
+				const filterSelectionText = document.querySelector(".filter-current");
+
+				if (resultCountContainer) {
+					const filterdOnText = document.createElement("span");
+					filterdOnText.classList.add("filtered-on-text");
+					filterdOnText.textContent = "Gefilterd op: ";
+					resultCountContainer.appendChild(filterdOnText);
+					filterdOnText.style.display = "none";
+
+					if (filterSelectionText) {
+						filterSelectionText.appendChild(filterdOnText);
+					}
+				}
+
+				if (filterSelectionText) {
+					const filterSelectionTextContent = filterSelectionText.childNodes[0];
+					filterSelectionText.removeChild(filterSelectionTextContent);
+				}
+
+				FWP.hooks.addAction('facetwp/loaded', () => {
+					const filterSelections = document.querySelectorAll('.facetwp-selection-value');
+					if (filterSelections.length > 0) {
+						filterSelections.forEach((elem) => {
+
+							// add icon to button
+							const i = document.createElement('i');
+							i.setAttribute('aria-hidden', 'true');
+							i.classList.add('fa-regular', 'fa-close');
+							elem.appendChild(i);
+
+							// add screen reader text
+							const srt = document.createElement('span');
+							srt.classList.add('sr-only');
+							srt.textContent = " Filter wissen" + ' ' + elem.textContent;
+							elem.appendChild(srt);
+						});
+
+					}
+				}, 100);
+			}
+		});
+	</script>
+		<script>
+	document.addEventListener('facetwp-refresh', function() {
+			if (! FWP.loaded) {
+					FWP.hooks.addAction('facetwp/loaded', function() {
+							fUtil('.facetwp-type-fselect .facetwp-dropdown').each(function() {
+									fUtil(this).nodes[0].fselect.close();
+							});
+					}, 20);
+			}
+	});
+	</script>
+	<noscript><style id="rocket-lazyload-nojs-css">.rll-youtube-player, [data-lazy-src]{display:none !important;}</style></noscript>		<style>
+			:root {
+				--strl-accent-color: #d1a03d;
+				--strl-accent-rgba: 209,160,61;
+			}
+		</style>
+			
+<link data-minify="1" rel='stylesheet' id='gform_basic-css' href='https://www.commissiemer.nl/wp-content/cache/min/1/wp-content/plugins/gravityforms/assets/css/dist/basic.min.css?ver=1779758698' media='all' />
+<link rel='stylesheet' id='gform_theme_components-css' href='https://www.commissiemer.nl/wp-content/plugins/gravityforms/assets/css/dist/theme-components.min.css?ver=2.10.2' media='all' />
+<link rel='stylesheet' id='gform_theme-css' href='https://www.commissiemer.nl/wp-content/plugins/gravityforms/assets/css/dist/theme.min.css?ver=2.10.2' media='all' />
+
+<meta name="generator" content="WP Rocket 3.21.3" data-wpr-features="wpr_delay_js wpr_defer_js wpr_minify_js wpr_lazyload_images wpr_lazyload_iframes wpr_image_dimensions wpr_minify_css wpr_desktop" /></head>
+
+<body class="wp-singular advice-template-default single single-advice postid-5795 wp-theme-stuurlui site-1 site-commissie-mer">
+	
+<!-- GTM Container placement set to automatic -->
+<!-- Google Tag Manager (noscript) -->
+				<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5XPWBQM" height="0" width="0" style="display:none;visibility:hidden" aria-hidden="true"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->	<header data-rocket-location-hash="d97d85a089898a2405b28366654e34a5" id="site-header" class="sticky top-0 transition z-[999]">
+		<a href="#main" class="bg-black text-white block text-lg -left-[1000rem] absolute z-[1000] p-4 focus:left-4 focus:top-4">Naar de hoofdinhoud
+</a>
+		<a href="#menu" class="bg-black text-white block text-lg -left-[1000rem] absolute z-[1000] p-4 focus:left-4 focus:top-4">Naar de navigatie</a>
+		<div data-rocket-location-hash="06d55611231056af35f953a95e356955" class="top-menu my-0 p-2 bg-white hidden lg:block wcag-blue-contrast">
+			<div data-rocket-location-hash="8b26da2811e10bb8b1236ec467e78f8b" class="grid-container">
+				<div class="flex w-full gap-6 justify-end items-center">
+					<ul id="menu-top-header" class="flex gap-4 justify-end"><li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-12205"><a href="https://www.commissiemer.nl/advies-op-de-fiets/"><span>Advies op de fiets</span></a></li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom top-level menu-item-3501"><a href="https://www.eia.nl/en/"><span>NCEA internationaal</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-11235"><a href="https://www.commissiemer.nl/pers/"><span>Pers</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-3499"><a href="https://www.commissiemer.nl/contact/"><span>Contact</span></a></li>
+</ul>				</div>
+			</div>
+		</div>
+		<div data-rocket-location-hash="1f52ca2e2df6c7bafc6584512cd46267" class="main-nav left-0 w-full bg-primary ea:bg-white px-5 wcag-white-contrast">
+			<div data-rocket-location-hash="785dbf71367dc056c526547d4023cd17" class="grid-container">
+				<div class="grid grid-cols-1">
+					<div class="items-center flex justify-between lg:px-0 py-[10px] lg:py-2">
+						<div class="h-[49px]">
+							<a id="logo" href="https://www.commissiemer.nl">
+								<img width="78" height="50" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2078%2050'%3E%3C/svg%3E" class="object-contain size-full" alt="Logo Ecologische autoriteit" data-lazy-src="https://www.commissiemer.nl/wp-content/themes/stuurlui/assets/img/logo-mer.svg"><noscript><img width="78" height="50" src="https://www.commissiemer.nl/wp-content/themes/stuurlui/assets/img/logo-mer.svg" class="object-contain size-full" alt="Logo Ecologische autoriteit"></noscript>
+								<span class="sr-only">Commissie mer</span>
+							</a>
+						</div>
+						<div id="menus" class="gap-4 items-center hidden lg:flex lg:h-full">
+							<nav id="menu" aria-label="Hoofdmenu" class="lg:h-full lg:flex lg:items-center lg:gap-[60px]">
+								<ul id="menu-main" class="flex gap-[50px] items-center"><li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-3479"><a href="https://www.commissiemer.nl/actueel/"><span>Actueel</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children top-level menu-item-12789"><a href="https://www.commissiemer.nl/de-commissie-mer/"><span>De Commissie mer</span></span><i class="fa-solid fa-chevron-down ml-2 text-[11px] transition-transform md:!hidden"></i><i class="fa-solid fa-caret-down ml-2 text-[11px] transition-transform !hidden md:!inline-block"></i></a>
+<ul class="sub-menu wcag-blue-contrast hidden">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13052"><a href="https://www.commissiemer.nl/de-commissie-mer/wat-doet-de-commissie-mer/"><span>Wat doet de Commissie mer?</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13051"><a href="https://www.commissiemer.nl/de-commissie-mer/onze-organisatie/"><span>Onze organisatie</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13258"><a href="https://www.commissiemer.nl/de-commissie-mer/missie-en-jaarverslagen/"><span>Missie en Jaarverslagen</span></a></li>
+
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children top-level menu-item-13438"><a href="https://www.commissiemer.nl/kennis-en-mer/"><span>Kennis en mer</span></span></span></span></span></span><i class="fa-solid fa-chevron-down ml-2 text-[11px] transition-transform md:!hidden"></i><i class="fa-solid fa-caret-down ml-2 text-[11px] transition-transform !hidden md:!inline-block"></i></a>
+<ul class="sub-menu wcag-blue-contrast hidden">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13373"><a href="https://www.commissiemer.nl/kennis-en-mer/uitleg-en-informatie-over-mer/"><span>Uitleg en informatie over mer</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13372"><a href="https://www.commissiemer.nl/kennis-en-mer/mer-bij-visie-programma-of-plan/"><span>Mer bij visie, programma of plan</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13439"><a href="https://www.commissiemer.nl/kennis-en-mer/themas-in-mer/"><span>Thema’s in mer</span></a></li>
+
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-3478"><a href="https://www.commissiemer.nl/adviezen/"><span>Adviezen</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-12330"><a href="https://www.commissiemer.nl/jurisprudentie/"><span>Jurisprudentie</span></a></li>
+</ul>																	<a href="https://www.commissiemer.nl/zoeken/" target="_self">
+										<i class="fa-regular fa-magnifying-glass text-white text-[22px]"></i>
+										<span class="sr-only">Ga naar de zoek pagina</span>
+									</a>
+																</nav>
+						</div>
+						<div class="mobile-nav lg:hidden flex gap-[40px] lg:gap-4">
+															<a class="mobile-nav-btn search-btn" href="https://www.commissiemer.nl/zoeken/" target="_self">
+									<i class="fa-regular fa-magnifying-glass"></i>
+									Zoeken									<span class="sr-only">Ga naar de zoek pagina</span>
+								</a>
+															<button class="offcanvas-toggler mobile-nav-btn mobile-menu-toggler" data-toggle="mobile-menu" aria-controls="mobile-menu" aria-label="Open menu" type="button" tabindex="0">
+								<i class="fa-solid fa-bars open-button"></i>
+								<i class="fa-solid fa-close text-lg close-button !hidden"></i>
+								<span class="menu-text">Menu</span>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</header>
+	<div data-rocket-location-hash="f6349ece9305d2c6acfd4353bac1372c" id="mobile-menu" class="transition-transform hidden overflow-auto offcanvas closed bg-primary ea:bg-brown-light px-[20px] py-[28px] h-[calc(100vh-var(--strl-m-header-height))] fixed pointer-events-none top-[var(--strl-m-header-height)] translate-x-full w-full z-[899] flex-col justify-between bg-shape-offcanvas ea:bg-ea-shape-prefooter bg-no-repeat bg-[right_bottom_30%]" data-toggler="mobile-menu">
+	<div data-rocket-location-hash="1a7768fe2f31d15d5e087fe93a0c7f0f" class="offcanvas-inner flex flex-col gap-6">
+	<ul id="menu-main-1" class="flex flex-col gap-8"><li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-3479"><a href="https://www.commissiemer.nl/actueel/"><span>Actueel</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children top-level menu-item-12789"><a href="https://www.commissiemer.nl/de-commissie-mer/"><span>De Commissie mer</span></span><i class="fa-solid fa-chevron-down ml-2 text-[11px] transition-transform md:!hidden"></i><i class="fa-solid fa-caret-down ml-2 text-[11px] transition-transform !hidden md:!inline-block"></i></a>
+<ul class="sub-menu wcag-blue-contrast hidden">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13052"><a href="https://www.commissiemer.nl/de-commissie-mer/wat-doet-de-commissie-mer/"><span>Wat doet de Commissie mer?</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13051"><a href="https://www.commissiemer.nl/de-commissie-mer/onze-organisatie/"><span>Onze organisatie</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13258"><a href="https://www.commissiemer.nl/de-commissie-mer/missie-en-jaarverslagen/"><span>Missie en Jaarverslagen</span></a></li>
+
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children top-level menu-item-13438"><a href="https://www.commissiemer.nl/kennis-en-mer/"><span>Kennis en mer</span></span></span></span></span></span><i class="fa-solid fa-chevron-down ml-2 text-[11px] transition-transform md:!hidden"></i><i class="fa-solid fa-caret-down ml-2 text-[11px] transition-transform !hidden md:!inline-block"></i></a>
+<ul class="sub-menu wcag-blue-contrast hidden">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13373"><a href="https://www.commissiemer.nl/kennis-en-mer/uitleg-en-informatie-over-mer/"><span>Uitleg en informatie over mer</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13372"><a href="https://www.commissiemer.nl/kennis-en-mer/mer-bij-visie-programma-of-plan/"><span>Mer bij visie, programma of plan</span></a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13439"><a href="https://www.commissiemer.nl/kennis-en-mer/themas-in-mer/"><span>Thema’s in mer</span></a></li>
+
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-3478"><a href="https://www.commissiemer.nl/adviezen/"><span>Adviezen</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-12330"><a href="https://www.commissiemer.nl/jurisprudentie/"><span>Jurisprudentie</span></a></li>
+</ul><ul id="menu-top-header-1" class="flex flex-col gap-4 top-header-mobile"><li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-12205"><a href="https://www.commissiemer.nl/advies-op-de-fiets/"><span>Advies op de fiets</span></a></li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom top-level menu-item-3501"><a href="https://www.eia.nl/en/"><span>NCEA internationaal</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-11235"><a href="https://www.commissiemer.nl/pers/"><span>Pers</span></a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page top-level menu-item-3499"><a href="https://www.commissiemer.nl/contact/"><span>Contact</span></a></li>
+</ul>	</div>
+	<div data-rocket-location-hash="0f22dcce2e7ea467668f0365d4996c3b" class="offcanvas-footer flex flex-col gap-4 mt-6">
+					<a class="btn white menu-item" href="3487">
+				Contact			</a>
+				</div>
+</div>
+	<main data-rocket-location-hash="b552480b63b9ca94b0986990be83fae2" id="main">
+<!-- header-simple -->
+<section data-rocket-location-hash="a958b08713900ba274d6d98898c69058" class="header-simple  mt-0 py-10 lg:py-[50px] relative bg-primary-dark ea:bg-brown-light">
+	<div data-rocket-location-hash="494a933f77c0d380fb1f2e73f6e8c6da" class="grid-container h-full relative z-10 py-8 lg:py-16">
+		<div class="flex h-full">
+			<div class="h-full flex-full flex items-center">
+				<div class="flex flex-col flex-full lg:flex-col-7 gap-4 lg:gap-6">
+						<div class="breadcrumbs dark" typeof="BreadcrumbList" vocab="https://schema.org/">
+			<span property="itemListElement" typeof="ListItem"><a property="item" typeof="WebPage" title="Ga naar Commissie mer." href="https://www.commissiemer.nl" class="home" ><span property="name"><i class="fa-regular fa-house"></i><span class="sr-only">Ga naar homepage</span></a><meta property="position" content="1"></span><span class="seperator"><i class="fa-solid fa-chevron-right"></i></span><span property="itemListElement" typeof="ListItem"><a property="item" typeof="WebPage" title="Ga naar Adviezen." href="https://www.commissiemer.nl/adviezen/" class="advice-root post post-advice" ><span property="name">Adviezen</span></a><meta property="position" content="2"></span><span class="seperator"><i class="fa-solid fa-chevron-right"></i></span><span property="itemListElement" typeof="ListItem"><span property="name" class="post post-advice current-item">Fabriek voor de productie van aromaten uit niet-herbruikbaar afvalplastic in Delfzijl</span><meta property="url" content="https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/"><meta property="position" content="3"></span>		</div>
+							<span class="bg-white leading-medium font-bold py-2 px-4 text-primary-dark text-project-number w-fit">3619</span>
+										<h1 class="text-white ea:!text-primary mb-0">Fabriek voor de productie van aromaten uit niet-herbruikbaar afvalplastic in Delfzijl</h1>
+									</div>
+			</div>
+		</div>
+	</div>
+</section>
+<!-- end:header-simple -->
+<!-- text-block -->
+<section data-rocket-location-hash="f0e25844512babc60c781dc23fc62a3f" class="text-block  single-content">
+	<div data-rocket-location-hash="a719ef6c85b743c07dd96a760f61e2dd" class="grid-container">
+		<div class="flex flex-wrap gap-auto  justify-start">
+			<div class="flex-full lg:flex-col-7 max-sm:col-span-full">
+								<div class="text">
+											<div class="intro mb-8 lg:mb-10 font-semibold">
+							<p>Plastics Conversion Plant B.V. wil een nieuwe fabriek bouwen op industrieterrein Oosterhorn in Delfzijl. Het bedrijf gaat afvalplastics verwerken tot BTX dat onder meer kan worden gebruikt voor de productie van nieuwe kunststoffen. Benzeen, tolueen en xyleen zijn gevaarlijke stoffen. Als bijproducten ontstaan koolwaterstofrijk gas en bitumen. Voordat de provincie besluit over de omgevingsvergunning voor de fabriek, zijn de milieugevolgen onderzocht in een milieueffectrapport.</p>
+						</div>
+						<h3>Hoofdpunten uit het advies</h3><strong>Toetsingsadvies</strong><br />
+De Commissie is van oordeel dat het MER en de aanvulling tezamen de essenti&euml;le informatie bevatten om een besluit te kunnen nemen over het project.<br /><br /><strong>Voorlopig toetsingsadvies over de aanvulling op het MER</strong><br />
+In het rapport ontbreekt een compleet beeld van de afvalstoffen die de fabriek gaat verwerken. Daardoor zijn de milieueffecten van de fabriek onduidelijk. Zoals de verontreiniging naar lucht en water.<br />
+Ook worden de milieuvoordelen van de nieuwe fabriek niet voldoende onderbouwd. Zo is het geclaimde CO2-voordeel onzeker. Daarnaast is &eacute;&eacute;n van de stoffen die in de fabriek wordt geproduceerd, benzeen, een gevaarlijke stof. Bedrijven zijn verplicht om uitstoot van die stof zoveel mogelijk te voorkomen. In het milieueffectrapport wordt nog niet onderbouwd waarom er toch voor wordt gekozen benzeen te produceren.<br />
+De provincie neemt het advies over om het milieueffectrapport verder aan te vullen met deze informatie. Ook heeft de provincie aangegeven het rapport m&eacute;t de aanvulling nogmaals aan de Commissie voor te leggen voordat zij een besluit neemt.<br /><br /><strong>Toetsingsadvies</strong><br />
+In het rapport ontbreekt inzicht in de aard en samenstelling van de afvalstoffen die worden verwerkt. Daardoor zijn de milieueffecten van de fabriek onvoldoende in beeld, zoals welke verontreiniging naar de lucht en het water er zal zijn. Ook is de samenstelling van het koolstofrijk gas en de bitumen onduidelijk<br />
+Verder ontbreekt in het rapport een alternatief dat uitgaat van het verder verminderen van uitstoot van verontreinigende stoffen naar de lucht en het water. Afhankelijk van de afvalstoffen die worden verwerkt, adviseert de Commissie ook een alternatief te onderzoeken waarbij alleen niet-recyclebaar kunststofafval wordt gebruikt.<br />
+De Commissie adviseert om eerst het milieurapport aan te vullen en daarna pas te besluiten over de omgevingsvergunning.<br /><br /><strong>Advies reikwijdte en detailniveau</strong><br />
+Het milieueffectrapport moet het productieproces en de onzekerheden daarbij beschrijven. Dan wordt duidelijk hoeveel de fabriek uitstoot. Kijk daarbij naar herkomst, samenstelling en hoeveelheid kunststofafvalstoffen, zegt de Commissie.<br />
+De Commissie adviseert verder in het rapport aandacht te besteden aan Zeer Zorgwekkende Stoffen en aan de mogelijkheden om uitstoot van deze stoffen te voorkomen of zoveel mogelijk te beperken.				</div>
+
+		</div>
+		<div class="lg:ml-auto min-w-full lg:min-w-[377px] mt-8 lg:mt-0 flex-col-3">
+	<div class="flex flex-col gap-8 lg:gap-12">
+					<div class="sidebar-item">
+				<article class="people-card  p-4 lg:p-6 relative group/card flex flex-col-reverse bg-white w-full">
+	<div class="card-inner flex flex-col lg:flex-row gap-[22px]">
+		<div class="content order-2 overflow-hidden">
+							<div class="mb-2">
+											<h3 class="text-h6">Lotte Geense</h3>
+												<p class="text-regular leading-[24px] text-primary-dark mb-0">jurist en werkgroepsecretaris</p>
+										</div>
+								<div class="contact-info flex flex-col w-full overflow-hidden">
+											<a href="mailto:lgeense@eia.nl" class="text-primary-dark no-underline hocus:text-primary-dark hocus:underline overflow-hidden whitespace-nowrap text-ellipsis w-full">
+							Stuur mij een email							<span class="sr-only">
+								Email Lotte Geense							</span>
+						</a>
+												<a href="tel:0302347623" class="text-primary-dark no-underline hocus:text-primary-dark hocus:underline">
+							(030) 234 76 23							<span class="sr-only">
+								Bel Lotte Geense							</span>
+						</a>
+										</div>
+						</div>
+					<header class="order-1 w-[116px] h-[116px] max-w-[116px] max-h-[116px] min-w-[116px] min-h-[116px] rounded-full overflow-hidden">
+					<picture>
+		<source data-lazy-srcset="https://www.commissiemer.nl/wp-content/uploads/2025/07/lotte-JdH-20230323-Commissie-MER-042_Foto-Jelmer-de-Haas_HIGHRES_AdobeRGB.jpg" media="(min-width: 1025px)" />
+		<source data-lazy-srcset="https://www.commissiemer.nl/wp-content/uploads/2025/07/lotte-JdH-20230323-Commissie-MER-042_Foto-Jelmer-de-Haas_HIGHRES_AdobeRGB.jpg" media="(min-width: 680px)" />
+		<img
+		 src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E"
+			 alt="Afbeelding van Lotte Geense" class="object-cover size-full" title="Lotte Geense"		 data-lazy-src="https://www.commissiemer.nl/wp-content/smush-webp/2025/07/lotte-JdH-20230323-Commissie-MER-042_Foto-Jelmer-de-Haas_HIGHRES_AdobeRGB-600x400.jpg.webp"	><noscript><img
+			src="https://www.commissiemer.nl/wp-content/smush-webp/2025/07/lotte-JdH-20230323-Commissie-MER-042_Foto-Jelmer-de-Haas_HIGHRES_AdobeRGB-600x400.jpg.webp"
+			 alt="Afbeelding van Lotte Geense" class="object-cover size-full" title="Lotte Geense"			></noscript>
+	</picture>
+				</header>
+				</div>
+	<h2 class="text-h5 text-primary-dark ea:text-accent">Meer informatie</h2>
+</article>
+			</div>
+						<div class="sidebar-item">
+				<div class="bg-white p-4 lg:p-6">
+					<h2 class="text-h5 text-primary-dark ea:text-accent">
+						Adviezen en persberichten					</h2>
+					<div class="flex flex-col gap-4">
+						<div>
+						<a class="no-underline group/link text-base text-primary-dark grid grid-cols-[20px_1fr] gap-[6px] items-baseline " href="https://pas.commissiemer.nl/files/nl/3619/a3619tsea2.pdf" download>
+							<i class="fa-regular fa-arrow-down-to-line text-regular fa-fw"></i>
+							<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+								Toetsingsadvies							</span>
+							<span class="sr-only">
+								Download bestand Toetsingsadvies							</span>
+						</a>
+					</div>
+										<div>
+						<a class="no-underline group/link text-base text-primary-dark grid grid-cols-[20px_1fr] gap-[6px] items-baseline " href="https://pas.commissiemer.nl/files/nl/3619/a3619tsea.pdf" download>
+							<i class="fa-regular fa-arrow-down-to-line text-regular fa-fw"></i>
+							<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+								Voorlopig toetsingsadvies							</span>
+							<span class="sr-only">
+								Download bestand Voorlopig toetsingsadvies							</span>
+						</a>
+					</div>
+										<div>
+						<a class="no-underline group/link text-base text-primary-dark grid grid-cols-[20px_1fr] gap-[6px] items-baseline -mt-[12px]" href="https://pas.commissiemer.nl/files/nl/3619/3619_persbericht_def.pdf" download>
+							<i class="fa-regular fa-arrow-down-to-line text-regular fa-fw"></i>
+							<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+								Persbericht							</span>
+							<span class="sr-only">
+								Download bestand Persbericht							</span>
+						</a>
+					</div>
+										<div>
+						<a class="no-underline group/link text-base text-primary-dark grid grid-cols-[20px_1fr] gap-[6px] items-baseline " href="https://pas.commissiemer.nl/files/nl/3619/a3619ts.pdf" download>
+							<i class="fa-regular fa-arrow-down-to-line text-regular fa-fw"></i>
+							<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+								Toetsingsadvies							</span>
+							<span class="sr-only">
+								Download bestand Toetsingsadvies							</span>
+						</a>
+					</div>
+										<div>
+						<a class="no-underline group/link text-base text-primary-dark grid grid-cols-[20px_1fr] gap-[6px] items-baseline -mt-[12px]" href="https://pas.commissiemer.nl/files/nl/3619/persbericht.pdf" download>
+							<i class="fa-regular fa-arrow-down-to-line text-regular fa-fw"></i>
+							<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+								Persbericht							</span>
+							<span class="sr-only">
+								Download bestand Persbericht							</span>
+						</a>
+					</div>
+										<div>
+						<a class="no-underline group/link text-base text-primary-dark grid grid-cols-[20px_1fr] gap-[6px] items-baseline " href="https://pas.commissiemer.nl/files/nl/3619/3619_advies_reikwijdte_en_detailniveau.pdf" download>
+							<i class="fa-regular fa-arrow-down-to-line text-regular fa-fw"></i>
+							<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+								Advies reikwijdte en detailniveau							</span>
+							<span class="sr-only">
+								Download bestand Advies reikwijdte en detailniveau							</span>
+						</a>
+					</div>
+										<div>
+						<a class="no-underline group/link text-base text-primary-dark grid grid-cols-[20px_1fr] gap-[6px] items-baseline -mt-[12px]" href="https://pas.commissiemer.nl/files/nl/3619/3619_rd_persbericht.pdf" download>
+							<i class="fa-regular fa-arrow-down-to-line text-regular fa-fw"></i>
+							<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+								Persbericht							</span>
+							<span class="sr-only">
+								Download bestand Persbericht							</span>
+						</a>
+					</div>
+					</div>
+				</div>
+			</div>
+						<div class="sidebar-item">
+				<div class="bg-white p-4 lg:p-6">
+					<h2 class="text-h5 text-primary-dark ea:text-accent">
+						Documenten waarop het advies is gebaseerd					</h2>
+					<div class="flex flex-col gap-4">
+					<div class="flex flex-col gap-2">
+												<details class="group/details bg-light-gray-bg border border-transparent">
+								<summary class="group/summary marker:content-none gap-2 flex justify-between items-center px-2 py-3 font-bold text-h5 cursor-pointer">
+									<h3 class="group-hover/summary:underline text-base py-0 !my-0">Toetsing aanvulling op het MER 2</h3><i class="fa-solid text-primary-dark text-base fa-plus group-[[open]]/details:!hidden"></i><i class="fa-solid text-base fa-minus !hidden group-[[open]]/details:!inline"></i>
+								</summary>
+								<div class="px-2 py-2">
+									<div class="flex flex-col gap-2">
+																					<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/herzien-addendum-mer-pcp-incl-bijlagen-20260318.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														Herzien addendum MER PCP incl bijlagen_20260318													</span>
+													<span class="sr-only">
+														Open bestand Herzien addendum MER PCP incl bijlagen_20260318 in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																				</div>
+								</div>
+							</details>
+											</div>
+								<div class="flex flex-col gap-2">
+												<details class="group/details bg-light-gray-bg border border-transparent">
+								<summary class="group/summary marker:content-none gap-2 flex justify-between items-center px-2 py-3 font-bold text-h5 cursor-pointer">
+									<h3 class="group-hover/summary:underline text-base py-0 !my-0">Toetsing aanvulling op het MER</h3><i class="fa-solid text-primary-dark text-base fa-plus group-[[open]]/details:!hidden"></i><i class="fa-solid text-base fa-minus !hidden group-[[open]]/details:!inline"></i>
+								</summary>
+								<div class="px-2 py-2">
+									<div class="flex flex-col gap-2">
+																					<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016192-3619-ontwerpbesluit-pcp-b-v.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016192 3619 Ontwerpbesluit PCP B-V-													</span>
+													<span class="sr-only">
+														Open bestand 016192 3619 Ontwerpbesluit PCP B-V- in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016191-3619-20240416-pcp-addendum-mer-biobtx-rh-dhv-bi8723-ib-me-240216-1256-16apr2024.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016191 3619 20240416 PCP Addendum MER BioBTX RH DHV BI8723-IB-ME-240216-1256 16APR2024													</span>
+													<span class="sr-only">
+														Open bestand 016191 3619 20240416 PCP Addendum MER BioBTX RH DHV BI8723-IB-ME-240216-1256 16APR2024 in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016190-3619-20251002-pcp-aanzet-beheers-en-monitoringsprogramma.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016190 3619 20251002 PCP Aanzet beheers en monitoringsprogramma													</span>
+													<span class="sr-only">
+														Open bestand 016190 3619 20251002 PCP Aanzet beheers en monitoringsprogramma in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016189-3619-20250328-toelichting-feedstock-acceptance-protocol-pcp-v01.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016189 3619 20250328 Toelichting feedstock acceptance protocol PCP V01													</span>
+													<span class="sr-only">
+														Open bestand 016189 3619 20250328 Toelichting feedstock acceptance protocol PCP V01 in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016188-3619-20250310-memo-product-vs-feedstock-pcp-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016188 3619 20250310-MEMO-Product vs feedstock PCP Redacted													</span>
+													<span class="sr-only">
+														Open bestand 016188 3619 20250310-MEMO-Product vs feedstock PCP Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016187-3619-pcp-akoestisch-onderzoek-v20250702.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016187 3619 PCP akoestisch onderzoek v20250702													</span>
+													<span class="sr-only">
+														Open bestand 016187 3619 PCP akoestisch onderzoek v20250702 in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016186-3619-bj3643-rhd-me0003f01-addendum-pcp-biobtx-marconi-kwelder.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016186 3619 BJ3643-RHD-ME0003F01-Addendum PCP BioBTX Marconi Kwelder													</span>
+													<span class="sr-only">
+														Open bestand 016186 3619 BJ3643-RHD-ME0003F01-Addendum PCP BioBTX Marconi Kwelder in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016185-3619-bj3643ibme0001f01-wijziging-productgas-bitumen-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016185 3619 BJ3643IBME0001F01 - Wijziging productgas bitumen Redacted													</span>
+													<span class="sr-only">
+														Open bestand 016185 3619 BJ3643IBME0001F01 - Wijziging productgas bitumen Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/016184-3619-bj3643-102-has-me-0001f01-beantwoording-vragen-mer-en-vergunningaanvraag-def-20250618-re.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														016184 3619 BJ3643-102-HAS-ME-0001F01-Beantwoording vragen MER en vergunningaanvraag def 20250618 Re													</span>
+													<span class="sr-only">
+														Open bestand 016184 3619 BJ3643-102-HAS-ME-0001F01-Beantwoording vragen MER en vergunningaanvraag def 20250618 Re in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																				</div>
+								</div>
+							</details>
+											</div>
+								<div class="flex flex-col gap-2">
+												<details class="group/details bg-light-gray-bg border border-transparent">
+								<summary class="group/summary marker:content-none gap-2 flex justify-between items-center px-2 py-3 font-bold text-h5 cursor-pointer">
+									<h3 class="group-hover/summary:underline text-base py-0 !my-0">Toetsing</h3><i class="fa-solid text-primary-dark text-base fa-plus group-[[open]]/details:!hidden"></i><i class="fa-solid text-base fa-minus !hidden group-[[open]]/details:!inline"></i>
+								</summary>
+								<div class="px-2 py-2">
+									<div class="flex flex-col gap-2">
+																					<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012557-3619-m9-bodemrisicoanalyse-pcp.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012557 3619 M9 Bodemrisicoanalyse PCP													</span>
+													<span class="sr-only">
+														Open bestand 012557 3619 M9 Bodemrisicoanalyse PCP in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012558-3619-m8-nulsituatie-bodemonderzoek-pcp.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012558 3619 M8 Nulsituatie Bodemonderzoek PCP													</span>
+													<span class="sr-only">
+														Open bestand 012558 3619 M8 Nulsituatie Bodemonderzoek PCP in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012556-3619-m7-akoestisch-onderzoek-pcp.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012556 3619 M7 Akoestisch onderzoek PCP													</span>
+													<span class="sr-only">
+														Open bestand 012556 3619 M7 Akoestisch onderzoek PCP in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012554-3619-m6-av-ao-ic-upd.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012554 3619 M6 AV AO-IC UPD													</span>
+													<span class="sr-only">
+														Open bestand 012554 3619 M6 AV AO-IC UPD in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012555-3619-m5-memo-lap-toets-pcp.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012555 3619 M5 Memo LAP-toets PCP													</span>
+													<span class="sr-only">
+														Open bestand 012555 3619 M5 Memo LAP-toets PCP in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012572-3619-m4-einde-afvalstatus-pcp-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012572 3619 M4 Einde afvalstatus PCP Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012572 3619 M4 Einde afvalstatus PCP Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012571-3619-m3b-stikstofdepositie-bouwfase-herzien-2023.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012571 3619 M3B Stikstofdepositie bouwfase herzien 2023													</span>
+													<span class="sr-only">
+														Open bestand 012571 3619 M3B Stikstofdepositie bouwfase herzien 2023 in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012569-3619-m3a-stikstofdepositie-gebruiksfase-herzien-2023-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012569 3619 M3A Stikstofdepositie gebruiksfase herzien 2023 Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012569 3619 M3A Stikstofdepositie gebruiksfase herzien 2023 Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012583-3619-m22-memo-wav-en-nnn-08022023.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012583 3619 M22 Memo WaV en NNN 08022023													</span>
+													<span class="sr-only">
+														Open bestand 012583 3619 M22 Memo WaV en NNN 08022023 in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012579-3619-m21-lca-pcp-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012579 3619 M21 LCA PCP Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012579 3619 M21 LCA PCP Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012580-3619-m20-ecoras-lca.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012580 3619 M20 Ecoras LCA													</span>
+													<span class="sr-only">
+														Open bestand 012580 3619 M20 Ecoras LCA in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012568-3619-m2-luchtkwaliteitsonderzoek-pcp-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012568 3619 M2 Luchtkwaliteitsonderzoek PCP Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012568 3619 M2 Luchtkwaliteitsonderzoek PCP Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012582-3619-m19-mass-en-heat-balance-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012582 3619 M19 Mass en heat balance Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012582 3619 M19 Mass en heat balance Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012578-3619-m16-zzs-luchtonderzoek-pcp-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012578 3619 M16 ZZS luchtonderzoek PCP Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012578 3619 M16 ZZS luchtonderzoek PCP Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012575-3619-m14a-toets-afvalmeeverbranding-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012575 3619 M14A Toets afvalmeeverbranding Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012575 3619 M14A Toets afvalmeeverbranding Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012574-3619-m14-rie-toets-pcp-final.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012574 3619 M14 RIE Toets PCP Final													</span>
+													<span class="sr-only">
+														Open bestand 012574 3619 M14 RIE Toets PCP Final in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012576-3619-m13-natuurtoets-pcp-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012576 3619 M13 Natuurtoets PCP Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012576 3619 M13 Natuurtoets PCP Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012573-3619-m12-brzo-en-bevi-toets-pcp.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012573 3619 M12 BRZO en Bevi toets PCP													</span>
+													<span class="sr-only">
+														Open bestand 012573 3619 M12 BRZO en Bevi toets PCP in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012577-3619-m11b-uitdraaien-immissietoets-herzien-2023.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012577 3619 M11B Uitdraaien immissietoets herzien 2023													</span>
+													<span class="sr-only">
+														Open bestand 012577 3619 M11B Uitdraaien immissietoets herzien 2023 in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012561-3619-m10d-sds-koelwaterchemicalien.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012561 3619 M10D SDS Koelwaterchemicalien													</span>
+													<span class="sr-only">
+														Open bestand 012561 3619 M10D SDS Koelwaterchemicalien in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012560-3619-m10c-toelichting-methodiek-abm.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012560 3619 M10C Toelichting methodiek ABM													</span>
+													<span class="sr-only">
+														Open bestand 012560 3619 M10C Toelichting methodiek ABM in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012562-3619-m10b-abm-toets-herzien-2023-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012562 3619 M10B ABM-toets herzien 2023 Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012562 3619 M10B ABM-toets herzien 2023 Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012567-3619-a2-toelichting-op-de-aanvraag-pcp-aangevuld-2023-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012567 3619 A2 Toelichting op de aanvraag PCP aangevuld 2023 Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012567 3619 A2 Toelichting op de aanvraag PCP aangevuld 2023 Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012559-3619-m10a-analyses-sgs-herzien-2023-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012559 3619 M10A Analyses SGS herzien 2023 Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012559 3619 M10A Analyses SGS herzien 2023 Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012570-3619-m1-geuronderzoek-pcp.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012570 3619 M1 Geuronderzoek PCP													</span>
+													<span class="sr-only">
+														Open bestand 012570 3619 M1 Geuronderzoek PCP in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012566-3619-bj3643-memo-beantwoording-opmerkingen-odg-28072023-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012566 3619 BJ3643 Memo beantwoording opmerkingen ODG 28072023 Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012566 3619 BJ3643 Memo beantwoording opmerkingen ODG 28072023 Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012565-3619-a1b-mer-pcp-publiekssamenvatting-duits.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012565 3619 A1B MER PCP publiekssamenvatting Duits													</span>
+													<span class="sr-only">
+														Open bestand 012565 3619 A1B MER PCP publiekssamenvatting Duits in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012563-3619-a1a-mer-pcp-publiekssamenvatting.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012563 3619 A1A MER PCP publiekssamenvatting 													</span>
+													<span class="sr-only">
+														Open bestand 012563 3619 A1A MER PCP publiekssamenvatting  in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																						<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/012564-3619-a1-milieueffectrapportage-pcp-redacted.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														012564 3619 A1 Milieueffectrapportage PCP Redacted													</span>
+													<span class="sr-only">
+														Open bestand 012564 3619 A1 Milieueffectrapportage PCP Redacted in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																				</div>
+								</div>
+							</details>
+											</div>
+								<div class="flex flex-col gap-2">
+												<details class="group/details bg-light-gray-bg border border-transparent">
+								<summary class="group/summary marker:content-none gap-2 flex justify-between items-center px-2 py-3 font-bold text-h5 cursor-pointer">
+									<h3 class="group-hover/summary:underline text-base py-0 !my-0">Reikwijdte en detailniveau</h3><i class="fa-solid text-primary-dark text-base fa-plus group-[[open]]/details:!hidden"></i><i class="fa-solid text-base fa-minus !hidden group-[[open]]/details:!inline"></i>
+								</summary>
+								<div class="px-2 py-2">
+									<div class="flex flex-col gap-2">
+																					<div>
+												<a target="_blank" class="no-underline group/link text-base text-primary-dark flex flex-row gap-4 items-baseline" href="https://pas.commissiemer.nl/files/nl/3619/015990-3619-m21-lca-pcp-redacted-1.pdf">
+													<span class="block">
+														<i class="fa-solid fa-fw fa-arrow-up-right-from-square text-regular"></i>
+													</span>
+													<span class="decoration-transparent underline group-hover/link:decoration-primary transition">
+														015990 3619 M21 LCA PCP Redacted -1-													</span>
+													<span class="sr-only">
+														Open bestand 015990 3619 M21 LCA PCP Redacted -1- in een nieuw tabblad en op een externe site.													</span>
+												</a>
+											</div>
+																				</div>
+								</div>
+							</details>
+											</div>
+				</div>
+				</div>
+			</div>
+						<div class="sidebar-item">
+				<div class="bg-white p-4 lg:p-6">
+					<h2 class="text-h5 text-primary-dark ea:text-accent">
+						Deel					</h2>
+						<div class="social-share flex flex-wrap gap-4">
+					<a rel="noreferrer noopener" aria-label="Deel op LinkedIn" href="https://www.linkedin.com/shareArticle?url=https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/" onClick="__gaTracker('send', 'social', 'linkedin', 'share', 'https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/' );" target="_blank">
+				<i data-tooltip title="Deel op LinkedIn" data-position="top" data-alignment="center" class="fa-brands fa-linkedin-in"></i>
+				<span class="sr-only">Deel op LinkedIn</span>
+			</a>
+						<a rel="noreferrer noopener" aria-label="Deel via e-mail" href="mailto:?body=https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/" onClick="__gaTracker('send', 'social', 'email-share', 'share', 'https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/');">
+				<i data-tooltip title="Deel via e-mail" data-position="top" data-alignment="center" class="fa-regular fa-envelope"></i>
+				<span class="sr-only">Deel via e-mail</span>
+			</a>
+				</div>
+					</div>
+			</div>
+				</div>
+</div>
+					</div>
+	</div>
+</section>
+<!-- end:text-block -->
+		<section data-rocket-location-hash="60213665af3f3027507377ecae1c663d" class="has-background bg-white">
+			<div data-rocket-location-hash="363b5701a22c392ca17f04c4e71b345a" class="grid-container">
+				<div class="flex lg:justify-center">
+					<div class="flex-col-full w-full lg:flex-col-8">
+						<h2 class="mb-8 lg:mb-10">Samenstelling van de laatste werkgroep</h2>
+													<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
+																		<div class="pb-4 border-b border-b-primary-light flex flex-col justify-end">
+																						<h3 class="text-h6 mb-1">ir. Geert Bergsma</h3>
+										</div>
+																				<div class="pb-4 border-b border-b-primary-light flex flex-col justify-end">
+																						<h3 class="text-h6 mb-1">ir. Arjen Brinkmann</h3>
+										</div>
+																				<div class="pb-4 border-b border-b-primary-light flex flex-col justify-end">
+																						<h3 class="text-h6 mb-1">ir. Paul van Vugt</h3>
+										</div>
+																				<div class="pb-4 border-b border-b-primary-light flex flex-col justify-end">
+																							<span class="text-regular font-medium leading-22">voorzitter</span>
+																							<h3 class="text-h6 mb-1">ir. Annemie Burger</h3>
+										</div>
+																				<div class="pb-4 border-b border-b-primary-light flex flex-col justify-end">
+																							<span class="text-regular font-medium leading-22">werkgroepsecretaris</span>
+																							<h3 class="text-h6 mb-1">mr. Lotte Geense</h3>
+										</div>
+																	</div>
+												</div>
+				</div>
+			</div>
+		</section>
+		<!-- table-sidebar -->
+<section data-rocket-location-hash="c8fa713b90cc68fe38bd4dc354a155fe" class="table-sidebar bg-light-gray-bg has-background">
+	<div data-rocket-location-hash="81823f7e5b678d3d769ccdf3afa9a907" class="grid-container">
+		<div class="flex flex-wrap gap-auto justify-start">
+			<div class="flex-full lg:flex-col-8">
+									<h2 class="mb-6 text-primary-dark">Projectinformatie</h2>
+											<div class="flex flex-wrap lg:gap-auto items-start border-b border-opacity-60 border-primary-light mb-[19px]">
+													<div class="w-full lg:w-[300px]">
+								<p class="text-h6 font-bold mb-1 lg:mb-[19px]">Bevoegd gezag</p>
+							</div>
+															<div class="w-full lg:flex-1">
+									<p class="text-h6 mb-[19px]">Provincie Groningen</p>
+								</div>
+														</div>
+												<div class="flex flex-wrap lg:gap-auto items-start border-b border-opacity-60 border-primary-light mb-[19px]">
+													<div class="w-full lg:w-[300px]">
+								<p class="text-h6 font-bold mb-1 lg:mb-[19px]">Initiatiefnemer</p>
+							</div>
+															<div class="w-full lg:flex-1">
+									<p class="text-h6 mb-[19px]">Plastics Conversion Plant B.V.</p>
+								</div>
+														</div>
+												<div class="flex flex-wrap lg:gap-auto items-start mb-0">
+													<div class="w-full lg:w-[300px]">
+								<p class="text-h6 font-bold mb-1 lg:mb-[0px]">Laatste advies uitgebracht op</p>
+							</div>
+															<div class="w-full lg:flex-1">
+									<p class="text-h6 mb-0">26 mei 2026</p>
+								</div>
+														</div>
+									</div>
+					</div>
+	</div>
+</section>
+<!-- end:table-sidebar -->
+<!-- cta-block -->
+<section data-rocket-location-hash="997e23ffef4fd71b27b7e2502aef77df" class="cta-block ">
+	<div data-rocket-location-hash="9ecd7cd830a5046de10137a835135213" class="grid-container">
+			<div class="flex flex-wrap gap-auto justify-center">
+				<div class="bg-white p-4 md:p-8 lg:p-10 !text-primary-dark flex-col-full lg:flex-col-10 bg-shape-prefooter ea:bg-ea-shape-prefooter bg-no-repeat bg-[right_10%_bottom] w-full">
+											<div class="button-group mt-8 mb-0 first:mt-0">
+								<a class="btn" href="https://www.commissiemer.nl/adviezen/" target="_parent" >Terug naar het overzicht</a>
+							</div>
+										</div>
+			</div>
+	</div>
+</section>
+<!-- end:cta-block -->
+</main>
+<footer data-rocket-location-hash="40cf0a121d55aad63b7e5fcede889b29" class="section px-0 my-0">
+			<div data-rocket-location-hash="46539fad73fd7a062c631e7706eb071e" id="nieuwsbrief" class="pre-footer wcag-white-contrast bg-primary-light ea:bg-brown-lighter py-20 !my-0 lg:py-12 px-5 min-[1000px]:bg-no-repeat min-[1000px]:bg-shape-prefooter ea:min-[1000px]:bg-ea-shape-prefooter  min-[1000px]:bg-min-[1000px]:bg-no-repeat min-[1000px]:bg-[right_12%_bottom]">
+			<div data-rocket-location-hash="b063f82709c93ddeacb047fa2dd44368" class="grid-container flex items-center justify-center w-full">
+				<div class="flex-full md:flex-col-10 lg:flex-col-8">
+											<h2 class="text-primary-dark mb-6 lg:mb-10 leading-medium">Meld je aan voor de nieuwsbrief</h2>
+						<script type="text/rocketlazyloadscript">
+
+</script>
+
+                <div class='gf_browser_chrome gform_wrapper gravity-theme gform-theme--no-framework newsletter-form_wrapper' data-form-theme='gravity-theme' data-form-index='0' id='gform_wrapper_3' ><div id='gf_3' class='gform_anchor' tabindex='-1'></div><form method='post' enctype='multipart/form-data' target='gform_ajax_frame_3' id='gform_3' class='newsletter-form' action='/advies/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl/#gf_3' data-formid='3' novalidate>
+                        <div class='gform-body gform_body'><div id='gform_fields_3' class='gform_fields top_label form_sublabel_below description_below validation_below'><div id="field_3_11" class="gfield gfield--type-honeypot gform_validation_container field_sublabel_below gfield--has-description field_description_below field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_3_11'>URL</label><div class='ginput_container'><input name='input_11' id='input_3_11' type='text' value='' autocomplete='new-password'/></div><div class='gfield_description' id='gfield_description_3_11'>Dit veld is bedoeld voor validatiedoeleinden en moet niet worden gewijzigd.</div></div><div id="field_3_5" class="gfield gfield--type-html gfield--input-type-html gfield--width-full gfield_html gfield_html_formatted gfield_no_follows_desc field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><a id="nieuwsbrief"></a></div><div id="field_3_1" class="gfield gfield--type-email gfield--input-type-email gfield--width-third gfield_contains_required field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_3_1'>E-mailades<span class="gfield_required"><span class="gfield_required gfield_required_text">(Vereist)</span></span></label><div class='ginput_container ginput_container_email'>
+                            <input name='input_1' id='input_3_1' type='email' value='' class='large'   placeholder='E-mailadres' aria-required="true" aria-invalid="false"  autocomplete="email"/>
+                        </div></div><div id="field_3_3" class="gfield gfield--type-text gfield--input-type-text gfield--width-third gfield_contains_required field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_3_3'>Voornaam<span class="gfield_required"><span class="gfield_required gfield_required_text">(Vereist)</span></span></label><div class='ginput_container ginput_container_text'><input name='input_3' id='input_3_3' type='text' value='' class='large'    placeholder='Voornaam' aria-required="true" aria-invalid="false"  autocomplete="given-name" /></div></div><div id="field_3_4" class="gfield gfield--type-text gfield--input-type-text gfield--width-third gfield_contains_required field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_3_4'>Achternaam<span class="gfield_required"><span class="gfield_required gfield_required_text">(Vereist)</span></span></label><div class='ginput_container ginput_container_text'><input name='input_4' id='input_3_4' type='text' value='' class='large'    placeholder='Achternaam' aria-required="true" aria-invalid="false"   /></div></div><div id="field_3_9" class="gfield gfield--type-text gfield--input-type-text gfield--width-full gfield_contains_required field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_3_9'>Organisatie<span class="gfield_required"><span class="gfield_required gfield_required_text">(Vereist)</span></span></label><div class='ginput_container ginput_container_text'><input name='input_9' id='input_3_9' type='text' value='' class='large'    placeholder='Organisatie' aria-required="true" aria-invalid="false"   /></div></div><div id="field_3_10" class="gfield gfield--type-turnstile gfield--input-type-turnstile gfield--width-full field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_turnstile'><div class="cf-turnstile" id="cf-turnstile_3" data-js-turnstile data-response-field-name="cf-turnstile-response_3" data-theme="auto" data-size="normal" data-sitekey="0x4AAAAAAC2vGIWioPsDYizh"></div></div></div></div></div>
+        <div class='gform-footer gform_footer top_label'> <button type="submit" id="gform_submit_button_3" class="gform_button button btn primary h-fit" onclick="gform.submission.handleButtonClick(this);" data-submission-type="submit">Aanmelden</button> <input type='hidden' name='gform_ajax' value='form_id=3&amp;title=&amp;description=&amp;tabindex=0&amp;theme=gravity-theme&amp;styles=[]&amp;hash=ec8a76699a646ec1660ce07521d312a3' />
+            <input type='hidden' class='gform_hidden' name='gform_submission_method' data-js='gform_submission_method_3' value='iframe' />
+            <input type='hidden' class='gform_hidden' name='gform_theme' data-js='gform_theme_3' id='gform_theme_3' value='gravity-theme' />
+            <input type='hidden' class='gform_hidden' name='gform_style_settings' data-js='gform_style_settings_3' id='gform_style_settings_3' value='[]' />
+            <input type='hidden' class='gform_hidden' name='is_submit_3' value='1' />
+            <input type='hidden' class='gform_hidden' name='gform_submit' value='3' />
+            
+            <input type='hidden' class='gform_hidden' name='gform_currency' data-currency='EUR' value='5GQJVwC2kg9F70fDoHkLSxn0TvDFYKe7v8h8o3vcAbi75O1FzHMMg6UOWaNzh9gOnZoNxUhlIKIeVBb9hSYoMum9/sG4kC9SPQo8k8BqD8xWLfk=' />
+            <input type='hidden' class='gform_hidden' name='gform_unique_id' value='' />
+            <input type='hidden' class='gform_hidden' name='state_3' value='WyJbXSIsImM1NjMyOTJjODBmYmE5NzIyNmVkZWYzZTA4MDIyY2QxIl0=' />
+            <input type='hidden' autocomplete='off' class='gform_hidden' name='gform_target_page_number_3' id='gform_target_page_number_3' value='0' />
+            <input type='hidden' autocomplete='off' class='gform_hidden' name='gform_source_page_number_3' id='gform_source_page_number_3' value='1' />
+            <input type='hidden' name='gform_field_values' value='' />
+            
+        </div>
+                        </form>
+                        </div>
+		                <iframe style='display:none;width:0px;height:0px;' src='about:blank' name='gform_ajax_frame_3' id='gform_ajax_frame_3' title='Dit iframe bevat de vereiste logica om Ajax aangedreven Gravity Forms te verwerken.'></iframe>
+		                <script type="text/rocketlazyloadscript">
+gform.initializeOnLoaded( function() {gformInitSpinner( 3, 'https://www.commissiemer.nl/wp-content/plugins/gravityforms/images/spinner.svg', true );jQuery('#gform_ajax_frame_3').on('load',function(){var contents = jQuery(this).contents().find('*').html();var is_postback = contents.indexOf('GF_AJAX_POSTBACK') >= 0;if(!is_postback){return;}var form_content = jQuery(this).contents().find('#gform_wrapper_3');var is_confirmation = jQuery(this).contents().find('#gform_confirmation_wrapper_3').length > 0;var is_redirect = contents.indexOf('gformRedirect(){') >= 0;var is_form = form_content.length > 0 && ! is_redirect && ! is_confirmation;var mt = parseInt(jQuery('html').css('margin-top'), 10) + parseInt(jQuery('body').css('margin-top'), 10) + 100;if(is_form){jQuery('#gform_wrapper_3').html(form_content.html());if(form_content.hasClass('gform_validation_error')){jQuery('#gform_wrapper_3').addClass('gform_validation_error');} else {jQuery('#gform_wrapper_3').removeClass('gform_validation_error');}setTimeout( function() { /* delay the scroll by 50 milliseconds to fix a bug in chrome */ jQuery(document).scrollTop(jQuery('#gform_wrapper_3').offset().top - mt); }, 50 );if(window['gformInitDatepicker']) {gformInitDatepicker();}if(window['gformInitPriceFields']) {gformInitPriceFields();}var current_page = jQuery('#gform_source_page_number_3').val();gformInitSpinner( 3, 'https://www.commissiemer.nl/wp-content/plugins/gravityforms/images/spinner.svg', true );jQuery(document).trigger('gform_page_loaded', [3, current_page]);window['gf_submitting_3'] = false;}else if(!is_redirect){var confirmation_content = jQuery(this).contents().find('.GF_AJAX_POSTBACK').html();if(!confirmation_content){confirmation_content = contents;}jQuery('#gform_wrapper_3').replaceWith(confirmation_content);jQuery(document).scrollTop(jQuery('#gf_3').offset().top - mt);jQuery(document).trigger('gform_confirmation_loaded', [3]);window['gf_submitting_3'] = false;wp.a11y.speak(jQuery('#gform_confirmation_message_3').text());}else{jQuery('#gform_3').append(contents);if(window['gformRedirect']) {gformRedirect();}}jQuery(document).trigger("gform_pre_post_render", [{ formId: "3", currentPage: "current_page", abort: function() { this.preventDefault(); } }]);        if (event && event.defaultPrevented) {                return;        }        const gformWrapperDiv = document.getElementById( "gform_wrapper_3" );        if ( gformWrapperDiv ) {            const visibilitySpan = document.createElement( "span" );            visibilitySpan.id = "gform_visibility_test_3";            gformWrapperDiv.insertAdjacentElement( "afterend", visibilitySpan );        }        const visibilityTestDiv = document.getElementById( "gform_visibility_test_3" );        let postRenderFired = false;        function triggerPostRender() {            if ( postRenderFired ) {                return;            }            postRenderFired = true;            gform.core.triggerPostRenderEvents( 3, current_page );            if ( visibilityTestDiv ) {                visibilityTestDiv.parentNode.removeChild( visibilityTestDiv );            }        }        function debounce( func, wait, immediate ) {            var timeout;            return function() {                var context = this, args = arguments;                var later = function() {                    timeout = null;                    if ( !immediate ) func.apply( context, args );                };                var callNow = immediate && !timeout;                clearTimeout( timeout );                timeout = setTimeout( later, wait );                if ( callNow ) func.apply( context, args );            };        }        const debouncedTriggerPostRender = debounce( function() {            triggerPostRender();        }, 200 );        if ( visibilityTestDiv && visibilityTestDiv.offsetParent === null ) {            const observer = new MutationObserver( ( mutations ) => {                mutations.forEach( ( mutation ) => {                    if ( mutation.type === 'attributes' && visibilityTestDiv.offsetParent !== null ) {                        debouncedTriggerPostRender();                        observer.disconnect();                    }                });            });            observer.observe( document.body, {                attributes: true,                childList: false,                subtree: true,                attributeFilter: [ 'style', 'class' ],            });        } else {            triggerPostRender();        }    } );} );
+</script>
+				</div>
+			</div>
+		</div>
+			<div data-rocket-location-hash="4e1a6c448e353d5d8ec70ee308136b92" class="section wcag-white-contrast has-background bg-primary ea:bg-brown-light">
+		<div data-rocket-location-hash="7fa9540bf198ecbc0b0558ffd08a9a2a" class="widgets has-background lg:pb-16">
+			<div class="grid-container">
+				<div class="justify-between grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+					<div id="nav_menu-2" class="widget widget_nav_menu"><h2 class="widget-title text-white ea:text-primary text-h4 font-bold flex justify-between items-center mb-0 lg:mb-6" aria-controls="menu_nav_menu-2">Ga direct naar<i class="fa-solid fa-chevron-down transition-transform lg:!hidden"></i></h2><ul id="menu_nav_menu-2" class="menu" aria-expanded="true"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12461"><a href="https://www.commissiemer.nl/advies-aanvragen/">Advies aanvragen</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12469"><a href="https://www.commissiemer.nl/contact/">Contact</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-15965"><a href="https://www.commissiemer.nl/de-commissie-mer/onze-organisatie/">Onze organisatie</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-7006"><a href="https://www.commissiemer.nl/pers/">Pers</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-12073"><a href="https://www.commissiemer.nl/kennis-en-mer/themas-in-mer/">Thema’s in mer</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-15964"><a href="https://www.commissiemer.nl/de-commissie-mer/onze-organisatie/werken-bij-de-commissie/">Werken bij de Commissie</a></li>
+</ul></div><div id="text-3" class="widget widget_text"><h2 class="widget-title text-white ea:text-primary text-h4 font-bold flex justify-between items-center mb-0 lg:mb-6">Neem contact met ons op</h2>			<div class="textwidget"><p>	<a class="" href="tel:(030)%20234%2076%2066" target="_self" ><i class="fa-fw fa-regular fa-phone"></i>(030) 234 76 66</a>
+		<a class="" href="mailto:info@commissiemer.nl" target="_self" ><i class="fa-fw fa-regular fa-envelope"></i>info@commissiemer.nl</a>
+	</p>
+</div>
+		</div><div id="text-2" class="widget widget_text"><h2 class="widget-title text-white ea:text-primary text-h4 font-bold flex justify-between items-center mb-0 lg:mb-6">Commissie voor de milieueffectrapportage</h2>			<div class="textwidget"><p>Arthur van Schendelstraat 760<br />
+3511 MK Utrecht</p>
+<div class="acf-label">
+<p class="description">
+</div>
+</div>
+		</div>				</div>
+			</div>
+		</div>
+		<div data-rocket-location-hash="3c9b14c3355a338c8f60b6d23b5f6585" class="m-0 copyright">
+			<div class="grid-container lg:flex lg:justify-between lg:items-center py-8 lg:py-8 border-primary-light ea:!border-primary bg-repeat-x bg-top bg-[length:12px_1px] bg-dotted-gradient ea:bg-ea-dotted-gradient !text-white ea:!text-primary">
+				<div id="nav_menu-6" class="widget widget_nav_menu"><ul id="menu_nav_menu-6" class="menu" aria-expanded="true"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-privacy-policy menu-item-3512"><a rel="privacy-policy" href="https://www.commissiemer.nl/privacyverklaring-en-disclaimer/">Privacyverklaring en disclaimer</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-3484"><a href="https://www.commissiemer.nl/cookies/">Cookies</a></li>
+</ul></div>	<div class="socials-widget">
+		<a class="social-link" href="https://www.linkedin.com/company/397918" rel="noreferrer" target="_blank"><i class="fa-brands fa-linkedin-in"></i><span class="sr-only">Ga naar LinkedIn</span></a>	</div>
+				</div>
+		</div>
+	</div>
+</footer>
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/stuurlui/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+        <script type="text/rocketlazyloadscript">
+            var _SEARCHWP_LIVE_AJAX_SEARCH_BLOCKS = true;
+            var _SEARCHWP_LIVE_AJAX_SEARCH_ENGINE = 'default';
+            var _SEARCHWP_LIVE_AJAX_SEARCH_CONFIG = 'default';
+        </script>
+        <script type="text/rocketlazyloadscript" data-rocket-src="https://www.commissiemer.nl/wp-includes/js/dist/hooks.min.js?ver=dd5603f07f9220ed27f1" id="wp-hooks-js"></script>
+<script type="text/rocketlazyloadscript" data-rocket-src="https://www.commissiemer.nl/wp-includes/js/dist/i18n.min.js?ver=c26c3dc7bed366793375" id="wp-i18n-js"></script>
+<script type="text/rocketlazyloadscript" id="wp-i18n-js-after">
+wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );
+//# sourceURL=wp-i18n-js-after
+</script>
+<script id="basel-script-js-extra">
+var basel = {"basel_ajax_url":"https://www.commissiemer.nl/wp-admin/admin-ajax.php","basel_feedback_nonce":"07a5435ec8","openai_key":"","marker_color":""};
+//# sourceURL=basel-script-js-extra
+</script>
+<script type="text/rocketlazyloadscript" data-minify="1" data-rocket-src="https://www.commissiemer.nl/wp-content/cache/min/1/wp-content/plugins/stuurlui-basel/assets/js/script.js?ver=1779758698" id="basel-script-js" data-rocket-defer defer></script>
+<script id="smush-nextgen-fallback-js-extra">
+var wp_smushit_nextgen_data = {"mode":"webp"};
+//# sourceURL=smush-nextgen-fallback-js-extra
+</script>
+<script type="text/rocketlazyloadscript" data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/wp-smush-pro/app/assets/js/smush-nextgen-fallback.min.js?ver=4.0.3" id="smush-nextgen-fallback-js" data-rocket-defer defer></script>
+<script id="swp-live-search-client-js-extra">
+var searchwp_live_search_params = [];
+searchwp_live_search_params = {"ajaxurl":"https:\/\/www.commissiemer.nl\/wp-admin\/admin-ajax.php","origin_id":5795,"config":{"default":{"engine":"default","input":{"delay":300,"min_chars":3},"results":{"position":"bottom","width":"auto","offset":{"x":0,"y":5}},"spinner":{"lines":12,"length":8,"width":3,"radius":8,"scale":1,"corners":1,"color":"#424242","fadeColor":"transparent","speed":1,"rotate":0,"animation":"searchwp-spinner-line-fade-quick","direction":1,"zIndex":2000000000,"className":"spinner","top":"50%","left":"50%","shadow":"0 0 1px transparent","position":"absolute"}}},"msg_no_config_found":"Geen geldige SearchWP Live Search configuratie gevonden!","aria_instructions":"Als de resultaten voor automatisch aanvullen beschikbaar zijn, gebruik je de pijlen omhoog en omlaag om te beoordelen en voer je in om naar de gewenste pagina te gaan. Touch-apparaatgebruikers, verkennen door aanraking of met veegbewegingen."};;
+//# sourceURL=swp-live-search-client-js-extra
+</script>
+<script type="text/rocketlazyloadscript" data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/searchwp-live-ajax-search/assets/javascript/dist/script.min.js?ver=1.8.7" id="swp-live-search-client-js" data-rocket-defer defer></script>
+<script src="https://www.commissiemer.nl/wp-content/themes/stuurlui/assets/vendors.min.js?ver=1777362602" id="vendors-js" data-rocket-defer defer></script>
+<script id="frontend-js-extra">
+var strl_vars = {"ajax_url":"https://www.commissiemer.nl/wp-admin/admin-ajax.php","stylesheet_directory":"https://www.commissiemer.nl/wp-content/themes/stuurlui","translate_page":"Pagina","menu_text":"Menu","close_text":"Sluit","translate_prev_slide":"Vorige slide","translate_next_slide":"Volgende slide ","translate_prev_page":"Ga naar de vorige pagina ","translate_next_page":"Ga naar de volgende pagina ","translate_start_date":"Periode van","translate_end_date":"Periode tot","months":["Januari ","Februari","Maart","April ","Mei ","Juni","Juli ","Augustus","September","Oktober","November","December"],"days":["Zondag ","Maandag ","Dinsdag ","Woensdag ","Donderdag","Vrijdag ","Zaterdag "],"dialog_date_picker":"Met cursortoetsen kun je door data navigeren","choose_date":"Kies datum ","change_date":"Datum wijzigen","show_more":"Toon meer","show_less":"Toon minder"};
+//# sourceURL=frontend-js-extra
+</script>
+<script src="https://www.commissiemer.nl/wp-content/themes/stuurlui/assets/frontend.min.js?ver=1777362597" id="frontend-js" data-rocket-defer defer></script>
+<script src="https://kit.fontawesome.com/483c98a683.js?ver=6.9.4" id="fontawesome-js" data-rocket-defer defer></script>
+<script type="text/rocketlazyloadscript" data-rocket-src="https://www.commissiemer.nl/wp-content/themes/stuurlui/assets/formsAccessibility.min.js?ver=1777362597" id="formsAccessibility-js" data-rocket-defer defer></script>
+<script type="text/rocketlazyloadscript" data-rocket-src="https://www.commissiemer.nl/wp-includes/js/dist/dom-ready.min.js?ver=f77871ff7694fffea381" id="wp-dom-ready-js" data-rocket-defer defer></script>
+<script type="text/rocketlazyloadscript" id="wp-a11y-js-translations">
+( function( domain, translations ) {
+	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+	localeData[""].domain = domain;
+	wp.i18n.setLocaleData( localeData, domain );
+} )( "default", {"translation-revision-date":"2026-03-28 07:28:56+0000","generator":"GlotPress\/4.0.3","domain":"messages","locale_data":{"messages":{"":{"domain":"messages","plural-forms":"nplurals=2; plural=n != 1;","lang":"nl"},"Notifications":["Meldingen"]}},"comment":{"reference":"wp-includes\/js\/dist\/a11y.js"}} );
+//# sourceURL=wp-a11y-js-translations
+</script>
+<script type="text/rocketlazyloadscript" data-rocket-src="https://www.commissiemer.nl/wp-includes/js/dist/a11y.min.js?ver=cb460b4676c94bd228ed" id="wp-a11y-js" data-rocket-defer defer></script>
+<script defer='defer' src="https://www.commissiemer.nl/wp-content/plugins/gravityforms/js/jquery.json.min.js?ver=2.10.2" id="gform_json-js"></script>
+<script id="gform_gravityforms-js-extra">
+var gform_i18n = {"datepicker":{"days":{"monday":"Ma","tuesday":"Di","wednesday":"Wo","thursday":"Do","friday":"Vr","saturday":"Za","sunday":"Zo"},"months":{"january":"Januari","february":"Februari","march":"Maart","april":"April","may":"Mei","june":"Juni","july":"Juli","august":"Augustus","september":"September","october":"Oktober","november":"November","december":"December"},"firstDay":1,"iconText":"Selecteer een datum"}};
+var gf_legacy_multi = [];
+var gform_gravityforms = {"strings":{"invalid_file_extension":"Dit bestandstype is niet toegestaan. Moet \u00e9\u00e9n van de volgende zijn:","delete_file":"Dit bestand verwijderen","in_progress":"in behandeling","file_exceeds_limit":"Bestand overschrijdt limiet bestandsgrootte","illegal_extension":"Dit type bestand is niet toegestaan.","max_reached":"Maximale aantal bestanden bereikt","unknown_error":"Er was een probleem bij het opslaan van het bestand op de server","currently_uploading":"Wacht tot het uploaden is voltooid","cancel":"Annuleren","cancel_upload":"Deze upload annuleren","cancelled":"Geannuleerd","error":"Fout","message":"Bericht"},"vars":{"images_url":"https://www.commissiemer.nl/wp-content/plugins/gravityforms/images"}};
+var gf_global = {"gf_currency_config":{"name":"Euro","symbol_left":"","symbol_right":"&#8364;","symbol_padding":" ","thousand_separator":".","decimal_separator":",","decimals":2,"code":"EUR"},"base_url":"https://www.commissiemer.nl/wp-content/plugins/gravityforms","number_formats":[],"spinnerUrl":"https://www.commissiemer.nl/wp-content/plugins/gravityforms/images/spinner.svg","version_hash":"35f6fd15b2529eef5a17e036082f924f","strings":{"newRowAdded":"Nieuwe rij toegevoegd.","rowRemoved":"Rij verwijderd","formSaved":"Het formulier is opgeslagen. De inhoud bevat de link om terug te keren en het formulier in te vullen."}};
+//# sourceURL=gform_gravityforms-js-extra
+</script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/gravityforms/js/gravityforms.min.js?ver=2.10.2" id="gform_gravityforms-js"></script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/gravityforms/js/placeholders.jquery.min.js?ver=2.10.2" id="gform_placeholder-js"></script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/gravityforms/assets/js/dist/utils.min.js?ver=3f278756f0a3032bed328ff6a9f6c01d" id="gform_gravityforms_utils-js"></script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/gravityforms/assets/js/dist/vendor-theme.min.js?ver=7c651d0ba638ce98b9c65141edddd567" id="gform_gravityforms_theme_vendors-js"></script>
+<script id="gform_gravityforms_theme-js-extra">
+var gform_theme_config = {"common":{"form":{"honeypot":{"version_hash":"35f6fd15b2529eef5a17e036082f924f"},"ajax":{"ajaxurl":"https://www.commissiemer.nl/wp-admin/admin-ajax.php","ajax_submission_nonce":"e0ffbed949","i18n":{"step_announcement":"Stap %1$s van %2$s, %3$s","unknown_error":"Er was een onbekende fout bij het verwerken van je aanvraag. Probeer het opnieuw.","error_403":"The request was blocked (403 error) for unknown security reasons. Remove any code-like text (scripts or DB queries) and try again."}}}},"hmr_dev":"","public_path":"https://www.commissiemer.nl/wp-content/plugins/gravityforms/assets/js/dist/","config_nonce":"beb20bb186"};
+//# sourceURL=gform_gravityforms_theme-js-extra
+</script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/gravityforms/assets/js/dist/scripts-theme.min.js?ver=301fdc9aa6144168f3b854c4c2c8f6d3" id="gform_gravityforms_theme-js"></script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/gravityformsturnstile/assets/js/dist/vendor-theme.min.js?ver=1.5.0" id="gform_turnstile_vendor_theme-js"></script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&amp;ver=6.9.4" id="gform_turnstile_vendor_script-js"></script>
+<script type="text/rocketlazyloadscript" defer='defer' data-rocket-src="https://www.commissiemer.nl/wp-content/plugins/gravityformsturnstile/assets/js/dist/scripts-theme.min.js?ver=1.5.0" id="gform_turnstile_theme-js"></script>
+<script type="text/rocketlazyloadscript">
+gform.initializeOnLoaded( function() { jQuery(document).on('gform_post_render', function(event, formId, currentPage){if(formId == 3) {if(typeof Placeholders != 'undefined'){
+                        Placeholders.enable();
+                    }} } );jQuery(document).on('gform_post_conditional_logic', function(event, formId, fields, isInit){} ) } );
+</script>
+<script type="text/rocketlazyloadscript">
+gform.initializeOnLoaded( function() {jQuery(document).trigger("gform_pre_post_render", [{ formId: "3", currentPage: "1", abort: function() { this.preventDefault(); } }]);        if (event && event.defaultPrevented) {                return;        }        const gformWrapperDiv = document.getElementById( "gform_wrapper_3" );        if ( gformWrapperDiv ) {            const visibilitySpan = document.createElement( "span" );            visibilitySpan.id = "gform_visibility_test_3";            gformWrapperDiv.insertAdjacentElement( "afterend", visibilitySpan );        }        const visibilityTestDiv = document.getElementById( "gform_visibility_test_3" );        let postRenderFired = false;        function triggerPostRender() {            if ( postRenderFired ) {                return;            }            postRenderFired = true;            gform.core.triggerPostRenderEvents( 3, 1 );            if ( visibilityTestDiv ) {                visibilityTestDiv.parentNode.removeChild( visibilityTestDiv );            }        }        function debounce( func, wait, immediate ) {            var timeout;            return function() {                var context = this, args = arguments;                var later = function() {                    timeout = null;                    if ( !immediate ) func.apply( context, args );                };                var callNow = immediate && !timeout;                clearTimeout( timeout );                timeout = setTimeout( later, wait );                if ( callNow ) func.apply( context, args );            };        }        const debouncedTriggerPostRender = debounce( function() {            triggerPostRender();        }, 200 );        if ( visibilityTestDiv && visibilityTestDiv.offsetParent === null ) {            const observer = new MutationObserver( ( mutations ) => {                mutations.forEach( ( mutation ) => {                    if ( mutation.type === 'attributes' && visibilityTestDiv.offsetParent !== null ) {                        debouncedTriggerPostRender();                        observer.disconnect();                    }                });            });            observer.observe( document.body, {                attributes: true,                childList: false,                subtree: true,                attributeFilter: [ 'style', 'class' ],            });        } else {            triggerPostRender();        }    } );
+</script>
+<script>window.lazyLoadOptions=[{elements_selector:"img[data-lazy-src],.rocket-lazyload,iframe[data-lazy-src]",data_src:"lazy-src",data_srcset:"lazy-srcset",data_sizes:"lazy-sizes",class_loading:"lazyloading",class_loaded:"lazyloaded",threshold:300,callback_loaded:function(element){if(element.tagName==="IFRAME"&&element.dataset.rocketLazyload=="fitvidscompatible"){if(element.classList.contains("lazyloaded")){if(typeof window.jQuery!="undefined"){if(jQuery.fn.fitVids){jQuery(element).parent().fitVids()}}}}}},{elements_selector:".rocket-lazyload",data_src:"lazy-src",data_srcset:"lazy-srcset",data_sizes:"lazy-sizes",class_loading:"lazyloading",class_loaded:"lazyloaded",threshold:300,}];window.addEventListener('LazyLoad::Initialized',function(e){var lazyLoadInstance=e.detail.instance;if(window.MutationObserver){var observer=new MutationObserver(function(mutations){var image_count=0;var iframe_count=0;var rocketlazy_count=0;mutations.forEach(function(mutation){for(var i=0;i<mutation.addedNodes.length;i++){if(typeof mutation.addedNodes[i].getElementsByTagName!=='function'){continue}
+if(typeof mutation.addedNodes[i].getElementsByClassName!=='function'){continue}
+images=mutation.addedNodes[i].getElementsByTagName('img');is_image=mutation.addedNodes[i].tagName=="IMG";iframes=mutation.addedNodes[i].getElementsByTagName('iframe');is_iframe=mutation.addedNodes[i].tagName=="IFRAME";rocket_lazy=mutation.addedNodes[i].getElementsByClassName('rocket-lazyload');image_count+=images.length;iframe_count+=iframes.length;rocketlazy_count+=rocket_lazy.length;if(is_image){image_count+=1}
+if(is_iframe){iframe_count+=1}}});if(image_count>0||iframe_count>0||rocketlazy_count>0){lazyLoadInstance.update()}});var b=document.getElementsByTagName("body")[0];var config={childList:!0,subtree:!0};observer.observe(b,config)}},!1)</script><script data-no-minify="1" async src="https://www.commissiemer.nl/wp-content/plugins/wp-rocket/assets/js/lazyload/17.8.3/lazyload.min.js"></script><script>function lazyLoadThumb(e,alt,l){var t='<img data-lazy-src="https://i.ytimg.com/vi/ID/hqdefault.jpg" alt="" width="480" height="360"><noscript><img src="https://i.ytimg.com/vi/ID/hqdefault.jpg" alt="" width="480" height="360"></noscript>',a='<button class="play" aria-label="Play Youtube video"></button>';if(l){t=t.replace('data-lazy-','');t=t.replace('loading="lazy"','');t=t.replace(/<noscript>.*?<\/noscript>/g,'');}t=t.replace('alt=""','alt="'+alt+'"');return t.replace("ID",e)+a}function lazyLoadYoutubeIframe(){var e=document.createElement("iframe"),t="ID?autoplay=1";t+=0===this.parentNode.dataset.query.length?"":"&"+this.parentNode.dataset.query;e.setAttribute("src",t.replace("ID",this.parentNode.dataset.src)),e.setAttribute("frameborder","0"),e.setAttribute("allowfullscreen","1"),e.setAttribute("allow","accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"),this.parentNode.parentNode.replaceChild(e,this.parentNode)}document.addEventListener("DOMContentLoaded",function(){var exclusions=[".no-lazy","no-lazy"];var e,t,p,u,l,a=document.getElementsByClassName("rll-youtube-player");for(t=0;t<a.length;t++)(e=document.createElement("div")),(u='https://i.ytimg.com/vi/ID/hqdefault.jpg'),(u=u.replace('ID',a[t].dataset.id)),(l=exclusions.some(exclusion=>u.includes(exclusion))),e.setAttribute("data-id",a[t].dataset.id),e.setAttribute("data-query",a[t].dataset.query),e.setAttribute("data-src",a[t].dataset.src),(e.innerHTML=lazyLoadThumb(a[t].dataset.id,a[t].dataset.alt,l)),a[t].appendChild(e),(p=e.querySelector(".play")),(p.onclick=lazyLoadYoutubeIframe)});</script><script>var rocket_beacon_data = {"ajax_url":"https:\/\/www.commissiemer.nl\/wp-admin\/admin-ajax.php","nonce":"87f1a37da2","url":"https:\/\/www.commissiemer.nl\/advies\/fabriek-voor-de-productie-van-aromaten-uit-niet-herbruikbaar-afvalplastic-in-delfzijl","is_mobile":false,"width_threshold":1600,"height_threshold":700,"delay":500,"debug":null,"status":{"atf":true,"lrc":true,"preconnect_external_domain":true},"elements":"img, video, picture, p, main, div, li, svg, section, header, span","lrc_threshold":1800,"preconnect_external_domain_elements":["link","script","iframe"],"preconnect_external_domain_exclusions":["static.cloudflareinsights.com","rel=\"profile\"","rel=\"preconnect\"","rel=\"dns-prefetch\"","rel=\"icon\""]}</script><script data-name="wpr-wpr-beacon" src='https://www.commissiemer.nl/wp-content/plugins/wp-rocket/assets/js/wpr-beacon.min.js' async></script></body>
+
+</html>
+
+<!-- This website is like a Rocket, isn't it? Performance optimized by WP Rocket. Learn more: https://wp-rocket.me -->
