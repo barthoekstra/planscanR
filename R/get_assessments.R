@@ -47,12 +47,17 @@
 #'   Adds one `relevance_score_<slug>` column per topic plus a shared
 #'   `relevance_model`. Unnamed topics get auto-slugified from the phrase.
 #'   Adding extra topics costs essentially nothing — the per-record embed is
-#'   the expensive step and runs once.
-#' @param relevance_threshold Optional cutoff in `[-1, 1]`. Scalar threshold:
-#'   a record passes if **any** topic clears it. Named numeric vector
-#'   (e.g. `c(wind = 0.5, solar = 0.4)`): per-topic cutoffs, passes if **any**
-#'   named topic clears its own cutoff. `NULL` (default) is score-only;
-#'   nothing is filtered.
+#'   the expensive step and runs once. Every scored record is sidecar'd and
+#'   returned regardless of its score.
+#' @param relevance_threshold Optional cutoff in `[-1, 1]`. **Download-gate
+#'   only**: records that score below the threshold still appear in the
+#'   returned tibble and still get a sidecar JSON on disk — only their PDF
+#'   attachments are skipped. This lets you re-run with a different threshold
+#'   (or no threshold) later without re-hitting the portal. Scalar threshold:
+#'   PDFs are downloaded if **any** topic clears it. Named numeric vector
+#'   (e.g. `c(wind = 0.5, solar = 0.4)`): per-topic cutoffs, downloads happen
+#'   if **any** named topic clears its own cutoff. `NULL` (default) is
+#'   score-only; every record's PDFs are downloaded (when `download = TRUE`).
 #' @param relevance_model A `planscanR_embedding_model`. Defaults to
 #'   [embedding_model_minilm()] (sentence-transformers
 #'   `paraphrase-multilingual-MiniLM-L12-v2` via reticulate). Pass a custom

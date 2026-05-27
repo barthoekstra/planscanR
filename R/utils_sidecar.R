@@ -90,16 +90,18 @@ record_to_sidecar <- function(record, downloads = NULL) {
     relevance_scores = record_topic_scores(record)
   )
   # Carry through any extra columns we don't explicitly know about (other than
-  # the required list-columns, which we treat below).
+  # the required list-columns, which we treat below). Per-section attachment
+  # and local_path columns follow the `attachment_urls_<section>` /
+  # `local_path_<section>` convention and are excluded here regardless of
+  # which sections a country uses (NL: source/advice; DE: uvp_bericht/
+  # berichte/auslegung/weitere; future portals: whatever they expose).
+  section_cols <- grep("^(attachment_urls|local_path)_", names(record), value = TRUE)
   reserved <- c(
     names(base),
     "retrieved_at",
     "attachment_urls",
-    "attachment_urls_source",
-    "attachment_urls_advice",
     "local_path",
-    "local_path_source",
-    "local_path_advice",
+    section_cols,
     "file_sha256",
     "download_status"
   )
@@ -115,18 +117,19 @@ record_to_sidecar <- function(record, downloads = NULL) {
   if (is.null(downloads) || nrow(downloads) == 0L) {
     files <- list()
   } else {
+    # Map each URL back to whichever `attachment_urls_<section>` list-column
+    # it appeared in. Works for any country: NL exposes source/advice, DE
+    # exposes uvp_bericht/berichte/auslegung/weitere, future portals are free
+    # to declare their own. First match wins (sections shouldn't overlap; if
+    # they do, the order in `section_cols` is the tiebreak).
+    section_cols <- grep("^attachment_urls_", names(record), value = TRUE)
+    section_lookup <- lapply(section_cols, function(cn) record[[cn]][[1]])
+    names(section_lookup) <- sub("^attachment_urls_", "", section_cols)
     section_of <- function(url) {
-      if (
-        !is.null(record$attachment_urls_source) &&
-          url %in% record$attachment_urls_source[[1]]
-      ) {
-        return("source")
-      }
-      if (
-        !is.null(record$attachment_urls_advice) &&
-          url %in% record$attachment_urls_advice[[1]]
-      ) {
-        return("advice")
+      for (nm in names(section_lookup)) {
+        if (url %in% section_lookup[[nm]]) {
+          return(nm)
+        }
       }
       NA_character_
     }
@@ -200,11 +203,6 @@ read_record_sidecar <- function(path) {
     reason = vapply(files, function(f) f$reason %||% NA_character_, character(1))
   )
 
-  src_urls <- urls[sections == "source" & !is.na(sections)]
-  adv_urls <- urls[sections == "advice" & !is.na(sections)]
-  src_paths <- paths[sections == "source" & !is.na(sections)]
-  adv_paths <- paths[sections == "advice" & !is.na(sections)]
-
   out <- tibble::tibble(
     country = payload$country,
     source_portal = payload$source_portal,
@@ -212,11 +210,7 @@ read_record_sidecar <- function(path) {
     url = payload$url,
     retrieved_at = as.POSIXct(payload$retrieved_at, tz = "UTC", format = "%Y-%m-%dT%H:%M:%SZ"),
     attachment_urls = list(urls),
-    attachment_urls_source = list(src_urls),
-    attachment_urls_advice = list(adv_urls),
     local_path = list(paths),
-    local_path_source = list(src_paths),
-    local_path_advice = list(adv_paths),
     title = payload$title %||% NA_character_,
     summary = payload$summary %||% NA_character_,
     competent_authority = payload$competent_authority %||% NA_character_,
@@ -225,6 +219,16 @@ read_record_sidecar <- function(path) {
     relevance_model = payload$relevance_model %||% NA_character_,
     download_status = list(download_status)
   )
+
+  # Fan out per-section URLs and local paths from the `files[]` array's
+  # `section` tags. Any non-NA section name in the JSON gets two columns:
+  # `attachment_urls_<section>` and `local_path_<section>`.
+  section_names <- unique(sections[!is.na(sections) & nzchar(sections)])
+  for (nm in section_names) {
+    mask <- !is.na(sections) & sections == nm
+    out[[paste0("attachment_urls_", nm)]] <- list(urls[mask])
+    out[[paste0("local_path_", nm)]] <- list(paths[mask])
+  }
   # Fan out per-topic scores into one column per topic so they line up with
   # what get_assessments() returns at runtime.
   for (entry in payload$relevance_scores %||% list()) {
@@ -234,6 +238,14 @@ read_record_sidecar <- function(path) {
     }
     out[[paste0("relevance_score_", slug)]] <-
       if (is.null(entry$score)) NA_real_ else as.numeric(entry$score)
+  }
+  # Restore any country-specific extras the writer stashed under `extras`.
+  # These are scalar columns the writer didn't recognise as required /
+  # conventional (e.g. DE's `native_type`, `jurisdiction`); they round-trip
+  # straight through without any per-country knowledge here.
+  for (nm in names(payload$extras %||% list())) {
+    v <- payload$extras[[nm]]
+    out[[nm]] <- if (is.null(v)) NA else v
   }
   out
 }

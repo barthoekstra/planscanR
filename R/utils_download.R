@@ -384,3 +384,25 @@ empty_download_status <- function() {
     reason = character(0)
   )
 }
+
+#' Build a per-URL "pending" download_status for known but not-yet-fetched URLs.
+#'
+#' Records whose PDFs we deliberately didn't fetch this run (download = FALSE,
+#' or the relevance gate skipped them) still need their URL list captured on
+#' the sidecar so a later run can find them. A pending row carries the URL
+#' and its section tag (set later by the sidecar writer) but `local_path = NA`.
+#'
+#' @noRd
+pending_download_status <- function(urls) {
+  if (length(urls) == 0L) {
+    return(empty_download_status())
+  }
+  tibble::tibble(
+    url = urls,
+    local_path = NA_character_,
+    status = "pending",
+    size_bytes = NA_real_,
+    sha256 = NA_character_,
+    reason = NA_character_
+  )
+}

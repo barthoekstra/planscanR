@@ -64,13 +64,18 @@ similarity against every topic, \strong{before} any attachments are downloaded.
 Adds one \verb{relevance_score_<slug>} column per topic plus a shared
 \code{relevance_model}. Unnamed topics get auto-slugified from the phrase.
 Adding extra topics costs essentially nothing — the per-record embed is
-the expensive step and runs once.}
+the expensive step and runs once. Every scored record is sidecar'd and
+returned regardless of its score.}
 
-\item{relevance_threshold}{Optional cutoff in \verb{[-1, 1]}. Scalar threshold:
-a record passes if \strong{any} topic clears it. Named numeric vector
-(e.g. \code{c(wind = 0.5, solar = 0.4)}): per-topic cutoffs, passes if \strong{any}
-named topic clears its own cutoff. \code{NULL} (default) is score-only;
-nothing is filtered.}
+\item{relevance_threshold}{Optional cutoff in \verb{[-1, 1]}. \strong{Download-gate
+only}: records that score below the threshold still appear in the
+returned tibble and still get a sidecar JSON on disk — only their PDF
+attachments are skipped. This lets you re-run with a different threshold
+(or no threshold) later without re-hitting the portal. Scalar threshold:
+PDFs are downloaded if \strong{any} topic clears it. Named numeric vector
+(e.g. \code{c(wind = 0.5, solar = 0.4)}): per-topic cutoffs, downloads happen
+if \strong{any} named topic clears its own cutoff. \code{NULL} (default) is
+score-only; every record's PDFs are downloaded (when \code{download = TRUE}).}
 
 \item{relevance_model}{A \code{planscanR_embedding_model}. Defaults to
 \code{\link[=embedding_model_minilm]{embedding_model_minilm()}} (sentence-transformers

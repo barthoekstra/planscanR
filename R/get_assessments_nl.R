@@ -54,7 +54,10 @@
 #'   actually changed something).
 #' @param topic,relevance_threshold,relevance_model Forwarded from
 #'   [get_assessments()]. When `topic` is supplied, each candidate record is
-#'   scored before its attachments are downloaded.
+#'   scored, and every scored record is sidecar'd and returned regardless of
+#'   threshold. `relevance_threshold` is a **download-gate only**: records
+#'   below threshold keep their sidecar + tibble row but their PDFs are not
+#'   downloaded.
 #' @param theme,advice_type,status,province Character vectors. See "Filter
 #'   coverage". For `theme`, `advice_type`, `status` the valid slugs are in
 #'   `get_assessments_coverage()$facets[[1]]`.
@@ -164,19 +167,21 @@ get_assessments_nl <- function(
     if (!nl_record_matches(rec, query = query, date_range = date_range, province = province)) {
       next
     }
-    # Compute relevance BEFORE downloading so we can skip cheaply.
+    # Score relevance (informational). The threshold no longer gates whether
+    # the record is sidecar'd or returned — it only decides whether we spend
+    # bandwidth pulling the PDFs.
     if (!is.null(rel)) {
       rec <- nl_apply_relevance(rec, rel)
-      if (!nl_passes_relevance(rec, rel, relevance_threshold)) {
-        next
-      }
     }
+    should_download <- download && nl_passes_download_gate(rec, rel, relevance_threshold)
     # Download + sidecar happen per-record so the cache is crash-safe: an
     # interrupted run leaves N fully-indexable records on disk instead of N
-    # orphan file trees with no metadata.
+    # orphan file trees with no metadata. The sidecar is written even when
+    # the record's PDFs were not downloaded, so a later re-run with a
+    # different threshold can pick them up without re-fetching the detail page.
     rec <- nl_finalise_record(
       rec,
-      download = download,
+      download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
@@ -199,10 +204,14 @@ get_assessments_nl <- function(
 #'
 #' @noRd
 nl_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write_sidecar) {
+  get_section <- function(col) {
+    v <- rec[[col]]
+    if (is.null(v)) character(0) else v[[1]]
+  }
+  urls <- get_section("attachment_urls")
+  src_urls <- get_section("attachment_urls_source")
+  adv_urls <- get_section("attachment_urls_advice")
   if (download) {
-    urls <- rec$attachment_urls[[1]]
-    src_urls <- rec$attachment_urls_source[[1]]
-    adv_urls <- rec$attachment_urls_advice[[1]]
     if (length(urls) > 0L) {
       inform_download(length(urls), cache_dir(file.path("files", "nl"), create = TRUE))
     }
@@ -213,12 +222,16 @@ nl_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb
     )
-    rec$download_status <- list(ds)
-    rec$local_path <- list(ds$local_path)
-    rec$local_path_source <- list(ds$local_path[match(src_urls, ds$url)])
-    rec$local_path_advice <- list(ds$local_path[match(adv_urls, ds$url)])
-    rec$file_sha256 <- list(ds$sha256)
+  } else {
+    # No downloads this run — still record per-URL "pending" rows so the
+    # sidecar captures the URL list (and its section tags via the writer).
+    ds <- pending_download_status(urls)
   }
+  rec$download_status <- list(ds)
+  rec$local_path <- list(ds$local_path)
+  rec$local_path_source <- list(ds$local_path[match(src_urls, ds$url)])
+  rec$local_path_advice <- list(ds$local_path[match(adv_urls, ds$url)])
+  rec$file_sha256 <- list(ds$sha256)
   if (write_sidecar) {
     tryCatch(
       write_record_sidecar(rec, downloads = rec$download_status[[1]]),
@@ -524,14 +537,20 @@ nl_apply_relevance <- function(rec, rel) {
   rec
 }
 
-#' Decide whether a record passes the per-topic relevance threshold(s).
+#' Decide whether to download a record's PDFs given the relevance threshold.
 #'
-#' * `threshold = NULL` → always passes (no filtering).
+#' The threshold is a download-gate only: a record below threshold still gets
+#' a sidecar written and still appears in the returned tibble — only its PDFs
+#' stay off disk. This lets a researcher re-run with a different threshold (or
+#' skip the gate entirely) without re-hitting the portal.
+#'
+#' * `threshold = NULL` → always passes (download everything that scored).
+#' * No `rel` (no `topic` set) → always passes (nothing to gate on).
 #' * Scalar threshold → pass if **any** topic score is >= threshold.
 #' * Named vector threshold → pass if any named topic >= its own cutoff.
 #' @noRd
-nl_passes_relevance <- function(rec, rel, threshold) {
-  if (is.null(threshold)) {
+nl_passes_download_gate <- function(rec, rel, threshold) {
+  if (is.null(threshold) || is.null(rel)) {
     return(TRUE)
   }
   if (is.null(names(threshold))) {

@@ -76,11 +76,8 @@ test_that("slugify_topic produces stable column-safe suffixes", {
 })
 
 test_that("cosine_similarity_matrix returns the expected [N, T] shape", {
-  m <- matrix(c(1, 0, 0,
-                0, 1, 0), nrow = 2, byrow = TRUE)
-  t <- matrix(c(1, 0, 0,
-                0, 1, 0,
-                1, 1, 0), nrow = 3, byrow = TRUE)
+  m <- matrix(c(1, 0, 0, 0, 1, 0), nrow = 2, byrow = TRUE)
+  t <- matrix(c(1, 0, 0, 0, 1, 0, 1, 1, 0), nrow = 3, byrow = TRUE)
   out <- planscanR:::cosine_similarity_matrix(m, t)
   expect_identical(dim(out), c(2L, 3L))
   expect_equal(out[1, 1], 1)
@@ -100,8 +97,7 @@ test_that("score_records in multi-topic mode adds one column per topic", {
     topic = c(wind = "windpark wind energy", solar = "zonnepark solar energy"),
     model = m
   )
-  expect_true(all(c("relevance_score_wind", "relevance_score_solar",
-                    "relevance_model") %in% names(out)))
+  expect_true(all(c("relevance_score_wind", "relevance_score_solar", "relevance_model") %in% names(out)))
   expect_false("relevance_score" %in% names(out))
   # Cross-topic sanity: wind record scores higher on wind than solar, and
   # vice versa.
@@ -120,7 +116,7 @@ test_that("score_assessments() wraps score_records and is sidecar-aware", {
   expect_true("relevance_score_w" %in% names(out))
 })
 
-test_that("get_assessments_nl multi-topic mode skips records below threshold using per-topic cutoffs", {
+test_that("get_assessments_nl multi-topic mode: threshold gates downloads, not result rows", {
   withr::local_options(planscanR.nl_facet_warned = TRUE)
   reset_relevance_warnings()
   m <- make_fake_model()
@@ -130,13 +126,14 @@ test_that("get_assessments_nl multi-topic mode skips records below threshold usi
       "https://www.commissiemer.nl/advies/fabriek-voor-de-productie-van-aromaten/"
     },
     perform_html = function(req) {
-      rvest::read_html(testthat::test_path("fixtures", "nl",
-                                            "advice-detail-aromaten-delfzijl.html"))
+      rvest::read_html(testthat::test_path("fixtures", "nl", "advice-detail-aromaten-delfzijl.html"))
     }
   )
   # Pass with any-topic-above-0 threshold
   res <- get_assessments_nl(
-    limit = 5, download = FALSE, write_sidecar = FALSE,
+    limit = 5,
+    download = FALSE,
+    write_sidecar = FALSE,
     topic = c(plastics = "Plastics Conversion", random = "music"),
     relevance_threshold = 0,
     relevance_model = m
@@ -144,14 +141,20 @@ test_that("get_assessments_nl multi-topic mode skips records below threshold usi
   expect_identical(nrow(res), 1L)
   expect_true(all(c("relevance_score_plastics", "relevance_score_random") %in% names(res)))
 
-  # Per-topic threshold that no topic clears
+  # Per-topic threshold that no topic clears: the record is still returned
+  # and still scored — the threshold only blocks PDF downloads. With
+  # download = FALSE in this call there's nothing to gate, but we verify the
+  # scores are present and the row count is unchanged.
   res2 <- get_assessments_nl(
-    limit = 5, download = FALSE, write_sidecar = FALSE,
+    limit = 5,
+    download = FALSE,
+    write_sidecar = FALSE,
     topic = c(plastics = "Plastics Conversion", random = "music"),
     relevance_threshold = c(plastics = 1.1, random = 1.1),
     relevance_model = m
   )
-  expect_identical(nrow(res2), 0L)
+  expect_identical(nrow(res2), 1L)
+  expect_true(all(c("relevance_score_plastics", "relevance_score_random") %in% names(res2)))
 })
 
 test_that("score_records with a single topic adds a per-topic column and is invariant to row order", {
@@ -210,7 +213,7 @@ test_that("languages_for_country handles multi-language and unknown codes", {
   expect_identical(planscanR:::languages_for_country("ZZ"), character(0))
 })
 
-test_that("get_assessments_nl with topic + threshold filters records before download", {
+test_that("get_assessments_nl with topic + threshold: threshold gates PDF downloads only", {
   # Use the fixture detail page so this test stays offline; mock the URL
   # enumeration to return a single URL, and the perform_html() call to read
   # the fixture instead of going over HTTP.
@@ -239,14 +242,18 @@ test_that("get_assessments_nl with topic + threshold filters records before down
   expect_true("relevance_score_plastics_conversion_plant" %in% names(res))
   expect_identical(res$relevance_model, "fake-bow")
 
-  # And the inverse: a threshold above 1 drops the record.
+  # And the inverse: a threshold above 1 means no PDFs would be downloaded,
+  # but the record is still returned and scored. (download = FALSE here so
+  # there are no real downloads either way; the contract under test is that
+  # the result row count is unaffected by the threshold.)
   res2 <- get_assessments_nl(
     limit = 5,
     download = FALSE,
     write_sidecar = FALSE,
     topic = "Completely different",
-    relevance_threshold = 1.1, # impossible cosine ceiling -> drop everything
+    relevance_threshold = 1.1,
     relevance_model = m
   )
-  expect_identical(nrow(res2), 0L)
+  expect_identical(nrow(res2), 1L)
+  expect_true("relevance_score_completely_different" %in% names(res2))
 })

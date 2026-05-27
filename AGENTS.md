@@ -270,7 +270,12 @@ get_assessments("nl", topic = extended, download = FALSE)
 `get_assessments()` accepts an optional `topic` parameter. When set, each
 candidate record's title + summary is embedded **once** and scored by cosine
 similarity against the topic vector(s) **before** any attachments are
-downloaded. Records below `relevance_threshold` are skipped without download.
+downloaded. `relevance_threshold` is a **download-gate only**: records that
+fall below it keep their sidecar JSON and remain in the returned tibble —
+only their PDFs are skipped. This means a later re-run with a different
+threshold (or none at all) costs nothing in network: the metadata + per-file
+attachment URLs are already on disk and `index_cache()` / a sidecar-first
+re-fetch can pick them up offline.
 
 **Single vs multi-topic** — `topic` accepts either:
 - a single character string (legacy mode): adds `relevance_score` +

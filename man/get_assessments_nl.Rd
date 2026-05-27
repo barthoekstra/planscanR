@@ -53,7 +53,10 @@ actually changed something).}
 
 \item{topic, relevance_threshold, relevance_model}{Forwarded from
 \code{\link[=get_assessments]{get_assessments()}}. When \code{topic} is supplied, each candidate record is
-scored before its attachments are downloaded.}
+scored, and every scored record is sidecar'd and returned regardless of
+threshold. \code{relevance_threshold} is a \strong{download-gate only}: records
+below threshold keep their sidecar + tibble row but their PDFs are not
+downloaded.}
 
 \item{theme, advice_type, status, province}{Character vectors. See "Filter
 coverage". For \code{theme}, \code{advice_type}, \code{status} the valid slugs are in
