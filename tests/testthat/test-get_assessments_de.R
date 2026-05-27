@@ -60,7 +60,7 @@ test_that("de_extract_uuids dedupes anchor pairs on the same record card", {
   expect_gt(length(uuids), 1L)
   expect_lte(length(uuids), 10L)
   expect_identical(uuids, unique(uuids))
-  expect_true(all(grepl("^[a-f0-9-]+$", uuids)))
+  expect_true(all(grepl("^[A-Fa-f0-9-]+$", uuids)))
 })
 
 test_that("de_docuuid_from_url extracts the uuid from a canonical URL", {
@@ -125,19 +125,19 @@ test_that("get_assessments_de end-to-end on the fixture (sidecar-first, no downl
     options(planscanR.cache_dir = cache)
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
 
-    target_url <- "https://www.uvp-verbund.de/trefferanzeige?docuuid=a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
+    target_uuid <- "a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
 
     local_mocked_bindings(
-      de_advice_urls = function(query = NULL, max_urls = Inf, max_pages = 3000L) {
-        target_url
-      },
+      # Returning the same uuid every page makes the streaming loop see it
+      # once on page 1, then dedup-out on page 2 and terminate.
+      de_search_page = function(query, page) target_uuid,
       perform_html = function(req) rvest::read_html(fixture_html_path)
     )
 
     res <- get_assessments_de(limit = 5, download = FALSE)
     expect_identical(nrow(res), 1L)
     planscanR:::validate_result_schema(res)
-    expect_identical(res$document_id, "a8837db3-a6e0-4aa9-b13a-c5d2735187cb")
+    expect_identical(res$document_id, target_uuid)
 
     # Sidecar was written during the first call.
     sidecars <- list.files(
@@ -171,12 +171,10 @@ test_that("get_assessments_de's relevance threshold gates PDFs only — not the 
     options(planscanR.cache_dir = cache)
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
     reset_relevance_warnings()
-    target_url <- "https://www.uvp-verbund.de/trefferanzeige?docuuid=a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
+    target_uuid <- "a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
 
     local_mocked_bindings(
-      de_advice_urls = function(query = NULL, max_urls = Inf, max_pages = 3000L) {
-        target_url
-      },
+      de_search_page = function(query, page) target_uuid,
       perform_html = function(req) rvest::read_html(fixture_html_path)
     )
 

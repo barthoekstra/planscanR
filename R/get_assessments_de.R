@@ -15,9 +15,12 @@
 #' https://www.uvp-verbund.de/freitextsuche?q=<query>&toggle_procedure=&ranking=score&page=<n>
 #' ```
 #'
-#' The portal is Solr-backed; the canonical "match all" query is `q=*:*`
-#' (~24,270 records, 10 per page across ~2,427 pages). The literal `q=*`
-#' renders only the hit count, not the result list — a real-looking gotcha.
+#' The portal is Solr-backed but its `q=*:*` wildcard is broken for
+#' pagination: page 1 renders, every subsequent page returns the header but
+#' no results. As a "match-most" fallback when `query` is `NULL` we use
+#' `q=uvp`, which paginates correctly and covers ~93% of the register
+#' (~22,574 of ~24,270 records). For full coverage, run the scan against
+#' multiple seed queries and union the results.
 #' `toggle_procedure=` (empty value) is set explicitly: the portal's default
 #' (`toggle_procedure=on`) restricts results to currently-running plus
 #' last-year-modified procedures and silently drops ~80% of historical
@@ -74,8 +77,9 @@
 #'   records below it keep their sidecar + tibble row, only their PDFs are
 #'   skipped.
 #' @param query Free-text search string. Sent server-side as `q=<query>`.
-#'   When `NULL`, the Solr "match-all" wildcard `q=*:*` is used, which
-#'   enumerates the full register.
+#'   When `NULL`, the broad fallback `q=uvp` is used (matches ~93% of the
+#'   register). The portal's own `q=*:*` wildcard is unusable because page 2+
+#'   never renders — see the *URL enumeration* section.
 #' @param jurisdiction Character vector. Substring match on the
 #'   federal-state partner displayed on each detail page
 #'   (e.g. `jurisdiction = "Bayern"` keeps Bavarian records).
@@ -127,14 +131,9 @@ get_assessments_de <- function(
 
   rel <- de_setup_relevance(topic, relevance_model, country = "de")
 
-  # Enumerate URLs from the portal's own search. Cap pagination at a small
-  # buffer over `limit` so we don't fetch all 2,427 pages when the user asks
-  # for ten records.
-  max_urls <- if (is.finite(limit)) limit + 100L else Inf
   if (is.null(query) && !is.finite(limit)) {
     de_warn_full_crawl()
   }
-  urls <- de_advice_urls(query = query, max_urls = max_urls)
 
   sidecar_index <- if (!refresh) {
     sidecar_url_index("de")
@@ -142,33 +141,73 @@ get_assessments_de <- function(
     stats::setNames(character(0), character(0))
   }
 
+  # Streaming page-by-page crawl. We pull one search-result page, fan its
+  # docuuids out into per-record fetch + parse + score + sidecar, then move
+  # to the next search page. This means:
+  #   * a record lands on disk within ~200 ms of its docuuid being discovered
+  #     (the prior fetch-all-URLs-then-process design forced ~9 min of pure
+  #     URL enumeration before *any* record could be persisted);
+  #   * `limit` early-exit stops both loops, so a small limit actually fetches
+  #     a small number of pages instead of paginating the whole register;
+  #   * a crash leaves whatever was already sidecared on disk and the next
+  #     call resumes via the sidecar short-circuit.
+  base <- "https://www.uvp-verbund.de"
   records <- list()
-  for (u in urls) {
-    if (length(records) >= limit) {
+  seen_uuids <- character(0)
+  page <- 1L
+  max_pages <- 3000L
+  cli::cli_progress_bar(
+    format = paste0(
+      "{cli::pb_spin} crawling DE  ",
+      "page {page}  |  records {length(records)}",
+      if (is.finite(limit)) paste0("/", limit) else "",
+      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
+    ),
+    total = if (is.finite(limit)) limit else NA,
+    clear = FALSE
+  )
+  on.exit(cli::cli_progress_done(), add = TRUE)
+
+  while (length(records) < limit && page <= max_pages) {
+    page_uuids <- tryCatch(de_search_page(query, page), error = function(e) {
+      warn_partial("Failed to fetch search page {page}: {conditionMessage(e)}")
+      character(0)
+    })
+    new_uuids <- page_uuids[!tolower(page_uuids) %in% tolower(seen_uuids)]
+    if (length(new_uuids) == 0L) {
       break
     }
-    rec <- tryCatch(de_load_or_fetch(u, sidecar_index), error = function(e) {
-      warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
-      NULL
-    })
-    if (is.null(rec)) {
-      next
+    seen_uuids <- c(seen_uuids, new_uuids)
+    for (uuid in new_uuids) {
+      if (length(records) >= limit) {
+        break
+      }
+      u <- paste0(base, "/trefferanzeige?docuuid=", uuid)
+      rec <- tryCatch(de_load_or_fetch(u, sidecar_index), error = function(e) {
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
+        NULL
+      })
+      if (is.null(rec)) {
+        next
+      }
+      if (!de_record_matches(rec, date_range = date_range, jurisdiction = jurisdiction)) {
+        next
+      }
+      if (!is.null(rel)) {
+        rec <- de_apply_relevance(rec, rel)
+      }
+      should_download <- download && de_passes_download_gate(rec, rel, relevance_threshold)
+      rec <- de_finalise_record(
+        rec,
+        download = should_download,
+        overwrite = overwrite,
+        max_file_size_mb = max_file_size_mb,
+        write_sidecar = write_sidecar
+      )
+      records[[length(records) + 1L]] <- rec
+      cli::cli_progress_update()
     }
-    if (!de_record_matches(rec, date_range = date_range, jurisdiction = jurisdiction)) {
-      next
-    }
-    if (!is.null(rel)) {
-      rec <- de_apply_relevance(rec, rel)
-    }
-    should_download <- download && de_passes_download_gate(rec, rel, relevance_threshold)
-    rec <- de_finalise_record(
-      rec,
-      download = should_download,
-      overwrite = overwrite,
-      max_file_size_mb = max_file_size_mb,
-      write_sidecar = write_sidecar
-    )
-    records[[length(records) + 1L]] <- rec
+    page <- page + 1L
   }
 
   if (length(records) == 0L) {
@@ -202,7 +241,7 @@ de_warn_full_crawl <- function() {
     return(invisible())
   }
   warn_partial(c(
-    "Enumerating the full UVP-Verbund register (~24,270 records across ~2,427 search pages) on a cold cache will take many minutes.",
+    "Enumerating the UVP-Verbund register with the default fallback query (`q=uvp`, ~22,574 records across ~2,258 search pages) on a cold cache will take many minutes.",
     i = "Set {.arg limit} (and ideally {.arg query}) when exploring."
   ))
   options(planscanR.de_fullcrawl_warned = TRUE)
@@ -213,45 +252,35 @@ de_warn_full_crawl <- function() {
 # URL enumeration
 # -----------------------------------------------------------------------------
 
-#' Enumerate detail-page URLs from the UVP-Verbund full-text search.
+#' Fetch one search-result page and return its docuuids (case preserved).
 #'
-#' Paginates `freitextsuche`, extracts docuuids from result anchors, dedupes,
-#' and constructs canonical detail URLs. Stops when `max_urls` is reached, a
-#' page yields zero new docuuids, or `max_pages` is hit (safety net).
+#' Builds the `freitextsuche?q=<...>&toggle_procedure=&ranking=score&page=<n>`
+#' request, fetches the HTML, and pulls every `?docuuid=<...>` anchor out of
+#' it. Duplicates within the page (each card has both a title and image
+#' anchor pointing to the same uuid) are dropped. Cross-page dedup is the
+#' caller's responsibility — the streaming crawl in `get_assessments_de()`
+#' carries a `seen_uuids` ledger across pages.
 #'
-#' @param query Optional free-text query. `NULL` -> `q=*:*` (Solr wildcard).
-#' @param max_urls Soft cap on the number of URLs returned.
-#' @param max_pages Hard safety cap on pages fetched.
-#' @return Character vector of canonical URLs of the form
-#'   `https://www.uvp-verbund.de/trefferanzeige?docuuid=<uuid>`.
+#' @param query Optional free-text query. `NULL` -> `q=uvp` (paginating
+#'   fallback; the portal's Solr `*:*` doesn't paginate past page 1).
+#' @param page 1-based page index.
+#' @return Character vector of docuuids found on that page (case preserved;
+#'   the portal's detail-page route is case-sensitive). Empty vector on
+#'   network failure or an empty page.
 #' @noRd
-de_advice_urls <- function(query = NULL, max_urls = Inf, max_pages = 3000L) {
+de_search_page <- function(query, page) {
   base <- "https://www.uvp-verbund.de"
-  q <- if (is.null(query) || !nzchar(query)) "*:*" else query
-  seen <- character(0)
-  page <- 1L
-  while (length(seen) < max_urls && page <= max_pages) {
-    req <- req_planscanr(base, "freitextsuche")
-    req <- httr2::req_url_query(
-      req,
-      q = q,
-      toggle_procedure = "",
-      ranking = "score",
-      page = page
-    )
-    html <- tryCatch(perform_html(req), error = function(e) NULL)
-    if (is.null(html)) {
-      break
-    }
-    page_uuids <- de_extract_uuids(html)
-    new <- setdiff(page_uuids, seen)
-    if (length(new) == 0L) {
-      break
-    }
-    seen <- c(seen, new)
-    page <- page + 1L
-  }
-  paste0(base, "/trefferanzeige?docuuid=", seen)
+  q <- if (is.null(query) || !nzchar(query)) "uvp" else query
+  req <- req_planscanr(base, "freitextsuche")
+  req <- httr2::req_url_query(
+    req,
+    q = q,
+    toggle_procedure = "",
+    ranking = "score",
+    page = page
+  )
+  html <- perform_html(req)
+  de_extract_uuids(html)
 }
 
 #' Extract docuuids from a search-results HTML page.
@@ -265,8 +294,13 @@ de_extract_uuids <- function(html) {
     return(character(0))
   }
   hrefs <- rvest::html_attr(links, "href")
-  m <- regmatches(hrefs, regexpr("docuuid=[a-f0-9-]+", hrefs))
-  unique(sub("^docuuid=", "", m))
+  # Portal mixes lowercase and uppercase hex UUIDs (and a handful of pure-digit
+  # legacy IDs); accept both. Dedup is case-insensitive but the original case
+  # is preserved in the returned string because the portal's detail-page route
+  # IS case-sensitive — lowercasing the uuid in the URL yields an empty page.
+  m <- regmatches(hrefs, regexpr("docuuid=[A-Fa-f0-9-]+", hrefs))
+  uuids <- sub("^docuuid=", "", m)
+  uuids[!duplicated(tolower(uuids))]
 }
 
 # -----------------------------------------------------------------------------
@@ -385,7 +419,7 @@ de_parse_detail <- function(url) {
 #' Extract docuuid from a `?docuuid=<uuid>` URL.
 #' @noRd
 de_docuuid_from_url <- function(url) {
-  m <- regmatches(url, regexpr("docuuid=[a-f0-9-]+", url))
+  m <- regmatches(url, regexpr("docuuid=[A-Fa-f0-9-]+", url))
   if (length(m) == 0L) {
     return(NA_character_)
   }
