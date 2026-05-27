@@ -6,13 +6,18 @@
 # per-file download status, so the cache can be re-indexed without
 # re-fetching anything from the portal.
 
-SCHEMA_VERSION <- 1L
+SCHEMA_VERSION <- 2L
 
 #' Path to a record's sidecar JSON file.
+#'
+#' `create = TRUE` (the default) creates the per-record directory as a side
+#' effect — appropriate for the write path. Read-only callers (e.g. dedup
+#' lookups during discovery) should pass `create = FALSE` so probing for a
+#' sidecar's existence doesn't leave empty directories behind.
 #' @noRd
-sidecar_path <- function(country, document_id, root = NULL) {
+sidecar_path <- function(country, document_id, root = NULL, create = TRUE) {
   file.path(
-    cache_dir(file.path("files", country, document_id), create = TRUE, root = root),
+    cache_dir(file.path("files", country, document_id), create = create, root = root),
     paste0(document_id, ".meta.json")
   )
 }
@@ -56,6 +61,34 @@ write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
         payload$relevance_scores %||% list(),
         preserved
       )
+    }
+    # Preserve an existing discovery_log[] on disk. Portal-side writes never
+    # set discovery_log on the record, so without this preservation a
+    # re-scrape of a record that had been augmented by discover_attachments()
+    # would wipe its audit trail. The discover path also passes through here
+    # but supplies its own entries on the record, which we union below.
+    if (length(existing$discovery_log) > 0L) {
+      payload$discovery_log <- c(
+        payload$discovery_log %||% list(),
+        existing$discovery_log
+      )
+    }
+    # Same logic for v2 `files[]` entries with `source = "discovery"`: a
+    # portal-side write only emits portal-source rows, so preserve any
+    # discovery-source rows already on disk.
+    if (length(existing$files) > 0L) {
+      portal_urls_in_payload <- vapply(
+        payload$files %||% list(),
+        function(f) f$url %||% NA_character_,
+        character(1)
+      )
+      preserved_disc <- Filter(
+        function(f) {
+          identical(f$source, "discovery") && !(f$url %||% "" %in% portal_urls_in_payload)
+        },
+        existing$files
+      )
+      payload$files <- c(payload$files %||% list(), preserved_disc)
     }
   }
   tmp <- tempfile(tmpdir = dirname(path), fileext = ".json")
@@ -135,9 +168,19 @@ record_to_sidecar <- function(record, downloads = NULL) {
     }
     files <- lapply(seq_len(nrow(downloads)), function(i) {
       r <- downloads[i, ]
-      list(
+      entry <- list(
         url = r$url,
         section = section_of(r$url),
+        # `source` is v2: provenance of the attachment URL.
+        # "portal"    — found on the portal's own detail page (the v1 default)
+        # "discovery" — surfaced by a web-search backend (e.g. Tavily)
+        # Falls back to a column on the downloads tibble if present, otherwise
+        # to "portal" so v1 callers don't need to set anything.
+        source = if ("source" %in% names(downloads)) {
+          nullable(r$source) %||% "portal"
+        } else {
+          "portal"
+        },
         filename = if (is.na(r$local_path)) NULL else basename(r$local_path),
         local_path = nullable(r$local_path),
         status = r$status,
@@ -145,9 +188,45 @@ record_to_sidecar <- function(record, downloads = NULL) {
         sha256 = nullable(r$sha256),
         reason = nullable(r$reason)
       )
+      # v2.1: per-file validation classification. Optional — `portal`-source
+      # entries don't have a validator verdict, so the fields are simply
+      # absent from the JSON for those. For `discovery`-source entries the
+      # writer below records valid / rejected / skipped + the signal stack
+      # that fired (or didn't) and a short notes string.
+      if ("validation_status" %in% names(downloads)) {
+        entry$validation_status <- nullable(r$validation_status)
+      }
+      if ("validation_notes" %in% names(downloads)) {
+        entry$validation_notes <- nullable(r$validation_notes)
+      }
+      # Signals is a small character vector (potentially length 0).
+      # Wrap into a list-column upstream; here we serialise the vector.
+      if ("validation_signals" %in% names(downloads)) {
+        sigs <- r$validation_signals
+        if (is.list(sigs)) {
+          sigs <- sigs[[1]]
+        }
+        entry$validation_signals <- if (length(sigs) == 0L) {
+          list()
+        } else {
+          as.list(unname(sigs))
+        }
+      }
+      entry
     })
   }
   base$files <- files
+  # If the caller supplies a `discovery_log` list-column on the record,
+  # include its entries. Portal handlers don't, so this is normally empty;
+  # discover_attachments() sets it. write_record_sidecar() unions whatever
+  # arrives here with whatever is already on disk.
+  dlog <- record[["discovery_log"]]
+  base$discovery_log <- if (is.list(dlog) && length(dlog) >= 1L) {
+    val <- dlog[[1]]
+    if (is.null(val)) list() else val
+  } else {
+    list()
+  }
   base
 }
 
@@ -200,7 +279,30 @@ read_record_sidecar <- function(path) {
       numeric(1)
     ),
     sha256 = vapply(files, function(f) f$sha256 %||% NA_character_, character(1)),
-    reason = vapply(files, function(f) f$reason %||% NA_character_, character(1))
+    reason = vapply(files, function(f) f$reason %||% NA_character_, character(1)),
+    # v2: provenance. Defaults to "portal" so v1 sidecars (no source field
+    # in the JSON) read back with the legacy meaning intact.
+    source = vapply(files, function(f) f$source %||% "portal", character(1)),
+    # v2.1: per-file validation classification (only present for
+    # discovery-source entries; NA on portal-source rows so the column is
+    # always defined).
+    validation_status = vapply(
+      files,
+      function(f) f$validation_status %||% NA_character_,
+      character(1)
+    ),
+    validation_signals = I(lapply(
+      files,
+      function(f) {
+        sigs <- f$validation_signals
+        if (is.null(sigs)) character(0) else unlist(sigs, use.names = FALSE)
+      }
+    )),
+    validation_notes = vapply(
+      files,
+      function(f) f$validation_notes %||% NA_character_,
+      character(1)
+    )
   )
 
   out <- tibble::tibble(
@@ -245,8 +347,19 @@ read_record_sidecar <- function(path) {
   # straight through without any per-country knowledge here.
   for (nm in names(payload$extras %||% list())) {
     v <- payload$extras[[nm]]
-    out[[nm]] <- if (is.null(v)) NA else v
+    if (is.null(v)) {
+      out[[nm]] <- NA
+    } else if (length(v) > 1L || is.list(v)) {
+      # Multi-element extras (arrays in JSON) become list-columns so the
+      # single-row tibble can hold them without a recycle error.
+      out[[nm]] <- list(unlist(v, use.names = FALSE))
+    } else {
+      out[[nm]] <- v
+    }
   }
+  # v2: expose the discovery audit trail as a list-column. Empty list when
+  # the sidecar predates v2 or has had no discovery activity.
+  out$discovery_log <- list(payload$discovery_log %||% list())
   out
 }
 

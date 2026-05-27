@@ -138,6 +138,10 @@ head_content_length <- function(url) {
 }
 
 #' Compute SHA-256 for a local file.
+#'
+#' Strips the `openssl::sha256()` S3 class before returning so the result is
+#' a plain character — without this, jsonlite refuses to serialise the value
+#' into the sidecar (`No method asJSON S3 class: sha256`).
 #' @noRd
 file_sha256 <- function(path) {
   if (is.na(path) || !file.exists(path)) {
@@ -145,7 +149,11 @@ file_sha256 <- function(path) {
   }
   con <- file(path, open = "rb")
   on.exit(close(con), add = TRUE)
-  as.character(openssl::sha256(con))
+  # `openssl::sha256()` returns an S3-classed value (`c("hash", "sha256")`).
+  # `as.character()` keeps the class; `unclass()` first reverts to the raw
+  # byte vector. The combination `unclass(as.character(x))` yields the
+  # single-string hex digest with no class — what jsonlite needs to serialise.
+  unclass(as.character(openssl::sha256(con)))
 }
 
 #' Download a set of attachment URLs, with size cap and structured per-file

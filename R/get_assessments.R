@@ -62,6 +62,14 @@
 #'   [embedding_model_minilm()] (sentence-transformers
 #'   `paraphrase-multilingual-MiniLM-L12-v2` via reticulate). Pass a custom
 #'   one built with [embedding_model()] to plug in a different backend.
+#' @param discover Logical. If `TRUE`, after the portal handler returns,
+#'   records that came back with no attachments (`length(attachment_urls)
+#'   == 0`) are passed through [discover_attachments()] to find PDFs via a
+#'   web-search backend. Off by default in v0.x — metadata-only handlers
+#'   like AT emit a one-shot informational message pointing at this flag.
+#'   See [discover_attachments()] for backend / config controls.
+#' @param search_backend Optional [search_backend()] for the discovery
+#'   pass. Defaults to [search_backend_tavily()] when `discover = TRUE`.
 #' @param ... Forwarded to the country handler. Common search parameters are
 #'   documented in [get_assessments_nl()].
 #'
@@ -96,6 +104,8 @@ get_assessments <- function(
   topic = NULL,
   relevance_threshold = NULL,
   relevance_model = NULL,
+  discover = FALSE,
+  search_backend = NULL,
   ...
 ) {
   country <- normalise_country(country)
@@ -116,7 +126,52 @@ get_assessments <- function(
     ...
   )
   validate_result_schema(result)
+
+  # Discovery hook. Off by default; the per-handler "metadata-only" status in
+  # get_assessments_coverage() is the trigger for the one-shot hint nudging
+  # users towards `discover = TRUE`.
+  if (isTRUE(discover) && download && nrow(result) > 0L) {
+    n_empty <- sum(vapply(result$attachment_urls, function(v) length(v) == 0L, logical(1)))
+    if (n_empty > 0L) {
+      result <- discover_attachments(
+        result,
+        backend = search_backend,
+        relevance_model = relevance_model,
+        cache_dir = cache_dir,
+        max_file_size_mb = max_file_size_mb
+      )
+      validate_result_schema(result)
+    }
+  } else if (!isTRUE(discover) && download && country %in% metadata_only_countries()) {
+    nudge_discover_for_metadata_only(country)
+  }
+
   result
+}
+
+#' Countries whose handler is metadata-only (no public attachments).
+#'
+#' Sourced from [get_assessments_coverage()] — any handler whose `status`
+#' field starts with `"supported (metadata-only"` qualifies.
+#' @noRd
+metadata_only_countries <- function() {
+  cov <- get_assessments_coverage()
+  cov$country[grepl("^supported \\(metadata-only", cov$status)]
+}
+
+#' One-shot hint when a metadata-only handler is invoked with `discover = FALSE`.
+#' @noRd
+nudge_discover_for_metadata_only <- function(country) {
+  flag <- paste0("planscanR.nudged_discover_", country)
+  if (isTRUE(getOption(flag))) {
+    return(invisible())
+  }
+  cli::cli_inform(c(
+    i = "Country {.val {country}} has no public attachments via the portal.",
+    i = "Pass {.code discover = TRUE} (and set {.envvar TAVILY_API_KEY}) to look for PDFs on the open web. See {.help discover_attachments}."
+  ))
+  do.call(options, stats::setNames(list(TRUE), flag))
+  invisible()
 }
 
 #' Dispatch to the per-country handler.

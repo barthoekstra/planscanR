@@ -17,6 +17,8 @@ get_assessments(
   topic = NULL,
   relevance_threshold = NULL,
   relevance_model = NULL,
+  discover = FALSE,
+  search_backend = NULL,
   ...
 )
 }
@@ -81,6 +83,15 @@ score-only; every record's PDFs are downloaded (when \code{download = TRUE}).}
 \code{\link[=embedding_model_minilm]{embedding_model_minilm()}} (sentence-transformers
 \code{paraphrase-multilingual-MiniLM-L12-v2} via reticulate). Pass a custom
 one built with \code{\link[=embedding_model]{embedding_model()}} to plug in a different backend.}
+
+\item{discover}{Logical. If \code{TRUE}, after the portal handler returns,
+records that came back with no attachments (\code{length(attachment_urls) == 0}) are passed through \code{\link[=discover_attachments]{discover_attachments()}} to find PDFs via a
+web-search backend. Off by default in v0.x — metadata-only handlers
+like AT emit a one-shot informational message pointing at this flag.
+See \code{\link[=discover_attachments]{discover_attachments()}} for backend / config controls.}
+
+\item{search_backend}{Optional \code{\link[=search_backend]{search_backend()}} for the discovery
+pass. Defaults to \code{\link[=search_backend_tavily]{search_backend_tavily()}} when \code{discover = TRUE}.}
 
 \item{...}{Forwarded to the country handler. Common search parameters are
 documented in \code{\link[=get_assessments_nl]{get_assessments_nl()}}.}
