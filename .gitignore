@@ -47,3 +47,11 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Built vignettes
+inst/doc
+
+# Local manual-test artefacts
+tests/manual/
+.positai
+.DS_Store

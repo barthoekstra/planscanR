@@ -1,0 +1,44 @@
+Package: planscanR
+Title: Retrieve Environmental-Assessment Records From European Portals
+Version: 0.0.0.9000
+Authors@R:
+    person("Bart", "Hoekstra", email = "mail@barthoekstra.nl", role = c("aut", "cre"))
+Description: A unified R interface for fetching environmental-assessment
+    records (EIA, SEA, follow-up advice) from European national portals.
+    Developed for the BIOGAIN project to support Net Biodiversity Gain in
+    spatial energy planning. v0.1 implements a Netherlands handler against
+    the Commissie m.e.r. adviezenregister.
+License: GPL (>= 3)
+URL: https://github.com/barthoekstra/planscanR
+BugReports: https://github.com/barthoekstra/planscanR/issues
+Depends:
+    R (>= 4.1)
+Imports:
+    cli (>= 3.6.0),
+    dplyr (>= 1.1.0),
+    httr2 (>= 1.0.0),
+    jsonlite (>= 1.8.0),
+    lifecycle,
+    openssl (>= 2.0.0),
+    reticulate (>= 1.34),
+    rlang (>= 1.1.0),
+    rvest (>= 1.0.0),
+    tibble (>= 3.2.0),
+    tools,
+    utils,
+    withr,
+    xml2 (>= 1.3.0)
+Suggests:
+    covr,
+    httptest2 (>= 1.1.0),
+    knitr,
+    mockery,
+    pdftools,
+    pkgdown,
+    rmarkdown,
+    testthat (>= 3.2.0),
+    vcr (>= 1.6.0)
+Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
