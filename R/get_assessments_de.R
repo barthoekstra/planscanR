@@ -1,0 +1,653 @@
+#' Fetch environmental-assessment records from Germany.
+#'
+#' Implementation of [get_assessments()] for Germany. Backed by the
+#' UVP-Verbund portal at <https://www.uvp-verbund.de/>, a federated catalogue
+#' of UVP (Umweltverträglichkeitsprüfung) procedures published by all
+#' federal-state authorities. URL enumeration uses the portal's own
+#' server-side full-text search (`/freitextsuche`) — there is no XML sitemap.
+#' Per-record metadata is parsed from each detail page with rvest.
+#'
+#' @section URL enumeration:
+#' The portal exposes no sitemap, no OAI-PMH, and no CSW endpoint. The only
+#' enumeration route is the search interface itself:
+#'
+#' ```
+#' https://www.uvp-verbund.de/freitextsuche?q=<query>&toggle_procedure=&ranking=score&page=<n>
+#' ```
+#'
+#' The portal is Solr-backed; the canonical "match all" query is `q=*:*`
+#' (~24,270 records, 10 per page across ~2,427 pages). The literal `q=*`
+#' renders only the hit count, not the result list — a real-looking gotcha.
+#' `toggle_procedure=` (empty value) is set explicitly: the portal's default
+#' (`toggle_procedure=on`) restricts results to currently-running plus
+#' last-year-modified procedures and silently drops ~80% of historical
+#' records.
+#'
+#' On a cold cache, a full enumeration over ~2,427 pages is slow; users are
+#' strongly encouraged to set `limit` (and ideally `query`) when exploring.
+#'
+#' @section Filter coverage (v0.1):
+#' Only filters that map cleanly to portal-side parameters or to extractable
+#' detail-page fields are active in this version:
+#'
+#' * `query` — passed straight through as the server-side `q` parameter
+#'   (real full-text search, not a client-side substring match).
+#' * `date_range` — matches against `date_decision`, which on this portal
+#'   carries the **"Zuletzt geaendert"** date (last-modified timestamp shown
+#'   in the detail page header).
+#' * `jurisdiction` — substring match against the federal-state partner
+#'   (from `div.teaser-logo-partner img[alt]`, e.g. `"Baden-Württemberg"`).
+#'
+#' The portal's `procedure=` facet (Zulassungsverfahren, Bauleitplanung,
+#' etc.) is reserved for a future release.
+#'
+#' @section Attachments: per-page section split:
+#' UVP detail pages group documents under up to four headings, exposed here
+#' as parallel list-columns:
+#'
+#' * `attachment_urls_uvp_bericht` / `local_path_uvp_bericht` — files under
+#'   *"UVP-Bericht, ggf. Antragsunterlagen"* (the UVP report itself plus the
+#'   applicant's project documents — the substantive documents for downstream
+#'   analysis).
+#' * `attachment_urls_berichte` / `local_path_berichte` — files under
+#'   *"Berichte und Empfehlungen"* (technical reports and recommendations).
+#' * `attachment_urls_auslegung` / `local_path_auslegung` — files under
+#'   *"Auslegungsinformationen"* (public-consultation notices).
+#' * `attachment_urls_weitere` / `local_path_weitere` — files under
+#'   *"Weitere Unterlagen"* (catch-all section; often very large).
+#' * `attachment_urls` / `local_path` — deduplicated union, ordered with
+#'   the substantive sections first (UVP-Bericht → Berichte → Auslegung →
+#'   Weitere). Required by the planscanR schema.
+#'
+#' When `download = TRUE`, all files in all four sections are fetched —
+#' subject to `max_file_size_mb` and the relevance gate.
+#'
+#' @param date_range Length-2 vector `c(from, to)` of dates or parseable
+#'   strings. Filters by `date_decision`.
+#' @param limit Integer. Maximum records to return. Defaults to `Inf`; you
+#'   are strongly encouraged to set a small value (e.g. `50`) when exploring,
+#'   because a cold-cache full crawl enumerates all ~2,427 search pages.
+#' @param download,cache_dir,overwrite,max_file_size_mb,write_sidecar,refresh
+#'   See [get_assessments()].
+#' @param topic,relevance_threshold,relevance_model Forwarded from
+#'   [get_assessments()]. `relevance_threshold` is a **download-gate only**:
+#'   records below it keep their sidecar + tibble row, only their PDFs are
+#'   skipped.
+#' @param query Free-text search string. Sent server-side as `q=<query>`.
+#'   When `NULL`, the Solr "match-all" wildcard `q=*:*` is used, which
+#'   enumerates the full register.
+#' @param jurisdiction Character vector. Substring match on the
+#'   federal-state partner displayed on each detail page
+#'   (e.g. `jurisdiction = "Bayern"` keeps Bavarian records).
+#' @param ... Reserved for future extensions; unused arguments are warned about.
+#'
+#' @return A tibble; see [get_assessments()] for the schema.
+#' @seealso [get_assessments()], [get_assessments_coverage()].
+#' @export
+#' @examples
+#' \dontrun{
+#' # Quick smoke test
+#' get_assessments_de(limit = 3, download = FALSE)
+#'
+#' # Wind-energy search
+#' get_assessments_de(query = "windenergie", limit = 20, download = FALSE)
+#'
+#' # Date range
+#' get_assessments_de(
+#'   date_range = c("2024-01-01", "2024-12-31"),
+#'   limit = 20,
+#'   download = FALSE
+#' )
+#' }
+get_assessments_de <- function(
+  date_range = NULL,
+  limit = Inf,
+  download = TRUE,
+  cache_dir = NULL,
+  overwrite = FALSE,
+  max_file_size_mb = NULL,
+  write_sidecar = TRUE,
+  refresh = FALSE,
+  topic = NULL,
+  relevance_threshold = NULL,
+  relevance_model = NULL,
+  query = NULL,
+  jurisdiction = NULL,
+  ...
+) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    warn_partial("Unknown argument{?s} ignored: {.val {names(dots)}}")
+  }
+  date_range <- parse_date_range(date_range)
+
+  if (!is.null(cache_dir)) {
+    withr::local_options(list(planscanR.cache_dir = cache_dir))
+  }
+
+  rel <- de_setup_relevance(topic, relevance_model, country = "de")
+
+  # Enumerate URLs from the portal's own search. Cap pagination at a small
+  # buffer over `limit` so we don't fetch all 2,427 pages when the user asks
+  # for ten records.
+  max_urls <- if (is.finite(limit)) limit + 100L else Inf
+  if (is.null(query) && !is.finite(limit)) {
+    de_warn_full_crawl()
+  }
+  urls <- de_advice_urls(query = query, max_urls = max_urls)
+
+  sidecar_index <- if (!refresh) {
+    sidecar_url_index("de")
+  } else {
+    stats::setNames(character(0), character(0))
+  }
+
+  records <- list()
+  for (u in urls) {
+    if (length(records) >= limit) {
+      break
+    }
+    rec <- tryCatch(de_load_or_fetch(u, sidecar_index), error = function(e) {
+      warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
+      NULL
+    })
+    if (is.null(rec)) {
+      next
+    }
+    if (!de_record_matches(rec, date_range = date_range, jurisdiction = jurisdiction)) {
+      next
+    }
+    if (!is.null(rel)) {
+      rec <- de_apply_relevance(rec, rel)
+    }
+    should_download <- download && de_passes_download_gate(rec, rel, relevance_threshold)
+    rec <- de_finalise_record(
+      rec,
+      download = should_download,
+      overwrite = overwrite,
+      max_file_size_mb = max_file_size_mb,
+      write_sidecar = write_sidecar
+    )
+    records[[length(records) + 1L]] <- rec
+  }
+
+  if (length(records) == 0L) {
+    return(empty_result_tibble())
+  }
+  bind_results(!!!records)
+}
+
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
+
+#' Mapping from UVP-Verbund's German section H4 titles to planscanR slugs.
+#'
+#' Slugs become column suffixes (`attachment_urls_<slug>` /
+#' `local_path_<slug>`) and section tags inside the sidecar JSON.
+#' @noRd
+de_section_map <- function() {
+  c(
+    "UVP-Bericht, ggf. Antragsunterlagen" = "uvp_bericht",
+    "Berichte und Empfehlungen" = "berichte",
+    "Auslegungsinformationen" = "auslegung",
+    "Weitere Unterlagen" = "weitere"
+  )
+}
+
+#' One-shot warning that an unconstrained full crawl will be slow.
+#' @noRd
+de_warn_full_crawl <- function() {
+  if (isTRUE(getOption("planscanR.de_fullcrawl_warned"))) {
+    return(invisible())
+  }
+  warn_partial(c(
+    "Enumerating the full UVP-Verbund register (~24,270 records across ~2,427 search pages) on a cold cache will take many minutes.",
+    i = "Set {.arg limit} (and ideally {.arg query}) when exploring."
+  ))
+  options(planscanR.de_fullcrawl_warned = TRUE)
+  invisible()
+}
+
+# -----------------------------------------------------------------------------
+# URL enumeration
+# -----------------------------------------------------------------------------
+
+#' Enumerate detail-page URLs from the UVP-Verbund full-text search.
+#'
+#' Paginates `freitextsuche`, extracts docuuids from result anchors, dedupes,
+#' and constructs canonical detail URLs. Stops when `max_urls` is reached, a
+#' page yields zero new docuuids, or `max_pages` is hit (safety net).
+#'
+#' @param query Optional free-text query. `NULL` -> `q=*:*` (Solr wildcard).
+#' @param max_urls Soft cap on the number of URLs returned.
+#' @param max_pages Hard safety cap on pages fetched.
+#' @return Character vector of canonical URLs of the form
+#'   `https://www.uvp-verbund.de/trefferanzeige?docuuid=<uuid>`.
+#' @noRd
+de_advice_urls <- function(query = NULL, max_urls = Inf, max_pages = 3000L) {
+  base <- "https://www.uvp-verbund.de"
+  q <- if (is.null(query) || !nzchar(query)) "*:*" else query
+  seen <- character(0)
+  page <- 1L
+  while (length(seen) < max_urls && page <= max_pages) {
+    req <- req_planscanr(base, "freitextsuche")
+    req <- httr2::req_url_query(
+      req,
+      q = q,
+      toggle_procedure = "",
+      ranking = "score",
+      page = page
+    )
+    html <- tryCatch(perform_html(req), error = function(e) NULL)
+    if (is.null(html)) {
+      break
+    }
+    page_uuids <- de_extract_uuids(html)
+    new <- setdiff(page_uuids, seen)
+    if (length(new) == 0L) {
+      break
+    }
+    seen <- c(seen, new)
+    page <- page + 1L
+  }
+  paste0(base, "/trefferanzeige?docuuid=", seen)
+}
+
+#' Extract docuuids from a search-results HTML page.
+#' @noRd
+de_extract_uuids <- function(html) {
+  links <- rvest::html_elements(
+    html,
+    xpath = "//a[contains(@href, '/trefferanzeige?docuuid=')]"
+  )
+  if (length(links) == 0L) {
+    return(character(0))
+  }
+  hrefs <- rvest::html_attr(links, "href")
+  m <- regmatches(hrefs, regexpr("docuuid=[a-f0-9-]+", hrefs))
+  unique(sub("^docuuid=", "", m))
+}
+
+# -----------------------------------------------------------------------------
+# Detail-page parsing
+# -----------------------------------------------------------------------------
+
+#' Sidecar-first wrapper around the detail-page parser.
+#' @noRd
+de_load_or_fetch <- function(url, sidecar_index) {
+  hit <- sidecar_index[url]
+  if (length(hit) == 1L && !is.na(hit) && nzchar(hit) && file.exists(hit)) {
+    return(read_record_sidecar(hit))
+  }
+  de_parse_detail(url)
+}
+
+#' Parse a single UVP-Verbund detail page into a 1-row tibble.
+#' @noRd
+de_parse_detail <- function(url) {
+  req <- req_planscanr(url)
+  html <- perform_html(req)
+
+  docuuid <- de_docuuid_from_url(url)
+
+  title <- rvest::html_text(rvest::html_element(html, "h1"), trim = TRUE)
+  if (is.null(title) || is.na(title) || !nzchar(title)) {
+    title <- NA_character_
+  } else {
+    title <- gsub("\\s+", " ", title)
+  }
+
+  date_decision <- de_parse_german_date(
+    de_strip_label(
+      rvest::html_text(
+        rvest::html_element(html, "div.helper.text.date span"),
+        trim = TRUE
+      ),
+      "Zuletzt ge\u00e4ndert"
+    )
+  )
+
+  summary <- rvest::html_text(
+    rvest::html_element(
+      html,
+      xpath = "//h3[contains(normalize-space(.),'Allgemeine Vorhabenbeschreibung')]/following-sibling::p[1]"
+    ),
+    trim = TRUE
+  )
+  if (is.null(summary) || is.na(summary) || !nzchar(summary)) {
+    summary <- NA_character_
+  } else {
+    summary <- gsub("\\s+", " ", summary)
+  }
+
+  native_type <- rvest::html_text(
+    rvest::html_element(
+      html,
+      xpath = "//h3[contains(normalize-space(.),'UVP-Kategorie')]/following-sibling::div//span[contains(@class,'text')][1]"
+    ),
+    trim = TRUE
+  )
+  if (is.null(native_type) || is.na(native_type) || !nzchar(native_type)) {
+    native_type <- NA_character_
+  }
+
+  jurisdiction <- rvest::html_attr(
+    rvest::html_element(html, "div.teaser-logo-partner img"),
+    "alt"
+  )
+  if (is.null(jurisdiction) || is.na(jurisdiction) || !nzchar(jurisdiction)) {
+    jurisdiction <- NA_character_
+  }
+
+  competent_authority <- de_extract_competent_authority(html)
+
+  # Document sections — capture each H4 title's PDF list into its slugged
+  # column. Section vocab is closed (4 known titles); unknown titles get
+  # ignored.
+  section_map <- de_section_map()
+  per_section <- lapply(names(section_map), function(title_de) {
+    de_section_pdfs(html, title_de)
+  })
+  names(per_section) <- unname(section_map)
+
+  # Union order: substantive first (uvp_bericht, berichte, auslegung, weitere).
+  ordered_union <- unique(unlist(per_section[unname(section_map)], use.names = FALSE))
+  if (is.null(ordered_union)) {
+    ordered_union <- character(0)
+  }
+
+  rec <- tibble::tibble(
+    country = "de",
+    source_portal = "uvp-verbund.de",
+    document_id = docuuid,
+    url = url,
+    retrieved_at = as.POSIXct(Sys.time(), tz = "UTC"),
+    attachment_urls = list(ordered_union),
+    local_path = list(character(0)),
+    title = title,
+    summary = summary,
+    competent_authority = competent_authority %||% NA_character_,
+    proponent = NA_character_, # not a labelled field on UVP-Verbund detail pages
+    native_type = native_type,
+    jurisdiction = jurisdiction,
+    date_decision = date_decision,
+    download_status = list(empty_download_status())
+  )
+  # Attach the per-section list-columns.
+  for (slug in unname(section_map)) {
+    rec[[paste0("attachment_urls_", slug)]] <- list(per_section[[slug]])
+    rec[[paste0("local_path_", slug)]] <- list(character(0))
+  }
+  rec
+}
+
+#' Extract docuuid from a `?docuuid=<uuid>` URL.
+#' @noRd
+de_docuuid_from_url <- function(url) {
+  m <- regmatches(url, regexpr("docuuid=[a-f0-9-]+", url))
+  if (length(m) == 0L) {
+    return(NA_character_)
+  }
+  sub("^docuuid=", "", m[1])
+}
+
+#' Extract PDF (and generic attachment) URLs from a specific H4 section.
+#'
+#' Each documents section under `h4.title-font` has the same structure: the
+#' next sibling div contains the file list. We follow every `a.link.download`
+#' inside, treating non-PDFs (e.g. zipped raster overlays the portal serves)
+#' the same way — they're still attachments worth caching for downstream
+#' analysis. Returns absolute URLs.
+#' @noRd
+de_section_pdfs <- function(html, section_title) {
+  literal <- shQuote(section_title, type = "sh")
+  xp <- sprintf(
+    "//h4[contains(@class,'title-font') and normalize-space(.) = %s]/following-sibling::div[1]//a[contains(@class,'link') and contains(@class,'download')]",
+    literal
+  )
+  nodes <- rvest::html_elements(html, xpath = xp)
+  if (length(nodes) == 0L) {
+    return(character(0))
+  }
+  hrefs <- rvest::html_attr(nodes, "href")
+  hrefs <- hrefs[!is.na(hrefs) & nzchar(hrefs)]
+  # Some links may be protocol-relative or root-relative.
+  abs <- vapply(hrefs, de_absolutise, character(1), USE.NAMES = FALSE)
+  unique(abs)
+}
+
+#' Convert a possibly-relative href into an absolute URL rooted at the portal.
+#' @noRd
+de_absolutise <- function(href) {
+  if (grepl("^https?://", href)) {
+    return(href)
+  }
+  if (startsWith(href, "//")) {
+    return(paste0("https:", href))
+  }
+  if (startsWith(href, "/")) {
+    return(paste0("https://www.uvp-verbund.de", href))
+  }
+  # Truly relative; rare on this portal. Best-effort: rebase on root.
+  paste0("https://www.uvp-verbund.de/", href)
+}
+
+#' Strip a leading label from a value string (e.g. "Zuletzt geändert 24.02.2026" → "24.02.2026").
+#' @noRd
+de_strip_label <- function(s, label) {
+  if (is.null(s) || is.na(s) || !nzchar(s)) {
+    return(NA_character_)
+  }
+  s <- trimws(s)
+  pat <- paste0("^", label, "\\s+")
+  sub(pat, "", s)
+}
+
+#' Pull the competent authority from the "Ansprechpartner" block under "Adressen".
+#'
+#' The first `<p>` after the `<h4>Ansprechpartner</h4>` block holds the
+#' authority name(s), often spanning multiple lines (LRA + Regierungspräsidium,
+#' etc.). We collapse internal whitespace.
+#' @noRd
+de_extract_competent_authority <- function(html) {
+  node <- rvest::html_element(
+    html,
+    xpath = "//h4[contains(normalize-space(.),'Ansprechpartner')]/following-sibling::p[1]"
+  )
+  if (inherits(node, "xml_missing")) {
+    return(NA_character_)
+  }
+  txt <- rvest::html_text(node, trim = TRUE)
+  if (is.null(txt) || is.na(txt) || !nzchar(txt)) {
+    return(NA_character_)
+  }
+  # Multi-line authority blocks get collapsed to a single comma-joined line so
+  # the field is queryable with substring matches (e.g. jurisdiction filter).
+  parts <- strsplit(txt, "\n", fixed = TRUE)[[1]]
+  parts <- trimws(parts)
+  parts <- parts[nzchar(parts)]
+  paste(parts, collapse = ", ")
+}
+
+#' Parse a German-formatted date like "24.02.2026" into a Date.
+#' @noRd
+de_parse_german_date <- function(s) {
+  if (is.null(s) || is.na(s) || !nzchar(s)) {
+    return(as.Date(NA))
+  }
+  s <- trimws(s)
+  m <- regmatches(s, regexpr("^([0-9]{1,2})\\.([0-9]{1,2})\\.([0-9]{4})", s))
+  if (length(m) == 0L) {
+    return(as.Date(NA))
+  }
+  parts <- strsplit(m, "\\.")[[1]]
+  day <- suppressWarnings(as.integer(parts[1]))
+  mon <- suppressWarnings(as.integer(parts[2]))
+  yr <- suppressWarnings(as.integer(parts[3]))
+  if (is.na(day) || is.na(mon) || is.na(yr)) {
+    return(as.Date(NA))
+  }
+  as.Date(sprintf("%04d-%02d-%02d", yr, mon, day))
+}
+
+# -----------------------------------------------------------------------------
+# Per-record finalise (downloads + sidecar)
+# -----------------------------------------------------------------------------
+
+#' Finalise a parsed record: run downloads (if requested) and write the sidecar.
+#'
+#' Mirrors `nl_finalise_record()`. The sidecar is always written when
+#' `write_sidecar = TRUE`, even if `download = FALSE` — in that case the
+#' `download_status` carries one `"pending"` row per attachment URL so the
+#' sidecar still records what was found on the page.
+#' @noRd
+de_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write_sidecar) {
+  get_section <- function(col) {
+    v <- rec[[col]]
+    if (is.null(v)) character(0) else v[[1]]
+  }
+  urls <- get_section("attachment_urls")
+  section_cols <- grep("^attachment_urls_", names(rec), value = TRUE)
+
+  if (download) {
+    if (length(urls) > 0L) {
+      inform_download(length(urls), cache_dir(file.path("files", "de"), create = TRUE))
+    }
+    ds <- download_attachments(
+      urls,
+      country = "de",
+      document_id = rec$document_id,
+      overwrite = overwrite,
+      max_file_size_mb = max_file_size_mb
+    )
+  } else {
+    ds <- pending_download_status(urls)
+  }
+  rec$download_status <- list(ds)
+  rec$local_path <- list(ds$local_path)
+  rec$file_sha256 <- list(ds$sha256)
+  # Populate `local_path_<section>` parallel to each `attachment_urls_<section>`.
+  for (col in section_cols) {
+    slug <- sub("^attachment_urls_", "", col)
+    sec_urls <- get_section(col)
+    rec[[paste0("local_path_", slug)]] <- list(ds$local_path[match(sec_urls, ds$url)])
+  }
+  if (write_sidecar) {
+    tryCatch(
+      write_record_sidecar(rec, downloads = ds),
+      error = function(e) {
+        warn_partial(
+          "Could not write sidecar for {.val {rec$document_id}}: {conditionMessage(e)}"
+        )
+      }
+    )
+  }
+  rec
+}
+
+# -----------------------------------------------------------------------------
+# Filters
+# -----------------------------------------------------------------------------
+
+#' Apply client-side filters to a single parsed DE record.
+#' @noRd
+de_record_matches <- function(rec, date_range, jurisdiction) {
+  if (!is.null(date_range)) {
+    d <- rec$date_decision
+    if (is.na(d) || d < date_range[1] || d > date_range[2]) {
+      return(FALSE)
+    }
+  }
+  if (!is.null(jurisdiction)) {
+    j <- rec$jurisdiction %||% ""
+    if (!any(vapply(jurisdiction, function(p) grepl(p, j, ignore.case = TRUE), logical(1)))) {
+      return(FALSE)
+    }
+  }
+  TRUE
+}
+
+# -----------------------------------------------------------------------------
+# Relevance gate (mirrors NL handler)
+# -----------------------------------------------------------------------------
+
+#' Set up the relevance-scoring context (or NULL when no `topic` was given).
+#' @noRd
+de_setup_relevance <- function(topic, model, country) {
+  if (is.null(topic)) {
+    return(NULL)
+  }
+  topics <- normalise_topics(topic)
+  if (is.null(model)) {
+    model <- embedding_model_minilm()
+  }
+  if (!inherits(model, "planscanR_embedding_model")) {
+    cli::cli_abort(
+      "{.arg relevance_model} must be a planscanR_embedding_model object."
+    )
+  }
+  langs <- languages_for_country(country)
+  supp <- supported_languages(model)
+  if (length(langs) > 0L && !any(langs %in% supp)) {
+    key <- paste(model_name(model), country, sep = ":")
+    if (!key %in% get_warned_languages(model_name(model))) {
+      warn_partial(c(
+        "Country {.val {country}} uses language{?s} {.val {langs}}, which {?is/are} not in the supported set of model {.val {model_name(model)}}.",
+        i = "Records will still be scored, but quality may be reduced."
+      ))
+      mark_warned_language(key)
+    }
+  }
+  list(
+    model = model,
+    topics = topics,
+    topic_vecs = embed_text(model, unname(topics))
+  )
+}
+
+#' Attach relevance score(s) to a single record.
+#' @noRd
+de_apply_relevance <- function(rec, rel) {
+  text <- paste(rec$title %||% "", rec$summary %||% "", sep = "\n")
+  doc_vec <- embed_text(rel$model, text)
+  scores <- as.numeric(cosine_similarity_matrix(doc_vec, rel$topic_vecs))
+  for (i in seq_along(rel$topics)) {
+    rec[[paste0("relevance_score_", names(rel$topics)[i])]] <- scores[i]
+  }
+  rec$relevance_model <- model_name(rel$model)
+  rec
+}
+
+#' Decide whether a record's PDFs should be downloaded under the threshold.
+#'
+#' Same semantics as the NL handler's gate: scalar threshold passes if any
+#' topic score clears it; named-vector threshold passes if any named topic
+#' clears its own cutoff; `NULL` always passes.
+#' @noRd
+de_passes_download_gate <- function(rec, rel, threshold) {
+  if (is.null(threshold) || is.null(rel)) {
+    return(TRUE)
+  }
+  if (is.null(names(threshold))) {
+    scores <- vapply(
+      names(rel$topics),
+      function(nm) rec[[paste0("relevance_score_", nm)]],
+      numeric(1)
+    )
+    return(any(!is.na(scores) & scores >= threshold[[1]]))
+  }
+  ok <- vapply(
+    names(threshold),
+    function(nm) {
+      col <- paste0("relevance_score_", nm)
+      if (is.null(rec[[col]])) {
+        return(FALSE)
+      }
+      s <- rec[[col]]
+      !is.na(s) && s >= threshold[[nm]]
+    },
+    logical(1)
+  )
+  any(ok)
+}

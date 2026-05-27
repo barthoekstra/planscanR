@@ -122,5 +122,10 @@ get_assessments <- function(
 #' Dispatch to the per-country handler.
 #' @noRd
 select_assessments_handler <- function(country) {
-  switch(country, nl = get_assessments_nl, abort_unsupported_country(country))
+  switch(
+    country,
+    nl = get_assessments_nl,
+    de = get_assessments_de,
+    abort_unsupported_country(country)
+  )
 }

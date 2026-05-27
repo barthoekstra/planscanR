@@ -12,10 +12,14 @@ in spatial energy planning). It provides a single, unified R API
 follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad).
 
-**v0.1 scope.** One country handler ships: the Netherlands
-(`get_assessments_nl()`), backed by the Commissie m.e.r. adviezenregister at
-`commissiemer.nl`. The architecture is multi-country from day one — adding
-DE / DK / AT / etc. is a pure additive change.
+**v0.1 scope.** Two country handlers ship:
+- Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
+  at `commissiemer.nl`.
+- Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
+  `uvp-verbund.de`.
+
+The architecture is multi-country from day one — adding DK / AT / etc. is a
+pure additive change.
 
 **Out of scope for v0.1.** Spatial output (`sf`), zoning/plan documents,
 credential management (`keyring`), LLM-based classification & normalisation.
@@ -27,8 +31,8 @@ All are flagged on the roadmap (§6) so they don't get prematurely wedged in.
 get_assessments(country, ...)
   ├── normalise_country() / assert_country()
   ├── select_assessments_handler(country)    # switch() returning a function
-  │     └── get_assessments_nl(...)          # v0.1
-  │     # get_assessments_de(...)            # post-v0.1
+  │     ├── get_assessments_nl(...)          # commissiemer.nl
+  │     └── get_assessments_de(...)          # uvp-verbund.de
   │     # get_assessments_dk(...)            # post-v0.1
   │     # get_assessments_at(...)            # post-v0.1
   └── validate_result_schema()               # invariant gate before returning
@@ -69,8 +73,23 @@ named sections may add parallel list-columns. NL uses two:
 - `attachment_urls_advice` / `local_path_advice` — files in
   *"Adviezen en persberichten"* (Commissie advice + press releases).
 
-`attachment_urls` / `local_path` remain the deduplicated **union** (source
-first), so the required-columns schema is always satisfied.
+DE uses four:
+
+- `attachment_urls_uvp_bericht` / `local_path_uvp_bericht` —
+  *"UVP-Bericht, ggf. Antragsunterlagen"* (substantive UVP report + applicant
+  docs).
+- `attachment_urls_berichte` / `local_path_berichte` —
+  *"Berichte und Empfehlungen"*.
+- `attachment_urls_auslegung` / `local_path_auslegung` —
+  *"Auslegungsinformationen"* (public-consultation notices).
+- `attachment_urls_weitere` / `local_path_weitere` —
+  *"Weitere Unterlagen"* (other materials; often the biggest section).
+
+`attachment_urls` / `local_path` remain the deduplicated **union** (source /
+substantive sections first), so the required-columns schema is always
+satisfied. `read_record_sidecar()` is country-agnostic: any
+`attachment_urls_<section>` list-column a handler emits flows through the
+sidecar and back out without changes here.
 
 **`download_status` list-column** (when `download = TRUE`): one tibble per
 record with columns `url, local_path, status, size_bytes, sha256, reason`.

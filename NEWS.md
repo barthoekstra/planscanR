@@ -14,3 +14,22 @@
   under `files/<country>/<document_id>/`.
 * `get_assessments_coverage()` lists supported countries, portals, and the
   search-facet vocabularies each handler accepts.
+* Germany handler `get_assessments_de()` fetches from the federated
+  UVP-Verbund portal (`uvp-verbund.de`). URL enumeration uses the portal's
+  Solr-backed `/freitextsuche` search (`q=*:*` for everything); detail-page
+  parsing pulls title, summary, `competent_authority`, `jurisdiction`
+  (federal-state partner), `native_type` (UVP-Kategorie) and last-modified
+  date. Attachments are split into four list-columns mirroring the on-page
+  section headings: `attachment_urls_uvp_bericht`, `_berichte`, `_auslegung`,
+  `_weitere` (plus the deduplicated `attachment_urls` union).
+* **`relevance_threshold` is now a download-gate only.** Records that score
+  below the threshold still get a sidecar JSON on disk and still appear in
+  the returned tibble — only their PDF attachments are skipped. This makes
+  re-runs with a different threshold free of network. Applies to both NL
+  and DE handlers.
+* Sidecar JSONs now carry the URL list (and per-URL section tags) even when
+  `download = FALSE` — each known but not-yet-fetched URL gets a `pending`
+  row in `download_status`. `read_record_sidecar()` / `index_cache()` fan
+  per-section URLs back out into the same `attachment_urls_<section>` /
+  `local_path_<section>` columns regardless of country, and now also
+  restores country-specific extras (e.g. DE's `native_type`).

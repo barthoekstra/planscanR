@@ -14,12 +14,52 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = "nl",
-    source_portal = "commissiemer.nl",
-    base_url = "https://www.commissiemer.nl",
-    requires_auth = FALSE,
-    status = "supported",
-    facets = list(commissiemer_facets())
+    country = c("nl", "de"),
+    source_portal = c("commissiemer.nl", "uvp-verbund.de"),
+    base_url = c("https://www.commissiemer.nl", "https://www.uvp-verbund.de"),
+    requires_auth = c(FALSE, FALSE),
+    status = c("supported", "supported"),
+    facets = list(commissiemer_facets(), uvp_facets())
+  )
+}
+
+#' Static lookup of the UVP-Verbund facet vocabularies.
+#'
+#' The portal exposes a `procedure=` facet (Zulassungsverfahren,
+#' Bauleitplanung, Raumordnungsverfahren, Negative Vorprüfungen,
+#' Linienbestimmungen, Ausländische Vorhaben) and an implicit federal-state
+#' partner facet via search-result icons; neither is honoured yet in v0.1.
+#' Captured for forward compatibility / documentation.
+#' @noRd
+uvp_facets <- function() {
+  list(
+    procedure = c(
+      "obj_class_zv",
+      "obj_class_nv",
+      "obj_class_blp",
+      "obj_class_ro",
+      "obj_class_li",
+      "obj_class_av"
+    ),
+    bundesland = c(
+      "Baden-W\u00fcrttemberg",
+      "Bayern",
+      "Berlin",
+      "Brandenburg",
+      "Bremen",
+      "Hamburg",
+      "Hessen",
+      "Mecklenburg-Vorpommern",
+      "Niedersachsen",
+      "Nordrhein-Westfalen",
+      "Rheinland-Pfalz",
+      "Saarland",
+      "Sachsen",
+      "Sachsen-Anhalt",
+      "Schleswig-Holstein",
+      "Th\u00fcringen",
+      "Bund"
+    )
   )
 }
 

@@ -19,3 +19,17 @@ test_that("NL coverage row exposes the facet vocabularies", {
   expect_true("afgerond" %in% f$status)
   expect_true("toetsing" %in% f$advice_type)
 })
+
+test_that("DE coverage row exposes the procedure / bundesland vocabularies", {
+  c <- get_assessments_coverage()
+  de <- c[c$country == "de", ]
+  expect_identical(de$source_portal, "uvp-verbund.de")
+  expect_false(de$requires_auth)
+  expect_identical(de$status, "supported")
+  f <- de$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("procedure", "bundesland"))
+  expect_true("Bayern" %in% f$bundesland)
+  expect_true("Baden-Württemberg" %in% f$bundesland)
+  expect_true("obj_class_zv" %in% f$procedure)
+})

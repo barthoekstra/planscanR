@@ -1,5 +1,5 @@
-test_that("supported_countries() returns the expected v0.1 set", {
-  expect_identical(supported_countries(), "nl")
+test_that("supported_countries() returns the shipped set", {
+  expect_setequal(supported_countries(), c("nl", "de"))
 })
 
 test_that("get_assessments() rejects unsupported countries with classed error", {
@@ -8,7 +8,7 @@ test_that("get_assessments() rejects unsupported countries with classed error", 
     class = "planscanR_error_unsupported_country"
   )
   expect_error(
-    get_assessments("de"),
+    get_assessments("fr"),
     class = "planscanR_error_unsupported_country"
   )
 })
@@ -34,6 +34,6 @@ test_that("normalise_country lowercases", {
 })
 
 test_that("select_assessments_handler returns the per-country function", {
-  fn <- planscanR:::select_assessments_handler("nl")
-  expect_identical(fn, get_assessments_nl)
+  expect_identical(planscanR:::select_assessments_handler("nl"), get_assessments_nl)
+  expect_identical(planscanR:::select_assessments_handler("de"), get_assessments_de)
 })
