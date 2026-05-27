@@ -4,8 +4,12 @@ test_that("biogain_assessment_topics returns the expected slug set", {
   expect_setequal(
     names(out),
     c(
-      "wind", "solar", "power_grid", "renewable_energy",
-      "energy_transition_strategy", "renewable_zoning"
+      "wind",
+      "solar",
+      "power_grid",
+      "renewable_energy",
+      "energy_transition_strategy",
+      "renewable_zoning"
     )
   )
   expect_true(all(nzchar(unname(out))))

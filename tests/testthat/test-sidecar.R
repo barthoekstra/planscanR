@@ -3,7 +3,8 @@ test_that("sidecar round-trip preserves multi-topic relevance scores", {
     options(planscanR.cache_dir = getwd())
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
     rec <- tibble::tibble(
-      country = "nl", source_portal = "commissiemer.nl",
+      country = "nl",
+      source_portal = "commissiemer.nl",
       document_id = "9988",
       url = "https://www.commissiemer.nl/advies/multi-topic-test/",
       retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),

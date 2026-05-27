@@ -38,11 +38,11 @@
 #' }
 biogain_assessment_topics <- function() {
   c(
-    wind                       = "wind energy",
-    solar                      = "solar energy",
-    power_grid                 = "power lines, distribution and transmission infrastructure",
-    renewable_energy           = "renewable energy",
+    wind = "wind energy",
+    solar = "solar energy",
+    power_grid = "power lines, distribution and transmission infrastructure",
+    renewable_energy = "renewable energy",
     energy_transition_strategy = "regional energy transition strategy and planning",
-    renewable_zoning           = "renewable energy zoning and designated development areas"
+    renewable_zoning = "renewable energy zoning and designated development areas"
   )
 }

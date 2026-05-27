@@ -32,13 +32,18 @@ make_fake_model <- function(languages = c("nl", "en", "de"), dim = 64L) {
       # hash each token to one of `dim` slots, count occurrences. Real
       # token overlap drives cosine similarity.
       slot_of <- function(tok) (sum(utf8ToInt(tok)) %% dim) + 1L
-      do.call(rbind, lapply(x, function(s) {
-        toks <- tolower(strsplit(s, "\\W+")[[1]])
-        toks <- toks[nzchar(toks)]
-        v <- numeric(dim)
-        for (t in toks) v[slot_of(t)] <- v[slot_of(t)] + 1
-        v
-      }))
+      do.call(
+        rbind,
+        lapply(x, function(s) {
+          toks <- tolower(strsplit(s, "\\W+")[[1]])
+          toks <- toks[nzchar(toks)]
+          v <- numeric(dim)
+          for (t in toks) {
+            v[slot_of(t)] <- v[slot_of(t)] + 1
+          }
+          v
+        })
+      )
     }
   )
 }

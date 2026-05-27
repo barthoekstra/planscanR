@@ -139,8 +139,10 @@ test_that("sidecar-first: existing sidecars short-circuit detail-page fetches", 
     # Pre-populate one sidecar for a URL we'll request.
     target_url <- "https://www.commissiemer.nl/advies/already-cached/"
     rec <- tibble::tibble(
-      country = "nl", source_portal = "commissiemer.nl",
-      document_id = "9001", url = target_url,
+      country = "nl",
+      source_portal = "commissiemer.nl",
+      document_id = "9001",
+      url = target_url,
       retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
       attachment_urls = list(character(0)),
       attachment_urls_source = list(character(0)),
@@ -148,8 +150,10 @@ test_that("sidecar-first: existing sidecars short-circuit detail-page fetches", 
       local_path = list(character(0)),
       local_path_source = list(character(0)),
       local_path_advice = list(character(0)),
-      title = "Cached advice", summary = "wind energy planning",
-      competent_authority = NA_character_, proponent = NA_character_,
+      title = "Cached advice",
+      summary = "wind energy planning",
+      competent_authority = NA_character_,
+      proponent = NA_character_,
       date_decision = as.Date(NA)
     )
     planscanR:::write_record_sidecar(rec)
@@ -176,8 +180,10 @@ test_that("refresh = TRUE forces a detail-page fetch even when a sidecar exists"
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
     target_url <- "https://www.commissiemer.nl/advies/refresh-test/"
     rec <- tibble::tibble(
-      country = "nl", source_portal = "commissiemer.nl",
-      document_id = "9002", url = target_url,
+      country = "nl",
+      source_portal = "commissiemer.nl",
+      document_id = "9002",
+      url = target_url,
       retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
       attachment_urls = list(character(0)),
       attachment_urls_source = list(character(0)),
@@ -185,8 +191,10 @@ test_that("refresh = TRUE forces a detail-page fetch even when a sidecar exists"
       local_path = list(character(0)),
       local_path_source = list(character(0)),
       local_path_advice = list(character(0)),
-      title = "Old (cached)", summary = "stale",
-      competent_authority = NA_character_, proponent = NA_character_,
+      title = "Old (cached)",
+      summary = "stale",
+      competent_authority = NA_character_,
+      proponent = NA_character_,
       date_decision = as.Date(NA)
     )
     planscanR:::write_record_sidecar(rec)
@@ -199,8 +207,7 @@ test_that("refresh = TRUE forces a detail-page fetch even when a sidecar exists"
         rec
       }
     )
-    out <- get_assessments_nl(limit = 5, download = FALSE, write_sidecar = FALSE,
-                              refresh = TRUE)
+    out <- get_assessments_nl(limit = 5, download = FALSE, write_sidecar = FALSE, refresh = TRUE)
     expect_identical(parse_calls, 1L)
     expect_identical(out$title, "Fresh from network")
   })
@@ -212,7 +219,8 @@ test_that("sidecar merge: a new run on one topic preserves prior multi-topic sco
     options(planscanR.cache_dir = cache)
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
     base <- tibble::tibble(
-      country = "nl", source_portal = "commissiemer.nl",
+      country = "nl",
+      source_portal = "commissiemer.nl",
       document_id = "9003",
       url = "https://www.commissiemer.nl/advies/merge-test/",
       retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
@@ -222,8 +230,10 @@ test_that("sidecar merge: a new run on one topic preserves prior multi-topic sco
       local_path = list(character(0)),
       local_path_source = list(character(0)),
       local_path_advice = list(character(0)),
-      title = "x", summary = NA_character_,
-      competent_authority = NA_character_, proponent = NA_character_,
+      title = "x",
+      summary = NA_character_,
+      competent_authority = NA_character_,
+      proponent = NA_character_,
       date_decision = as.Date(NA),
       relevance_model = "fake-bow"
     )
@@ -255,7 +265,8 @@ test_that("sidecar_url_index reads only valid JSON sidecars", {
     # Plant a couple.
     for (i in 1:3) {
       rec <- tibble::tibble(
-        country = "nl", source_portal = "commissiemer.nl",
+        country = "nl",
+        source_portal = "commissiemer.nl",
         document_id = as.character(8000 + i),
         url = paste0("https://www.commissiemer.nl/advies/idx-", i, "/"),
         retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
@@ -265,8 +276,10 @@ test_that("sidecar_url_index reads only valid JSON sidecars", {
         local_path = list(character(0)),
         local_path_source = list(character(0)),
         local_path_advice = list(character(0)),
-        title = paste("rec", i), summary = NA_character_,
-        competent_authority = NA_character_, proponent = NA_character_,
+        title = paste("rec", i),
+        summary = NA_character_,
+        competent_authority = NA_character_,
+        proponent = NA_character_,
         date_decision = as.Date(NA)
       )
       planscanR:::write_record_sidecar(rec)
@@ -275,12 +288,9 @@ test_that("sidecar_url_index reads only valid JSON sidecars", {
     expect_length(idx, 3L)
     expect_setequal(
       unname(idx),
-      list.files(file.path(cache, "files", "nl"),
-                 pattern = "\\.meta\\.json$",
-                 recursive = TRUE, full.names = TRUE)
+      list.files(file.path(cache, "files", "nl"), pattern = "\\.meta\\.json$", recursive = TRUE, full.names = TRUE)
     )
-    expect_true(all(grepl("^https://www\\.commissiemer\\.nl/advies/idx-",
-                          names(idx))))
+    expect_true(all(grepl("^https://www\\.commissiemer\\.nl/advies/idx-", names(idx))))
   })
 })
 
