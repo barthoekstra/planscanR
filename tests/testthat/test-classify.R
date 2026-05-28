@@ -164,6 +164,46 @@ test_that("classification round-trips through the sidecar", {
   })
 })
 
+test_that("classify_assessments writes sidecars incrementally (crash-safe)", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    recs <- tibble::tibble(
+      country = rep("de", 6),
+      source_portal = "uvp-verbund.de",
+      document_id = paste0("inc-", 1:6),
+      url = paste0("https://www.uvp-verbund.de/trefferanzeige?docuuid=inc-", 1:6),
+      retrieved_at = as.POSIXct("2026-05-28 12:00:00", tz = "UTC"),
+      attachment_urls = replicate(6, character(0), simplify = FALSE),
+      local_path = replicate(6, character(0), simplify = FALSE),
+      title = paste("rec", 1:6),
+      summary = NA_character_,
+      download_status = replicate(6, planscanR:::empty_download_status(), simplify = FALSE)
+    )
+    # Mock that aborts on the 3rd batch; batches 1-2 (records 1-4) are written
+    # before it blows up.
+    calls <- 0L
+    boom <- classifier("boom", function(x, labels, multi_label) {
+      calls <<- calls + 1L
+      if (calls == 3L) {
+        stop("boom on batch 3")
+      }
+      matrix(1 / length(labels), nrow = length(x), ncol = length(labels), dimnames = list(NULL, names(labels)))
+    })
+    expect_error(
+      classify_assessments(recs, classifier = boom, batch_size = 2L, write_sidecar = TRUE),
+      "boom"
+    )
+    written <- list.files(
+      file.path(getwd(), "cache", "files", "de"),
+      pattern = "\\.meta\\.json$",
+      recursive = TRUE
+    )
+    # Records 1-4 persisted before the crash; 5-6 did not.
+    expect_length(written, 4L)
+  })
+})
+
 test_that("a portal-side sidecar rewrite preserves an existing classification", {
   withr::with_tempdir({
     options(planscanR.cache_dir = file.path(getwd(), "cache"))

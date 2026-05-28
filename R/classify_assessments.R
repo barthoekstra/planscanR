@@ -175,9 +175,21 @@ classify_assessments <- function(
 
   texts <- classification_text(records)
 
-  # Score in batches so a long run shows progress and memory stays bounded.
+  # Pre-allocate the verdict columns so each batch can fill its slice and the
+  # sidecar for those records can be written immediately.
+  records$class_label <- NA_character_
+  records$class_score <- NA_real_
+  records$class_relevant <- NA
+  records$class_model <- classifier_name(classifier)
+  for (s in slugs) {
+    records[[paste0("class_score_", s)]] <- NA_real_
+  }
+  score_cols <- paste0("class_score_", slugs)
+
+  # Score AND persist per batch, so an interrupted run leaves every
+  # already-classified record on disk (crash-safe / resumable, matching the
+  # scan and download paths) rather than discarding the whole run's work.
   starts <- seq.int(1L, n, by = batch_size)
-  scores <- matrix(NA_real_, nrow = n, ncol = length(slugs), dimnames = list(NULL, slugs))
   cli::cli_progress_bar(
     format = paste0(
       "{cli::pb_spin} classifying {cli::pb_current}/{cli::pb_total} batches",
@@ -188,32 +200,29 @@ classify_assessments <- function(
   )
   for (st in starts) {
     idx <- st:min(st + batch_size - 1L, n)
-    scores[idx, ] <- classify_text(classifier, texts[idx], labels, multi_label = multi_label)
+    sc <- classify_text(classifier, texts[idx], labels, multi_label = multi_label)
+    best <- max.col(replace(sc, is.na(sc), -Inf), ties.method = "first")
+    records$class_label[idx] <- slugs[best]
+    records$class_score[idx] <- sc[cbind(seq_along(idx), best)]
+    records$class_relevant[idx] <- slugs[best] %in% relevant
+    for (j in seq_along(slugs)) {
+      records[[score_cols[j]]][idx] <- sc[, j]
+    }
+    if (write_sidecar) {
+      for (i in idx) {
+        tryCatch(
+          write_record_sidecar(records[i, ]),
+          error = function(e) {
+            warn_partial(
+              "Could not write sidecar for {.val {records$document_id[i]}}: {conditionMessage(e)}"
+            )
+          }
+        )
+      }
+    }
     cli::cli_progress_update()
   }
   cli::cli_progress_done()
 
-  # Best label per record.
-  best <- max.col(replace(scores, is.na(scores), -Inf), ties.method = "first")
-  records$class_label <- slugs[best]
-  records$class_score <- scores[cbind(seq_len(n), best)]
-  records$class_relevant <- records$class_label %in% relevant
-  records$class_model <- classifier_name(classifier)
-  for (s in slugs) {
-    records[[paste0("class_score_", s)]] <- scores[, s]
-  }
-
-  if (write_sidecar) {
-    for (i in seq_len(n)) {
-      tryCatch(
-        write_record_sidecar(records[i, ]),
-        error = function(e) {
-          warn_partial(
-            "Could not write sidecar for {.val {records$document_id[i]}}: {conditionMessage(e)}"
-          )
-        }
-      )
-    }
-  }
   records
 }
