@@ -9,7 +9,7 @@ classify_assessments(
   classifier = NULL,
   labels = biogain_classification_labels(),
   multi_label = FALSE,
-  batch_size = 16L,
+  batch_size = 64L,
   write_sidecar = FALSE
 )
 }
@@ -29,7 +29,10 @@ as relevant.}
 (softmax); the negative classes then compete with the positive ones,
 which is the point. \code{TRUE} scores each label independently.}
 
-\item{batch_size}{Number of records per classifier call (progress + memory).}
+\item{batch_size}{Number of records handed to the classifier per call —
+controls progress granularity and R-Python round trips. This is distinct
+from the model's GPU \code{batch_size} (set on \code{\link[=classify_model_zeroshot]{classify_model_zeroshot()}}),
+which controls how the NLI pairs are batched through the device.}
 
 \item{write_sidecar}{If \code{TRUE}, persist the verdict into each record's
 sidecar JSON. Default \code{FALSE} (in-memory only).}

@@ -43,7 +43,8 @@ biogain_classification_labels <- function() {
     # --- negative / distractor classes ---
     water = "a water management or hydraulic engineering project",
     land_use = "a general land-use, spatial planning, or land consolidation project",
-    other = "an agriculture, industry, housing, transport, or other non-energy project"
+    transport = "a road, motorway, railway, or other transport infrastructure project",
+    other = "an agriculture, industry, housing, or other non-energy project"
   )
   attr(labels, "relevant") <- c(
     "wind",
