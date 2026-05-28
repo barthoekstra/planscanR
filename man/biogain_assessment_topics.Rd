@@ -39,10 +39,11 @@ without translation.
 biogain_assessment_topics()
 
 \dontrun{
-# Score the whole NL register against the BIOGAIN topic set
+# Score a small slice of the NL register against the BIOGAIN topic set
 res <- get_assessments(
   "nl",
   topic = biogain_assessment_topics(),
+  limit = 5,
   download = FALSE
 )
 }

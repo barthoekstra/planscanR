@@ -15,6 +15,7 @@ for the list of supported countries and portals.
 Useful links:
 \itemize{
   \item \url{https://github.com/barthoekstra/planscanR}
+  \item \url{https://barthoekstra.github.io/planscanR/}
   \item Report bugs at \url{https://github.com/barthoekstra/planscanR/issues}
 }
 

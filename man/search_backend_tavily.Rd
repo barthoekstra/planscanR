@@ -18,8 +18,11 @@ logged or persisted by the package.}
 \item{search_depth}{Either \code{"basic"} (default, cheaper) or \code{"advanced"}
 (deeper crawl per result, ~3x the cost).}
 
-\item{max_results_cap}{Hard cap passed through as \code{max_results}. Tavily
-allows up to 20; default 10.}
+\item{max_results_cap}{Hard cap passed through as \code{max_results}. Tavily's
+basic search depth caps responses at ~20 results regardless of what we
+send; advanced search depth goes higher. We accept up to 100 here so
+that future API tiers (and the advanced depth) aren't bottlenecked at
+the package layer. Tavily silently caps the actual returned count.}
 }
 \value{
 A \code{planscanR_search_backend}.

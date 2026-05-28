@@ -90,6 +90,12 @@ write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
       )
       payload$files <- c(payload$files %||% list(), preserved_disc)
     }
+    # Preserve an existing classification verdict when this write doesn't carry
+    # one. Portal-side writes (scan / download) don't set class_* columns, so
+    # without this a re-scrape would wipe a classify_assessments() verdict.
+    if (is.null(payload$classification) && !is.null(existing$classification)) {
+      payload$classification <- existing$classification
+    }
   }
   tmp <- tempfile(tmpdir = dirname(path), fileext = ".json")
   con <- file(tmp, open = "wb", encoding = "UTF-8")
@@ -110,17 +116,23 @@ record_to_sidecar <- function(record, downloads = NULL) {
     document_id = record$document_id,
     url = record$url,
     retrieved_at = format(record$retrieved_at, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
-    title = nullable(record$title),
-    summary = nullable(record$summary),
-    competent_authority = nullable(record$competent_authority),
-    proponent = nullable(record$proponent),
-    date_decision = nullable_date(record$date_decision),
+    # Conventional (optional) columns via `[[` so a record missing one doesn't
+    # trip tibble's "unknown column" warning; nullable*() turn NULL into a
+    # JSON null.
+    title = nullable(record[["title"]]),
+    summary = nullable(record[["summary"]]),
+    competent_authority = nullable(record[["competent_authority"]]),
+    proponent = nullable(record[["proponent"]]),
+    date_decision = nullable_date(record[["date_decision"]]),
     # `[[` returns NULL silently when the column is absent (e.g. records
     # never went through the relevance gate). `$` would emit a tibble warning.
     relevance_model = nullable(record[["relevance_model"]]),
     # One entry per relevance_score_<slug> column found on the record. Each
     # entry stores topic-slug, score, model name, and time.
-    relevance_scores = record_topic_scores(record)
+    relevance_scores = record_topic_scores(record),
+    # Zero-shot classification verdict (NULL when the record hasn't been
+    # classified). See record_classification().
+    classification = record_classification(record)
   )
   # Carry through any extra columns we don't explicitly know about (other than
   # the required list-columns, which we treat below). Per-section attachment
@@ -129,12 +141,22 @@ record_to_sidecar <- function(record, downloads = NULL) {
   # which sections a country uses (NL: source/advice; DE: uvp_bericht/
   # berichte/auslegung/weitere; future portals: whatever they expose).
   section_cols <- grep("^(attachment_urls|local_path)_", names(record), value = TRUE)
+  # Classification columns are serialised into the `classification` block, not
+  # `extras`.
+  class_cols <- c(
+    "class_label",
+    "class_score",
+    "class_relevant",
+    "class_model",
+    grep("^class_score_", names(record), value = TRUE)
+  )
   reserved <- c(
     names(base),
     "retrieved_at",
     "attachment_urls",
     "local_path",
     section_cols,
+    class_cols,
     "file_sha256",
     "download_status"
   )
@@ -254,6 +276,36 @@ record_topic_scores <- function(record) {
   })
 }
 
+#' Build the `classification` JSON object from a record's `class_*` columns.
+#'
+#' Returns `NULL` when the record has no classification (so the sidecar field
+#' serialises to null). Otherwise an object with the top label/score, the
+#' relevant flag, the model, a timestamp, and the full per-label scores.
+#' @noRd
+record_classification <- function(record) {
+  label <- record[["class_label"]]
+  if (is.null(label) || length(label) != 1L || is.na(label) || !nzchar(label)) {
+    return(NULL)
+  }
+  score_cols <- grep("^class_score_", names(record), value = TRUE)
+  scores <- lapply(score_cols, function(col) {
+    v <- record[[col]]
+    list(
+      label = sub("^class_score_", "", col),
+      score = if (is.null(v) || is.na(v)) NULL else as.numeric(v)
+    )
+  })
+  rel <- record[["class_relevant"]]
+  list(
+    label = label,
+    score = nullable_numeric(record[["class_score"]]),
+    relevant = if (is.null(rel) || is.na(rel)) NULL else isTRUE(rel),
+    model = nullable(record[["class_model"]]),
+    classified_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
+    scores = scores
+  )
+}
+
 #' Read a sidecar JSON back into a 1-row tibble matching the planscanR schema.
 #'
 #' @param path Path to a `<document_id>.meta.json` file.
@@ -360,6 +412,25 @@ read_record_sidecar <- function(path) {
   # v2: expose the discovery audit trail as a list-column. Empty list when
   # the sidecar predates v2 or has had no discovery activity.
   out$discovery_log <- list(payload$discovery_log %||% list())
+
+  # Fan the zero-shot classification verdict back into class_* columns, so a
+  # round-tripped record matches what classify_assessments() returns at
+  # runtime. Absent on sidecars that were never classified.
+  cls <- payload$classification
+  if (!is.null(cls) && !is.null(cls$label)) {
+    out$class_label <- cls$label
+    out$class_score <- if (is.null(cls$score)) NA_real_ else as.numeric(cls$score)
+    out$class_relevant <- if (is.null(cls$relevant)) NA else isTRUE(cls$relevant)
+    out$class_model <- cls$model %||% NA_character_
+    for (entry in cls$scores %||% list()) {
+      slug <- entry$label
+      if (is.null(slug) || !nzchar(slug)) {
+        next
+      }
+      out[[paste0("class_score_", slug)]] <-
+        if (is.null(entry$score)) NA_real_ else as.numeric(entry$score)
+    }
+  }
   out
 }
 

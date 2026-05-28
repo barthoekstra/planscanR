@@ -37,12 +37,20 @@ Runs four signals in order:
 \enumerate{
 \item \strong{Aktenzahl exact} — the country's primary identifier appears verbatim
 in the PDF text. Strongest signal.
-\item \strong{Title overlap} — at least 2 content-bearing tokens (>= 5 chars)
-from the record title appear in the PDF text after diacritic + German
-digraph normalisation.
+\item \strong{Title overlap (hybrid count/density)} — all distinguishing title
+tokens (title tokens minus the country's stoplist) appear at least
+once in the PDF text, AND the project is mentioned substantively:
+either >= 5 total distinguishing-token occurrences, or (>= 2 total
+AND >= 0.4 occurrences per scanned page). The dual rule keeps short
+focused documents (1-page Kundmachungen with 3 mentions) while
+rejecting long documents that mention the project only in passing
+(97-page UVEs with 2 mentions buried in a comparative section).
+Also requires at least one generic title token in the text so that
+a PDF mentioning only a place name without any UVP language doesn't
+pass.
 \item \strong{Extra-signal presence} — at least one of the country config's
-\code{extra_signals} (e.g. \code{"UVP-G 2000"}) is in the PDF, AND the title
-overlap signal also triggered with at least 1 token.
+\code{extra_signals} (e.g. \code{"UVP-G 2000"}) is in the PDF, AND the hybrid
+count/density rule above holds.
 \item \strong{Semantic backup} — cosine similarity between first-10-pages text
 and the record's title+summary clears \code{semantic_threshold} (default
 0.5), using the relevance model. Only fires if none of the above did.
