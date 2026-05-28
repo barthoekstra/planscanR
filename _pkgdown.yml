@@ -23,8 +23,10 @@ reference:
     pluggable embedding-model interface behind it.
   contents:
   - biogain_assessment_topics
+  - biogain_keyword_lexicon
   - score_assessments
   - score_records
+  - score_keywords
   - embedding_model
   - embedding_model_minilm
   - embed_text
