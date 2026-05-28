@@ -10,6 +10,12 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/backend_name.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/bind_results.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/biogain_assessment_topics.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/biogain_classification_labels.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/classifier.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/classifier_name.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/classify_assessments.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/classify_model_zeroshot.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/classify_text.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/clear_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/discover_attachments.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/discover_validate.html</loc></url>
@@ -25,6 +31,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/index_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/model_name.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/planscanR-package.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/reset_classifier_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/reset_embedding_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/reset_relevance_warnings.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/score_assessments.html</loc></url>

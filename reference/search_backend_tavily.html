@@ -65,8 +65,11 @@ logged or persisted by the package.</p></dd>
 
 
 <dt id="arg-max-results-cap">max_results_cap<a class="anchor" aria-label="anchor" href="#arg-max-results-cap"></a></dt>
-<dd><p>Hard cap passed through as <code>max_results</code>. Tavily
-allows up to 20; default 10.</p></dd>
+<dd><p>Hard cap passed through as <code>max_results</code>. Tavily's
+basic search depth caps responses at ~20 results regardless of what we
+send; advanced search depth goes higher. We accept up to 100 here so
+that future API tiers (and the advanced depth) aren't bottlenecked at
+the package layer. Tavily silently caps the actual returned count.</p></dd>
 
 </dl></div>
     <div class="section level2">

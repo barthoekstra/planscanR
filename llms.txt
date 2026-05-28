@@ -56,6 +56,27 @@ pluggable embedding-model interface behind it.
 - [`reset_relevance_warnings()`](https://barthoekstra.github.io/planscanR/reference/reset_relevance_warnings.md)
   : Reset the relevance-model warning ledger for the current session.
 
+## Classification
+
+Assign canonical assessment classes to records, and the pluggable
+classifier interface behind it.
+
+- [`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)
+  : Classify assessment records with a zero-shot model.
+- [`biogain_classification_labels()`](https://barthoekstra.github.io/planscanR/reference/biogain_classification_labels.md)
+  : Candidate labels for BIOGAIN zero-shot classification.
+- [`classifier()`](https://barthoekstra.github.io/planscanR/reference/classifier.md)
+  : Build a custom planscanR classifier.
+- [`classify_model_zeroshot()`](https://barthoekstra.github.io/planscanR/reference/classify_model_zeroshot.md)
+  : Local zero-shot classifier backed by a HuggingFace NLI model.
+- [`classify_text()`](https://barthoekstra.github.io/planscanR/reference/classify_text.md)
+  : Classify a character vector against candidate labels.
+- [`classifier_name()`](https://barthoekstra.github.io/planscanR/reference/classifier_name.md)
+  : Identify a classifier with a stable name string for sidecars /
+  logging.
+- [`reset_classifier_cache()`](https://barthoekstra.github.io/planscanR/reference/reset_classifier_cache.md)
+  : Evict cached zero-shot pipeline(s) to free memory or for tests.
+
 ## Attachment discovery (web search)
 
 Locate and validate document attachments via a pluggable web-search

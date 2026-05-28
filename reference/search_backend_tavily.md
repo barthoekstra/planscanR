@@ -29,8 +29,11 @@ search_backend_tavily(
 
 - max_results_cap:
 
-  Hard cap passed through as `max_results`. Tavily allows up to 20;
-  default 10.
+  Hard cap passed through as `max_results`. Tavily's basic search depth
+  caps responses at ~20 results regardless of what we send; advanced
+  search depth goes higher. We accept up to 100 here so that future API
+  tiers (and the advanced depth) aren't bottlenecked at the package
+  layer. Tavily silently caps the actual returned count.
 
 ## Value
 

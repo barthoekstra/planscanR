@@ -181,6 +181,11 @@ and cached via httr2 for <code>getOption("planscanR.cache_ttl")</code> seconds
 enumerating the full register can take many minutes and downloading every
 attachment can use significant disk space. Always start with a <code>limit</code>
 (and ideally a <code>query</code>) when exploring.</p>
+<p>To avoid stressing the server (commissiemer.nl returns HTTP 429 under a
+sustained burst), NL requests are throttled to one per second by default
+— i.e. a ~1 s delay between detail-page fetches. The rate is configurable
+via <code>getOption("planscanR.nl_throttle_rate")</code> (requests/sec); set it to a
+falsy value to disable. The throttle is scoped to NL only.</p>
     </div>
     <div class="section level2">
     <h2 id="attachments">Attachments<a class="anchor" aria-label="anchor" href="#attachments"></a></h2>
@@ -190,7 +195,7 @@ sections, which this handler exposes as separate list-columns:</p><ul><li><p><co
 <strong>"Documenten waarop het advies is gebaseerd"</strong> section. These are the
 underlying EIA/SEA reports submitted by the proponent and reviewed by the
 Commissie. <strong>These are the substantive documents for downstream analysis</strong>
-(e.g. for the future <code>classify_assessments()</code> LLM pipeline).</p></li>
+(e.g. for the future <code><a href="classify_assessments.html">classify_assessments()</a></code> LLM pipeline).</p></li>
 <li><p><code>attachment_urls_advice</code> / <code>local_path_advice</code> — files in the
 <strong>"Adviezen en persberichten"</strong> section: the Commissie's own advisory
 reports and press releases.</p></li>

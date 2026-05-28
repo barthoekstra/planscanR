@@ -91,7 +91,7 @@
 <code>attachment_urls_weitere</code> / <code>local_path_weitere</code> — <em>“Weitere Unterlagen”</em> (other materials; often the biggest section).</li>
 </ul><p><code>attachment_urls</code> / <code>local_path</code> remain the deduplicated <strong>union</strong> (source / substantive sections first), so the required-columns schema is always satisfied. <code>read_record_sidecar()</code> is country-agnostic: any <code>attachment_urls_&lt;section&gt;</code> list-column a handler emits flows through the sidecar and back out without changes here.</p>
 <p><strong><code>download_status</code> list-column</strong> (when <code>download = TRUE</code>): one tibble per record with columns <code>url, local_path, status, size_bytes, sha256, reason</code>. Values for <code>status</code>: <code>"downloaded"</code>, <code>"cached"</code>, <code>"skipped_size"</code>, <code>"failed"</code>.</p>
-<p><strong>No normalisation at fetch time.</strong> Status, type, jurisdiction strings stay in the portal’s own vocabulary (Dutch / German / Danish / …). Cross-portal normalisation is the responsibility of the future <code>classify_assessments()</code> step, not the fetcher.</p>
+<p><strong>No normalisation at fetch time.</strong> Status, type, jurisdiction strings stay in the portal’s own vocabulary (Dutch / German / Danish / …). Cross-portal normalisation is the responsibility of the future <code><a href="reference/classify_assessments.html">classify_assessments()</a></code> step, not the fetcher.</p>
 <p><strong>Extra columns are encouraged.</strong> Handlers can add any country-specific column they like — <code>validate_result_schema()</code> only enforces the required set. New conventional columns can be promoted in a later minor release.</p>
 </div>
 <div class="section level2">
@@ -216,7 +216,7 @@
 <div class="section level2">
 <h2 id="id_6-roadmap-informational-not-actionable-in-v01">6. Roadmap (informational; not actionable in v0.1)<a class="anchor" aria-label="anchor" href="#id_6-roadmap-informational-not-actionable-in-v01"></a></h2>
 <ul><li>
-<strong><code>classify_assessments()</code></strong> — separate function that takes the tibble from <code><a href="reference/get_assessments.html">get_assessments()</a></code> and produces canonical type (<code>"eia"</code> / <code>"sea"</code> / <code>"other"</code>) + confidence via an LLM. Pipeline:
+<strong><code><a href="reference/classify_assessments.html">classify_assessments()</a></code></strong> — separate function that takes the tibble from <code><a href="reference/get_assessments.html">get_assessments()</a></code> and produces canonical type (<code>"eia"</code> / <code>"sea"</code> / <code>"other"</code>) + confidence via an LLM. Pipeline:
 <ol style="list-style-type: decimal"><li>For each row, find cached PDFs at <code>local_path</code>.</li>
 <li>Split each PDF into <code>pages_per_chunk</code> chunks (default 5–10) — these documents can be hundreds of pages.</li>
 <li>Convert each chunk to markdown via the Python <a href="https://github.com/docling-project/docling" class="external-link">docling</a> package, called from R via <code>reticulate</code>.</li>
@@ -228,7 +228,7 @@
 <li>
 <strong><code>keyring</code>-based secrets</strong> for portals that grow to require API keys; slot naming convention reserved as <code>planscanR_&lt;country&gt;_&lt;portal&gt;</code>.</li>
 <li>
-<strong><code>classify_assessments()</code> is also the home for cross-portal vocabulary normalisation</strong> (status, type, jurisdiction); the fetcher stays raw.</li>
+<strong><code><a href="reference/classify_assessments.html">classify_assessments()</a></code> is also the home for cross-portal vocabulary normalisation</strong> (status, type, jurisdiction); the fetcher stays raw.</li>
 </ul></div>
 <div class="section level2">
 <h2 id="id_7-pointers">7. Pointers<a class="anchor" aria-label="anchor" href="#id_7-pointers"></a></h2>

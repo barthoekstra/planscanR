@@ -157,22 +157,29 @@ etc.) is reserved for a future release.</p>
     <div class="section level2">
     <h2 id="attachments">Attachments<a class="anchor" aria-label="anchor" href="#attachments"></a></h2>
     <p>per-page section split:
-UVP detail pages group documents under up to four headings, exposed here
-as parallel list-columns:</p><ul><li><p><code>attachment_urls_uvp_bericht</code> / <code>local_path_uvp_bericht</code> — files under
-<em>"UVP-Bericht, ggf. Antragsunterlagen"</em> (the UVP report itself plus the
-applicant's project documents — the substantive documents for downstream
-analysis).</p></li>
-<li><p><code>attachment_urls_berichte</code> / <code>local_path_berichte</code> — files under
-<em>"Berichte und Empfehlungen"</em> (technical reports and recommendations).</p></li>
-<li><p><code>attachment_urls_auslegung</code> / <code>local_path_auslegung</code> — files under
-<em>"Auslegungsinformationen"</em> (public-consultation notices).</p></li>
-<li><p><code>attachment_urls_weitere</code> / <code>local_path_weitere</code> — files under
-<em>"Weitere Unterlagen"</em> (catch-all section; often very large).</p></li>
-<li><p><code>attachment_urls</code> / <code>local_path</code> — deduplicated union, ordered with
-the substantive sections first (UVP-Bericht → Berichte → Auslegung →
-Weitere). Required by the planscanR schema.</p></li>
-</ul><p>When <code>download = TRUE</code>, all files in all four sections are fetched —
-subject to <code>max_file_size_mb</code> and the relevance gate.</p>
+UVP detail pages group documents under <code>h4.title-font</code> headings. The set of
+headings is <strong>open-ended and discovered per page</strong> rather than fixed: every
+heading that carries documents becomes its own parallel list-column
+<code>attachment_urls_&lt;slug&gt;</code> / <code>local_path_&lt;slug&gt;</code>, and the per-file <code>section</code>
+tag is persisted in the sidecar JSON. Known headings get a stable, curated
+slug; any other heading is auto-slugged from its title (German digraphs
+transliterated to ASCII), so a newly-appearing section type is captured
+without a code change.</p>
+<p>Curated slugs (see the internal <code>de_section_map()</code>):</p><ul><li><p><code>uvp_bericht</code> — <em>"UVP-Bericht, ggf. Antragsunterlagen"</em> (the UVP report
+itself plus the applicant's project documents — the substantive documents
+for downstream analysis).</p></li>
+<li><p><code>berichte</code> — <em>"Berichte und Empfehlungen"</em> (technical reports and
+recommendations).</p></li>
+<li><p><code>entscheidung</code> — <em>"Entscheidung"</em> (the decision / Bescheid documents).</p></li>
+<li><p><code>auslegung</code> — <em>"Auslegungsinformationen"</em> (public-consultation notices).</p></li>
+<li><p><code>weitere</code> — <em>"Weitere Unterlagen"</em> (catch-all section; often very large).</p></li>
+</ul><p><code>attachment_urls</code> / <code>local_path</code> are the deduplicated union across all
+discovered sections, ordered curated-first (in the order above) then any
+auto-slugged sections in page order. Required by the planscanR schema.</p>
+<p>When <code>download = TRUE</code>, files in <strong>all</strong> discovered sections are fetched —
+subject to <code>max_file_size_mb</code> and the relevance gate. (The
+<code>data-raw/biogain_acquire.R</code> runbook can restrict downloads to a chosen
+subset of sections; the handler itself always captures them all.)</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

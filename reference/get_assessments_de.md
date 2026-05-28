@@ -119,29 +119,41 @@ etc.) is reserved for a future release.
 
 ## Attachments
 
-per-page section split: UVP detail pages group documents under up to
-four headings, exposed here as parallel list-columns:
+per-page section split: UVP detail pages group documents under
+`h4.title-font` headings. The set of headings is **open-ended and
+discovered per page** rather than fixed: every heading that carries
+documents becomes its own parallel list-column `attachment_urls_<slug>`
+/ `local_path_<slug>`, and the per-file `section` tag is persisted in
+the sidecar JSON. Known headings get a stable, curated slug; any other
+heading is auto-slugged from its title (German digraphs transliterated
+to ASCII), so a newly-appearing section type is captured without a code
+change.
 
-- `attachment_urls_uvp_bericht` / `local_path_uvp_bericht` — files under
-  *"UVP-Bericht, ggf. Antragsunterlagen"* (the UVP report itself plus
-  the applicant's project documents — the substantive documents for
-  downstream analysis).
+Curated slugs (see the internal `de_section_map()`):
 
-- `attachment_urls_berichte` / `local_path_berichte` — files under
-  *"Berichte und Empfehlungen"* (technical reports and recommendations).
+- `uvp_bericht` — *"UVP-Bericht, ggf. Antragsunterlagen"* (the UVP
+  report itself plus the applicant's project documents — the substantive
+  documents for downstream analysis).
 
-- `attachment_urls_auslegung` / `local_path_auslegung` — files under
-  *"Auslegungsinformationen"* (public-consultation notices).
+- `berichte` — *"Berichte und Empfehlungen"* (technical reports and
+  recommendations).
 
-- `attachment_urls_weitere` / `local_path_weitere` — files under
-  *"Weitere Unterlagen"* (catch-all section; often very large).
+- `entscheidung` — *"Entscheidung"* (the decision / Bescheid documents).
 
-- `attachment_urls` / `local_path` — deduplicated union, ordered with
-  the substantive sections first (UVP-Bericht → Berichte → Auslegung →
-  Weitere). Required by the planscanR schema.
+- `auslegung` — *"Auslegungsinformationen"* (public-consultation
+  notices).
 
-When `download = TRUE`, all files in all four sections are fetched —
-subject to `max_file_size_mb` and the relevance gate.
+- `weitere` — *"Weitere Unterlagen"* (catch-all section; often very
+  large).
+
+`attachment_urls` / `local_path` are the deduplicated union across all
+discovered sections, ordered curated-first (in the order above) then any
+auto-slugged sections in page order. Required by the planscanR schema.
+
+When `download = TRUE`, files in **all** discovered sections are fetched
+— subject to `max_file_size_mb` and the relevance gate. (The
+`data-raw/biogain_acquire.R` runbook can restrict downloads to a chosen
+subset of sections; the handler itself always captures them all.)
 
 ## See also
 

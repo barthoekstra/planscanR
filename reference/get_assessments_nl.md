@@ -143,6 +143,13 @@ enumerating the full register can take many minutes and downloading
 every attachment can use significant disk space. Always start with a
 `limit` (and ideally a `query`) when exploring.
 
+To avoid stressing the server (commissiemer.nl returns HTTP 429 under a
+sustained burst), NL requests are throttled to one per second by default
+— i.e. a ~1 s delay between detail-page fetches. The rate is
+configurable via `getOption("planscanR.nl_throttle_rate")`
+(requests/sec); set it to a falsy value to disable. The throttle is
+scoped to NL only.
+
 ## Attachments
 
 per-page split: Each advice detail page on commissiemer.nl groups PDFs
@@ -153,8 +160,9 @@ list-columns:
   **"Documenten waarop het advies is gebaseerd"** section. These are the
   underlying EIA/SEA reports submitted by the proponent and reviewed by
   the Commissie. **These are the substantive documents for downstream
-  analysis** (e.g. for the future `classify_assessments()` LLM
-  pipeline).
+  analysis** (e.g. for the future
+  [`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)
+  LLM pipeline).
 
 - `attachment_urls_advice` / `local_path_advice` — files in the
   **"Adviezen en persberichten"** section: the Commissie's own advisory

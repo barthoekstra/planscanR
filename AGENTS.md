@@ -110,7 +110,8 @@ per record with columns
 **No normalisation at fetch time.** Status, type, jurisdiction strings
 stay in the portal’s own vocabulary (Dutch / German / Danish / …).
 Cross-portal normalisation is the responsibility of the future
-`classify_assessments()` step, not the fetcher.
+[`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)
+step, not the fetcher.
 
 **Extra columns are encouraged.** Handlers can add any country-specific
 column they like — `validate_result_schema()` only enforces the required
@@ -384,8 +385,8 @@ don’t add per-topic columns.
 
 ## 6. Roadmap (informational; not actionable in v0.1)
 
-- **`classify_assessments()`** — separate function that takes the tibble
-  from
+- **[`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)**
+  — separate function that takes the tibble from
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
   and produces canonical type (`"eia"` / `"sea"` / `"other"`) +
   confidence via an LLM. Pipeline:
@@ -405,9 +406,9 @@ don’t add per-topic columns.
   committed.
 - **`keyring`-based secrets** for portals that grow to require API keys;
   slot naming convention reserved as `planscanR_<country>_<portal>`.
-- **`classify_assessments()` is also the home for cross-portal
-  vocabulary normalisation** (status, type, jurisdiction); the fetcher
-  stays raw.
+- **[`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)
+  is also the home for cross-portal vocabulary normalisation** (status,
+  type, jurisdiction); the fetcher stays raw.
 
 ## 7. Pointers
 

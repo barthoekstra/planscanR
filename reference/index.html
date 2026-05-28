@@ -169,6 +169,64 @@
         </dt>
         <dd>Reset the relevance-model warning ledger for the current session.</dd>
       </dl></div><div class="section level2">
+      <h2 id="classification">Classification<a class="anchor" aria-label="anchor" href="#classification"></a></h2>
+
+      <div class="section-desc"><p>Assign canonical assessment classes to records, and the pluggable classifier interface behind it.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="classify_assessments.html">classify_assessments()</a></code>
+
+        </dt>
+        <dd>Classify assessment records with a zero-shot model.</dd>
+
+        <dt>
+
+          <code><a href="biogain_classification_labels.html">biogain_classification_labels()</a></code>
+
+        </dt>
+        <dd>Candidate labels for BIOGAIN zero-shot classification.</dd>
+
+        <dt>
+
+          <code><a href="classifier.html">classifier()</a></code>
+
+        </dt>
+        <dd>Build a custom planscanR classifier.</dd>
+
+        <dt>
+
+          <code><a href="classify_model_zeroshot.html">classify_model_zeroshot()</a></code>
+
+        </dt>
+        <dd>Local zero-shot classifier backed by a HuggingFace NLI model.</dd>
+
+        <dt>
+
+          <code><a href="classify_text.html">classify_text()</a></code>
+
+        </dt>
+        <dd>Classify a character vector against candidate labels.</dd>
+
+        <dt>
+
+          <code><a href="classifier_name.html">classifier_name()</a></code>
+
+        </dt>
+        <dd>Identify a classifier with a stable name string for sidecars / logging.</dd>
+
+        <dt>
+
+          <code><a href="reset_classifier_cache.html">reset_classifier_cache()</a></code>
+
+        </dt>
+        <dd>Evict cached zero-shot pipeline(s) to free memory or for tests.</dd>
+      </dl></div><div class="section level2">
       <h2 id="attachment-discovery-web-search-">Attachment discovery (web search)<a class="anchor" aria-label="anchor" href="#attachment-discovery-web-search-"></a></h2>
 
       <div class="section-desc"><p>Locate and validate document attachments via a pluggable web-search backend, for portals that don’t expose them directly.</p></div>

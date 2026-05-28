@@ -94,10 +94,11 @@ without translation.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  "renewable energy zoning and designated development areas" </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="co"># Score the whole NL register against the BIOGAIN topic set</span></span></span>
+<span class="r-in"><span><span class="co"># Score a small slice of the NL register against the BIOGAIN topic set</span></span></span>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="get_assessments.html">get_assessments</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="st">"nl"</span>,</span></span>
 <span class="r-in"><span>  topic <span class="op">=</span> <span class="fu">biogain_assessment_topics</span><span class="op">(</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  limit <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>  download <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>

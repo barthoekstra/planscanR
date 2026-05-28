@@ -13,6 +13,8 @@ Useful links:
 
 - <https://github.com/barthoekstra/planscanR>
 
+- <https://barthoekstra.github.io/planscanR/>
+
 - Report bugs at <https://github.com/barthoekstra/planscanR/issues>
 
 ## Author
