@@ -74,6 +74,14 @@ classifier interface behind it.
 - [`reset_classifier_cache()`](https://barthoekstra.github.io/planscanR/reference/reset_classifier_cache.md)
   : Evict cached zero-shot pipeline(s) to free memory or for tests.
 
+## Selection
+
+Combine the relevance signals (embedding cosine, zero-shot classifier,
+lexical keywords) into a single selection decision.
+
+- [`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
+  : Apply the BIOGAIN selection rule to scored + classified records.
+
 ## Attachment discovery (web search)
 
 Locate and validate document attachments via a pluggable web-search
