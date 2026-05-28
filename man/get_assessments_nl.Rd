@@ -107,6 +107,12 @@ and cached via httr2 for \code{getOption("planscanR.cache_ttl")} seconds
 enumerating the full register can take many minutes and downloading every
 attachment can use significant disk space. Always start with a \code{limit}
 (and ideally a \code{query}) when exploring.
+
+To avoid stressing the server (commissiemer.nl returns HTTP 429 under a
+sustained burst), NL requests are throttled to one per second by default
+— i.e. a ~1 s delay between detail-page fetches. The rate is configurable
+via \code{getOption("planscanR.nl_throttle_rate")} (requests/sec); set it to a
+falsy value to disable. The throttle is scoped to NL only.
 }
 
 \section{Attachments}{

@@ -34,6 +34,12 @@
 #' attachment can use significant disk space. Always start with a `limit`
 #' (and ideally a `query`) when exploring.
 #'
+#' To avoid stressing the server (commissiemer.nl returns HTTP 429 under a
+#' sustained burst), NL requests are throttled to one per second by default
+#' — i.e. a ~1 s delay between detail-page fetches. The rate is configurable
+#' via `getOption("planscanR.nl_throttle_rate")` (requests/sec); set it to a
+#' falsy value to disable. The throttle is scoped to NL only.
+#'
 #' @param date_range Length-2 vector `c(from, to)` of dates or parseable strings.
 #'   Filters by `date_decision`. `NULL` (default) returns all dates.
 #' @param limit Integer. Maximum records to return. Defaults to `Inf`; you
@@ -133,6 +139,17 @@ get_assessments_nl <- function(
 
   if (!is.null(cache_dir)) {
     withr::local_options(list(planscanR.cache_dir = cache_dir))
+  }
+
+  # Politeness throttle. commissiemer.nl returns HTTP 429 under a sustained
+  # burst (a full-register scan fires thousands of detail-page requests), so
+  # we cap NL traffic at a modest rate for the duration of this call. The
+  # default is configurable via `planscanR.nl_throttle_rate` (requests/sec);
+  # set it to a falsy value to disable. Only NL requests are affected — the
+  # option is set locally and unset on exit, so DE/AT stay full-speed.
+  nl_rate <- getOption("planscanR.nl_throttle_rate", 1)
+  if (!is.null(nl_rate) && is.finite(nl_rate) && nl_rate > 0) {
+    withr::local_options(list(planscanR.throttle_rate = nl_rate))
   }
 
   # Set up the relevance gate (if requested) once per call: build the model,
