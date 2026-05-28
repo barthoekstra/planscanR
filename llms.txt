@@ -35,12 +35,16 @@ pluggable embedding-model interface behind it.
 
 - [`biogain_assessment_topics()`](https://barthoekstra.github.io/planscanR/reference/biogain_assessment_topics.md)
   : BIOGAIN-default topic phrases for relevance scoring.
+- [`biogain_keyword_lexicon()`](https://barthoekstra.github.io/planscanR/reference/biogain_keyword_lexicon.md)
+  : BIOGAIN keyword lexicon (multilingual).
 - [`score_assessments()`](https://barthoekstra.github.io/planscanR/reference/score_assessments.md)
   : Re-score an existing planscanR result tibble against (additional)
   topics.
 - [`score_records()`](https://barthoekstra.github.io/planscanR/reference/score_records.md)
   : Compute relevance scores for a set of records against one or more
   topics.
+- [`score_keywords()`](https://barthoekstra.github.io/planscanR/reference/score_keywords.md)
+  : Score records against the keyword lexicon.
 - [`embedding_model()`](https://barthoekstra.github.io/planscanR/reference/embedding_model.md)
   : Build a custom planscanR embedding model.
 - [`embedding_model_minilm()`](https://barthoekstra.github.io/planscanR/reference/embedding_model_minilm.md)

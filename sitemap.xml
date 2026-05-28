@@ -11,6 +11,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/bind_results.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/biogain_assessment_topics.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/biogain_classification_labels.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/biogain_keyword_lexicon.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/classifier.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/classifier_name.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/classify_assessments.html</loc></url>
@@ -35,6 +36,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/reset_embedding_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/reset_relevance_warnings.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/score_assessments.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/score_keywords.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/score_records.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend_mock.html</loc></url>

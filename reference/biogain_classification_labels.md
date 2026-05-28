@@ -31,32 +31,32 @@ The `relevant` attribute lists which slugs count as BIOGAIN-relevant.
 
 ``` r
 biogain_classification_labels()
-#>                                                                                                   wind 
-#>                                                                   "a wind energy or wind farm project" 
-#>                                                                                                  solar 
-#>                                                               "a solar energy or photovoltaic project" 
-#>                                                                                             power_grid 
-#>                            "an electricity power line, overhead transmission line, or grid substation" 
-#>                                                                                        other_renewable 
-#>                                          "a biomass, biogas, geothermal, or hydropower energy project" 
-#>                                                                                        energy_strategy 
-#>                                                 "a regional energy transition strategy or energy plan" 
-#>                                                                                       renewable_zoning 
-#> "a spatial plan or zoning decision designating areas for wind, solar, or renewable energy development" 
-#>                                                                                           fossil_power 
-#>                    "a fossil-fuel power plant: coal, natural gas, or oil-fired electricity generation" 
-#>                                                                                     oil_gas_extraction 
-#>                        "an oil, natural gas, or hydrocarbon extraction, drilling, or refining project" 
-#>                                                                                                nuclear 
-#>                                                              "a nuclear power or nuclear fuel project" 
-#>                                                                                                  water 
-#>                                                  "a water management or hydraulic engineering project" 
-#>                                                                                               land_use 
-#>                                  "a general land-use, spatial planning, or land consolidation project" 
-#>                                                                                              transport 
-#>                                 "a road, motorway, railway, or other transport infrastructure project" 
-#>                                                                                                  other 
-#>                                       "an agriculture, industry, housing, or other non-energy project" 
+#>                                                                                                         wind 
+#>                                                                         "a wind energy or wind farm project" 
+#>                                                                                                        solar 
+#>                                                                     "a solar energy or photovoltaic project" 
+#>                                                                                                   power_grid 
+#>                                  "an electricity power line, overhead transmission line, or grid substation" 
+#>                                                                                              other_renewable 
+#>                                                "a biomass, biogas, geothermal, or hydropower energy project" 
+#>                                                                                              energy_strategy 
+#>                                                       "a regional energy transition strategy or energy plan" 
+#>                                                                                             renewable_zoning 
+#>                                 "designating land or search areas for building wind turbines or solar farms" 
+#>                                                                                                 fossil_power 
+#>                          "a fossil-fuel power plant: coal, natural gas, or oil-fired electricity generation" 
+#>                                                                                           oil_gas_extraction 
+#>                              "an oil, natural gas, or hydrocarbon extraction, drilling, or refining project" 
+#>                                                                                                      nuclear 
+#>                                                                    "a nuclear power or nuclear fuel project" 
+#>                                                                                                        water 
+#>                                                        "a water management or hydraulic engineering project" 
+#>                                                                                                     land_use 
+#> "a general spatial or zoning plan not about energy, such as housing, business parks, rural areas, or nature" 
+#>                                                                                                    transport 
+#>                                       "a road, motorway, railway, or other transport infrastructure project" 
+#>                                                                                                        other 
+#>                                             "an agriculture, industry, housing, or other non-energy project" 
 #> attr(,"relevant")
 #> [1] "wind"             "solar"            "power_grid"       "other_renewable" 
 #> [5] "energy_strategy"  "renewable_zoning"
