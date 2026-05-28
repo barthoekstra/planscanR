@@ -511,6 +511,12 @@ report <- lapply(COUNTRIES, function(cc) {
   } else {
     NA_integer_
   }
+  # Final selection (the ensemble procedure). Degrades gracefully on slices
+  # that haven't been classified yet (cosine OR keyword only).
+  selected <- tryCatch(
+    sum(select_assessments(recs)$selected, na.rm = TRUE),
+    error = function(e) NA_integer_
+  )
   with_att <- sum(vapply(recs$attachment_urls, function(v) length(v) > 0L, logical(1)))
   dl_files <- 0L
   bytes <- 0
@@ -527,6 +533,7 @@ report <- lapply(COUNTRIES, function(cc) {
     records = nrow(recs),
     cosine_relevant = cosine_relevant,
     class_relevant = class_relevant,
+    selected = selected,
     with_attachments = with_att,
     downloaded_files = dl_files,
     bytes = bytes
@@ -543,6 +550,7 @@ print(report[, c(
   "records",
   "cosine_relevant",
   "class_relevant",
+  "selected",
   "with_attachments",
   "downloaded_files",
   "size"
