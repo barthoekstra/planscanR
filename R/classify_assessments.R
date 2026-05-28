@@ -40,12 +40,14 @@ biogain_classification_labels <- function() {
     power_grid = "an electricity power line, overhead transmission line, or grid substation",
     other_renewable = "a biomass, biogas, geothermal, or hydropower energy project",
     energy_strategy = "a regional energy transition strategy or energy plan",
-    # Counterpart to the cosine `renewable_zoning` topic. Phrased explicitly
-    # around wind/solar siting so it competes with — rather than collapses
-    # into — the negative `land_use` class (generic spatial planning). Catches
-    # records like a "Windturbines Amsterdam-Noord" zoning/siting plan that
-    # read as planning but are about enabling renewable energy.
-    renewable_zoning = "a spatial plan or zoning decision designating areas for wind, solar, or renewable energy development",
+    # Counterpart to the cosine `renewable_zoning` topic. Phrased around the
+    # facilities (wind turbines / solar farms) rather than generic "zoning /
+    # spatial plan" wording, because the latter collides with the negative
+    # `land_use` class and lets generic plans (housing, rural bestemmingsplan,
+    # ports) tip into this relevant class by a hair. Keeping it facility-
+    # specific separates a "Windturbines Amsterdam-Noord" siting plan from a
+    # "Woningbouw" housing plan.
+    renewable_zoning = "designating land or search areas for building wind turbines or solar farms",
     # --- negative / distractor classes ---
     # `fossil_power` / `oil_gas_extraction` / `nuclear` give non-renewable
     # energy projects a proper home; without them, gas/coal/nuclear records
@@ -55,7 +57,9 @@ biogain_classification_labels <- function() {
     oil_gas_extraction = "an oil, natural gas, or hydrocarbon extraction, drilling, or refining project",
     nuclear = "a nuclear power or nuclear fuel project",
     water = "a water management or hydraulic engineering project",
-    land_use = "a general land-use, spatial planning, or land consolidation project",
+    # Explicitly non-energy + concrete examples, so generic spatial plans land
+    # here instead of tying with `renewable_zoning`.
+    land_use = "a general spatial or zoning plan not about energy, such as housing, business parks, rural areas, or nature",
     transport = "a road, motorway, railway, or other transport infrastructure project",
     other = "an agriculture, industry, housing, or other non-energy project"
   )
