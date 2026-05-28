@@ -6,7 +6,8 @@
 \usage{
 classify_model_zeroshot(
   model_id = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
-  device = NULL
+  device = NULL,
+  batch_size = 16L
 )
 }
 \arguments{
@@ -14,6 +15,15 @@ classify_model_zeroshot(
 
 \item{device}{Torch device: \code{"mps"}, \code{"cuda"}, \code{"cpu"}, or \code{NULL} to
 auto-detect (MPS on Apple Silicon, else CUDA, else CPU).}
+
+\item{batch_size}{GPU batch size for the pipeline (number of
+text-hypothesis NLI pairs evaluated per forward pass). On a single
+GPU this is the main throughput lever: \code{16} roughly doubles throughput
+over unbatched on MPS. Larger values (e.g. 64) are often \emph{slower} because
+variable-length sequences get padded to the batch maximum, so the long
+outliers dominate — 16 is a good default. There is no benefit to
+process-level parallelism on a single GPU (workers contend for one device
+and each reloads the model).}
 }
 \value{
 A \code{planscanR_classifier_zeroshot} S3 object.
