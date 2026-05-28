@@ -33,6 +33,19 @@ reference:
   - reset_embedding_cache
   - reset_relevance_warnings
 
+- title: Classification
+  desc: >
+    Assign canonical assessment classes to records, and the pluggable
+    classifier interface behind it.
+  contents:
+  - classify_assessments
+  - biogain_classification_labels
+  - classifier
+  - classify_model_zeroshot
+  - classify_text
+  - classifier_name
+  - reset_classifier_cache
+
 - title: Attachment discovery (web search)
   desc: >
     Locate and validate document attachments via a pluggable web-search
