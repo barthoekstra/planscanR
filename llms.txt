@@ -1,0 +1,96 @@
+# planscanR
+
+R package for retrieving SEA, EIA, and zoning documents from national
+and regional spatial-data portals across Europe. Developed for the
+BIOGAIN project to support Net Biodiversity Gain in spatial energy
+planning.
+
+# Package index
+
+## Fetching assessments
+
+The unified entry point and the per-country handlers it dispatches to,
+plus portal coverage and result helpers.
+
+- [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
+  : Retrieve environmental-assessment records from a national portal.
+- [`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md)
+  : Fetch environmental-assessment records from the Netherlands.
+- [`get_assessments_de()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md)
+  : Fetch environmental-assessment records from Germany.
+- [`get_assessments_at()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md)
+  : Fetch environmental-assessment records from Austria.
+- [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md)
+  : List supported countries and portals.
+- [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)
+  : Countries supported by the current version of planscanR.
+- [`bind_results()`](https://barthoekstra.github.io/planscanR/reference/bind_results.md)
+  : Tolerant row-bind across result tibbles with differing extra
+  columns.
+
+## Relevance scoring & topics
+
+Score records by semantic similarity to one or more topics, and the
+pluggable embedding-model interface behind it.
+
+- [`biogain_assessment_topics()`](https://barthoekstra.github.io/planscanR/reference/biogain_assessment_topics.md)
+  : BIOGAIN-default topic phrases for relevance scoring.
+- [`score_assessments()`](https://barthoekstra.github.io/planscanR/reference/score_assessments.md)
+  : Re-score an existing planscanR result tibble against (additional)
+  topics.
+- [`score_records()`](https://barthoekstra.github.io/planscanR/reference/score_records.md)
+  : Compute relevance scores for a set of records against one or more
+  topics.
+- [`embedding_model()`](https://barthoekstra.github.io/planscanR/reference/embedding_model.md)
+  : Build a custom planscanR embedding model.
+- [`embedding_model_minilm()`](https://barthoekstra.github.io/planscanR/reference/embedding_model_minilm.md)
+  : Build an embedding model backed by sentence-transformers.
+- [`embed_text()`](https://barthoekstra.github.io/planscanR/reference/embed_text.md)
+  : Embed a character vector with a planscanR embedding model.
+- [`model_name()`](https://barthoekstra.github.io/planscanR/reference/model_name.md)
+  : Identify a model with a stable name string for logging / sidecars.
+- [`supported_languages()`](https://barthoekstra.github.io/planscanR/reference/supported_languages.md)
+  : Report which ISO-639-1 languages a model has been trained on.
+- [`reset_embedding_cache()`](https://barthoekstra.github.io/planscanR/reference/reset_embedding_cache.md)
+  : Reset the cached Python model for testing or to free memory.
+- [`reset_relevance_warnings()`](https://barthoekstra.github.io/planscanR/reference/reset_relevance_warnings.md)
+  : Reset the relevance-model warning ledger for the current session.
+
+## Attachment discovery (web search)
+
+Locate and validate document attachments via a pluggable web-search
+backend, for portals that don’t expose them directly.
+
+- [`discover_attachments()`](https://barthoekstra.github.io/planscanR/reference/discover_attachments.md)
+  : Discover attachments for records the portal returned empty.
+- [`discover_validate()`](https://barthoekstra.github.io/planscanR/reference/discover_validate.md)
+  : Validate a candidate (record, URL) pair against a downloaded PDF.
+- [`at_discovery_config()`](https://barthoekstra.github.io/planscanR/reference/at_discovery_config.md)
+  : Discovery configuration for the Austrian UVP-DB.
+- [`search_backend()`](https://barthoekstra.github.io/planscanR/reference/search_backend.md)
+  : Build a custom search backend.
+- [`search_backend_tavily()`](https://barthoekstra.github.io/planscanR/reference/search_backend_tavily.md)
+  : Build a Tavily search backend.
+- [`search_backend_mock()`](https://barthoekstra.github.io/planscanR/reference/search_backend_mock.md)
+  : Build an in-memory mock search backend.
+- [`web_search()`](https://barthoekstra.github.io/planscanR/reference/web_search.md)
+  : Run a single web-search query through a backend.
+- [`backend_name()`](https://barthoekstra.github.io/planscanR/reference/backend_name.md)
+  : Printable name of a search backend.
+
+## Cache & offline indexing
+
+Read previously-downloaded slices offline and manage the file cache.
+
+- [`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
+  : Walk a planscanR cache and reconstruct a tibble from every sidecar.
+- [`clear_cache()`](https://barthoekstra.github.io/planscanR/reference/clear_cache.md)
+  : Invalidate (delete) part or all of the planscanR cache.
+
+## Package
+
+- [`planscanR`](https://barthoekstra.github.io/planscanR/reference/planscanR-package.md)
+  [`planscanR-package`](https://barthoekstra.github.io/planscanR/reference/planscanR-package.md)
+  : planscanR: retrieve environmental-assessment records from European
+  portals
+

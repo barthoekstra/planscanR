@@ -1,0 +1,61 @@
+# Re-score an existing planscanR result tibble against (additional) topics.
+
+Thin wrapper over
+[`score_records()`](https://barthoekstra.github.io/planscanR/reference/score_records.md)
+tuned for the case where you already have a tibble of records (from
+[`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
+or
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md))
+and want to add — or refresh — relevance scores without re-fetching any
+portal data. Optionally writes the updated scores back into the on-disk
+sidecars so
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
+keeps them visible on the next session.
+
+## Usage
+
+``` r
+score_assessments(records, topic, model = NULL, write_sidecar = FALSE)
+```
+
+## Arguments
+
+- records:
+
+  A tibble in the planscanR result shape.
+
+- topic:
+
+  Single string or named character vector. See
+  [`score_records()`](https://barthoekstra.github.io/planscanR/reference/score_records.md).
+
+- model:
+
+  A `planscanR_embedding_model`. Defaults to
+  [`embedding_model_minilm()`](https://barthoekstra.github.io/planscanR/reference/embedding_model_minilm.md).
+
+- write_sidecar:
+
+  If `TRUE`, every scored record's sidecar JSON is re-written with the
+  merged scores. Default `FALSE` (in-memory only).
+
+## Value
+
+The input tibble with the additional `relevance_score_*` columns (and
+`relevance_model`).
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Reload everything in the cache and score against new topics offline.
+recs <- index_cache("/path/to/cache")
+scored <- score_assessments(
+  recs,
+  c(wind  = "wind energy",
+    solar = "solar energy",
+    res   = "regional energy transition strategy and planning"),
+  write_sidecar = TRUE
+)
+} # }
+```
