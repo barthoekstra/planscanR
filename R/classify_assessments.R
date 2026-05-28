@@ -41,6 +41,13 @@ biogain_classification_labels <- function() {
     other_renewable = "a biomass, biogas, geothermal, or hydropower energy project",
     energy_strategy = "a regional energy transition strategy or energy plan",
     # --- negative / distractor classes ---
+    # `fossil_power` / `oil_gas_extraction` / `nuclear` give non-renewable
+    # energy projects a proper home; without them, gas/coal/nuclear records
+    # leak into `other_renewable` (the nearest energy bucket). They are NOT
+    # BIOGAIN-relevant.
+    fossil_power = "a fossil-fuel power plant: coal, natural gas, or oil-fired electricity generation",
+    oil_gas_extraction = "an oil, natural gas, or hydrocarbon extraction, drilling, or refining project",
+    nuclear = "a nuclear power or nuclear fuel project",
     water = "a water management or hydraulic engineering project",
     land_use = "a general land-use, spatial planning, or land consolidation project",
     transport = "a road, motorway, railway, or other transport infrastructure project",

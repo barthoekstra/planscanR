@@ -47,12 +47,26 @@ test_that("classifier() validates inputs", {
 test_that("biogain_classification_labels has positive + negative classes", {
   labs <- biogain_classification_labels()
   expect_true(all(
-    c("wind", "solar", "power_grid", "water", "land_use", "transport", "other") %in% names(labs)
+    c(
+      "wind",
+      "solar",
+      "power_grid",
+      "fossil_power",
+      "oil_gas_extraction",
+      "nuclear",
+      "water",
+      "land_use",
+      "transport",
+      "other"
+    ) %in%
+      names(labs)
   ))
   rel <- attr(labs, "relevant")
   expect_true(all(c("wind", "solar", "power_grid") %in% rel))
-  # Negative classes are NOT relevant.
-  expect_false(any(c("water", "land_use", "transport", "other") %in% rel))
+  # Negative classes (incl. the fossil/nuclear ones) are NOT relevant.
+  expect_false(any(
+    c("fossil_power", "oil_gas_extraction", "nuclear", "water", "land_use", "transport", "other") %in% rel
+  ))
 })
 
 test_that("classify_text returns an [n x labels] matrix with slug column names", {
