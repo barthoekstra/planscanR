@@ -214,8 +214,17 @@ classify_assessments <- function(
     }
     if (write_sidecar) {
       for (i in idx) {
+        # Pass the record's existing download_status so record_to_sidecar
+        # rewrites the `files[]` array (attachment URLs + their section tags)
+        # instead of emptying it. Without this, classification would wipe the
+        # portal attachment URLs off the sidecar.
+        dl <- if ("download_status" %in% names(records)) {
+          records$download_status[[i]]
+        } else {
+          NULL
+        }
         tryCatch(
-          write_record_sidecar(records[i, ]),
+          write_record_sidecar(records[i, ], downloads = dl),
           error = function(e) {
             warn_partial(
               "Could not write sidecar for {.val {records$document_id[i]}}: {conditionMessage(e)}"

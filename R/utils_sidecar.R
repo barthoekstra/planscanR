@@ -38,63 +38,18 @@ write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
   stopifnot(is.data.frame(record), nrow(record) == 1L)
   path <- sidecar_path(record$country, record$document_id, root = root)
   payload <- record_to_sidecar(record, downloads)
-  # If a sidecar already exists, preserve any topic entries in
-  # `relevance_scores` whose slugs are NOT being rewritten this run. Lets a
-  # later call extend a previously-scored record without clobbering earlier
-  # scores, and lets per-topic model metadata stay accurate over time.
+  # Non-destructive write: a sidecar is the authoritative record, and any one
+  # caller (scan / score / classify / download / discover) only knows about a
+  # slice of it. So we never blindly overwrite — we MERGE the new payload over
+  # whatever is already on disk, keeping every piece of original data the
+  # current write doesn't itself supply. See merge_sidecar_payload().
   if (file.exists(path)) {
     existing <- tryCatch(
       jsonlite::fromJSON(path, simplifyVector = FALSE),
       error = function(e) NULL
     )
-    if (!is.null(existing$relevance_scores)) {
-      new_topics <- vapply(
-        payload$relevance_scores %||% list(),
-        function(e) e$topic %||% "",
-        character(1)
-      )
-      preserved <- Filter(
-        function(e) !(e$topic %||% "" %in% new_topics),
-        existing$relevance_scores
-      )
-      payload$relevance_scores <- c(
-        payload$relevance_scores %||% list(),
-        preserved
-      )
-    }
-    # Preserve an existing discovery_log[] on disk. Portal-side writes never
-    # set discovery_log on the record, so without this preservation a
-    # re-scrape of a record that had been augmented by discover_attachments()
-    # would wipe its audit trail. The discover path also passes through here
-    # but supplies its own entries on the record, which we union below.
-    if (length(existing$discovery_log) > 0L) {
-      payload$discovery_log <- c(
-        payload$discovery_log %||% list(),
-        existing$discovery_log
-      )
-    }
-    # Same logic for v2 `files[]` entries with `source = "discovery"`: a
-    # portal-side write only emits portal-source rows, so preserve any
-    # discovery-source rows already on disk.
-    if (length(existing$files) > 0L) {
-      portal_urls_in_payload <- vapply(
-        payload$files %||% list(),
-        function(f) f$url %||% NA_character_,
-        character(1)
-      )
-      preserved_disc <- Filter(
-        function(f) {
-          identical(f$source, "discovery") && !(f$url %||% "" %in% portal_urls_in_payload)
-        },
-        existing$files
-      )
-      payload$files <- c(payload$files %||% list(), preserved_disc)
-    }
-    # Preserve an existing classification verdict when this write doesn't carry
-    # one. Portal-side writes (scan / download) don't set class_* columns, so
-    # without this a re-scrape would wipe a classify_assessments() verdict.
-    if (is.null(payload$classification) && !is.null(existing$classification)) {
-      payload$classification <- existing$classification
+    if (!is.null(existing)) {
+      payload <- merge_sidecar_payload(payload, existing)
     }
   }
   tmp <- tempfile(tmpdir = dirname(path), fileext = ".json")
@@ -104,6 +59,86 @@ write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
   close(con)
   file.rename(tmp, path)
   invisible(path)
+}
+
+#' Merge a freshly-built sidecar payload over the one already on disk.
+#'
+#' The guarantee: a write NEVER loses data the current caller didn't supply.
+#' Each field is reconciled so the new value wins when present, and the
+#' existing value is kept otherwise:
+#'
+#' * scalar metadata (title, summary, dates, authority, ...) — keep `old` when
+#'   `new` is NULL (the caller didn't carry that column);
+#' * `files[]` — union by URL: a new entry supersedes the same-URL old entry,
+#'   and every old URL absent from the new set is KEPT (this is what stops a
+#'   classify/score write, which carries no file rows, from wiping the portal
+#'   attachment URLs);
+#' * `relevance_scores[]` — union by topic slug (new wins);
+#' * `extras{}` — union by key (new wins);
+#' * `discovery_log[]` — appended (audit trail, never dropped);
+#' * `classification` — keep `old` when `new` has none.
+#'
+#' Intentional resets go through [clear_cache()] + `refresh = TRUE`, not
+#' through a lossy write.
+#' @noRd
+merge_sidecar_payload <- function(new, old) {
+  # 1. Scalar metadata: keep old when the new write omits it.
+  scalar_fields <- c(
+    "source_portal",
+    "url",
+    "retrieved_at",
+    "title",
+    "summary",
+    "competent_authority",
+    "proponent",
+    "date_decision",
+    "relevance_model"
+  )
+  for (f in scalar_fields) {
+    if (is.null(new[[f]]) && !is.null(old[[f]])) {
+      new[[f]] <- old[[f]]
+    }
+  }
+  # 2. files[]: union by URL (new supersedes same-URL old; all other old kept).
+  if (length(old$files) > 0L) {
+    new_urls <- vapply(
+      new$files %||% list(),
+      function(f) f$url %||% NA_character_,
+      character(1)
+    )
+    kept <- Filter(function(f) !((f$url %||% "") %in% new_urls), old$files)
+    new$files <- c(new$files %||% list(), kept)
+  }
+  # 3. relevance_scores[]: union by topic slug (new wins).
+  if (length(old$relevance_scores) > 0L) {
+    new_topics <- vapply(
+      new$relevance_scores %||% list(),
+      function(e) e$topic %||% "",
+      character(1)
+    )
+    kept <- Filter(
+      function(e) !((e$topic %||% "") %in% new_topics),
+      old$relevance_scores
+    )
+    new$relevance_scores <- c(new$relevance_scores %||% list(), kept)
+  }
+  # 4. extras{}: union by key (new wins).
+  if (length(old$extras) > 0L) {
+    for (k in names(old$extras)) {
+      if (is.null(new$extras[[k]])) {
+        new$extras[[k]] <- old$extras[[k]]
+      }
+    }
+  }
+  # 5. discovery_log[]: append the prior audit trail.
+  if (length(old$discovery_log) > 0L) {
+    new$discovery_log <- c(new$discovery_log %||% list(), old$discovery_log)
+  }
+  # 6. classification: keep old verdict when this write carries none.
+  if (is.null(new$classification) && !is.null(old$classification)) {
+    new$classification <- old$classification
+  }
+  new
 }
 
 #' Serialise a record + downloads into the sidecar JSON shape.

@@ -129,3 +129,99 @@ test_that("index_cache reads back every sidecar under the cache root", {
     expect_identical(nrow(idx_de), 0L)
   })
 })
+
+test_that("write_record_sidecar never drops on-disk data it isn't given", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    urls <- c("https://h/x/a.pdf", "https://h/x/b.pdf")
+
+    # 1. Scan-shaped write: attachment URLs (pending) + metadata.
+    rec1 <- tibble::tibble(
+      country = "de",
+      source_portal = "uvp-verbund.de",
+      document_id = "keep-1",
+      url = "https://h/trefferanzeige?docuuid=keep-1",
+      retrieved_at = as.POSIXct("2026-05-28 12:00:00", tz = "UTC"),
+      attachment_urls = list(urls),
+      attachment_urls_uvp_bericht = list(urls),
+      local_path = list(rep(NA_character_, 2)),
+      title = "Windpark X",
+      summary = "WEA",
+      native_type = "Windkraftanlagen",
+      download_status = list(planscanR:::pending_download_status(urls))
+    )
+    planscanR:::write_record_sidecar(rec1, downloads = rec1$download_status[[1]])
+
+    # 2. Classify-shaped write: a record with NO file/title/summary info,
+    #    only a classification verdict. Must NOT wipe the attachment URLs.
+    rec2 <- tibble::tibble(
+      country = "de",
+      source_portal = "uvp-verbund.de",
+      document_id = "keep-1",
+      url = "https://h/trefferanzeige?docuuid=keep-1",
+      retrieved_at = as.POSIXct("2026-05-28 13:00:00", tz = "UTC"),
+      attachment_urls = list(character(0)),
+      local_path = list(character(0)),
+      class_label = "wind",
+      class_relevant = TRUE,
+      class_score = 0.9,
+      class_score_wind = 0.9,
+      download_status = list(planscanR:::empty_download_status())
+    )
+    planscanR:::write_record_sidecar(rec2)
+
+    back <- index_cache(country = "de")
+    # Attachments survive the classify-shaped write...
+    expect_length(back$attachment_urls[[1]], 2L)
+    expect_true("attachment_urls_uvp_bericht" %in% names(back))
+    # ...the title/summary/category survive (rec2 didn't carry them)...
+    expect_identical(back$title, "Windpark X")
+    expect_identical(back$summary, "WEA")
+    expect_identical(back$native_type, "Windkraftanlagen")
+    # ...and the new classification verdict is added.
+    expect_identical(back$class_label, "wind")
+    expect_true(back$class_relevant)
+  })
+})
+
+test_that("write_record_sidecar updates same-URL file rows in place (new wins)", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    urls <- c("https://h/x/a.pdf", "https://h/x/b.pdf")
+    rec <- tibble::tibble(
+      country = "de",
+      source_portal = "uvp-verbund.de",
+      document_id = "upd-1",
+      url = "https://h/trefferanzeige?docuuid=upd-1",
+      retrieved_at = as.POSIXct("2026-05-28 12:00:00", tz = "UTC"),
+      attachment_urls = list(urls),
+      attachment_urls_uvp_bericht = list(urls),
+      local_path = list(rep(NA_character_, 2)),
+      title = "X",
+      summary = NA_character_,
+      download_status = list(planscanR:::pending_download_status(urls))
+    )
+    planscanR:::write_record_sidecar(rec, downloads = rec$download_status[[1]])
+
+    # "Download" the first file: a row for url a.pdf now downloaded.
+    ds <- tibble::tibble(
+      url = urls[1],
+      local_path = "/tmp/a.pdf",
+      status = "downloaded",
+      size_bytes = 123,
+      sha256 = "abc",
+      reason = NA_character_
+    )
+    rec$download_status <- list(ds)
+    planscanR:::write_record_sidecar(rec, downloads = ds)
+
+    back <- index_cache(country = "de")
+    dl <- back$download_status[[1]]
+    # Both URLs still present; a.pdf is now downloaded, b.pdf still pending.
+    expect_length(back$attachment_urls[[1]], 2L)
+    expect_identical(dl$status[dl$url == urls[1]], "downloaded")
+    expect_identical(dl$status[dl$url == urls[2]], "pending")
+  })
+})

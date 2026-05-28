@@ -204,6 +204,43 @@ test_that("classify_assessments writes sidecars incrementally (crash-safe)", {
   })
 })
 
+test_that("classify_assessments preserves existing attachment URLs on the sidecar", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    urls <- c(
+      "https://www.uvp-verbund.de/documents-ige-ng/x/doc-att/a.pdf",
+      "https://www.uvp-verbund.de/documents-ige-ng/x/doc-att/b.pdf"
+    )
+    # A scanned (un-downloaded) record: attachment URLs present as pending rows.
+    rec <- tibble::tibble(
+      country = "de",
+      source_portal = "uvp-verbund.de",
+      document_id = "doc-att",
+      url = "https://www.uvp-verbund.de/trefferanzeige?docuuid=doc-att",
+      retrieved_at = as.POSIXct("2026-05-28 12:00:00", tz = "UTC"),
+      attachment_urls = list(urls),
+      attachment_urls_uvp_bericht = list(urls),
+      local_path = list(rep(NA_character_, 2)),
+      title = "Windpark X",
+      summary = "WEA",
+      native_type = "Windkraftanlagen",
+      download_status = list(planscanR:::pending_download_status(urls))
+    )
+    planscanR:::write_record_sidecar(rec, downloads = rec$download_status[[1]])
+
+    # Classify it (the operation that used to wipe files[]).
+    recs <- index_cache(country = "de")
+    expect_length(recs$attachment_urls[[1]], 2L) # sanity: present before
+    classify_assessments(recs, classifier = make_fake_classifier(), write_sidecar = TRUE)
+
+    back <- index_cache(country = "de")
+    # Attachment URLs survive classification, and the verdict is added.
+    expect_length(back$attachment_urls[[1]], 2L)
+    expect_true("class_label" %in% names(back))
+  })
+})
+
 test_that("a portal-side sidecar rewrite preserves an existing classification", {
   withr::with_tempdir({
     options(planscanR.cache_dir = file.path(getwd(), "cache"))
