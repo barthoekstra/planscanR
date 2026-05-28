@@ -1,0 +1,59 @@
+url: https://barthoekstra.github.io/planscanR/
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Fetching assessments
+  desc: >
+    The unified entry point and the per-country handlers it dispatches to,
+    plus portal coverage and result helpers.
+  contents:
+  - get_assessments
+  - get_assessments_nl
+  - get_assessments_de
+  - get_assessments_at
+  - get_assessments_coverage
+  - supported_countries
+  - bind_results
+
+- title: Relevance scoring & topics
+  desc: >
+    Score records by semantic similarity to one or more topics, and the
+    pluggable embedding-model interface behind it.
+  contents:
+  - biogain_assessment_topics
+  - score_assessments
+  - score_records
+  - embedding_model
+  - embedding_model_minilm
+  - embed_text
+  - model_name
+  - supported_languages
+  - reset_embedding_cache
+  - reset_relevance_warnings
+
+- title: Attachment discovery (web search)
+  desc: >
+    Locate and validate document attachments via a pluggable web-search
+    backend, for portals that don't expose them directly.
+  contents:
+  - discover_attachments
+  - discover_validate
+  - at_discovery_config
+  - search_backend
+  - search_backend_tavily
+  - search_backend_mock
+  - web_search
+  - backend_name
+
+- title: Cache & offline indexing
+  desc: >
+    Read previously-downloaded slices offline and manage the file cache.
+  contents:
+  - index_cache
+  - clear_cache
+
+- title: Package
+  contents:
+  - planscanR-package

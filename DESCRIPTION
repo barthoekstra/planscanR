@@ -9,7 +9,8 @@ Description: A unified R interface for fetching environmental-assessment
     spatial energy planning. v0.1 implements a Netherlands handler against
     the Commissie m.e.r. adviezenregister.
 License: GPL (>= 3)
-URL: https://github.com/barthoekstra/planscanR
+URL: https://github.com/barthoekstra/planscanR,
+    https://barthoekstra.github.io/planscanR/
 BugReports: https://github.com/barthoekstra/planscanR/issues
 Depends:
     R (>= 4.1)
