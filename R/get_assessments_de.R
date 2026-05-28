@@ -45,25 +45,34 @@
 #' etc.) is reserved for a future release.
 #'
 #' @section Attachments: per-page section split:
-#' UVP detail pages group documents under up to four headings, exposed here
-#' as parallel list-columns:
+#' UVP detail pages group documents under `h4.title-font` headings. The set of
+#' headings is **open-ended and discovered per page** rather than fixed: every
+#' heading that carries documents becomes its own parallel list-column
+#' `attachment_urls_<slug>` / `local_path_<slug>`, and the per-file `section`
+#' tag is persisted in the sidecar JSON. Known headings get a stable, curated
+#' slug; any other heading is auto-slugged from its title (German digraphs
+#' transliterated to ASCII), so a newly-appearing section type is captured
+#' without a code change.
 #'
-#' * `attachment_urls_uvp_bericht` / `local_path_uvp_bericht` — files under
-#'   *"UVP-Bericht, ggf. Antragsunterlagen"* (the UVP report itself plus the
-#'   applicant's project documents — the substantive documents for downstream
-#'   analysis).
-#' * `attachment_urls_berichte` / `local_path_berichte` — files under
-#'   *"Berichte und Empfehlungen"* (technical reports and recommendations).
-#' * `attachment_urls_auslegung` / `local_path_auslegung` — files under
-#'   *"Auslegungsinformationen"* (public-consultation notices).
-#' * `attachment_urls_weitere` / `local_path_weitere` — files under
-#'   *"Weitere Unterlagen"* (catch-all section; often very large).
-#' * `attachment_urls` / `local_path` — deduplicated union, ordered with
-#'   the substantive sections first (UVP-Bericht → Berichte → Auslegung →
-#'   Weitere). Required by the planscanR schema.
+#' Curated slugs (see the internal `de_section_map()`):
 #'
-#' When `download = TRUE`, all files in all four sections are fetched —
-#' subject to `max_file_size_mb` and the relevance gate.
+#' * `uvp_bericht` — *"UVP-Bericht, ggf. Antragsunterlagen"* (the UVP report
+#'   itself plus the applicant's project documents — the substantive documents
+#'   for downstream analysis).
+#' * `berichte` — *"Berichte und Empfehlungen"* (technical reports and
+#'   recommendations).
+#' * `entscheidung` — *"Entscheidung"* (the decision / Bescheid documents).
+#' * `auslegung` — *"Auslegungsinformationen"* (public-consultation notices).
+#' * `weitere` — *"Weitere Unterlagen"* (catch-all section; often very large).
+#'
+#' `attachment_urls` / `local_path` are the deduplicated union across all
+#' discovered sections, ordered curated-first (in the order above) then any
+#' auto-slugged sections in page order. Required by the planscanR schema.
+#'
+#' When `download = TRUE`, files in **all** discovered sections are fetched —
+#' subject to `max_file_size_mb` and the relevance gate. (The
+#' `data-raw/biogain_acquire.R` runbook can restrict downloads to a chosen
+#' subset of sections; the handler itself always captures them all.)
 #'
 #' @param date_range Length-2 vector `c(from, to)` of dates or parseable
 #'   strings. Filters by `date_decision`.
@@ -220,18 +229,72 @@ get_assessments_de <- function(
 # Constants
 # -----------------------------------------------------------------------------
 
-#' Mapping from UVP-Verbund's German section H4 titles to planscanR slugs.
+#' Curated map from UVP-Verbund's known German section H4 titles to stable
+#' planscanR slugs.
+#'
+#' This is NOT an exhaustive list of what the portal can show — it's the set
+#' of titles we give a hand-picked, stable slug to. Any heading not listed
+#' here is still captured by [de_parse_detail()]; it just gets an auto-slug
+#' from [de_section_slug()] instead of a curated one. The map also fixes the
+#' canonical ordering of the deduplicated `attachment_urls` union (these
+#' first, substantive sections leading).
 #'
 #' Slugs become column suffixes (`attachment_urls_<slug>` /
-#' `local_path_<slug>`) and section tags inside the sidecar JSON.
+#' `local_path_<slug>`) and the per-file `section` tag inside the sidecar JSON.
 #' @noRd
 de_section_map <- function() {
   c(
     "UVP-Bericht, ggf. Antragsunterlagen" = "uvp_bericht",
     "Berichte und Empfehlungen" = "berichte",
+    "Entscheidung" = "entscheidung",
     "Auslegungsinformationen" = "auslegung",
     "Weitere Unterlagen" = "weitere"
   )
+}
+
+#' List the distinct document-section headings present on a detail page.
+#'
+#' The portal renders each attachment group under an `h4.title-font` heading.
+#' We collapse internal whitespace (so the value lines up with the
+#' `normalize-space()` comparison in [de_section_pdfs()]) and de-duplicate, so
+#' a page that repeats a heading is visited once.
+#' @noRd
+de_document_section_titles <- function(html) {
+  nodes <- rvest::html_elements(html, "h4.title-font")
+  if (length(nodes) == 0L) {
+    return(character(0))
+  }
+  titles <- gsub("\\s+", " ", rvest::html_text(nodes, trim = TRUE))
+  unique(titles[nzchar(titles)])
+}
+
+#' Map a section heading to a column/sidecar slug.
+#'
+#' Known headings (see [de_section_map()]) get their curated slug. Everything
+#' else is auto-slugged from the title: German digraphs are transliterated
+#' (ae/oe/ue/ss) so the slug is ASCII, then lowercased with non-alphanumerics
+#' collapsed to underscores. This is what lets a previously-unseen section
+#' type (e.g. "Entscheidung" before it was curated, or any future heading)
+#' flow through to its own `attachment_urls_<slug>` column and sidecar tag
+#' without a code change.
+#' @noRd
+de_section_slug <- function(title) {
+  curated <- de_section_map()
+  if (title %in% names(curated)) {
+    return(unname(curated[[title]]))
+  }
+  s <- title
+  s <- gsub("\u00e4", "ae", s)
+  s <- gsub("\u00f6", "oe", s)
+  s <- gsub("\u00fc", "ue", s)
+  s <- gsub("\u00df", "ss", s)
+  s <- gsub("\u00c4", "ae", s)
+  s <- gsub("\u00d6", "oe", s)
+  s <- gsub("\u00dc", "ue", s)
+  s <- tolower(s)
+  s <- gsub("[^a-z0-9]+", "_", s)
+  s <- gsub("(^_+|_+$)", "", s)
+  if (!nzchar(s)) "section" else s
 }
 
 #' One-shot warning that an unconstrained full crawl will be slow.
@@ -376,17 +439,34 @@ de_parse_detail <- function(url) {
 
   competent_authority <- de_extract_competent_authority(html)
 
-  # Document sections — capture each H4 title's PDF list into its slugged
-  # column. Section vocab is closed (4 known titles); unknown titles get
-  # ignored.
-  section_map <- de_section_map()
-  per_section <- lapply(names(section_map), function(title_de) {
-    de_section_pdfs(html, title_de)
-  })
-  names(per_section) <- unname(section_map)
+  # Document sections. The portal groups attachments under `h4.title-font`
+  # headings, but the set is open-ended: beyond the common four (UVP-Bericht,
+  # Berichte, Auslegung, Weitere) pages also carry e.g. "Entscheidung", and
+  # occasionally repeat a heading. So we DISCOVER whatever headings the page
+  # actually has rather than assuming a fixed list. Known titles get a stable
+  # curated slug from `de_section_map()`; anything else is auto-slugged from
+  # its title, so a newly-appearing section type is captured and
+  # section-tagged in the sidecar without any code change.
+  per_section <- list()
+  for (title_de in de_document_section_titles(html)) {
+    urls <- de_section_pdfs(html, title_de)
+    if (length(urls) == 0L) {
+      next
+    }
+    slug <- de_section_slug(title_de)
+    # Merge if two headings map to the same slug (e.g. a page with two
+    # separate "Auslegungsinformationen" blocks).
+    per_section[[slug]] <- unique(c(per_section[[slug]], urls))
+  }
 
-  # Union order: substantive first (uvp_bericht, berichte, auslegung, weitere).
-  ordered_union <- unique(unlist(per_section[unname(section_map)], use.names = FALSE))
+  # Union ordering: curated sections first in their canonical order, then any
+  # auto-slugged sections in the order they appeared on the page.
+  curated_slugs <- unname(de_section_map())
+  slug_order <- c(
+    intersect(curated_slugs, names(per_section)),
+    setdiff(names(per_section), curated_slugs)
+  )
+  ordered_union <- unique(unlist(per_section[slug_order], use.names = FALSE))
   if (is.null(ordered_union)) {
     ordered_union <- character(0)
   }
@@ -408,8 +488,10 @@ de_parse_detail <- function(url) {
     date_decision = date_decision,
     download_status = list(empty_download_status())
   )
-  # Attach the per-section list-columns.
-  for (slug in unname(section_map)) {
+  # Attach the per-section list-columns (only for sections that actually had
+  # documents on this page; absent sections simply have no column, and
+  # `bind_results()` pads them when binding heterogeneous records).
+  for (slug in slug_order) {
     rec[[paste0("attachment_urls_", slug)]] <- list(per_section[[slug]])
     rec[[paste0("local_path_", slug)]] <- list(character(0))
   }

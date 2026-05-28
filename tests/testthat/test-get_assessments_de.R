@@ -52,6 +52,118 @@ test_that("de_section_pdfs returns empty character() for an unknown section", {
   )
 })
 
+test_that("de_section_slug curates known titles and auto-slugs the rest", {
+  # Curated titles get their stable slug.
+  expect_identical(
+    planscanR:::de_section_slug("UVP-Bericht, ggf. Antragsunterlagen"),
+    "uvp_bericht"
+  )
+  expect_identical(planscanR:::de_section_slug("Entscheidung"), "entscheidung")
+  # Unknown titles are auto-slugged: German digraphs transliterated to ASCII,
+  # lowercased, non-alphanumerics collapsed to single underscores.
+  expect_identical(
+    planscanR:::de_section_slug("Öffentliche Bekanntmachung"),
+    "oeffentliche_bekanntmachung"
+  )
+  expect_identical(
+    planscanR:::de_section_slug("Ergänzende Unterlagen / Nachträge"),
+    "ergaenzende_unterlagen_nachtraege"
+  )
+})
+
+test_that("de_document_section_titles lists distinct headings on a page", {
+  html <- read_de_fixture("detail-walldurn-windpark.html")
+  titles <- planscanR:::de_document_section_titles(html)
+  expect_true(all(
+    c(
+      "UVP-Bericht, ggf. Antragsunterlagen",
+      "Berichte und Empfehlungen",
+      "Auslegungsinformationen",
+      "Weitere Unterlagen"
+    ) %in%
+      titles
+  ))
+  expect_identical(titles, unique(titles))
+})
+
+test_that("de_parse_detail dynamically captures a non-curated section (Entscheidung)", {
+  # Minimal synthetic page: one curated section + one previously-uncaptured
+  # "Entscheidung" section. Confirms the parser discovers headings rather than
+  # assuming a fixed set.
+  synthetic <- paste0(
+    "<html><body>",
+    "<h1>Synthetischer Windpark Testvorhaben</h1>",
+    "<h4 class='title-font'>UVP-Bericht, ggf. Antragsunterlagen</h4>",
+    "<div><a class='link download' ",
+    "href='/documents-ige-ng/igc_xx/aaaaaaaa-1111-2222-3333-444444444444/uvp_bericht.pdf'>UVP</a></div>",
+    "<h4 class='title-font'>Entscheidung</h4>",
+    "<div><a class='link download' ",
+    "href='/documents-ige-ng/igc_xx/aaaaaaaa-1111-2222-3333-444444444444/bescheid.pdf'>Bescheid</a></div>",
+    "</body></html>"
+  )
+  local_mocked_bindings(
+    perform_html = function(req) rvest::read_html(synthetic),
+    req_planscanr = function(base_url, path = NULL) base_url
+  )
+  rec <- planscanR:::de_parse_detail(
+    "https://www.uvp-verbund.de/trefferanzeige?docuuid=aaaaaaaa-1111-2222-3333-444444444444"
+  )
+  # The non-curated section landed in its own column.
+  expect_true("attachment_urls_entscheidung" %in% names(rec))
+  expect_match(rec$attachment_urls_entscheidung[[1]], "bescheid\\.pdf$")
+  expect_match(rec$attachment_urls_uvp_bericht[[1]], "uvp_bericht\\.pdf$")
+  # Both URLs are in the deduplicated union, substantive (uvp_bericht) first.
+  expect_length(rec$attachment_urls[[1]], 2L)
+  expect_match(rec$attachment_urls[[1]][1], "uvp_bericht\\.pdf$")
+})
+
+test_that("de_parse_detail -> sidecar round-trip preserves a non-curated section tag", {
+  fixture_synth <- paste0(
+    "<html><body>",
+    "<h1>Round-trip Test</h1>",
+    "<h4 class='title-font'>Entscheidung</h4>",
+    "<div><a class='link download' ",
+    "href='/documents-ige-ng/igc_xx/aaaaaaaa-1111-2222-3333-444444444444/bescheid.pdf'>Bescheid</a></div>",
+    "</body></html>"
+  )
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    local_mocked_bindings(
+      perform_html = function(req) rvest::read_html(fixture_synth),
+      req_planscanr = function(base_url, path = NULL) base_url
+    )
+    rec <- planscanR:::de_parse_detail(
+      "https://www.uvp-verbund.de/trefferanzeige?docuuid=bbbbbbbb-1111-2222-3333-444444444444"
+    )
+    rec <- planscanR:::de_finalise_record(
+      rec,
+      download = FALSE,
+      overwrite = FALSE,
+      max_file_size_mb = NULL,
+      write_sidecar = TRUE
+    )
+    # index_cache fans the section tag back out into its own column.
+    back <- index_cache(country = "de")
+    expect_true("attachment_urls_entscheidung" %in% names(back))
+    expect_match(back$attachment_urls_entscheidung[[1]], "bescheid\\.pdf$")
+    # And the raw sidecar JSON carries the per-file section tag.
+    sc <- list.files(
+      file.path(getwd(), "cache", "files", "de"),
+      pattern = "\\.meta\\.json$",
+      recursive = TRUE,
+      full.names = TRUE
+    )
+    payload <- jsonlite::fromJSON(sc[[1]], simplifyVector = FALSE)
+    sections <- vapply(
+      payload$files,
+      function(f) if (is.null(f$section)) NA_character_ else f$section,
+      character(1)
+    )
+    expect_true("entscheidung" %in% sections)
+  })
+})
+
 test_that("de_extract_uuids dedupes anchor pairs on the same record card", {
   html <- read_de_fixture("search-windenergie-page1.html")
   uuids <- planscanR:::de_extract_uuids(html)

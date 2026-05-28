@@ -101,26 +101,35 @@ etc.) is reserved for a future release.
 
 \section{Attachments}{
  per-page section split:
-UVP detail pages group documents under up to four headings, exposed here
-as parallel list-columns:
+UVP detail pages group documents under \code{h4.title-font} headings. The set of
+headings is \strong{open-ended and discovered per page} rather than fixed: every
+heading that carries documents becomes its own parallel list-column
+\verb{attachment_urls_<slug>} / \verb{local_path_<slug>}, and the per-file \code{section}
+tag is persisted in the sidecar JSON. Known headings get a stable, curated
+slug; any other heading is auto-slugged from its title (German digraphs
+transliterated to ASCII), so a newly-appearing section type is captured
+without a code change.
+
+Curated slugs (see the internal \code{de_section_map()}):
 \itemize{
-\item \code{attachment_urls_uvp_bericht} / \code{local_path_uvp_bericht} — files under
-\emph{"UVP-Bericht, ggf. Antragsunterlagen"} (the UVP report itself plus the
-applicant's project documents — the substantive documents for downstream
-analysis).
-\item \code{attachment_urls_berichte} / \code{local_path_berichte} — files under
-\emph{"Berichte und Empfehlungen"} (technical reports and recommendations).
-\item \code{attachment_urls_auslegung} / \code{local_path_auslegung} — files under
-\emph{"Auslegungsinformationen"} (public-consultation notices).
-\item \code{attachment_urls_weitere} / \code{local_path_weitere} — files under
-\emph{"Weitere Unterlagen"} (catch-all section; often very large).
-\item \code{attachment_urls} / \code{local_path} — deduplicated union, ordered with
-the substantive sections first (UVP-Bericht → Berichte → Auslegung →
-Weitere). Required by the planscanR schema.
+\item \code{uvp_bericht} — \emph{"UVP-Bericht, ggf. Antragsunterlagen"} (the UVP report
+itself plus the applicant's project documents — the substantive documents
+for downstream analysis).
+\item \code{berichte} — \emph{"Berichte und Empfehlungen"} (technical reports and
+recommendations).
+\item \code{entscheidung} — \emph{"Entscheidung"} (the decision / Bescheid documents).
+\item \code{auslegung} — \emph{"Auslegungsinformationen"} (public-consultation notices).
+\item \code{weitere} — \emph{"Weitere Unterlagen"} (catch-all section; often very large).
 }
 
-When \code{download = TRUE}, all files in all four sections are fetched —
-subject to \code{max_file_size_mb} and the relevance gate.
+\code{attachment_urls} / \code{local_path} are the deduplicated union across all
+discovered sections, ordered curated-first (in the order above) then any
+auto-slugged sections in page order. Required by the planscanR schema.
+
+When \code{download = TRUE}, files in \strong{all} discovered sections are fetched —
+subject to \code{max_file_size_mb} and the relevance gate. (The
+\code{data-raw/biogain_acquire.R} runbook can restrict downloads to a chosen
+subset of sections; the handler itself always captures them all.)
 }
 
 \examples{
