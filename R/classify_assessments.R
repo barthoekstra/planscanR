@@ -40,6 +40,12 @@ biogain_classification_labels <- function() {
     power_grid = "an electricity power line, overhead transmission line, or grid substation",
     other_renewable = "a biomass, biogas, geothermal, or hydropower energy project",
     energy_strategy = "a regional energy transition strategy or energy plan",
+    # Counterpart to the cosine `renewable_zoning` topic. Phrased explicitly
+    # around wind/solar siting so it competes with — rather than collapses
+    # into — the negative `land_use` class (generic spatial planning). Catches
+    # records like a "Windturbines Amsterdam-Noord" zoning/siting plan that
+    # read as planning but are about enabling renewable energy.
+    renewable_zoning = "a spatial plan or zoning decision designating areas for wind, solar, or renewable energy development",
     # --- negative / distractor classes ---
     # `fossil_power` / `oil_gas_extraction` / `nuclear` give non-renewable
     # energy projects a proper home; without them, gas/coal/nuclear records
@@ -58,7 +64,8 @@ biogain_classification_labels <- function() {
     "solar",
     "power_grid",
     "other_renewable",
-    "energy_strategy"
+    "energy_strategy",
+    "renewable_zoning"
   )
   labels
 }
