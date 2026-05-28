@@ -48,6 +48,13 @@ reference:
   - classifier_name
   - reset_classifier_cache
 
+- title: Selection
+  desc: >
+    Combine the relevance signals (embedding cosine, zero-shot classifier,
+    lexical keywords) into a single selection decision.
+  contents:
+  - select_assessments
+
 - title: Attachment discovery (web search)
   desc: >
     Locate and validate document attachments via a pluggable web-search
