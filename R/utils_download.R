@@ -100,6 +100,42 @@ cache_path <- function(url, country, document_id, root = NULL) {
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
+#' Percent-encode unsafe characters in a URL's path/query.
+#'
+#' Portal HTML sometimes yields attachment URLs with literal spaces (and other
+#' characters illegal in a URL), which makes curl/httr2 abort the request with
+#' "Failed to parse URL: Malformed input to a URL function". This encodes the
+#' unsafe bytes while (a) leaving the `scheme://authority` untouched and
+#' (b) preserving any existing `%XX` escapes, so already-encoded URLs are not
+#' double-encoded. The original (un-encoded) URL is what we keep in
+#' `download_status`/sidecars; only the network request uses the encoded form.
+#' @noRd
+url_encode_safe <- function(url) {
+  if (length(url) != 1L || is.na(url) || !nzchar(url)) {
+    return(url)
+  }
+  m <- regmatches(url, regexec("^([a-zA-Z][a-zA-Z0-9+.-]*://[^/]*)(.*)$", url))[[1]]
+  if (length(m) == 3L) {
+    prefix <- m[2]
+    rest <- m[3]
+  } else {
+    prefix <- ""
+    rest <- url
+  }
+  # Tokenise into either an existing %XX escape (kept verbatim) or a single
+  # character (encoded via URLencode, which leaves URL-safe/reserved chars
+  # like / ? & = : alone but escapes spaces and other unsafe bytes).
+  tokens <- regmatches(rest, gregexpr("%[0-9A-Fa-f]{2}|.", rest, perl = TRUE))[[1]]
+  enc <- vapply(
+    tokens,
+    function(tk) {
+      if (grepl("^%[0-9A-Fa-f]{2}$", tk)) tk else utils::URLencode(tk, reserved = FALSE)
+    },
+    character(1)
+  )
+  paste0(prefix, paste0(enc, collapse = ""))
+}
+
 #' Cap on the size of files that will be downloaded.
 #'
 #' Returns the configured ceiling in bytes. `NULL` / `Inf` means no cap.
@@ -123,7 +159,7 @@ max_file_size_bytes <- function(max_file_size_mb = NULL) {
 head_content_length <- function(url) {
   res <- tryCatch(
     {
-      req <- req_planscanr(url)
+      req <- req_planscanr(url_encode_safe(url))
       req <- httr2::req_method(req, "HEAD")
       resp <- httr2::req_perform(req)
       httr2::resp_header(resp, "Content-Length")
@@ -210,7 +246,7 @@ download_attachments <- function(urls, country, document_id, overwrite = FALSE, 
     }
     out <- tryCatch(
       {
-        req <- req_planscanr(u)
+        req <- req_planscanr(url_encode_safe(u))
         httr2::req_perform(req, path = dest)
         size <- unname(file.info(dest)$size)
         if (!is.na(size) && size > cap) {

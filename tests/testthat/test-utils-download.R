@@ -50,6 +50,29 @@ test_that("slugify_filename truncates very long names with a URL-hash suffix", {
   expect_identical(out, planscanR:::slugify_filename(url, "nl", "3619", max_chars = 80L))
 })
 
+test_that("url_encode_safe escapes unsafe path chars but preserves structure", {
+  # Literal space in the filename (the commissiemer.nl failure mode).
+  expect_identical(
+    planscanR:::url_encode_safe(
+      "https://pas.commissiemer.nl/files/nl/3907/Ontwerp wijzigingsbesluit Omgevingsvisie.pdf"
+    ),
+    "https://pas.commissiemer.nl/files/nl/3907/Ontwerp%20wijzigingsbesluit%20Omgevingsvisie.pdf"
+  )
+  # scheme://authority and reserved path/query delimiters are left untouched.
+  expect_identical(
+    planscanR:::url_encode_safe("https://host.example/a/b?x=1&y=2"),
+    "https://host.example/a/b?x=1&y=2"
+  )
+  # Already-encoded escapes are NOT double-encoded.
+  expect_identical(
+    planscanR:::url_encode_safe("https://host.example/a%20b/c.pdf"),
+    "https://host.example/a%20b/c.pdf"
+  )
+  # Degenerate inputs pass through.
+  expect_identical(planscanR:::url_encode_safe(NA_character_), NA_character_)
+  expect_identical(planscanR:::url_encode_safe(""), "")
+})
+
 test_that("file_sha256 returns NA for missing path", {
   expect_true(is.na(planscanR:::file_sha256(NA_character_)))
   expect_true(is.na(planscanR:::file_sha256(tempfile("nonexistent"))))
