@@ -37,6 +37,27 @@ credential management (`keyring`), LLM-based classification &
 normalisation. All are flagged on the roadmap (§6) so they don’t get
 prematurely wedged in.
 
+## 1a. The acquisition runbook is the central reference
+
+[`data-raw/biogain_acquire.R`](https://barthoekstra.github.io/planscanR/data-raw/biogain_acquire.R)
+is the **single source of truth for how ALL BIOGAIN data is acquired and
+processed.** It is the canonical, top-to-bottom pipeline — scan + score
+→ classify → **select** → download / discover → report — that every
+country runs through. When the question is “how is the data processed?”,
+the answer is this file, not an ad-hoc script.
+
+Consequences for any agent working here: - **Selection gate =
+[`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)**
+(the BIOGAIN ensemble: cosine OR classifier OR keywords, minus the
+confident fossil/oil-gas/nuclear trim). The DOWNLOAD and DISCOVER phases
+gate on it, so the runbook downloads exactly the records it reports as
+`selected`. Don’t reintroduce a bare-cosine download gate. - Any change
+to processing logic (selection rule, thresholds, phase behaviour, new
+signals) belongs **in this file** (or in the package functions it
+calls), so the runbook stays authoritative. - One-off helper scripts
+under `/tmp` are throwaway conveniences; if a behaviour matters, fold it
+back into the runbook.
+
 ## 2. Architecture in one diagram
 
     get_assessments(country, ...)
@@ -382,6 +403,140 @@ list. Country → language map lives in `R/utils_language.R`.
 `read_record_sidecar()` fans this back out into `relevance_score_<slug>`
 columns. Old sidecars (without the array) still read fine — they just
 don’t add per-topic columns.
+
+## 5c. The BIOGAIN review app (`inst/biogain-review/`)
+
+A bundled Shiny app for inspecting how records flow through the pipeline
+and for building a **human ground-truth selection** to benchmark the
+automated
+[`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
+gate against. Launched via the exported
+[`run_biogain_review()`](https://barthoekstra.github.io/planscanR/reference/run_biogain_review.md)
+(in `R/biogain_review_app.R`), which locates the app with
+[`system.file()`](https://rdrr.io/r/base/system.file.html), checks the
+optional UI deps, and forwards `cache_dir`/`data_dir`.
+
+**It is a consumer of the package, never a modifier.** It reads the
+sidecar cache read-only through
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
+/
+[`score_keywords()`](https://barthoekstra.github.io/planscanR/reference/score_keywords.md)
+/
+[`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md),
+and only *writes* three things: human review decisions, cached
+translations, and the trained selection-model artifact
+(`selection_model.rds`; see §5d). All model *logic* lives in the package
+— the app just calls
+[`train_selection_model()`](https://barthoekstra.github.io/planscanR/reference/train_selection_model.md)
+/
+[`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md)
+and persists the result.
+
+**Where things live** - App: `inst/biogain-review/app.R` (UI + server)
+plus self-contained helpers in `inst/biogain-review/R/` — Shiny
+auto-sources that `R/` dir. Helpers reach the package via `planscanR::`
+/ `planscanR:::`, so the app only needs planscanR installed (or
+`load_all`-ed in dev). - `data.R` — `load_or_build_snapshot()` (walks
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
+once → an enriched, scalar-column snapshot cached as
+`corpus_snapshot.rds`), `apply_selection()` (live wrapper over
+[`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)),
+and `draw_random_sample()` / `build_review_queue()` (stratified +
+prioritised sampling). - `store.R` — review decisions as a
+human-readable CSV (`reviews.csv`), one row per **(country, document_id,
+reviewer)** so multiple reviewers coexist; plus a reviewers-name list
+(`reviewers.txt`). - `funnel.R` — per-stage funnel counts, the
+interactive plotly funnel, `selection_vs_human()` (auto-vs-human
+precision/recall/F1; ground truth is one decision per record via
+[`planscanR::consensus_reviews()`](https://barthoekstra.github.io/planscanR/reference/consensus_reviews.md)
+— each reviewer’s most-recent verdict, then kept only if all reviewers
+agree, so conflicting records are excluded), and
+`inter_reviewer_summary()`. - `table.R` — the styled reactable
+(per-row + bulk keep/drop/unsure, lazy translation fold-down), the
+single-record stepper card, and the metric / column info popovers. -
+`translate.R` — offline **Argos Translate** (`argostranslate` via
+reticulate) for title/summary → English.
+
+**Data location (important).** The app’s artefacts default to the
+**cache root** (`cache_dir`, i.e. alongside `files/`), NOT a separate
+user dir, so reviews travel with a cache sync. They sit at the root —
+`reviews.csv`, `reviewers.txt`, `corpus_snapshot.rds`,
+`random_sample.rds`, `selection_model.rds` — not under `files/`, so
+[`clear_cache()`](https://barthoekstra.github.io/planscanR/reference/clear_cache.md)
+(which only wipes `files/`) leaves them intact. Override with the
+`data_dir` arg or `BIOGAIN_REVIEW_DATA`. Cache root resolves:
+`cache_dir` → `PLANSCANR_CACHE` → `getOption("planscanR.cache_dir")` →
+package default.
+
+**Translations are persisted into the sidecars NON-DESTRUCTIVELY** —
+under each record’s `extras` as `translation_*` keys, via the package’s
+own merge-write — so they survive a later scan/score/classify rewrite
+and surface through
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md).
+CTranslate2 is forced single-threaded (`OMP_NUM_THREADS=1`) to avoid an
+OpenMP/Shiny segfault.
+
+**Inter-reviewer workflow.** A reviewer name is required before
+classifying (enforced by a load modal + server gates). A new reviewer’s
+queue first serves records *others* have reviewed but they haven’t (to
+measure cross-reviewer agreement); only once caught up does it sample
+fresh, unreviewed records.
+
+**Deps** are in `Suggests` (shiny, bslib, reactable, plotly, htmltools);
+the app is excluded from `R CMD check`/build only in that its runtime
+data dir is never shipped. The launcher errors helpfully if a Suggested
+package is missing.
+
+## 5d. Learned selection model (supervised, from human labels)
+
+A trainable counterpart to the hand-tuned
+[`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
+rule: instead of OR-ing the three signals at fixed thresholds, it
+**learns** the keep/drop decision from the review app’s `reviews.csv`
+labels over the per-record scores already on the sidecars. Lives
+entirely in the package (the app is a consumer, §5c). Files:
+[R/select_features.R](https://barthoekstra.github.io/planscanR/R/select_features.R),
+[R/select_learner.R](https://barthoekstra.github.io/planscanR/R/select_learner.R),
+[R/train_selection.R](https://barthoekstra.github.io/planscanR/R/train_selection.R).
+
+- **Feature contract —
+  [`selection_features()`](https://barthoekstra.github.io/planscanR/reference/selection_features.md).**
+  The single function both training and prediction call (no train/serve
+  skew). Default feature set is the 6 `relevance_score_<slug>` cosine
+  scores + 13 `class_score_<label>` classifier scores + `kw_total`, all
+  already persisted on sidecars and surfaced by
+  [`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md).
+  Missing/NA numerics → `0`. **Deliberately country-agnostic** so a
+  model transfers to a new portal; `country` / `native_type` are opt-in
+  via `include =` but OFF by default.
+- **Pluggable learner — `selection_learner_*()`.** Mirrors the
+  [`embedding_model()`](https://barthoekstra.github.io/planscanR/reference/embedding_model.md)
+  / classifier S3 pattern, built on tidymodels. Default
+  [`selection_learner_logistic()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
+  uses the base-R `glm` engine (needs only the tidymodels *glue*:
+  parsnip / recipes / rsample / workflows — all Suggests).
+  [`selection_learner_glmnet()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
+  / `_xgboost()` / `_ranger()` are heavier opt-ins that name their
+  engine package. `selection_learners(available_only = TRUE)` filters to
+  what’s installed (the app dropdown). Specs are built lazily, so a
+  learner can be listed without parsnip present.
+- **Honest metrics —
+  [`train_selection_model()`](https://barthoekstra.github.io/planscanR/reference/train_selection_model.md).**
+  Fits the final model on all labels but reports **out-of-fold**
+  (stratified k-fold CV) precision/recall/F1
+  - confusion, default on the unbiased `source == "random"` sample —
+    directly comparable to `selection_vs_human()` for the heuristic, no
+    train-on-test inflation.
+    [`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md)
+    adds `select_prob` + `selected_model`.
+    `selection_cv_metrics(model, threshold)` re-scores the stored OOF
+    predictions at any threshold with no retrain (the app’s threshold
+    slider).
+- **NOT yet wired into `biogain_acquire.R`.** Intentional: prove the
+  learned gate beats the heuristic first. When it does, the runbook /
+  [`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
+  can gate on
+  [`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md).
 
 ## 6. Roadmap (informational; not actionable in v0.1)
 

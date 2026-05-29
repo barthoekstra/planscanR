@@ -18,6 +18,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/classify_model_zeroshot.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/classify_text.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/clear_cache.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/consensus_reviews.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/discover_attachments.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/discover_validate.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/embed_text.html</loc></url>
@@ -30,11 +31,15 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/index.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/index_cache.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/learning_curve_summary.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/model_name.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/planscanR-package.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/predict_selection.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/reset_classifier_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/reset_embedding_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/reset_relevance_warnings.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/run_biogain_review.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/save_selection_model.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/score_assessments.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/score_keywords.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/score_records.html</loc></url>
@@ -42,8 +47,16 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend_mock.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend_tavily.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/select_assessments.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/selection_cv_metrics.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/selection_feature_names.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/selection_features.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/selection_learner.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/selection_learners.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/selection_learning_curve.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/supported_countries.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/supported_languages.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/train_selection_model.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/web_search.html</loc></url>
 </urlset>
 

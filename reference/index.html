@@ -243,7 +243,7 @@
       </dl></div><div class="section level2">
       <h2 id="selection">Selection<a class="anchor" aria-label="anchor" href="#selection"></a></h2>
 
-      <div class="section-desc"><p>Combine the relevance signals (embedding cosine, zero-shot classifier, lexical keywords) into a single selection decision.</p></div>
+      <div class="section-desc"><p>Combine the relevance signals (embedding cosine, zero-shot classifier, lexical keywords) into a single selection decision — either the hand-tuned rule or a model learned from human keep/drop labels.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -256,6 +256,90 @@
 
         </dt>
         <dd>Apply the BIOGAIN selection rule to scored + classified records.</dd>
+
+        <dt>
+
+          <code><a href="selection_features.html">selection_features()</a></code>
+
+        </dt>
+        <dd>Build the selection-model feature frame from records.</dd>
+
+        <dt>
+
+          <code><a href="selection_feature_names.html">selection_feature_names()</a></code>
+
+        </dt>
+        <dd>Names of the features the selection model is trained on.</dd>
+
+        <dt>
+
+          <code><a href="selection_learner.html">selection_learner()</a></code>
+
+        </dt>
+        <dd>Construct a custom selection learner.</dd>
+
+        <dt>
+
+          <code><a href="selection_learners.html">selection_learners()</a></code>
+
+        </dt>
+        <dd>Registry of the built-in learners.</dd>
+
+        <dt>
+
+          <code><a href="selection_learners_builtin.html">selection_learner_logistic()</a></code> <code><a href="selection_learners_builtin.html">selection_learner_glmnet()</a></code> <code><a href="selection_learners_builtin.html">selection_learner_xgboost()</a></code> <code><a href="selection_learners_builtin.html">selection_learner_ranger()</a></code>
+
+        </dt>
+        <dd>Built-in selection learners.</dd>
+
+        <dt>
+
+          <code><a href="train_selection_model.html">train_selection_model()</a></code>
+
+        </dt>
+        <dd>Train the learned selection model from human review labels.</dd>
+
+        <dt>
+
+          <code><a href="predict_selection.html">predict_selection()</a></code>
+
+        </dt>
+        <dd>Predict the learned selection decision for records.</dd>
+
+        <dt>
+
+          <code><a href="selection_cv_metrics.html">selection_cv_metrics()</a></code>
+
+        </dt>
+        <dd>Out-of-fold metrics for a trained model at an arbitrary threshold.</dd>
+
+        <dt>
+
+          <code><a href="selection_learning_curve.html">selection_learning_curve()</a></code>
+
+        </dt>
+        <dd>Learning curve for the learned selection model.</dd>
+
+        <dt>
+
+          <code><a href="learning_curve_summary.html">learning_curve_summary()</a></code>
+
+        </dt>
+        <dd>Aggregate a learning curve to mean +/- sd per training size.</dd>
+
+        <dt>
+
+          <code><a href="consensus_reviews.html">consensus_reviews()</a></code>
+
+        </dt>
+        <dd>Resolve a review store to one agreed decision per record.</dd>
+
+        <dt>
+
+          <code><a href="save_selection_model.html">save_selection_model()</a></code> <code><a href="save_selection_model.html">load_selection_model()</a></code>
+
+        </dt>
+        <dd>Persist / restore a trained selection model.</dd>
       </dl></div><div class="section level2">
       <h2 id="attachment-discovery-web-search-">Attachment discovery (web search)<a class="anchor" aria-label="anchor" href="#attachment-discovery-web-search-"></a></h2>
 
@@ -344,6 +428,22 @@
 
         </dt>
         <dd>Invalidate (delete) part or all of the planscanR cache.</dd>
+      </dl></div><div class="section level2">
+      <h2 id="review-app">Review app<a class="anchor" aria-label="anchor" href="#review-app"></a></h2>
+
+      <div class="section-desc"><p>Launch the bundled BIOGAIN Shiny app for inspecting the pipeline funnel and building a human ground-truth selection.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="run_biogain_review.html">run_biogain_review()</a></code>
+
+        </dt>
+        <dd>Launch the BIOGAIN review and pipeline-funnel app</dd>
       </dl></div><div class="section level2">
       <h2 id="package">Package<a class="anchor" aria-label="anchor" href="#package"></a></h2>
 

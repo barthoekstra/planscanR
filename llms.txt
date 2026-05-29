@@ -84,10 +84,39 @@ classifier interface behind it.
 ## Selection
 
 Combine the relevance signals (embedding cosine, zero-shot classifier,
-lexical keywords) into a single selection decision.
+lexical keywords) into a single selection decision — either the
+hand-tuned rule or a model learned from human keep/drop labels.
 
 - [`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
   : Apply the BIOGAIN selection rule to scored + classified records.
+- [`selection_features()`](https://barthoekstra.github.io/planscanR/reference/selection_features.md)
+  : Build the selection-model feature frame from records.
+- [`selection_feature_names()`](https://barthoekstra.github.io/planscanR/reference/selection_feature_names.md)
+  : Names of the features the selection model is trained on.
+- [`selection_learner()`](https://barthoekstra.github.io/planscanR/reference/selection_learner.md)
+  : Construct a custom selection learner.
+- [`selection_learners()`](https://barthoekstra.github.io/planscanR/reference/selection_learners.md)
+  : Registry of the built-in learners.
+- [`selection_learner_logistic()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
+  [`selection_learner_glmnet()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
+  [`selection_learner_xgboost()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
+  [`selection_learner_ranger()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
+  : Built-in selection learners.
+- [`train_selection_model()`](https://barthoekstra.github.io/planscanR/reference/train_selection_model.md)
+  : Train the learned selection model from human review labels.
+- [`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md)
+  : Predict the learned selection decision for records.
+- [`selection_cv_metrics()`](https://barthoekstra.github.io/planscanR/reference/selection_cv_metrics.md)
+  : Out-of-fold metrics for a trained model at an arbitrary threshold.
+- [`selection_learning_curve()`](https://barthoekstra.github.io/planscanR/reference/selection_learning_curve.md)
+  : Learning curve for the learned selection model.
+- [`learning_curve_summary()`](https://barthoekstra.github.io/planscanR/reference/learning_curve_summary.md)
+  : Aggregate a learning curve to mean +/- sd per training size.
+- [`consensus_reviews()`](https://barthoekstra.github.io/planscanR/reference/consensus_reviews.md)
+  : Resolve a review store to one agreed decision per record.
+- [`save_selection_model()`](https://barthoekstra.github.io/planscanR/reference/save_selection_model.md)
+  [`load_selection_model()`](https://barthoekstra.github.io/planscanR/reference/save_selection_model.md)
+  : Persist / restore a trained selection model.
 
 ## Attachment discovery (web search)
 
@@ -119,6 +148,14 @@ Read previously-downloaded slices offline and manage the file cache.
   : Walk a planscanR cache and reconstruct a tibble from every sidecar.
 - [`clear_cache()`](https://barthoekstra.github.io/planscanR/reference/clear_cache.md)
   : Invalidate (delete) part or all of the planscanR cache.
+
+## Review app
+
+Launch the bundled BIOGAIN Shiny app for inspecting the pipeline funnel
+and building a human ground-truth selection.
+
+- [`run_biogain_review()`](https://barthoekstra.github.io/planscanR/reference/run_biogain_review.md)
+  : Launch the BIOGAIN review and pipeline-funnel app
 
 ## Package
 
