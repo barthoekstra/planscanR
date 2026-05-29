@@ -34,6 +34,27 @@ pure additive change.
 credential management (`keyring`), LLM-based classification & normalisation.
 All are flagged on the roadmap (§6) so they don't get prematurely wedged in.
 
+## 1a. The acquisition runbook is the central reference
+
+[`data-raw/biogain_acquire.R`](data-raw/biogain_acquire.R) is the **single
+source of truth for how ALL BIOGAIN data is acquired and processed.** It is the
+canonical, top-to-bottom pipeline — scan + score → classify → **select** →
+download / discover → report — that every country runs through. When the
+question is "how is the data processed?", the answer is this file, not an ad-hoc
+script.
+
+Consequences for any agent working here:
+- **Selection gate = `select_assessments()`** (the BIOGAIN ensemble: cosine OR
+  classifier OR keywords, minus the confident fossil/oil-gas/nuclear trim). The
+  DOWNLOAD and DISCOVER phases gate on it, so the runbook downloads exactly the
+  records it reports as `selected`. Don't reintroduce a bare-cosine download
+  gate.
+- Any change to processing logic (selection rule, thresholds, phase behaviour,
+  new signals) belongs **in this file** (or in the package functions it calls),
+  so the runbook stays authoritative.
+- One-off helper scripts under `/tmp` are throwaway conveniences; if a behaviour
+  matters, fold it back into the runbook.
+
 ## 2. Architecture in one diagram
 
 ```
