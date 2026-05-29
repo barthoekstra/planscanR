@@ -3,8 +3,9 @@
 Adds one `kw_<topic>` integer column per lexicon topic (the number of
 term occurrences in the record's title + summary + category) plus a
 `kw_total` column. Matching is on normalised text (lowercased,
-diacritics stripped, German vowel digraphs collapsed), with terms
-anchored at a word start so compounds match their stem.
+diacritics stripped, German vowel digraphs collapsed). Each term is
+matched as a plain substring, so a stem like `"wind"` also matches
+compounds such as `"windpark"`.
 
 ## Usage
 

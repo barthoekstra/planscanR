@@ -25,7 +25,8 @@ Per-record metadata is parsed from each detail page with rvest."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/planscanR.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -84,7 +85,7 @@ strings. Filters by <code>date_decision</code>.</p></dd>
 <dt id="arg-limit">limit<a class="anchor" aria-label="anchor" href="#arg-limit"></a></dt>
 <dd><p>Integer. Maximum records to return. Defaults to <code>Inf</code>; you
 are strongly encouraged to set a small value (e.g. <code>50</code>) when exploring,
-because a cold-cache full crawl enumerates all ~2,427 search pages.</p></dd>
+because a cold-cache full crawl enumerates all ~2,258 search pages.</p></dd>
 
 
 <dt id="arg-download-cache-dir-overwrite-max-file-size-mb-write-sidecar-refresh">download, cache_dir, overwrite, max_file_size_mb, write_sidecar, refresh<a class="anchor" aria-label="anchor" href="#arg-download-cache-dir-overwrite-max-file-size-mb-write-sidecar-refresh"></a></dt>
@@ -93,9 +94,9 @@ because a cold-cache full crawl enumerates all ~2,427 search pages.</p></dd>
 
 <dt id="arg-topic-relevance-threshold-relevance-model">topic, relevance_threshold, relevance_model<a class="anchor" aria-label="anchor" href="#arg-topic-relevance-threshold-relevance-model"></a></dt>
 <dd><p>Forwarded from
-<code><a href="get_assessments.html">get_assessments()</a></code>. <code>relevance_threshold</code> is a <strong>download-gate only</strong>:
-records below it keep their sidecar + tibble row, only their PDFs are
-skipped.</p></dd>
+<code><a href="get_assessments.html">get_assessments()</a></code>. <code>relevance_threshold</code> <strong>only affects downloading</strong>:
+records below it keep their sidecar and their tibble row, only their PDFs
+are skipped.</p></dd>
 
 
 <dt id="arg-query">query<a class="anchor" aria-label="anchor" href="#arg-query"></a></dt>
@@ -136,7 +137,7 @@ multiple seed queries and union the results.
 (<code>toggle_procedure=on</code>) restricts results to currently-running plus
 last-year-modified procedures and silently drops ~80% of historical
 records.</p>
-<p>On a cold cache, a full enumeration over ~2,427 pages is slow; users are
+<p>On a cold cache, a full enumeration over ~2,258 pages is slow; users are
 strongly encouraged to set <code>limit</code> (and ideally <code>query</code>) when exploring.</p>
     </div>
     <div class="section level2">
@@ -177,7 +178,7 @@ recommendations).</p></li>
 discovered sections, ordered curated-first (in the order above) then any
 auto-slugged sections in page order. Required by the planscanR schema.</p>
 <p>When <code>download = TRUE</code>, files in <strong>all</strong> discovered sections are fetched —
-subject to <code>max_file_size_mb</code> and the relevance gate. (The
+subject to <code>max_file_size_mb</code> and the relevance threshold. (The
 <code>data-raw/biogain_acquire.R</code> runbook can restrict downloads to a chosen
 subset of sections; the handler itself always captures them all.)</p>
     </div>

@@ -101,16 +101,16 @@ get_assessments(
 
 - relevance_threshold:
 
-  Optional cutoff in `[-1, 1]`. **Download-gate only**: records that
-  score below the threshold still appear in the returned tibble and
-  still get a sidecar JSON on disk — only their PDF attachments are
-  skipped. This lets you re-run with a different threshold (or no
-  threshold) later without re-hitting the portal. Scalar threshold: PDFs
-  are downloaded if **any** topic clears it. Named numeric vector (e.g.
-  `c(wind = 0.5, solar = 0.4)`): per-topic cutoffs, downloads happen if
-  **any** named topic clears its own cutoff. `NULL` (default) is
-  score-only; every record's PDFs are downloaded (when
-  `download = TRUE`).
+  Optional cutoff in `[-1, 1]`. This **only affects downloading**:
+  records that score below the threshold still appear in the returned
+  tibble and still get a sidecar JSON on disk — only their PDF
+  attachments are skipped. This lets you re-run with a different
+  threshold (or no threshold) later without re-hitting the portal.
+  Scalar threshold: PDFs are downloaded if **any** topic clears it.
+  Named numeric vector (e.g. `c(wind = 0.5, solar = 0.4)`): per-topic
+  cutoffs, downloads happen if **any** named topic clears its own
+  cutoff. `NULL` (default) is score-only; every record's PDFs are
+  downloaded (when `download = TRUE`).
 
 - relevance_model:
 

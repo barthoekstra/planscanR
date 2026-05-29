@@ -55,8 +55,8 @@ get_assessments_at(
 
   Forwarded from
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md).
-  `relevance_threshold` is documented as a download-gate; on AT it has
-  no observable effect because there are no downloads to gate.
+  `relevance_threshold` only affects which records' PDFs are downloaded;
+  on AT it has no observable effect because there are no downloads.
 
 - query:
 

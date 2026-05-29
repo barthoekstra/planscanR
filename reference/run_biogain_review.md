@@ -9,8 +9,8 @@ cache **read-only** via
 [`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
 /
 [`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
-and keeps its own review decisions, offline translations, and a cached
-snapshot in a separate user directory.
+and writes its review decisions, offline translations, and a cached
+snapshot to the cache root (see `data_dir`).
 
 ## Usage
 

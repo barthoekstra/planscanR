@@ -23,7 +23,8 @@ freely. See Return value for details."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/planscanR.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -141,8 +142,8 @@ returned regardless of its score.</p></dd>
 
 
 <dt id="arg-relevance-threshold">relevance_threshold<a class="anchor" aria-label="anchor" href="#arg-relevance-threshold"></a></dt>
-<dd><p>Optional cutoff in <code>[-1, 1]</code>. <strong>Download-gate
-only</strong>: records that score below the threshold still appear in the
+<dd><p>Optional cutoff in <code>[-1, 1]</code>. This <strong>only affects
+downloading</strong>: records that score below the threshold still appear in the
 returned tibble and still get a sidecar JSON on disk — only their PDF
 attachments are skipped. This lets you re-run with a different threshold
 (or no threshold) later without re-hitting the portal. Scalar threshold:

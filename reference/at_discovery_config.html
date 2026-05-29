@@ -21,7 +21,8 @@ discovery-config contract that every country should provide."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/planscanR.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -60,8 +61,6 @@ authority domains to scope queries to.</p></li>
 <li><p><code>aktenzahl_regex</code> — regex that detects the country's primary
 identifier in PDF text. For AT it matches the UBA-internal AZ
 <code>02 NNNN</code> plus a couple of dash/no-space variants.</p></li>
-<li><p><code>extract_proponent</code> — function(record) -&gt; character, pulls the
-proponent name out of the record's summary (returns NA on failure).</p></li>
 <li><p><code>extra_signals</code> — character vector of additional patterns the
 validator will check for in PDF text (e.g. legal-basis strings).</p></li>
 </ul></div>

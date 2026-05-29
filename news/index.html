@@ -15,7 +15,8 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/planscanR.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -35,6 +36,13 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.0.9000" id="planscanr-0009000">planscanR 0.0.0.9000<a class="anchor" aria-label="anchor" href="#planscanr-0009000"></a></h2>
 <ul><li>Initial development scaffold.</li>
+<li>Austria handler <code><a href="../reference/get_assessments_at.html">get_assessments_at()</a></code> fetches record metadata from the Umweltbundesamt UVP-DB (<code>secure.umweltbundesamt.at/uvpdb</code>). Metadata-only: the portal’s documents sit behind a login, so <code>attachment_urls</code> are empty.</li>
+<li>Topic relevance scoring. Pass <code>topic</code> to <code><a href="../reference/get_assessments.html">get_assessments()</a></code> (or use <code><a href="../reference/score_assessments.html">score_assessments()</a></code> on existing records) to rank each record by how closely its title and summary match one or more topics, via a multilingual text-similarity model. <code><a href="../reference/biogain_assessment_topics.html">biogain_assessment_topics()</a></code> returns the six energy topics the BIOGAIN project uses. The embedding model is pluggable through <code><a href="../reference/embedding_model.html">embedding_model()</a></code>.</li>
+<li>Lexical keyword scoring (<code><a href="../reference/score_keywords.html">score_keywords()</a></code>, <code><a href="../reference/biogain_keyword_lexicon.html">biogain_keyword_lexicon()</a></code>) counts energy-related terms as a complementary signal.</li>
+<li>Classification. <code><a href="../reference/classify_assessments.html">classify_assessments()</a></code> assigns each record a canonical class via a pluggable zero-shot classifier (<code><a href="../reference/classify_model_zeroshot.html">classify_model_zeroshot()</a></code>).</li>
+<li>Selection. <code><a href="../reference/select_assessments.html">select_assessments()</a></code> combines the relevance, classifier, and keyword signals into a single keep/drop decision. A model learned from human keep/drop labels (<code><a href="../reference/train_selection_model.html">train_selection_model()</a></code> / <code><a href="../reference/predict_selection.html">predict_selection()</a></code>) is also available; the built-in learner is logistic regression.</li>
+<li>Attachment discovery. For portals that don’t expose documents directly, <code><a href="../reference/discover_attachments.html">discover_attachments()</a></code> finds and validates PDFs through a pluggable web-search backend (<code><a href="../reference/search_backend_tavily.html">search_backend_tavily()</a></code>).</li>
+<li>Review app. <code><a href="../reference/run_biogain_review.html">run_biogain_review()</a></code> launches a bundled Shiny app for inspecting how records flow through the pipeline and building a human ground-truth selection to benchmark the automated decision against.</li>
 <li>Unified entry function <code><a href="../reference/get_assessments.html">get_assessments()</a></code> dispatches on country code.</li>
 <li>Netherlands handler <code><a href="../reference/get_assessments_nl.html">get_assessments_nl()</a></code> fetches from the Commissie m.e.r. adviezenregister (<code>commissiemer.nl</code>) via sitemap-based URL discovery and detail-page parsing. Supports <code>query</code>, <code>date_range</code>, and <code>province</code> filters client-side; <code>theme</code>, <code>advice_type</code>, and <code>status</code> arguments are accepted with a warning that taxonomy filtering is not yet honoured.</li>
 <li>Required-columns return schema, validated by <code>validate_result_schema()</code>: <code>country</code>, <code>source_portal</code>, <code>document_id</code>, <code>url</code>, <code>retrieved_at</code>, <code>attachment_urls</code>, <code>local_path</code>. Additional columns are encouraged and free-form.</li>

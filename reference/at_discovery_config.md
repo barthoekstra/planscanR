@@ -26,9 +26,6 @@ A list with the following named elements:
   identifier in PDF text. For AT it matches the UBA-internal AZ
   `02 NNNN` plus a couple of dash/no-space variants.
 
-- `extract_proponent` — function(record) -\> character, pulls the
-  proponent name out of the record's summary (returns NA on failure).
-
 - `extra_signals` — character vector of additional patterns the
   validator will check for in PDF text (e.g. legal-basis strings).
 

@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Retrieve Environmental-Assessment Records From European Portals">
-<meta name="description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning. v0.1 implements a Netherlands handler against the Commissie m.e.r. adviezenregister.">
-<meta property="og:description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning. v0.1 implements a Netherlands handler against the Commissie m.e.r. adviezenregister.">
+<meta name="description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals, with built-in tools to score records by topic relevance and select the ones worth a closer look. Handlers ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund), and Austria (Umweltbundesamt UVP-DB). Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.">
+<meta property="og:description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals, with built-in tools to score records by topic relevance and select the ones worth a closer look. Handlers ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund), and Austria (Umweltbundesamt UVP-DB). Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -31,6 +31,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/planscanR.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
@@ -49,7 +50,86 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="planscanr">planscanR<a class="anchor" aria-label="anchor" href="#planscanr"></a>
 </h1></div>
-<p>R package for retrieving SEA, EIA, and zoning documents from national and regional spatial-data portals across Europe. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.</p>
+<p><code>planscanR</code> collects environmental-assessment records — Environmental Impact Assessments (EIA), Strategic Environmental Assessments (SEA), and related advice — from European government portals, and gives you one consistent table to work with no matter which country a record came from.</p>
+<p>It was built for the <a href="https://www.biodiversa.eu/" class="external-link">BIOGAIN</a> project, which studies how to achieve a net gain in biodiversity when planning where energy infrastructure goes. To do that, the project needs to find the relevant assessments scattered across national portals — which is what this package automates.</p>
+<div class="section level2">
+<h2 id="what-it-does">What it does<a class="anchor" aria-label="anchor" href="#what-it-does"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Fetch.</strong> One function, <code><a href="reference/get_assessments.html">get_assessments()</a></code>, retrieves records from a national portal and returns them as a tidy table. The same columns come back for every country, so you can stack results together.</li>
+<li>
+<strong>Score.</strong> Optionally rank each record by how closely it matches topics you care about (e.g. wind, solar, power grids), using a multilingual text-similarity model so a German record and a Dutch one are judged on the same footing.</li>
+<li>
+<strong>Select.</strong> Combine the relevance signals into a single keep/drop decision, so you can narrow thousands of records down to the ones worth reading.</li>
+</ol>
+<p>Supported portals:</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Country</th>
+<th>Portal</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Netherlands (<code>"nl"</code>)</td>
+<td>Commissie m.e.r. adviezenregister</td>
+<td>full records + document downloads</td>
+</tr>
+<tr>
+<td>Germany (<code>"de"</code>)</td>
+<td>UVP-Verbund</td>
+<td>full records + document downloads</td>
+</tr>
+<tr>
+<td>Austria (<code>"at"</code>)</td>
+<td>Umweltbundesamt UVP-DB</td>
+<td>record details only (documents sit behind a login)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"barthoekstra/planscanR"</span><span class="op">)</span></span></code></pre></div>
+<p>The relevance-scoring step uses a Python model through <a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a>. Install it once with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/py_install.html" class="external-link">py_install</a></span><span class="op">(</span><span class="st">"sentence-transformers"</span><span class="op">)</span></span></code></pre></div>
+<p>You only need this if you pass a <code>topic</code> to <code><a href="reference/get_assessments.html">get_assessments()</a></code>; plain fetching works without it.</p>
+</div>
+<div class="section level2">
+<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h2>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/barthoekstra/planscanR" class="external-link">planscanR</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Grab 20 records from the Netherlands (no documents downloaded yet).</span></span>
+<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_assessments.html">get_assessments</a></span><span class="op">(</span><span class="st">"nl"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Score them against the BIOGAIN energy topics and keep the relevant ones.</span></span>
+<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_assessments.html">get_assessments</a></span><span class="op">(</span></span>
+<span>  <span class="st">"nl"</span>,</span>
+<span>  topic <span class="op">=</span> <span class="fu"><a href="reference/biogain_assessment_topics.html">biogain_assessment_topics</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  relevance_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  limit <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  download <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">records</span><span class="op">$</span><span class="va">relevance_score_wind</span></span></code></pre></div>
+<p>See <code><a href="articles/planscanR.html">vignette("planscanR")</a></code> for an end-to-end walkthrough (fetch → score → select), and <code><a href="reference/get_assessments_coverage.html">get_assessments_coverage()</a></code> for the portals and search options available at runtime.</p>
+</div>
+<div class="section level2">
+<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
+</h2>
+<p>GPL (&gt;= 3).</p>
+</div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>

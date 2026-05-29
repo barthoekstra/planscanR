@@ -1,9 +1,90 @@
 # planscanR
 
-R package for retrieving SEA, EIA, and zoning documents from national
-and regional spatial-data portals across Europe. Developed for the
-BIOGAIN project to support Net Biodiversity Gain in spatial energy
-planning.
+`planscanR` collects environmental-assessment records — Environmental
+Impact Assessments (EIA), Strategic Environmental Assessments (SEA), and
+related advice — from European government portals, and gives you one
+consistent table to work with no matter which country a record came
+from.
+
+It was built for the [BIOGAIN](https://www.biodiversa.eu/) project,
+which studies how to achieve a net gain in biodiversity when planning
+where energy infrastructure goes. To do that, the project needs to find
+the relevant assessments scattered across national portals — which is
+what this package automates.
+
+## What it does
+
+1.  **Fetch.** One function,
+    [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md),
+    retrieves records from a national portal and returns them as a tidy
+    table. The same columns come back for every country, so you can
+    stack results together.
+2.  **Score.** Optionally rank each record by how closely it matches
+    topics you care about (e.g. wind, solar, power grids), using a
+    multilingual text-similarity model so a German record and a Dutch
+    one are judged on the same footing.
+3.  **Select.** Combine the relevance signals into a single keep/drop
+    decision, so you can narrow thousands of records down to the ones
+    worth reading.
+
+Supported portals:
+
+| Country | Portal | Notes |
+|----|----|----|
+| Netherlands (`"nl"`) | Commissie m.e.r. adviezenregister | full records + document downloads |
+| Germany (`"de"`) | UVP-Verbund | full records + document downloads |
+| Austria (`"at"`) | Umweltbundesamt UVP-DB | record details only (documents sit behind a login) |
+
+## Installation
+
+``` r
+
+# install.packages("pak")
+pak::pak("barthoekstra/planscanR")
+```
+
+The relevance-scoring step uses a Python model through
+[reticulate](https://rstudio.github.io/reticulate/). Install it once
+with:
+
+``` r
+
+reticulate::py_install("sentence-transformers")
+```
+
+You only need this if you pass a `topic` to
+[`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md);
+plain fetching works without it.
+
+## Quick start
+
+``` r
+
+library(planscanR)
+
+# Grab 20 records from the Netherlands (no documents downloaded yet).
+records <- get_assessments("nl", limit = 20, download = FALSE)
+
+# Score them against the BIOGAIN energy topics and keep the relevant ones.
+records <- get_assessments(
+  "nl",
+  topic = biogain_assessment_topics(),
+  relevance_threshold = 0.5,
+  limit = 20,
+  download = FALSE
+)
+records$relevance_score_wind
+```
+
+See
+[`vignette("planscanR")`](https://barthoekstra.github.io/planscanR/articles/planscanR.md)
+for an end-to-end walkthrough (fetch → score → select), and
+[`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md)
+for the portals and search options available at runtime.
+
+## License
+
+GPL (\>= 3).
 
 # Package index
 
@@ -98,10 +179,7 @@ hand-tuned rule or a model learned from human keep/drop labels.
 - [`selection_learners()`](https://barthoekstra.github.io/planscanR/reference/selection_learners.md)
   : Registry of the built-in learners.
 - [`selection_learner_logistic()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  [`selection_learner_glmnet()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  [`selection_learner_xgboost()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  [`selection_learner_ranger()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  : Built-in selection learners.
+  : Built-in selection learner.
 - [`train_selection_model()`](https://barthoekstra.github.io/planscanR/reference/train_selection_model.md)
   : Train the learned selection model from human review labels.
 - [`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md)
@@ -164,3 +242,9 @@ and building a human ground-truth selection.
   : planscanR: retrieve environmental-assessment records from European
   portals
 
+# Articles
+
+### All vignettes
+
+- [Getting started with
+  planscanR](https://barthoekstra.github.io/planscanR/articles/planscanR.md):

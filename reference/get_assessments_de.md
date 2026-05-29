@@ -41,7 +41,7 @@ get_assessments_de(
 
   Integer. Maximum records to return. Defaults to `Inf`; you are
   strongly encouraged to set a small value (e.g. `50`) when exploring,
-  because a cold-cache full crawl enumerates all ~2,427 search pages.
+  because a cold-cache full crawl enumerates all ~2,258 search pages.
 
 - download, cache_dir, overwrite, max_file_size_mb, write_sidecar,
   refresh:
@@ -53,8 +53,8 @@ get_assessments_de(
 
   Forwarded from
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md).
-  `relevance_threshold` is a **download-gate only**: records below it
-  keep their sidecar + tibble row, only their PDFs are skipped.
+  `relevance_threshold` **only affects downloading**: records below it
+  keep their sidecar and their tibble row, only their PDFs are skipped.
 
 - query:
 
@@ -96,7 +96,7 @@ value) is set explicitly: the portal's default (`toggle_procedure=on`)
 restricts results to currently-running plus last-year-modified
 procedures and silently drops ~80% of historical records.
 
-On a cold cache, a full enumeration over ~2,427 pages is slow; users are
+On a cold cache, a full enumeration over ~2,258 pages is slow; users are
 strongly encouraged to set `limit` (and ideally `query`) when exploring.
 
 ## Filter coverage (v0.1)
@@ -151,7 +151,7 @@ discovered sections, ordered curated-first (in the order above) then any
 auto-slugged sections in page order. Required by the planscanR schema.
 
 When `download = TRUE`, files in **all** discovered sections are fetched
-— subject to `max_file_size_mb` and the relevance gate. (The
+— subject to `max_file_size_mb` and the relevance threshold. (The
 `data-raw/biogain_acquire.R` runbook can restrict downloads to a chosen
 subset of sections; the handler itself always captures them all.)
 

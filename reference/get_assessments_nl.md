@@ -3,13 +3,13 @@
 Implementation of
 [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
 for the Netherlands. Backed by the Commissie m.e.r. adviezenregister at
-<https://www.commissiemer.nl/adviezen/>. URL enumeration uses the
-portal's published sitemap (`advice-sitemap*.xml`); per-record metadata
-is parsed from each detail page with rvest. Free-text and date-range
-filters are applied client-side as records are parsed; taxonomy filters
-(`theme`, `advice_type`, `status`) are accepted for forward
-compatibility but **not yet honoured** in v0.1 — see the "Filter
-coverage" section below.
+<https://www.commissiemer.nl/adviezen/>. Record URLs are read from the
+portal's sitemap index (`wp-sitemap.xml`), following its
+`advice-sitemap*` sub-sitemaps; per-record metadata is parsed from each
+detail page with rvest. Free-text and date-range filters are applied
+client-side as records are parsed; taxonomy filters (`theme`,
+`advice_type`, `status`) are accepted for forward compatibility but
+**not yet honoured** in v0.1 — see the "Filter coverage" section below.
 
 ## Usage
 
@@ -88,9 +88,9 @@ get_assessments_nl(
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md).
   When `topic` is supplied, each candidate record is scored, and every
   scored record is sidecar'd and returned regardless of threshold.
-  `relevance_threshold` is a **download-gate only**: records below
-  threshold keep their sidecar + tibble row but their PDFs are not
-  downloaded.
+  `relevance_threshold` **only affects downloading**: records below the
+  threshold keep their sidecar and their tibble row, but their PDFs are
+  not downloaded.
 
 - theme, advice_type, status, province:
 
@@ -137,11 +137,13 @@ will wire these through to a working portal-side filter path.
 ## Performance
 
 The portal hosts ~3600 advisory records. Each detail page is fetched
-once and cached via httr2 for `getOption("planscanR.cache_ttl")` seconds
-(default 1 h), so repeat runs are fast. **However**, on a cold cache,
-enumerating the full register can take many minutes and downloading
-every attachment can use significant disk space. Always start with a
-`limit` (and ideally a `query`) when exploring.
+once and saved to a sidecar JSON on disk (see
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md));
+on later runs a record with an existing sidecar is read straight from
+disk instead of being re-fetched, so repeat runs are fast. On a first,
+cold run, enumerating the full register can take many minutes and
+downloading every attachment can use significant disk space. Always
+start with a `limit` (and ideally a `query`) when exploring.
 
 To avoid stressing the server (commissiemer.nl returns HTTP 429 under a
 sustained burst), NL requests are throttled to one per second by default

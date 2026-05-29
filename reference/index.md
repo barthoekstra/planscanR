@@ -91,10 +91,7 @@ hand-tuned rule or a model learned from human keep/drop labels.
 - [`selection_learners()`](https://barthoekstra.github.io/planscanR/reference/selection_learners.md)
   : Registry of the built-in learners.
 - [`selection_learner_logistic()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  [`selection_learner_glmnet()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  [`selection_learner_xgboost()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  [`selection_learner_ranger()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  : Built-in selection learners.
+  : Built-in selection learner.
 - [`train_selection_model()`](https://barthoekstra.github.io/planscanR/reference/train_selection_model.md)
   : Train the learned selection model from human review labels.
 - [`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md)
