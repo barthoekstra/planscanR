@@ -76,6 +76,13 @@ reference:
   - index_cache
   - clear_cache
 
+- title: Review app
+  desc: >
+    Launch the bundled BIOGAIN Shiny app for inspecting the pipeline funnel and
+    building a human ground-truth selection.
+  contents:
+  - run_biogain_review
+
 - title: Package
   contents:
   - planscanR-package
