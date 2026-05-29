@@ -3,6 +3,13 @@ url: https://barthoekstra.github.io/planscanR/
 template:
   bootstrap: 5
 
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - planscanR
+  - supported_sources
+
 reference:
 - title: Fetching assessments
   desc: >

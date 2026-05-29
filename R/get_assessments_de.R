@@ -15,18 +15,18 @@
 #' https://www.uvp-verbund.de/freitextsuche?q=<query>&toggle_procedure=&ranking=score&page=<n>
 #' ```
 #'
-#' The portal is Solr-backed but its `q=*:*` wildcard is broken for
-#' pagination: page 1 renders, every subsequent page returns the header but
-#' no results. As a "match-most" fallback when `query` is `NULL` we use
-#' `q=uvp`, which paginates correctly and covers ~93% of the register
-#' (~22,574 of ~24,270 records). For full coverage, run the scan against
-#' multiple seed queries and union the results.
+#' The portal is Solr-backed; when `query` is `NULL` we send the
+#' match-everything wildcard `q=*:*`, which today returns the full register
+#' (~24,289 records) and paginates correctly. Earlier versions of this
+#' handler fell back to `q=uvp` because `q=*:*` rendered page 1 but then
+#' returned empty pages from page 2 onwards; the portal has since fixed
+#' that, and the wildcard is now the default.
 #' `toggle_procedure=` (empty value) is set explicitly: the portal's default
 #' (`toggle_procedure=on`) restricts results to currently-running plus
 #' last-year-modified procedures and silently drops ~80% of historical
 #' records.
 #'
-#' On a cold cache, a full enumeration over ~2,258 pages is slow; users are
+#' On a cold cache, a full enumeration over ~2,429 pages is slow; users are
 #' strongly encouraged to set `limit` (and ideally `query`) when exploring.
 #'
 #' @section Filter coverage (v0.1):
@@ -86,9 +86,8 @@
 #'   records below it keep their sidecar and their tibble row, only their PDFs
 #'   are skipped.
 #' @param query Free-text search string. Sent server-side as `q=<query>`.
-#'   When `NULL`, the broad fallback `q=uvp` is used (matches ~93% of the
-#'   register). The portal's own `q=*:*` wildcard is unusable because page 2+
-#'   never renders — see the *URL enumeration* section.
+#'   When `NULL`, the wildcard `q=*:*` is used, which enumerates the full
+#'   register (~24,289 records across ~2,429 search pages).
 #' @param jurisdiction Character vector. Substring match on the
 #'   federal-state partner displayed on each detail page
 #'   (e.g. `jurisdiction = "Bayern"` keeps Bavarian records).
@@ -304,7 +303,7 @@ de_warn_full_crawl <- function() {
     return(invisible())
   }
   warn_partial(c(
-    "Enumerating the UVP-Verbund register with the default fallback query (`q=uvp`, ~22,574 records across ~2,258 search pages) on a cold cache will take many minutes.",
+    "Enumerating the UVP-Verbund register with the default wildcard query (`q=*:*`, ~24,289 records across ~2,429 search pages) on a cold cache will take many minutes.",
     i = "Set {.arg limit} (and ideally {.arg query}) when exploring."
   ))
   options(planscanR.de_fullcrawl_warned = TRUE)
@@ -324,8 +323,8 @@ de_warn_full_crawl <- function() {
 #' caller's responsibility — the streaming crawl in `get_assessments_de()`
 #' carries a `seen_uuids` ledger across pages.
 #'
-#' @param query Optional free-text query. `NULL` -> `q=uvp` (paginating
-#'   fallback; the portal's Solr `*:*` doesn't paginate past page 1).
+#' @param query Optional free-text query. `NULL` -> `q=*:*` (the portal's
+#'   Solr wildcard, which paginates through the full register).
 #' @param page 1-based page index.
 #' @return Character vector of docuuids found on that page (case preserved;
 #'   the portal's detail-page route is case-sensitive). Empty vector on
@@ -333,7 +332,7 @@ de_warn_full_crawl <- function() {
 #' @noRd
 de_search_page <- function(query, page) {
   base <- "https://www.uvp-verbund.de"
-  q <- if (is.null(query) || !nzchar(query)) "uvp" else query
+  q <- if (is.null(query) || !nzchar(query)) "*:*" else query
   req <- req_planscanr(base, "freitextsuche")
   req <- httr2::req_url_query(
     req,
