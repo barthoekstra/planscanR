@@ -43,11 +43,10 @@ if (!nzchar(CACHE_DIR)) {
 }
 COUNTRIES <- c("nl", "de", "at")
 # Where the app's own artefacts live (snapshot + reviews.csv + reviewers list).
-# Installed inst/ is read-only, so this is a per-user, writable directory.
-APP_DATA_DIR <- Sys.getenv(
-  "BIOGAIN_REVIEW_DATA",
-  unset = tools::R_user_dir("planscanR", "data")
-)
+# Defaults to the cache ROOT so the human annotations sit alongside the data
+# they describe (and travel with any cache sync). They live at the root, not
+# under files/, so clear_cache() — which only wipes files/ — leaves them intact.
+APP_DATA_DIR <- Sys.getenv("BIOGAIN_REVIEW_DATA", unset = CACHE_DIR)
 if (!dir.exists(APP_DATA_DIR)) {
   dir.create(APP_DATA_DIR, recursive = TRUE)
 }

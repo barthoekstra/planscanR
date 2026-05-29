@@ -24,8 +24,10 @@
 #'   `PLANSCANR_CACHE`, then `getOption("planscanR.cache_dir")`, then the
 #'   package default ([tools::R_user_dir()] `"cache"`).
 #' @param data_dir Writable directory for the app's snapshot, `reviews.csv`, and
-#'   reviewers list. `NULL` (default) uses `tools::R_user_dir("planscanR",
-#'   "data")`.
+#'   reviewers list. `NULL` (default) uses the **cache root** (`cache_dir`), so
+#'   the human annotations sit alongside the data they describe and travel with
+#'   any cache sync. They are written at the root, not under `files/`, so
+#'   [clear_cache()] leaves them intact.
 #' @param launch.browser Passed to [shiny::runApp()]; defaults to
 #'   [interactive()].
 #' @param ... Further arguments forwarded to [shiny::runApp()] (e.g. `port`,
