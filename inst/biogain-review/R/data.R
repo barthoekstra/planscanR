@@ -171,6 +171,56 @@ draw_random_sample <- function(snap, countries, n, seed = NULL) {
   out[sample.int(nrow(out)), , drop = FALSE] # interleave countries
 }
 
+# Build a PRIORITIZED review queue for one reviewer, to support inter-reviewer
+# agreement. PRIORITY: records that SOMEONE else has already reviewed but this
+# reviewer has NOT ("to_validate") come first — re-reviewing those is what yields
+# cross-reviewer agreement, so we exhaust them before spending effort on records
+# no one has seen. Only once this reviewer has caught up on every reviewed record
+# do we fall back to a fresh stratified sample of as-yet-unreviewed records.
+# Returns a tibble(document_id, country) with attr "mode" in
+# c("validate","fresh","empty"). Respects `seed` for reproducibility.
+build_review_queue <- function(snap, reviews, reviewer, countries, n_per_country, seed = NULL) {
+  if (!is.null(seed) && !is.na(seed)) {
+    set.seed(as.integer(seed))
+  }
+  empty <- tibble::tibble(document_id = character(0), country = character(0))
+
+  snap <- snap[snap$country %in% countries, , drop = FALSE]
+  if (nrow(snap) == 0L) {
+    attr(empty, "mode") <- "empty"
+    return(empty)
+  }
+
+  snap_keys <- review_key(snap$country, snap$document_id)
+  reviewed_any <- keys_reviewed_any(reviews)
+  reviewed_me <- keys_reviewed_by(reviews, reviewer)
+
+  # Cross-reviewer agreement records: reviewed by someone, but not by me.
+  validate_keys <- setdiff(reviewed_any, reviewed_me)
+  pick <- snap_keys %in% validate_keys
+  if (any(pick)) {
+    sub <- snap[pick, , drop = FALSE]
+    out <- tibble::tibble(document_id = sub$document_id, country = sub$country)
+    out <- out[sample.int(nrow(out)), , drop = FALSE] # shuffle
+    attr(out, "mode") <- "validate"
+    return(out)
+  }
+
+  # Caught up on everything reviewed: draw fresh from records no one has seen.
+  fresh <- snap[!(snap_keys %in% reviewed_any), , drop = FALSE]
+  if (nrow(fresh) == 0L) {
+    attr(empty, "mode") <- "empty"
+    return(empty)
+  }
+  out <- draw_random_sample(fresh, countries, n_per_country)
+  if (nrow(out) == 0L) {
+    attr(empty, "mode") <- "empty"
+    return(empty)
+  }
+  attr(out, "mode") <- "fresh"
+  out
+}
+
 # Recompute the BIOGAIN ensemble selection (and cosine/kw arms) on the snapshot
 # for the given thresholds. Thin wrapper over the package's select_assessments()
 # so the funnel reflects the real selection rule, not a reimplementation.

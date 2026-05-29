@@ -82,7 +82,7 @@ funnel_plot <- function(funnel_df) {
     y = ~stage,
     type = "bar",
     orientation = "h",
-    marker = list(color = "#2c7fb8"),
+    marker = list(color = "#0e3c62"), # BIOGAIN brand navy
     text = ~lab,
     textposition = "outside",
     cliponaxis = FALSE,
@@ -108,6 +108,19 @@ selection_vs_human <- function(sel, reviews) {
   if (nrow(decided) == 0L) {
     return(NULL)
   }
+  # Multiple reviewers may have decided the same record; collapse to one row per
+  # (country, document_id) keeping the most recent decision (max reviewed_at).
+  ra <- decided$reviewed_at
+  if (is.character(ra)) {
+    parsed <- as.POSIXct(ra, format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+    if (anyNA(parsed)) {
+      parsed <- as.POSIXct(ra, tz = "UTC")
+    }
+    ra <- parsed
+  }
+  ord <- order(ra, decreasing = TRUE)
+  decided <- decided[ord, , drop = FALSE]
+  decided <- decided[!duplicated(paste(decided$country, decided$document_id)), , drop = FALSE]
   d <- merge(
     sel[, c("document_id", "country", "selected")],
     decided[, c("document_id", "country", "decision")],
@@ -138,5 +151,35 @@ selection_vs_human <- function(sel, reviews) {
     precision = precision,
     recall = recall,
     f1 = f1
+  )
+}
+
+# Cross-reviewer agreement over records that >=2 distinct reviewers have decided
+# (decision in keep/drop/unsure). For each such record, "agree" means all those
+# reviewers gave the identical decision. Returns a one-row tibble or NULL.
+inter_reviewer_summary <- function(reviews) {
+  if (is.null(reviews) || nrow(reviews) == 0L) {
+    return(NULL)
+  }
+  decided <- reviews[reviews$decision %in% c("keep", "drop", "unsure"), , drop = FALSE]
+  if (nrow(decided) == 0L) {
+    return(NULL)
+  }
+  per_record <- dplyr::summarise(
+    dplyr::group_by(decided, country, document_id),
+    n_rev = dplyr::n_distinct(reviewer),
+    n_dec = dplyr::n_distinct(decision),
+    .groups = "drop"
+  )
+  multi <- per_record[per_record$n_rev >= 2L, , drop = FALSE]
+  n_multi <- nrow(multi)
+  if (n_multi == 0L) {
+    return(NULL)
+  }
+  n_agree <- sum(multi$n_dec == 1L)
+  tibble::tibble(
+    n_multi = n_multi,
+    n_agree = n_agree,
+    agreement_rate = n_agree / n_multi
   )
 }

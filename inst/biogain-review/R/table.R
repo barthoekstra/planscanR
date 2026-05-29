@@ -15,16 +15,28 @@ gradient_style <- function(value, palette = c("#f7fbff", "#2c7fb8")) {
   list(background = bg, color = if (v > 0.55) "white" else "#222")
 }
 
-# Column header: a friendly label plus a circled-i whose native tooltip (title)
-# explains the column on hover. Keeps the table understandable to non-coders.
+# Column header: a friendly label plus a clickable circled-i popover explaining
+# the column. The ⓘ stops the click from bubbling to reactable's sort handler
+# (so the icon doesn't re-sort the column); popovers are (re)initialised by the
+# MutationObserver in app.R so they survive reactable's header re-renders.
 hdr <- function(label, tip) {
+  # Inline (not flex) + wrapping, so a narrow column wraps the label onto more
+  # lines and keeps the ⓘ in view instead of pushing it out past the sort arrow.
   htmltools::tags$span(
-    style = "display:inline-flex;align-items:center;gap:4px;",
+    style = "white-space:normal;",
     label,
     htmltools::tags$span(
       "ⓘ",
-      title = tip,
-      style = "color:#999;cursor:help;font-size:13px;"
+      tabindex = "0",
+      onclick = "event.stopPropagation();",
+      `data-bs-toggle` = "popover",
+      `data-bs-trigger` = "focus",
+      `data-bs-placement` = "top",
+      `data-bs-content` = tip,
+      style = paste0(
+        "color:#0e3c62;cursor:pointer;font-size:14px;margin-left:4px;",
+        "white-space:nowrap;"
+      )
     )
   )
 }
@@ -160,12 +172,14 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
     ),
     country = reactable::colDef(
       header = hdr("Country", "Source portal country: nl = Netherlands, de = Germany, at = Austria."),
-      width = 80,
+      width = 100,
       align = "center"
     ),
+    # Title is the ONLY flexible column: no fixed width, so it grows to absorb
+    # whatever horizontal space the snug fixed-width columns leave.
     title = reactable::colDef(
       header = hdr("Title", "Record title as published by the portal."),
-      minWidth = 240,
+      minWidth = 200,
       cell = trunc_cell
     ),
     cosine_max = reactable::colDef(
@@ -173,7 +187,7 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
         "Topic match",
         "How closely the title + summary matches any BIOGAIN energy topic (0–1, semantic similarity). Higher = more on-topic. Darker blue = higher."
       ),
-      width = 110,
+      width = 142,
       format = reactable::colFormat(digits = 3),
       style = function(value) gradient_style(value)
     ),
@@ -189,13 +203,13 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
         "Category confidence",
         "How confident the classifier is in the category (0–1). Darker orange = more confident."
       ),
-      width = 110,
+      width = 190,
       format = reactable::colFormat(digits = 2),
       style = function(value) gradient_style(value, c("#fff7ec", "#d94801"))
     ),
     kw_total = reactable::colDef(
-      header = hdr("Keyword hits", "Number of BIOGAIN energy keywords found in the title + summary."),
-      width = 90,
+      header = hdr("Keywords", "Number of BIOGAIN energy keywords found in the title + summary."),
+      width = 104,
       align = "center"
     ),
     selected = reactable::colDef(
@@ -203,7 +217,7 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
         "Pre-selected",
         "Whether the automated pipeline keeps this record (topic match OR category OR keywords, minus confident non-renewables). This is what your review is compared against."
       ),
-      width = 110,
+      width = 150,
       align = "center",
       cell = function(value) {
         if (isTRUE(value)) {
@@ -218,7 +232,7 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
     ),
     n_attachments = reactable::colDef(
       header = hdr("Attachments", "Number of document files (PDFs etc.) attached to this record."),
-      width = 110,
+      width = 124,
       align = "center"
     )
   )
@@ -242,6 +256,11 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
   reactable::reactable(
     df,
     columns = cols,
+    # Let header labels wrap instead of overflowing (which clipped the ⓘ icon
+    # once a sort arrow appeared on a narrow column).
+    defaultColDef = reactable::colDef(
+      headerStyle = list(whiteSpace = "normal")
+    ),
     selection = "multiple",
     onClick = "expand",
     details = function(index) record_detail_inline(df[index, ]),
@@ -273,16 +292,39 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
 }
 
 # Unobtrusive ⓘ affordance explaining the performance metrics in plain language.
-# Click-to-open popover so a non-expert can understand precision / recall / F1
-# and the confusion-matrix counts. Drops inline next to a card header / title.
-metrics_help_ui <- function() {
-  icon <- htmltools::tags$span(
-    "ⓘ",
-    style = "color:#999;cursor:pointer;font-size:13px;margin-left:6px;"
+# A big, clickable info icon that opens a popover with the given title + body.
+# Used to attach a plain-language explanation directly to a metric card.
+info_popover <- function(title, body) {
+  # Small, white, circular info button placed inline beside the card title.
+  # Uses the same data-bs-toggle popover mechanism as the table headers (wired
+  # up by __initPopovers() in app.R), which is reliable for dynamically-rendered
+  # content — unlike bslib::popover() inside a renderUI'd value box.
+  htmltools::tags$span(
+    "i",
+    class = "metric-info",
+    tabindex = "0",
+    role = "button",
+    `aria-label` = title,
+    `data-bs-toggle` = "popover",
+    `data-bs-trigger` = "focus",
+    `data-bs-html` = "true",
+    `data-bs-placement` = "top",
+    `data-bs-title` = title,
+    `data-bs-content` = as.character(body),
+    style = paste0(
+      "display:inline-flex;align-items:center;justify-content:center;",
+      "width:20px;height:20px;border-radius:50%;",
+      "background:rgba(255,255,255,0.25);color:#fff;font-style:normal;",
+      "font-weight:700;font-size:12px;line-height:1;cursor:pointer;",
+      "margin-left:6px;vertical-align:middle;flex:none;"
+    )
   )
-  bslib::popover(
-    icon,
-    title = "What do these metrics mean?",
+}
+
+# Explanation for the Precision / Recall / F1 card.
+prf_help_ui <- function() {
+  info_popover(
+    "What do these metrics mean?",
     htmltools::div(
       style = "font-size:13px;line-height:1.4;max-width:320px;",
       htmltools::p(
@@ -290,7 +332,7 @@ metrics_help_ui <- function() {
         "We compare the pipeline's automatic pre-selection against your review, treating the records you marked “keep” as the correct answer."
       ),
       htmltools::tags$ul(
-        style = "margin:0 0 8px;padding-left:18px;",
+        style = "margin:0;padding-left:18px;",
         htmltools::tags$li(
           htmltools::tags$b("Precision"),
           " — of the records the pipeline pre-selected, the share you also kept (how much of what it picked was actually wanted)."
@@ -303,11 +345,27 @@ metrics_help_ui <- function() {
           htmltools::tags$b("F1"),
           " — one score balancing precision and recall (their harmonic mean); high only when both are high."
         )
-      ),
+      )
+    )
+  )
+}
+
+# Explanation for the Confusion (TP/FP/FN/TN) card.
+confusion_help_ui <- function() {
+  info_popover(
+    "What is the confusion count?",
+    htmltools::div(
+      style = "font-size:13px;line-height:1.4;max-width:320px;",
       htmltools::p(
-        style = "margin:0;",
-        htmltools::tags$b("Confusion:"),
-        " TP = both kept; FP = pipeline kept, you dropped; FN = pipeline dropped, you kept; TN = both dropped."
+        style = "margin:0 0 6px;",
+        "How the pipeline's pre-selection lines up with your keep/drop decisions:"
+      ),
+      htmltools::tags$ul(
+        style = "margin:0;padding-left:18px;",
+        htmltools::tags$li(htmltools::tags$b("TP"), " — both kept (pipeline pre-selected, you kept)."),
+        htmltools::tags$li(htmltools::tags$b("FP"), " — pipeline kept, but you dropped."),
+        htmltools::tags$li(htmltools::tags$b("FN"), " — pipeline dropped, but you kept."),
+        htmltools::tags$li(htmltools::tags$b("TN"), " — both dropped.")
       )
     )
   )

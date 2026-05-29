@@ -76,13 +76,65 @@ if (!file.exists(snapshot_path(APP_DATA_DIR))) {
 # (reviewSet for single rows; a bulkDecision handler for checkbox bulk actions).
 review_assets <- function() {
   tagList(
+    # A debounced "Loading…" pill, shown whenever Shiny is busy for >250ms (so
+    # the slower Review/Random tables clearly read as loading, without flicker
+    # on quick interactions). Toggled by the shiny:busy / shiny:idle JS below.
+    tags$div(
+      id = "busy-indic",
+      class = "busy-indic",
+      tags$span(class = "busy-spinner"),
+      "Loading…"
+    ),
     tags$style(HTML(
       ".rev-grp{display:flex;gap:3px;}",
       ".rev-btn{border:1px solid #d0d0d0;background:#fff;border-radius:4px;",
       "font-size:11px;padding:1px 7px;cursor:pointer;line-height:1.5;color:#666;}",
       ".rev-btn:hover{border-color:var(--c);color:var(--c);}",
       ".rev-btn.active{background:var(--c);border-color:var(--c);color:#fff;",
-      "font-weight:600;}"
+      "font-weight:600;}",
+      # BIOGAIN brand: navy->teal->green gradient header, flat cards.
+      ".navbar{background:linear-gradient(90deg,#0e3c62 0%,#009aa3 55%,",
+      "#92c023 100%)!important;}",
+      ".navbar .navbar-brand,.navbar .nav-link{color:#fff!important;}",
+      ".navbar .nav-link.active,.navbar .show>.nav-link{color:#fff!important;",
+      "font-weight:600;text-decoration:underline;}",
+      ".card{border:1px solid #e6e8ea;}",
+      "a{color:#0e3c62;}",
+      # Sliders in brand navy (instead of the default off-brand blue).
+      ".irs-bar{background:#0e3c62;border-color:#0e3c62;}",
+      ".irs-handle{border-color:#0e3c62;}",
+      ".irs-handle>i:first-child{background:#0e3c62;}",
+      ".irs-from,.irs-to,.irs-single{background:#0e3c62;}",
+      ".irs-from:before,.irs-to:before,.irs-single:before{",
+      "border-top-color:#0e3c62;}",
+      # Fixed, centered decision bar for the single-record stepper (offset past
+      # the 300px sidebar so it spans only the main content area).
+      ".sr-decision-bar{position:fixed;left:300px;right:0;bottom:0;z-index:1030;",
+      "background:rgba(255,255,255,0.97);border-top:1px solid #e6e8ea;",
+      "box-shadow:0 -2px 10px rgba(0,0,0,.06);padding:12px;text-align:center;}",
+      ".sr-decision-bar .btn{min-width:130px;margin:0 6px;}",
+      # Drop the checkbox's form-group margin so it aligns with the nav buttons.
+      ".sr-inline .shiny-input-container,.sr-inline .form-group{margin-bottom:0;}",
+      "@media (max-width:768px){.sr-decision-bar{left:0;}}",
+      # Centered "Loading…" pill (hidden until shiny:busy fires for >250ms).
+      ".busy-indic{display:none;position:fixed;top:50%;left:50%;",
+      "transform:translate(-50%,-50%);z-index:2000;align-items:center;gap:12px;",
+      "background:#0e3c62;color:#fff;font-size:18px;font-weight:600;",
+      "padding:18px 28px;border-radius:16px;box-shadow:0 6px 28px rgba(0,0,0,.35);}",
+      ".busy-spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,.4);",
+      "border-top-color:#fff;border-radius:50%;display:inline-block;",
+      "animation:busy-spin .7s linear infinite;}",
+      "@keyframes busy-spin{to{transform:rotate(360deg);}}",
+      # Ring on the reviewer's current choice in the (solid) decision bar.
+      ".sr-decision-bar .btn.active{box-shadow:0 0 0 3px rgba(14,60,98,.4);}",
+      # Strip inner input margins so the whole control row aligns on one baseline.
+      ".ctrl-strip .shiny-input-container{margin-bottom:0!important;}",
+      # Breathing room between the All reviews / Random sample radio options
+      # (Shiny renders inline choices as label.radio-inline).
+      "#eval_on .radio-inline{margin-right:1.75rem;}",
+      # White circular info button on metric cards (clear hover affordance).
+      ".metric-info:hover,.metric-info:focus{background:rgba(255,255,255,.4)",
+      "!important;outline:none;}"
     )),
     tags$script(HTML(
       "window.__reviewState = window.__reviewState || {};
@@ -155,6 +207,44 @@ review_assets <- function() {
       }
       document.addEventListener('click', function(){ setTimeout(__xlateScan, 50); });
 
+      // --- click-to-open popovers for the ⓘ icons (table headers + metric
+      // cards). reactable re-renders its header DOM on sort/filter/page, which
+      // orphans any attached popover, so we (re)initialise via a MutationObserver
+      // — every freshly-inserted trigger gets a fresh Bootstrap popover.
+      function __initPopovers(){
+        if (!window.bootstrap || !bootstrap.Popover) return;
+        document.querySelectorAll('[data-bs-toggle=\"popover\"]:not([data-pop-done])')
+          .forEach(function(el){
+            el.setAttribute('data-pop-done','1');
+            try { new bootstrap.Popover(el); } catch(e) {}
+          });
+      }
+      var __popTimer = null;
+      var __popObserver = new MutationObserver(function(){
+        if (__popTimer) return;
+        __popTimer = setTimeout(function(){ __popTimer = null; __initPopovers(); }, 100);
+      });
+      $(document).on('shiny:connected', function(){
+        __initPopovers();
+        __popObserver.observe(document.body, {childList: true, subtree: true});
+      });
+
+      // --- debounced 'Loading…' indicator on Shiny busy/idle ---
+      var __busyTimer = null;
+      $(document).on('shiny:busy', function(){
+        if (__busyTimer) return;
+        __busyTimer = setTimeout(function(){
+          var el = document.getElementById('busy-indic');
+          if (el) el.style.display = 'flex';
+        }, 250);
+      });
+      $(document).on('shiny:idle', function(){
+        if (__busyTimer) { clearTimeout(__busyTimer); __busyTimer = null; }
+        var el = document.getElementById('busy-indic');
+        if (el) el.style.display = 'none';
+        setTimeout(__initPopovers, 60); // wire up any newly-rendered ⓘ icons
+      });
+
       // --- arrow-key navigation for the single-record stepper ---
       // Left/Right step prev/next, but only when the stepper is visible and the
       // user isn't typing in a field.
@@ -194,12 +284,47 @@ review_assets <- function() {
   )
 }
 
+# Blocking welcome modal: a reviewer must identify themselves before doing
+# anything. They pick an existing name or type a new full name.
+reviewer_modal <- function() {
+  modalDialog(
+    title = "Welcome to the planscanR review tool",
+    selectizeInput(
+      "modal_reviewer",
+      "Your full name",
+      choices = load_reviewers(APP_DATA_DIR),
+      selected = "",
+      width = "100%",
+      options = list(
+        create = TRUE,
+        placeholder = "Select your name, or type a new full name"
+      )
+    ),
+    helpText(
+      "Required before classifying — every review is attributed to you. ",
+      "New reviewers start by re-checking records others have already reviewed ",
+      "(to measure agreement) before fresh records are sampled."
+    ),
+    footer = actionButton("modal_ok", "Start reviewing", class = "btn-primary"),
+    easyClose = FALSE,
+    fade = FALSE
+  )
+}
+
 # -----------------------------------------------------------------------------
 # UI
 # -----------------------------------------------------------------------------
 ui <- page_navbar(
   title = "planscanR — pipeline funnel & review",
-  theme = bs_theme(version = 5, bootswatch = "flatly"),
+  id = "nav",
+  theme = bs_theme(
+    version = 5,
+    bootswatch = "flatly",
+    primary = "#0e3c62", # BIOGAIN brand navy
+    secondary = "#009aa3", # brand teal
+    success = "#92c023", # brand green
+    "border-radius" = "0.6rem"
+  ),
   header = review_assets(),
   sidebar = sidebar(
     width = 300,
@@ -214,28 +339,33 @@ ui <- page_navbar(
         plugins = list("remove_button")
       )
     ),
-    selectInput(
-      "countries",
-      "Countries",
-      choices = COUNTRIES,
-      selected = COUNTRIES,
-      multiple = TRUE
-    ),
-    sliderInput(
-      "threshold",
-      "Cosine threshold",
-      min = 0,
-      max = 1,
-      value = 0.5,
-      step = 0.01
-    ),
-    sliderInput(
-      "kw_min",
-      "Min keyword hits",
-      min = 0,
-      max = 6,
-      value = 2,
-      step = 1
+    # Countries / thresholds only shape the Funnel view, so they're shown only
+    # there to keep the review pages uncluttered.
+    conditionalPanel(
+      condition = "input.nav == 'Overview'",
+      selectInput(
+        "countries",
+        "Countries",
+        choices = COUNTRIES,
+        selected = COUNTRIES,
+        multiple = TRUE
+      ),
+      sliderInput(
+        "threshold",
+        "Cosine threshold",
+        min = 0,
+        max = 1,
+        value = 0.5,
+        step = 0.01
+      ),
+      sliderInput(
+        "kw_min",
+        "Min keyword hits",
+        min = 0,
+        max = 6,
+        value = 2,
+        step = 1
+      )
     ),
     hr(),
     actionButton("rebuild", "Rebuild snapshot", class = "btn-outline-secondary btn-sm"),
@@ -245,32 +375,32 @@ ui <- page_navbar(
 
   # ---- Funnel tab ----
   nav_panel(
-    "Funnel",
+    "Overview",
     layout_columns(
       fill = FALSE,
       value_box("Indexed", textOutput("vb_total"), theme = "secondary"),
       value_box("Selected", textOutput("vb_selected"), theme = "primary"),
-      value_box("Selected %", textOutput("vb_selected_pct"), theme = "primary"),
       value_box("Reviewed", textOutput("vb_reviewed"), theme = "success")
     ),
     layout_columns(
       col_widths = c(7, 5),
       card(
         card_header("Pipeline funnel"),
-        plotly::plotlyOutput("funnel_plot", height = "300px")
+        plotly::plotlyOutput("funnel_plot", height = "100%")
       ),
+      # Equal-height with the plot card: as_fill_item makes the table fill the
+      # card body, and giving the reactable height = 100% lets IT do the
+      # scrolling (so its header stays sticky natively, unlike scrolling an
+      # outer div).
       card(
         card_header("Per-country breakdown"),
-        # Bounded height + scroll so the breakdown never pushes the metrics
-        # panel below off-screen.
-        div(
-          style = "max-height:300px;overflow:auto;",
-          reactable::reactableOutput("funnel_table")
+        bslib::as_fill_item(
+          reactable::reactableOutput("funnel_table", height = "100%")
         )
       )
     ),
     card(
-      card_header("Automated selection vs. human review", metrics_help_ui()),
+      card_header("Automated selection vs. human review"),
       radioButtons(
         "eval_on",
         NULL,
@@ -281,7 +411,9 @@ ui <- page_navbar(
         ),
         selected = "all"
       ),
-      uiOutput("agreement_ui")
+      uiOutput("agreement_ui"),
+      # Pin top cards + this stats card; only the middle plot/table row grows.
+      fill = FALSE
     )
   ),
 
@@ -290,30 +422,32 @@ ui <- page_navbar(
     "Review",
     card(
       card_header("Triage"),
-      layout_columns(
-        fill = FALSE,
-        col_widths = c(4, 8),
-        selectInput(
-          "stage_filter",
-          "Show",
-          choices = c(
-            "All" = "all",
-            "Selected only" = "selected",
-            "Not selected" = "not_selected",
-            "Reviewed" = "reviewed",
-            "Unreviewed" = "unreviewed",
-            "Disagreements (auto vs human)" = "disagree"
-          ),
-          selected = "selected"
-        ),
+      # One baseline-aligned row: the Show dropdown and the bulk buttons + status
+      # all sit on the same bottom edge (ctrl-strip zeroes the select's margin).
+      div(
+        class = "ctrl-strip d-flex align-items-end flex-wrap gap-2",
         div(
-          style = "padding-top:28px;",
-          actionButton("mark_keep", "Keep", class = "btn-success btn-sm"),
-          actionButton("mark_drop", "Drop", class = "btn-danger btn-sm"),
-          actionButton("mark_unsure", "Unsure", class = "btn-warning btn-sm"),
-          actionButton("mark_clear", "Clear", class = "btn-outline-secondary btn-sm"),
-          span(textOutput("review_info", inline = TRUE), style = "margin-left:12px;color:#666;")
-        )
+          style = "min-width:300px;",
+          selectInput(
+            "stage_filter",
+            "Show",
+            choices = c(
+              "All" = "all",
+              "Selected only" = "selected",
+              "Not selected" = "not_selected",
+              "Reviewed" = "reviewed",
+              "Unreviewed" = "unreviewed",
+              "Disagreements (auto vs human)" = "disagree"
+            ),
+            selected = "selected",
+            width = "100%"
+          )
+        ),
+        actionButton("mark_keep", "Keep", class = "btn-success btn-sm"),
+        actionButton("mark_drop", "Drop", class = "btn-danger btn-sm"),
+        actionButton("mark_unsure", "Unsure", class = "btn-warning btn-sm"),
+        actionButton("mark_clear", "Clear", class = "btn-outline-secondary btn-sm"),
+        span(textOutput("review_info", inline = TRUE), style = "margin-left:8px;color:#666;")
       ),
       helpText(
         "Decide per record with the Keep / Drop / Unsure buttons in each row ",
@@ -331,9 +465,11 @@ ui <- page_navbar(
     "Random review",
     card(
       card_header("Random sample — unbiased review"),
-      # Compact single-row control strip (keeps the table/record area high up).
+      # Single-row control strip. `ctrl-strip` zeroes the inner input margins
+      # (see CSS) so, with align-items-end, every control — inputs, button,
+      # checkbox, radios, and the status text — lines up on one bottom baseline.
       div(
-        class = "d-flex align-items-end flex-wrap gap-3",
+        class = "ctrl-strip d-flex align-items-end flex-wrap gap-3",
         div(
           style = "width:140px;",
           numericInput(
@@ -348,10 +484,9 @@ ui <- page_navbar(
           style = "width:120px;",
           numericInput("rnd_seed", "Seed (optional)", value = NA, min = 0)
         ),
-        actionButton("rnd_draw", "Draw sample", class = "btn-primary btn-sm mb-1"),
-        div(class = "mb-1", checkboxInput("rnd_blind", "Blind (hide pipeline signals)", value = TRUE)),
+        actionButton("rnd_draw", "Build queue", class = "btn-primary"),
+        div(checkboxInput("rnd_blind", "Blind (hide pipeline signals)", value = TRUE)),
         div(
-          class = "mb-1",
           radioButtons(
             "rnd_view",
             NULL,
@@ -360,11 +495,12 @@ ui <- page_navbar(
             inline = TRUE
           )
         ),
-        span(textOutput("rnd_info", inline = TRUE), class = "mb-2", style = "color:#666;")
+        span(textOutput("rnd_info", inline = TRUE), style = "color:#666;")
       ),
       helpText(
-        "Balanced random sample (N per country) — a fair estimate of the ",
-        "filter's precision/recall. Decisions are saved as source = \"random\"."
+        "\"Build queue\" first serves records others reviewed but you haven't ",
+        "(to measure cross-reviewer agreement); once you're caught up it samples ",
+        "fresh records (N per country). Decisions are saved as source = \"random\"."
       ),
 
       # Table view: bulk toolbar + the reactable.
@@ -388,19 +524,23 @@ ui <- page_navbar(
           style = "margin:4px 0 10px;",
           actionButton("sr_prev", "← Previous", class = "btn-outline-secondary btn-sm"),
           actionButton("sr_next", "Next →", class = "btn-outline-secondary btn-sm"),
+          # `sr-inline` zeroes the checkbox's form-group margin so it lines up
+          # vertically with the Previous / Next buttons.
           div(
-            class = "ms-2",
+            class = "ms-2 sr-inline",
             checkboxInput("sr_skip", "Skip already-classified", value = TRUE)
           ),
-          span(textOutput("sr_pos", inline = TRUE), style = "color:#666;margin-left:8px;"),
-          span(style = "flex:1;"),
-          uiOutput("sr_decision", inline = TRUE)
+          span(textOutput("sr_pos", inline = TRUE), style = "color:#666;margin-left:8px;")
         ),
         helpText(
           "← / → arrow keys also navigate. A Keep / Drop / Unsure choice saves ",
           "and jumps to the next unclassified record."
         ),
-        uiOutput("sr_record")
+        # Extra bottom padding so the last record isn't hidden behind the fixed
+        # decision bar.
+        div(style = "padding-bottom:96px;", uiOutput("sr_record")),
+        # Fixed, centered decision bar (like a menu bar) across the main area.
+        div(class = "sr-decision-bar", uiOutput("sr_decision"))
       )
     )
   )
@@ -412,6 +552,29 @@ ui <- page_navbar(
 server <- function(input, output, session) {
   snap <- reactiveVal(load_or_build_snapshot(CACHE_DIR, COUNTRIES, APP_DATA_DIR))
   reviews <- reactiveVal(load_reviews(APP_DATA_DIR))
+
+  # #1 — force the reviewer to identify themselves on load.
+  showModal(reviewer_modal())
+  observeEvent(input$modal_ok, {
+    who <- trimws(input$modal_reviewer %||% "")
+    if (!nzchar(who)) {
+      showNotification("Please enter your name to continue.", type = "warning")
+      return()
+    }
+    if (!who %in% load_reviewers(APP_DATA_DIR)) {
+      add_reviewer(APP_DATA_DIR, who)
+    }
+    updateSelectizeInput(
+      session,
+      "reviewer",
+      choices = load_reviewers(APP_DATA_DIR),
+      selected = who
+    )
+    removeModal()
+  })
+
+  # The current reviewer's name ("" if unset), without nagging.
+  current_reviewer <- function() trimws(input$reviewer %||% "")
 
   # Reviewer identity. A name is REQUIRED before any keep/drop/unsure is
   # recorded. require_reviewer() returns the trimmed name or NULL (and nags).
@@ -462,20 +625,24 @@ server <- function(input, output, session) {
 
   # ---- Funnel tab ----
   output$vb_total <- renderText(format(nrow(filtered()), big.mark = ","))
+  # Count + percent in a single card.
   output$vb_selected <- renderText({
-    format(sum(filtered()$selected %in% TRUE), big.mark = ",")
+    f <- filtered()
+    n <- sum(f$selected %in% TRUE)
+    if (nrow(f) == 0) {
+      return("—")
+    }
+    sprintf("%s (%.1f%%)", format(n, big.mark = ","), 100 * n / nrow(f))
   })
-  output$vb_selected_pct <- renderText({
+  output$vb_reviewed <- renderText({
     f <- filtered()
     if (nrow(f) == 0) {
       return("—")
     }
-    sprintf("%.1f%%", 100 * sum(f$selected %in% TRUE) / nrow(f))
-  })
-  output$vb_reviewed <- renderText({
-    rv <- reviews()
-    fids <- filtered()$document_id
-    format(sum(rv$document_id %in% fids), big.mark = ",")
+    # Distinct records (any reviewer) — count + percent of the indexed total.
+    rkeys <- unique(review_key(reviews()$country, reviews()$document_id))
+    n <- sum(review_key(f$country, f$document_id) %in% rkeys)
+    sprintf("%s (%.1f%%)", format(n, big.mark = ","), 100 * n / nrow(f))
   })
 
   output$funnel_plot <- plotly::renderPlotly({
@@ -498,37 +665,70 @@ server <- function(input, output, session) {
           aggregate = "max"
         )
       ),
-      defaultExpanded = FALSE,
+      defaultExpanded = TRUE,
       compact = TRUE,
-      pagination = FALSE
+      pagination = FALSE,
+      # Fill the card and scroll internally -> header stays sticky natively.
+      height = "100%"
     )
   })
 
   output$agreement_ui <- renderUI({
+    # Cross-reviewer agreement: of records ≥2 people reviewed, how often they
+    # gave the same decision (independent of the auto-vs-human comparison).
+    irs <- inter_reviewer_summary(reviews())
+    irs_ui <- if (!is.null(irs) && irs$n_multi > 0L) {
+      helpText(sprintf(
+        "Cross-reviewer agreement: %.0f%% — %d of %d records reviewed by ≥ 2 people match.",
+        100 * irs$agreement_rate,
+        irs$n_agree,
+        irs$n_multi
+      ))
+    }
+
     rv <- reviews()
     if (identical(input$eval_on, "random")) {
       rv <- rv[rv$source %in% "random", , drop = FALSE]
     }
     cmp <- selection_vs_human(filtered(), rv)
     if (is.null(cmp)) {
-      return(helpText(
-        if (identical(input$eval_on, "random")) {
-          "No random-sample keep/drop decisions yet. Use the Random review tab to build an unbiased sample."
-        } else {
-          "No keep/drop decisions yet for the selected countries. Review some records to compare the automated selection against a human ground truth."
-        }
+      return(tagList(
+        irs_ui,
+        helpText(
+          if (identical(input$eval_on, "random")) {
+            "No random-sample keep/drop decisions yet. Use the Random review tab to build a queue."
+          } else {
+            "No keep/drop decisions yet for the selected countries. Review some records to compare the automated selection against a human ground truth."
+          }
+        )
       ))
     }
-    layout_columns(
-      fill = FALSE,
-      value_box("Reviewed (keep/drop)", cmp$n_reviewed, theme = "secondary"),
-      value_box("Precision", sprintf("%.2f", cmp$precision), theme = "primary"),
-      value_box("Recall", sprintf("%.2f", cmp$recall), theme = "primary"),
-      value_box("F1", sprintf("%.2f", cmp$f1), theme = "info"),
-      value_box(
-        "Confusion (TP/FP/FN/TN)",
-        sprintf("%d / %d / %d / %d", cmp$tp, cmp$fp, cmp$fn, cmp$tn),
-        theme = "secondary"
+    fmtv <- function(x) if (is.na(x)) "—" else sprintf("%.2f", x)
+    tagList(
+      irs_ui,
+      layout_columns(
+        fill = FALSE,
+        value_box("Reviewed (keep/drop)", cmp$n_reviewed, theme = "secondary"),
+        value_box(
+          div(
+            class = "d-flex align-items-center",
+            style = "gap:4px;",
+            span("Precision · Recall · F1"),
+            prf_help_ui()
+          ),
+          sprintf("%s · %s · %s", fmtv(cmp$precision), fmtv(cmp$recall), fmtv(cmp$f1)),
+          theme = "primary"
+        ),
+        value_box(
+          div(
+            class = "d-flex align-items-center",
+            style = "gap:4px;",
+            span("Confusion (TP/FP/FN/TN)"),
+            confusion_help_ui()
+          ),
+          sprintf("%d / %d / %d / %d", cmp$tp, cmp$fp, cmp$fn, cmp$tn),
+          theme = "secondary"
+        )
       )
     )
   })
@@ -587,11 +787,13 @@ server <- function(input, output, session) {
     }
   })
 
-  # Decision column is seeded from reviews via isolate() so a new decision does
-  # not invalidate this render — the table stays put; the client updates the
-  # affected row(s) in place (see review_assets()).
+  # Decision column shows the CURRENT reviewer's own decisions. reviews() is
+  # isolated so a new decision doesn't reload the table (the client updates the
+  # affected row in place); it re-renders when the reviewer switches.
   output$review_tbl <- reactable::renderReactable({
-    build_review_table(display_capped(), isolate(reviews()))
+    rv <- isolate(reviews())
+    rv <- rv[rv$reviewer %in% current_reviewer(), , drop = FALSE]
+    build_review_table(display_capped(), rv)
   })
 
   # Persist a single-row decision (fired by reviewSet() in the browser). No
@@ -683,14 +885,37 @@ server <- function(input, output, session) {
   rnd_idx <- reactiveVal(1L) # position in the single-record stepper
 
   observeEvent(input$rnd_draw, {
-    samp <- draw_random_sample(snap(), input$countries, input$rnd_n, input$rnd_seed)
+    who <- require_reviewer()
+    if (is.null(who)) {
+      return()
+    }
+    # Prioritise records others reviewed but you haven't (cross-reviewer
+    # agreement); only sample fresh records once you've caught up on those.
+    samp <- build_review_queue(
+      snap(),
+      reviews(),
+      who,
+      input$countries,
+      input$rnd_n,
+      input$rnd_seed
+    )
+    mode <- attr(samp, "mode") %||% "empty"
     random_ids(samp)
     rnd_idx(1L) # restart the single-record stepper at the first record
     saveRDS(samp, RANDOM_SAMPLE_PATH)
-    showNotification(
-      sprintf("Drew a random sample of %d records.", nrow(samp)),
-      type = "message"
+    msg <- switch(
+      mode,
+      validate = sprintf(
+        "Queued %d records already reviewed by others — re-check them to measure agreement.",
+        nrow(samp)
+      ),
+      fresh = sprintf(
+        "You're caught up on others' reviews — drew %d fresh records to expand the set.",
+        nrow(samp)
+      ),
+      "No records to review for this selection."
     )
+    showNotification(msg, type = "message")
   })
 
   # Sampled records in the drawn (random) order, with selection applied so the
@@ -712,15 +937,12 @@ server <- function(input, output, session) {
   output$rnd_info <- renderText({
     samp <- random_ids()
     if (nrow(samp) == 0L) {
-      return("No sample yet — click \"Draw sample\".")
+      return("No queue yet — click \"Build queue\".")
     }
-    rv <- reviews()
-    done <- sum(
-      review_key(samp$country, samp$document_id) %in%
-        review_key(rv$country, rv$document_id)
-    )
+    mine <- keys_reviewed_by(reviews(), current_reviewer())
+    done <- sum(review_key(samp$country, samp$document_id) %in% mine)
     sprintf(
-      "%d in sample · %d reviewed · %d remaining",
+      "%d in queue · %d done by you · %d remaining",
       nrow(samp),
       done,
       nrow(samp) - done
@@ -728,9 +950,11 @@ server <- function(input, output, session) {
   })
 
   output$random_tbl <- reactable::renderReactable({
+    rv <- isolate(reviews())
+    rv <- rv[rv$reviewer %in% current_reviewer(), , drop = FALSE]
     build_review_table(
       random_df(),
-      isolate(reviews()),
+      rv,
       source = "random",
       blind = isTRUE(input$rnd_blind)
     )
@@ -752,19 +976,16 @@ server <- function(input, output, session) {
     d[max(1L, min(rnd_idx(), nrow(d))), ]
   })
 
+  # The CURRENT reviewer's own decision for a record (NA if they haven't decided
+  # it) — others' decisions on the same record don't show here.
   sr_decision_value <- function(row) {
-    rv <- reviews()
-    v <- rv$decision[match(
-      review_key(row$country, row$document_id),
-      review_key(rv$country, rv$document_id)
-    )]
-    if (length(v) == 0L || is.na(v)) NA_character_ else v
+    reviewer_decision(reviews(), row$country, row$document_id, current_reviewer())
   }
 
-  # Which sampled records already have a decision (validated).
+  # Which queued records THIS reviewer has already classified.
   sr_validated <- function(d) {
-    rv <- reviews()
-    review_key(d$country, d$document_id) %in% review_key(rv$country, rv$document_id)
+    review_key(d$country, d$document_id) %in%
+      keys_reviewed_by(reviews(), current_reviewer())
   }
 
   # Record the decision (requires a reviewer name) and jump to the next
@@ -789,10 +1010,11 @@ server <- function(input, output, session) {
     save_reviews(rv, APP_DATA_DIR)
     reviews(rv)
 
+    # Advance to the next record THIS reviewer hasn't classified yet.
     d <- random_df()
     i <- rnd_idx()
     val <- review_key(d$country, d$document_id) %in%
-      review_key(rv$country, rv$document_id)
+      keys_reviewed_by(rv, who)
     nxt <- which(!val & seq_len(nrow(d)) > i)
     if (length(nxt)) {
       rnd_idx(nxt[1])
@@ -875,14 +1097,15 @@ server <- function(input, output, session) {
       return(NULL)
     }
     cur <- sr_decision_value(row)
-    btn <- function(id, lab, dec, solid, outline) {
-      cls <- if (identical(cur, dec)) solid else outline
-      actionButton(id, lab, class = paste("btn-sm", cls))
+    # Solid by default; the reviewer's current choice gets the `active` ring.
+    btn <- function(id, lab, dec, solid) {
+      cls <- paste("btn-lg", solid, if (identical(cur, dec)) "active" else "")
+      actionButton(id, lab, class = trimws(cls))
     }
     tagList(
-      btn("sr_keep", "Keep", "keep", "btn-success", "btn-outline-success"),
-      btn("sr_drop", "Drop", "drop", "btn-danger", "btn-outline-danger"),
-      btn("sr_unsure", "Unsure", "unsure", "btn-warning", "btn-outline-warning")
+      btn("sr_keep", "Keep", "keep", "btn-success"),
+      btn("sr_drop", "Drop", "drop", "btn-danger"),
+      btn("sr_unsure", "Unsure", "unsure", "btn-warning")
     )
   })
 

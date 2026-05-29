@@ -144,8 +144,11 @@ upsert_reviews <- function(
     return(reviews)
   }
   drop_keys <- review_key(country, document_id)
+  # De-dupe per (record, reviewer): only remove this reviewer's existing rows
+  # for those records, so a second reviewer's decision coexists rather than
+  # overwriting the first. `reviewer` is a scalar at every call site.
   reviews <- reviews[
-    !review_key(reviews$country, reviews$document_id) %in% drop_keys,
+    !(review_key(reviews$country, reviews$document_id) %in% drop_keys & reviews$reviewer %in% reviewer),
     ,
     drop = FALSE
   ]
@@ -163,6 +166,38 @@ upsert_reviews <- function(
     sidecar_path = sidecar_rel_path(as.character(country), as.character(document_id))
   )
   dplyr::bind_rows(reviews, new)
+}
+
+# The scalar decision a single reviewer gave a single record, or NA_character_
+# if that reviewer has no decision on it. country/document_id/reviewer scalar.
+reviewer_decision <- function(reviews, country, document_id, reviewer) {
+  if (nrow(reviews) == 0L) {
+    return(NA_character_)
+  }
+  hit <- review_key(reviews$country, reviews$document_id) %in%
+    review_key(country, document_id) &
+    reviews$reviewer %in% reviewer
+  if (!any(hit)) {
+    return(NA_character_)
+  }
+  as.character(reviews$decision[hit][1L])
+}
+
+# Unique record keys this reviewer has decided. character(0) if none.
+keys_reviewed_by <- function(reviews, reviewer) {
+  if (nrow(reviews) == 0L) {
+    return(character(0))
+  }
+  hit <- reviews$reviewer %in% reviewer
+  unique(review_key(reviews$country[hit], reviews$document_id[hit]))
+}
+
+# Unique record keys decided by ANY reviewer. character(0) if none.
+keys_reviewed_any <- function(reviews) {
+  if (nrow(reviews) == 0L) {
+    return(character(0))
+  }
+  unique(review_key(reviews$country, reviews$document_id))
 }
 
 # Known-reviewer name store: a plain newline-delimited list the app uses to
