@@ -38,8 +38,9 @@ assessment records flow through the planscanR pipeline (indexed -> embedding
 cosine / zero-shot classifier / keyword -> ensemble selection -> downloaded)
 and lets a reviewer build a human ground-truth selection to compare the
 automated pre-selection against. It reads the sidecar cache \strong{read-only} via
-\code{\link[=index_cache]{index_cache()}} / \code{\link[=select_assessments]{select_assessments()}} and keeps its own review decisions,
-offline translations, and a cached snapshot in a separate user directory.
+\code{\link[=index_cache]{index_cache()}} / \code{\link[=select_assessments]{select_assessments()}} and writes its review decisions,
+offline translations, and a cached snapshot to the cache root (see
+\code{data_dir}).
 }
 \details{
 Features: an interactive funnel + per-country breakdown, automated-vs-human

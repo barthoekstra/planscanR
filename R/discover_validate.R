@@ -96,7 +96,11 @@ discover_validate <- function(
       az_dash <- sub("(\\d{2})(\\d{4})", "\\1-\\2", az_compact)
       az_space <- sub("(\\d{2})(\\d{4})", "\\1 \\2", az_compact)
       candidates <- unique(c(az, az_compact, az_dash, az_space))
-      pattern <- paste0("(", paste(vapply(candidates, function(x) gsub("([.|()\\^{}+?*\\\\])", "\\\\\\1", x), character(1)), collapse = "|"), ")")
+      pattern <- paste0(
+        "(",
+        paste(vapply(candidates, function(x) gsub("([.|()\\^{}+?*\\\\])", "\\\\\\1", x), character(1)), collapse = "|"),
+        ")"
+      )
       signal_az <- grepl(pattern, text, perl = TRUE)
     }
   }
@@ -185,7 +189,8 @@ discover_validate <- function(
   )
   passed <- any(signals)
   notes <- paste0(
-    "n_title_hits=", n_title_hits,
+    "n_title_hits=",
+    n_title_hits,
     if (!is.na(semantic_score)) sprintf(" sem=%.3f", semantic_score) else ""
   )
 
@@ -257,10 +262,6 @@ pdf_first_pages_text <- function(pdf_path, n_pages = 10L) {
 
 #' Normalise text for fuzzy matching: NFD strip + German vowel-digraph
 #' collapse + lowercase + non-alphanumeric to space.
-#'
-#' This is the same normalisation used in the /tmp/austria-match prototype
-#' so the validator behaves the same as the bulk matcher we used to score
-#' the local document collection.
 #' @noRd
 normalise_text_for_match <- function(s) {
   if (is.null(s) || is.na(s) || !nzchar(s)) {

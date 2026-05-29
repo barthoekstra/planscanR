@@ -2,9 +2,10 @@
 #'
 #' Implementation of [get_assessments()] for the Netherlands. Backed by the
 #' Commissie m.e.r. adviezenregister at
-#' <https://www.commissiemer.nl/adviezen/>. URL enumeration uses the portal's
-#' published sitemap (`advice-sitemap*.xml`); per-record metadata is parsed
-#' from each detail page with rvest. Free-text and date-range filters are
+#' <https://www.commissiemer.nl/adviezen/>. Record URLs are read from the
+#' portal's sitemap index (`wp-sitemap.xml`), following its `advice-sitemap*`
+#' sub-sitemaps; per-record metadata is parsed from each detail page with
+#' rvest. Free-text and date-range filters are
 #' applied client-side as records are parsed; taxonomy filters
 #' (`theme`, `advice_type`, `status`) are accepted for forward compatibility
 #' but **not yet honoured** in v0.1 — see the "Filter coverage" section below.
@@ -28,11 +29,12 @@
 #'
 #' @section Performance:
 #' The portal hosts ~3600 advisory records. Each detail page is fetched once
-#' and cached via httr2 for `getOption("planscanR.cache_ttl")` seconds
-#' (default 1 h), so repeat runs are fast. **However**, on a cold cache,
-#' enumerating the full register can take many minutes and downloading every
-#' attachment can use significant disk space. Always start with a `limit`
-#' (and ideally a `query`) when exploring.
+#' and saved to a sidecar JSON on disk (see [index_cache()]); on later runs a
+#' record with an existing sidecar is read straight from disk instead of being
+#' re-fetched, so repeat runs are fast. On a first, cold run, enumerating the
+#' full register can take many minutes and downloading every attachment can use
+#' significant disk space. Always start with a `limit` (and ideally a `query`)
+#' when exploring.
 #'
 #' To avoid stressing the server (commissiemer.nl returns HTTP 429 under a
 #' sustained burst), NL requests are throttled to one per second by default
@@ -61,9 +63,9 @@
 #' @param topic,relevance_threshold,relevance_model Forwarded from
 #'   [get_assessments()]. When `topic` is supplied, each candidate record is
 #'   scored, and every scored record is sidecar'd and returned regardless of
-#'   threshold. `relevance_threshold` is a **download-gate only**: records
-#'   below threshold keep their sidecar + tibble row but their PDFs are not
-#'   downloaded.
+#'   threshold. `relevance_threshold` **only affects downloading**: records
+#'   below the threshold keep their sidecar and their tibble row, but their PDFs
+#'   are not downloaded.
 #' @param theme,advice_type,status,province Character vectors. See "Filter
 #'   coverage". For `theme`, `advice_type`, `status` the valid slugs are in
 #'   `get_assessments_coverage()$facets[[1]]`.
@@ -155,7 +157,7 @@ get_assessments_nl <- function(
   # Set up the relevance gate (if requested) once per call: build the model,
   # embed the topic once, fire the language-support warning once. Per-record
   # work then becomes a single embed + cosine.
-  rel <- nl_setup_relevance(topic, relevance_model, country = "nl")
+  rel <- setup_relevance(topic, relevance_model, country = "nl")
 
   urls <- nl_advice_urls()
   if (!is.null(query)) {
@@ -188,9 +190,9 @@ get_assessments_nl <- function(
     # the record is sidecar'd or returned — it only decides whether we spend
     # bandwidth pulling the PDFs.
     if (!is.null(rel)) {
-      rec <- nl_apply_relevance(rec, rel)
+      rec <- apply_relevance(rec, rel)
     }
-    should_download <- download && nl_passes_download_gate(rec, rel, relevance_threshold)
+    should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
     # Download + sidecar happen per-record so the cache is crash-safe: an
     # interrupted run leaves N fully-indexable records on disk instead of N
     # orphan file trees with no metadata. The sidecar is written even when
@@ -318,7 +320,7 @@ nl_advice_urls <- function() {
 #' subsequent `write_record_sidecar()` from the caller will persist it.
 #'
 #' @param url Portal URL.
-#' @param sidecar_index Output of [sidecar_url_index()]; empty vec is fine.
+#' @param sidecar_index Output of `sidecar_url_index()`; empty vec is fine.
 #' @noRd
 nl_load_or_fetch <- function(url, sidecar_index) {
   hit <- sidecar_index[url]
@@ -496,103 +498,6 @@ nl_parse_dutch_date <- function(s) {
     return(as.Date(NA))
   }
   as.Date(sprintf("%04d-%02d-%02d", yr, mon, day))
-}
-
-#' Build the relevance-scoring context once per get_assessments_nl() call.
-#'
-#' Returns either `NULL` (no scoring requested) or a list with the model, the
-#' pre-computed topic-embedding matrix (one row per topic), and the topic
-#' slugs. Fires the one-shot language warning if the model doesn't cover the
-#' handler's country.
-#' @noRd
-nl_setup_relevance <- function(topic, model, country) {
-  if (is.null(topic)) {
-    return(NULL)
-  }
-  topics <- normalise_topics(topic)
-  if (is.null(model)) {
-    model <- embedding_model_minilm()
-  }
-  if (!inherits(model, "planscanR_embedding_model")) {
-    cli::cli_abort(
-      "{.arg relevance_model} must be a planscanR_embedding_model object."
-    )
-  }
-  langs <- languages_for_country(country)
-  supp <- supported_languages(model)
-  if (length(langs) > 0L && !any(langs %in% supp)) {
-    key <- paste(model_name(model), country, sep = ":")
-    if (!key %in% get_warned_languages(model_name(model))) {
-      warn_partial(c(
-        "Country {.val {country}} uses language{?s} {.val {langs}}, which {?is/are} not in the supported set of model {.val {model_name(model)}}.",
-        i = "Records will still be scored, but quality may be reduced."
-      ))
-      mark_warned_language(key)
-    }
-  }
-  list(
-    model = model,
-    topics = topics,
-    topic_vecs = embed_text(model, unname(topics))
-  )
-}
-
-#' Attach relevance score(s) to a single record.
-#'
-#' Embeds the record's title+summary ONCE, then computes cosine similarity
-#' against every topic in `rel$topic_vecs`. Adds one
-#' `relevance_score_<slug>` per topic plus a shared `relevance_model`.
-#' @noRd
-nl_apply_relevance <- function(rec, rel) {
-  text <- paste(rec$title %||% "", rec$summary %||% "", sep = "\n")
-  doc_vec <- embed_text(rel$model, text)
-  scores <- as.numeric(cosine_similarity_matrix(doc_vec, rel$topic_vecs))
-  for (i in seq_along(rel$topics)) {
-    rec[[paste0("relevance_score_", names(rel$topics)[i])]] <- scores[i]
-  }
-  rec$relevance_model <- model_name(rel$model)
-  rec
-}
-
-#' Decide whether to download a record's PDFs given the relevance threshold.
-#'
-#' The threshold is a download-gate only: a record below threshold still gets
-#' a sidecar written and still appears in the returned tibble — only its PDFs
-#' stay off disk. This lets a researcher re-run with a different threshold (or
-#' skip the gate entirely) without re-hitting the portal.
-#'
-#' * `threshold = NULL` → always passes (download everything that scored).
-#' * No `rel` (no `topic` set) → always passes (nothing to gate on).
-#' * Scalar threshold → pass if **any** topic score is >= threshold.
-#' * Named vector threshold → pass if any named topic >= its own cutoff.
-#' @noRd
-nl_passes_download_gate <- function(rec, rel, threshold) {
-  if (is.null(threshold) || is.null(rel)) {
-    return(TRUE)
-  }
-  if (is.null(names(threshold))) {
-    # Scalar across all topics: pass if any topic clears it.
-    scores <- vapply(
-      names(rel$topics),
-      function(nm) rec[[paste0("relevance_score_", nm)]],
-      numeric(1)
-    )
-    return(any(!is.na(scores) & scores >= threshold[[1]]))
-  }
-  # Named vector: per-topic cutoffs.
-  ok <- vapply(
-    names(threshold),
-    function(nm) {
-      col <- paste0("relevance_score_", nm)
-      if (is.null(rec[[col]])) {
-        return(FALSE)
-      }
-      s <- rec[[col]]
-      !is.na(s) && s >= threshold[[nm]]
-    },
-    logical(1)
-  )
-  any(ok)
 }
 
 #' Apply client-side filters to a single parsed record.

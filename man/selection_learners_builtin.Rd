@@ -3,32 +3,17 @@
 \name{selection_learners_builtin}
 \alias{selection_learners_builtin}
 \alias{selection_learner_logistic}
-\alias{selection_learner_glmnet}
-\alias{selection_learner_xgboost}
-\alias{selection_learner_ranger}
-\title{Built-in selection learners.}
+\title{Built-in selection learner.}
 \usage{
 selection_learner_logistic()
-
-selection_learner_glmnet(penalty = 0.01, mixture = 0)
-
-selection_learner_xgboost(trees = 500, tree_depth = 4, learn_rate = 0.05)
-
-selection_learner_ranger(trees = 500, mtry = NULL, min_n = NULL)
-}
-\arguments{
-\item{penalty, mixture}{glmnet regularisation: total penalty and the
-elastic-net mixing parameter (\code{0} = ridge, \code{1} = lasso).}
-
-\item{trees, tree_depth, learn_rate}{xgboost hyperparameters.}
-
-\item{mtry, min_n}{ranger hyperparameters.}
 }
 \value{
 A \code{planscanR_selection_learner}.
 }
 \description{
-Built-in selection learners.
+Logistic regression on the base-R \code{glm} engine — the default the BIOGAIN
+selection model trains. Needs only the tidymodels glue (parsnip / recipes /
+rsample / workflows), no extra modelling backend.
 }
 \examples{
 selection_learner_logistic()

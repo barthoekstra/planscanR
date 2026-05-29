@@ -51,9 +51,9 @@
 #'   See [get_assessments()]. `download`, `overwrite`, and
 #'   `max_file_size_mb` are accepted but ignored — no PDFs are reachable.
 #' @param topic,relevance_threshold,relevance_model Forwarded from
-#'   [get_assessments()]. `relevance_threshold` is documented as a
-#'   download-gate; on AT it has no observable effect because there are
-#'   no downloads to gate.
+#'   [get_assessments()]. `relevance_threshold` only affects which records'
+#'   PDFs are downloaded; on AT it has no observable effect because there are
+#'   no downloads.
 #' @param query Free-text substring match on `title` + `summary` (client-
 #'   side). The portal has no server-side full-text search.
 #' @param jurisdiction Character vector. Substring match against
@@ -104,7 +104,7 @@ get_assessments_at <- function(
     withr::local_options(list(planscanR.cache_dir = cache_dir))
   }
 
-  rel <- at_setup_relevance(topic, relevance_model, country = "at")
+  rel <- setup_relevance(topic, relevance_model, country = "at")
 
   sidecar_index <- if (!refresh) {
     sidecar_url_index("at")
@@ -157,7 +157,7 @@ get_assessments_at <- function(
       next
     }
     if (!is.null(rel)) {
-      rec <- at_apply_relevance(rec, rel)
+      rec <- apply_relevance(rec, rel)
     }
     rec <- at_finalise_record(rec, write_sidecar = write_sidecar)
     records[[length(records) + 1L]] <- rec
@@ -505,55 +505,4 @@ at_year_in_range <- function(year, date_range) {
   yr_start <- as.Date(sprintf("%04d-01-01", yr_int))
   yr_end <- as.Date(sprintf("%04d-12-31", yr_int))
   !(yr_end < date_range[1] || yr_start > date_range[2])
-}
-
-# -----------------------------------------------------------------------------
-# Relevance gate
-# -----------------------------------------------------------------------------
-
-#' Set up the relevance-scoring context (or NULL when no `topic` was given).
-#' @noRd
-at_setup_relevance <- function(topic, model, country) {
-  if (is.null(topic)) {
-    return(NULL)
-  }
-  topics <- normalise_topics(topic)
-  if (is.null(model)) {
-    model <- embedding_model_minilm()
-  }
-  if (!inherits(model, "planscanR_embedding_model")) {
-    cli::cli_abort(
-      "{.arg relevance_model} must be a planscanR_embedding_model object."
-    )
-  }
-  langs <- languages_for_country(country)
-  supp <- supported_languages(model)
-  if (length(langs) > 0L && !any(langs %in% supp)) {
-    key <- paste(model_name(model), country, sep = ":")
-    if (!key %in% get_warned_languages(model_name(model))) {
-      warn_partial(c(
-        "Country {.val {country}} uses language{?s} {.val {langs}}, which {?is/are} not in the supported set of model {.val {model_name(model)}}.",
-        i = "Records will still be scored, but quality may be reduced."
-      ))
-      mark_warned_language(key)
-    }
-  }
-  list(
-    model = model,
-    topics = topics,
-    topic_vecs = embed_text(model, unname(topics))
-  )
-}
-
-#' Attach relevance score(s) to a single record.
-#' @noRd
-at_apply_relevance <- function(rec, rel) {
-  text <- paste(rec$title %||% "", rec$summary %||% "", sep = "\n")
-  doc_vec <- embed_text(rel$model, text)
-  scores <- as.numeric(cosine_similarity_matrix(doc_vec, rel$topic_vecs))
-  for (i in seq_along(rel$topics)) {
-    rec[[paste0("relevance_score_", names(rel$topics)[i])]] <- scores[i]
-  }
-  rec$relevance_model <- model_name(rel$model)
-  rec
 }

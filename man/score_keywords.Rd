@@ -23,8 +23,8 @@ scan. Default concatenates title + summary + native_type.}
 Adds one \verb{kw_<topic>} integer column per lexicon topic (the number of term
 occurrences in the record's title + summary + category) plus a \code{kw_total}
 column. Matching is on normalised text (lowercased, diacritics stripped,
-German vowel digraphs collapsed), with terms anchored at a word start so
-compounds match their stem.
+German vowel digraphs collapsed). Each term is matched as a plain substring,
+so a stem like \code{"wind"} also matches compounds such as \code{"windpark"}.
 }
 \examples{
 \dontrun{

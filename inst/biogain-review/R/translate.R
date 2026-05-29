@@ -120,8 +120,7 @@ read_translation <- function(cache_dir, country, document_id) {
     summary_en = ex$translation_summary_en %||% NA_character_,
     src_lang = ex$translation_src_lang %||% NA_character_,
     service = ex$translation_service %||% NA_character_,
-    at = ex$translation_at %||% NA_character_,
-    quota = FALSE
+    at = ex$translation_at %||% NA_character_
   )
 }
 
@@ -151,9 +150,8 @@ save_translation <- function(cache_dir, country, document_id, fields) {
 }
 
 # Cached-or-fetch: return the record's English translation. Re-translates when
-# there is no cache OR the cache came from a different engine (so older
-# MyMemory translations are refreshed with Argos). Returns a list with
-# title_en, summary_en, src_lang, service, at, quota.
+# there is no cache OR the cache came from a different engine. Returns a list
+# with title_en, summary_en, src_lang, service, at.
 ensure_translation <- function(cache_dir, country, document_id, title, summary) {
   cached <- read_translation(cache_dir, country, document_id)
   if (
@@ -176,8 +174,7 @@ ensure_translation <- function(cache_dir, country, document_id, title, summary) 
     fields,
     list(
       service = TRANSLATE_ENGINE,
-      at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S"),
-      quota = FALSE
+      at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
     )
   )
 }

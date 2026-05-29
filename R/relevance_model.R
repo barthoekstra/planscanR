@@ -276,24 +276,6 @@ score_records <- function(records, topic, model, text_fn = NULL) {
   records
 }
 
-#' Cosine similarity between every row of `m` and the single row of `v`.
-#' @noRd
-cosine_similarity <- function(m, v) {
-  if (!is.matrix(m) || !is.matrix(v) || nrow(v) != 1L) {
-    cli::cli_abort("cosine_similarity expects matrix inputs with 1 row for `v`.")
-  }
-  v <- as.numeric(v[1, ])
-  m_norm <- sqrt(rowSums(m * m))
-  v_norm <- sqrt(sum(v * v))
-  if (v_norm == 0) {
-    return(rep(NA_real_, nrow(m)))
-  }
-  num <- as.numeric(m %*% v)
-  out <- num / (m_norm * v_norm)
-  out[m_norm == 0] <- NA_real_
-  out
-}
-
 #' Cosine similarity between every row of `m` and every row of `topics`.
 #'
 #' Returns an `[nrow(m), nrow(topics)]` numeric matrix. Used by
@@ -315,33 +297,42 @@ cosine_similarity_matrix <- function(m, topics) {
   out
 }
 
+#' Warn once per (model, country) if the model doesn't cover its language.
+#'
+#' Records are still scored — this only flags that quality may be reduced.
+#' @noRd
+warn_country_language <- function(country, model) {
+  country <- tolower(country)
+  langs <- languages_for_country(country)
+  if (length(langs) == 0L) {
+    return(invisible()) # unknown country code, skip silently
+  }
+  if (any(langs %in% supported_languages(model))) {
+    return(invisible())
+  }
+  key <- paste(model_name(model), country, sep = ":")
+  if (key %in% get_warned_languages()) {
+    return(invisible())
+  }
+  warn_partial(c(
+    "Country {.val {country}} uses language{?s} {.val {langs}}, which {?is/are} not in the supported set of model {.val {model_name(model)}}.",
+    i = "Records will still be scored, but quality may be reduced."
+  ))
+  mark_warned_language(key)
+}
+
 #' One-shot warning when a record's country language is outside the model set.
 #' @noRd
 warn_unsupported_languages <- function(records, model) {
-  supp <- supported_languages(model)
-  warned <- get_warned_languages(model_name(model))
   for (cc in unique(tolower(records$country))) {
-    langs <- languages_for_country(cc)
-    if (length(langs) == 0L) {
-      next # unknown country code, skip silently
-    }
-    if (!any(langs %in% supp)) {
-      key <- paste(model_name(model), cc, sep = ":")
-      if (!key %in% warned) {
-        warn_partial(c(
-          "Country {.val {cc}} uses language{?s} {.val {langs}}, which {?is/are} not in the supported set of model {.val {model_name(model)}}.",
-          i = "Records will still be scored, but quality may be reduced."
-        ))
-        mark_warned_language(key)
-      }
-    }
+    warn_country_language(cc, model)
   }
 }
 
 # Per-session warning ledger
 .planscanR_env <- new.env(parent = emptyenv())
 
-get_warned_languages <- function(model_name) {
+get_warned_languages <- function() {
   if (!exists("warned", envir = .planscanR_env)) {
     return(character(0))
   }

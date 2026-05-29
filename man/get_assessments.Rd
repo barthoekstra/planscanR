@@ -69,8 +69,8 @@ Adding extra topics costs essentially nothing — the per-record embed is
 the expensive step and runs once. Every scored record is sidecar'd and
 returned regardless of its score.}
 
-\item{relevance_threshold}{Optional cutoff in \verb{[-1, 1]}. \strong{Download-gate
-only}: records that score below the threshold still appear in the
+\item{relevance_threshold}{Optional cutoff in \verb{[-1, 1]}. This \strong{only affects
+downloading}: records that score below the threshold still appear in the
 returned tibble and still get a sidecar JSON on disk — only their PDF
 attachments are skipped. This lets you re-run with a different threshold
 (or no threshold) later without re-hitting the portal. Scalar threshold:

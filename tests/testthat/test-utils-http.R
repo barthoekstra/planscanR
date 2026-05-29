@@ -28,7 +28,7 @@ test_that("get_assessments_nl sets an NL-scoped throttle by default", {
   seen_rate <- NULL
   local_mocked_bindings(
     nl_advice_urls = function() character(0),
-    nl_setup_relevance = function(topic, model, country) {
+    setup_relevance = function(topic, model, country) {
       seen_rate <<- getOption("planscanR.throttle_rate")
       NULL
     }
@@ -42,7 +42,7 @@ test_that("get_assessments_nl throttle is configurable and disablable", {
   seen_rate <- NULL
   local_mocked_bindings(
     nl_advice_urls = function() character(0),
-    nl_setup_relevance = function(topic, model, country) {
+    setup_relevance = function(topic, model, country) {
       seen_rate <<- getOption("planscanR.throttle_rate")
       NULL
     }

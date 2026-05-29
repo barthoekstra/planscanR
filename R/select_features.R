@@ -116,10 +116,8 @@ selection_features <- function(
   }
 
   # Optional categorical extras, kept raw (the recipe dummy-encodes them). NA
-  # levels are left as NA for the recipe's step_unknown() to absorb.
-  if ("country" %in% include) {
-    out$country <- as.character(out$country) # already present as the key column
-  }
+  # levels are left as NA for the recipe's step_unknown() to absorb. `country`
+  # needs nothing here — it is already present as a character key column.
   if ("native_type" %in% include) {
     out$native_type <- if ("native_type" %in% names(records)) {
       as.character(records$native_type)

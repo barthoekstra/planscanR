@@ -16,8 +16,6 @@ authority domains to scope queries to.
 \item \code{aktenzahl_regex} — regex that detects the country's primary
 identifier in PDF text. For AT it matches the UBA-internal AZ
 \verb{02 NNNN} plus a couple of dash/no-space variants.
-\item \code{extract_proponent} — function(record) -> character, pulls the
-proponent name out of the record's summary (returns NA on failure).
 \item \code{extra_signals} — character vector of additional patterns the
 validator will check for in PDF text (e.g. legal-basis strings).
 }

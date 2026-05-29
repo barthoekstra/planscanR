@@ -10,8 +10,9 @@
 #' cosine / zero-shot classifier / keyword -> ensemble selection -> downloaded)
 #' and lets a reviewer build a human ground-truth selection to compare the
 #' automated pre-selection against. It reads the sidecar cache **read-only** via
-#' [index_cache()] / [select_assessments()] and keeps its own review decisions,
-#' offline translations, and a cached snapshot in a separate user directory.
+#' [index_cache()] / [select_assessments()] and writes its review decisions,
+#' offline translations, and a cached snapshot to the cache root (see
+#' `data_dir`).
 #'
 #' Features: an interactive funnel + per-country breakdown, automated-vs-human
 #' agreement metrics (precision / recall / F1), a sortable review table with

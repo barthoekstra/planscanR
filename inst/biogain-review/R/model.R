@@ -12,15 +12,10 @@ selection_model_path <- function(data_dir) {
   file.path(data_dir, "selection_model.rds")
 }
 
-# Human-readable label -> learner key, filtered to learners whose engine package
-# is installed (logistic is always available; glmnet/xgboost/ranger optional).
+# Human-readable label -> learner key, restricted to learners that can actually
+# be trained (the tidymodels packages are installed).
 selection_learner_choices <- function() {
-  labels <- c(
-    "Logistic regression" = "logistic",
-    "Penalised logistic (glmnet)" = "glmnet",
-    "Gradient boosting (xgboost)" = "xgboost",
-    "Random forest (ranger)" = "ranger"
-  )
+  labels <- c("Logistic regression" = "logistic")
   avail <- names(planscanR::selection_learners(available_only = TRUE))
   labels[labels %in% avail]
 }

@@ -92,8 +92,7 @@ test_that("search_backend_mock matches by exact key, then substring, then defaul
 
 test_that("at_discovery_config() exposes the documented contract", {
   cfg <- at_discovery_config()
-  expect_true(all(c("query_templates", "state_domains", "aktenzahl_regex",
-                    "extract_proponent", "extra_signals") %in% names(cfg)))
+  expect_true(all(c("query_templates", "state_domains", "aktenzahl_regex", "extra_signals") %in% names(cfg)))
   expect_true(length(cfg$query_templates) >= 3L)
   expect_true("Burgenland" %in% names(cfg$state_domains))
   expect_true("_federal" %in% names(cfg$state_domains))
@@ -101,16 +100,17 @@ test_that("at_discovery_config() exposes the documented contract", {
 })
 
 test_that("at_clean_title strips parenthesised aliases and normalises whitespace", {
-  expect_identical(planscanR:::at_clean_title("Windpark Neusiedl-Weiden Repowering (WP NDWE)"),
-                   "Windpark Neusiedl-Weiden Repowering")
+  expect_identical(
+    planscanR:::at_clean_title("Windpark Neusiedl-Weiden Repowering (WP NDWE)"),
+    "Windpark Neusiedl-Weiden Repowering"
+  )
   expect_identical(planscanR:::at_clean_title("  Spaces   inside  "), "Spaces inside")
   expect_null(planscanR:::at_clean_title(NA))
 })
 
 test_that("at_extract_proponent_from_summary pulls the GmbH from the opener", {
   s <- "Die Energie Burgenland Windkraft GmbH plant das Repowering des Windparks."
-  expect_identical(planscanR:::at_extract_proponent_from_summary(s),
-                   "Energie Burgenland Windkraft GmbH")
+  expect_identical(planscanR:::at_extract_proponent_from_summary(s), "Energie Burgenland Windkraft GmbH")
   expect_true(is.na(planscanR:::at_extract_proponent_from_summary(NA)))
   expect_true(is.na(planscanR:::at_extract_proponent_from_summary("")))
 })
@@ -352,8 +352,7 @@ test_that("discover_attachments(dry_run = TRUE) does not touch the cache", {
     rec <- make_at_record()
     res <- with_fake_pdf_server(
       url_to_pdf_path = list("https://burgenland.at/uvp/testdorf-2.pdf" = good_pdf),
-      discover_attachments(rec, backend = backend, dry_run = TRUE,
-                           queries_per_record = 1L)
+      discover_attachments(rec, backend = backend, dry_run = TRUE, queries_per_record = 1L)
     )
     # No cache files written.
     expect_false(dir.exists(file.path(cache, "files", "at", "9999")))

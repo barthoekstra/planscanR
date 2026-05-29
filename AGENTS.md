@@ -176,7 +176,7 @@ records on disk (not N orphan dirs). The sidecar carries the full record
 (country, source_portal, document_id, url, title, summary, dates, competent
 authority, proponent, relevance_score, etc.) plus a per-file `files[]` array
 mirroring the `download_status` columns (status, size_bytes, sha256, reason,
-section). Schema version: `1`.
+section). Schema version: `2`.
 
 **The sidecar is the authoritative cache.** Per-country handlers consult
 `sidecar_url_index(country)` at the start of every call to build a
@@ -445,13 +445,15 @@ already on the sidecars. Lives entirely in the package (the app is a consumer,
   by `index_cache()`. Missing/NA numerics → `0`. **Deliberately
   country-agnostic** so a model transfers to a new portal; `country` /
   `native_type` are opt-in via `include =` but OFF by default.
-- **Pluggable learner — `selection_learner_*()`.** Mirrors the
-  `embedding_model()` / classifier S3 pattern, built on tidymodels. Default
+- **Pluggable learner — `selection_learner*()`.** Mirrors the
+  `embedding_model()` / classifier S3 pattern, built on tidymodels. The built-in
   `selection_learner_logistic()` uses the base-R `glm` engine (needs only the
-  tidymodels *glue*: parsnip / recipes / rsample / workflows — all Suggests).
-  `selection_learner_glmnet()` / `_xgboost()` / `_ranger()` are heavier opt-ins
-  that name their engine package. `selection_learners(available_only = TRUE)`
-  filters to what's installed (the app dropdown). Specs are built lazily, so a
+  tidymodels *glue*: parsnip / recipes / rsample / workflows — all Suggests). To
+  use another algorithm, wrap any parsnip classification spec with the generic
+  `selection_learner(name, spec, engine_pkg = ...)`; `engine_pkg` lets training
+  fail early with a clear message when the engine package isn't installed.
+  `selection_learners(available_only = TRUE)` returns the built-ins only when the
+  tidymodels glue is present (the app dropdown). Specs are built lazily, so a
   learner can be listed without parsnip present.
 - **Honest metrics — `train_selection_model()`.** Fits the final model on all
   labels but reports **out-of-fold** (stratified k-fold CV) precision/recall/F1

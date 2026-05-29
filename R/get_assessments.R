@@ -49,8 +49,8 @@
 #'   Adding extra topics costs essentially nothing — the per-record embed is
 #'   the expensive step and runs once. Every scored record is sidecar'd and
 #'   returned regardless of its score.
-#' @param relevance_threshold Optional cutoff in `[-1, 1]`. **Download-gate
-#'   only**: records that score below the threshold still appear in the
+#' @param relevance_threshold Optional cutoff in `[-1, 1]`. This **only affects
+#'   downloading**: records that score below the threshold still appear in the
 #'   returned tibble and still get a sidecar JSON on disk — only their PDF
 #'   attachments are skipped. This lets you re-run with a different threshold
 #'   (or no threshold) later without re-hitting the portal. Scalar threshold:

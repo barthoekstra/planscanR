@@ -33,9 +33,9 @@ crawl completes in a few minutes.}
 \code{max_file_size_mb} are accepted but ignored — no PDFs are reachable.}
 
 \item{topic, relevance_threshold, relevance_model}{Forwarded from
-\code{\link[=get_assessments]{get_assessments()}}. \code{relevance_threshold} is documented as a
-download-gate; on AT it has no observable effect because there are
-no downloads to gate.}
+\code{\link[=get_assessments]{get_assessments()}}. \code{relevance_threshold} only affects which records'
+PDFs are downloaded; on AT it has no observable effect because there are
+no downloads.}
 
 \item{query}{Free-text substring match on \code{title} + \code{summary} (client-
 side). The portal has no server-side full-text search.}

@@ -3,21 +3,20 @@
 # =============================================================================
 # A standalone Shiny app (it does NOT modify any planscanR package function).
 # It reads the sidecar cache read-only via the package's exported functions
-# (index_cache / score_keywords / select_assessments) and keeps its own
-# review-decision store under review-app/data/.
+# (index_cache / score_keywords / select_assessments) and writes its review
+# decisions to a CSV (reviews.csv) at the cache root, alongside files/.
 #
 # Two tabs:
-#   * Funnel  — how many records survive each pipeline gate (indexed -> cosine /
+#   * Funnel  — how many records survive each pipeline step (indexed -> cosine /
 #               classifier / keyword -> ensemble selection -> attachments ->
 #               downloaded), with the cosine + keyword thresholds adjustable.
 #               If human review exists, shows automated-vs-human agreement.
 #   * Review  — triage the corpus by hand (keep / drop / unsure) to build the
 #               ground-truth selection to compare the pipeline against.
 #
-# Run it:   from the repo root,  R -e 'shiny::runApp("review-app")'
-#           or  Rscript review-app/run.R
-# Cache dir is taken from the PLANSCANR_CACHE env var (falls back to the
-# project default below).
+# Launch it with planscanR::run_biogain_review(); the cache dir resolves from
+# that function's cache_dir argument, the PLANSCANR_CACHE env var, or the
+# planscanR.cache_dir option.
 # =============================================================================
 
 library(shiny)
@@ -186,9 +185,6 @@ review_assets <- function() {
               __esc(data.summary_en) + '</p>';
           }
           el.innerHTML = h;
-        } else if (data && data.quota) {
-          el.innerHTML = '<span style=\"color:#b35;\">Daily free translation ' +
-            'quota reached — resets in a few hours. (Original text is on the left.)</span>';
         } else {
           el.innerHTML = '<span style=\"color:#b35;\">Translation unavailable ' +
             '(service error or unsupported language).</span>';
@@ -279,7 +275,7 @@ review_assets <- function() {
         });
         Shiny.addCustomMessageHandler('translation', function(msg){
           window.__xlate[msg.key] = {title_en: msg.title_en,
-            summary_en: msg.summary_en, quota: msg.quota};
+            summary_en: msg.summary_en};
           document.querySelectorAll('.xlate[data-key=\"' + CSS.escape(msg.key) +
             '\"]').forEach(function(el){ __xlateFill(el, window.__xlate[msg.key]); });
         });
@@ -857,7 +853,9 @@ server <- function(input, output, session) {
         tags$p(
           style = "margin:0 0 6px;",
           "Each metric compares the automated selection against your reviews, ",
-          "treating the records you marked ", tags$b("keep"), " as correct:"
+          "treating the records you marked ",
+          tags$b("keep"),
+          " as correct:"
         ),
         tags$ul(
           style = "margin:0 0 6px;padding-left:18px;",
@@ -917,7 +915,9 @@ server <- function(input, output, session) {
   selected_snap <- reactive({
     s <- apply_selection(model_scored(), input$threshold, as.integer(input$kw_min))
     thr <- input$model_threshold
-    if (is.null(thr) || is.na(thr)) thr <- 0.5
+    if (is.null(thr) || is.na(thr)) {
+      thr <- 0.5
+    }
     s$selected_model <- !is.na(s$select_prob) & s$select_prob >= thr
     s
   })
@@ -1514,8 +1514,7 @@ server <- function(input, output, session) {
         list(
           key = review_key(row$country, row$document_id),
           title_en = if (is.null(tr)) NULL else ok(tr$title_en),
-          summary_en = if (is.null(tr)) NULL else ok(tr$summary_en),
-          quota = !is.null(tr) && isTRUE(tr$quota)
+          summary_en = if (is.null(tr)) NULL else ok(tr$summary_en)
         )
       )
     },

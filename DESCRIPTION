@@ -4,10 +4,12 @@ Version: 0.0.0.9000
 Authors@R:
     person("Bart", "Hoekstra", email = "mail@barthoekstra.nl", role = c("aut", "cre"))
 Description: A unified R interface for fetching environmental-assessment
-    records (EIA, SEA, follow-up advice) from European national portals.
+    records (EIA, SEA, follow-up advice) from European national portals,
+    with built-in tools to score records by topic relevance and select the
+    ones worth a closer look. Handlers ship for the Netherlands (Commissie
+    m.e.r.), Germany (UVP-Verbund), and Austria (Umweltbundesamt UVP-DB).
     Developed for the BIOGAIN project to support Net Biodiversity Gain in
-    spatial energy planning. v0.1 implements a Netherlands handler against
-    the Commissie m.e.r. adviezenregister.
+    spatial energy planning.
 License: GPL (>= 3)
 URL: https://github.com/barthoekstra/planscanR,
     https://barthoekstra.github.io/planscanR/
@@ -32,7 +34,6 @@ Imports:
 Suggests:
     bslib,
     covr,
-    glmnet,
     htmltools,
     httptest2 (>= 1.1.0),
     knitr,
@@ -41,7 +42,6 @@ Suggests:
     pdftools,
     pkgdown,
     plotly,
-    ranger,
     reactable,
     recipes,
     rmarkdown,
@@ -49,9 +49,9 @@ Suggests:
     shiny,
     testthat (>= 3.2.0),
     vcr (>= 1.6.0),
-    workflows,
-    xgboost
+    workflows
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+VignetteBuilder: knitr

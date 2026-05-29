@@ -7,16 +7,16 @@
 selection_learners(available_only = FALSE)
 }
 \arguments{
-\item{available_only}{If \code{TRUE}, return only learners whose engine package is
-installed.}
+\item{available_only}{If \code{TRUE}, return learners only when they can actually
+be trained (the tidymodels packages are installed).}
 }
 \value{
 A named list of constructor functions, keyed by learner key.
 }
 \description{
 Maps a stable key to a zero-argument constructor, for UIs that let the user
-pick a learner. \code{available_only = TRUE} drops learners whose engine package
-isn't installed.
+pick a learner. \code{available_only = TRUE} returns an empty list when the
+tidymodels packages needed to fit any learner aren't installed.
 }
 \examples{
 names(selection_learners())

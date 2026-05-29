@@ -27,14 +27,14 @@ strings. Filters by \code{date_decision}.}
 
 \item{limit}{Integer. Maximum records to return. Defaults to \code{Inf}; you
 are strongly encouraged to set a small value (e.g. \code{50}) when exploring,
-because a cold-cache full crawl enumerates all ~2,427 search pages.}
+because a cold-cache full crawl enumerates all ~2,258 search pages.}
 
 \item{download, cache_dir, overwrite, max_file_size_mb, write_sidecar, refresh}{See \code{\link[=get_assessments]{get_assessments()}}.}
 
 \item{topic, relevance_threshold, relevance_model}{Forwarded from
-\code{\link[=get_assessments]{get_assessments()}}. \code{relevance_threshold} is a \strong{download-gate only}:
-records below it keep their sidecar + tibble row, only their PDFs are
-skipped.}
+\code{\link[=get_assessments]{get_assessments()}}. \code{relevance_threshold} \strong{only affects downloading}:
+records below it keep their sidecar and their tibble row, only their PDFs
+are skipped.}
 
 \item{query}{Free-text search string. Sent server-side as \verb{q=<query>}.
 When \code{NULL}, the broad fallback \code{q=uvp} is used (matches ~93\% of the
@@ -77,7 +77,7 @@ multiple seed queries and union the results.
 last-year-modified procedures and silently drops ~80\% of historical
 records.
 
-On a cold cache, a full enumeration over ~2,427 pages is slow; users are
+On a cold cache, a full enumeration over ~2,258 pages is slow; users are
 strongly encouraged to set \code{limit} (and ideally \code{query}) when exploring.
 }
 
@@ -127,7 +127,7 @@ discovered sections, ordered curated-first (in the order above) then any
 auto-slugged sections in page order. Required by the planscanR schema.
 
 When \code{download = TRUE}, files in \strong{all} discovered sections are fetched —
-subject to \code{max_file_size_mb} and the relevance gate. (The
+subject to \code{max_file_size_mb} and the relevance threshold. (The
 \code{data-raw/biogain_acquire.R} runbook can restrict downloads to a chosen
 subset of sections; the handler itself always captures them all.)
 }

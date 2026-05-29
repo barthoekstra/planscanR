@@ -1,22 +1,27 @@
 # The BIOGAIN selection procedure: combine the three relevance signals
 # (embedding cosine, zero-shot classifier, lexical keywords) into a single
-# `selected` flag, the gate for which records to carry into downstream
+# `selected` flag that decides which records to carry into downstream
 # acquisition/analysis.
 
 #' Apply the BIOGAIN selection rule to scored + classified records.
 #'
-#' Combines the three relevance signals into one decision:
+#' Combines the three relevance signals into one decision. A record is
+#' **selected** when any one of the signals fires —
 #'
-#' \deqn{selected = (cosine\_relevant \lor class\_relevant \lor kw\_total \ge kw\_min)
-#'   \land \lnot\,confident\_nonrenewable}
+#' * the embedding cosine score clears the relevance threshold, OR
+#' * the classifier labels it as a relevant (renewable-energy) type, OR
+#' * it contains at least `kw_min` keyword hits —
 #'
-#' Rationale (from the NL analysis): the three signals are complementary —
-#' the cosine gate misses near-threshold energy records, the classifier
-#' mislabels some into negative classes, and the keyword layer catches
-#' explicit mentions both dilute. Taking their union maximises recall (this is
-#' a pre-acquisition gate; precision is recoverable downstream), while the
-#' fossil/oil-gas/nuclear trim removes confidently non-renewable records that
-#' are off-target for BIOGAIN.
+#' *and* it is not confidently off-target (not classified as fossil power,
+#' oil/gas extraction, or nuclear above `nonrenewable_score`).
+#'
+#' Rationale (from the NL analysis): the three signals are complementary — the
+#' cosine score misses some near-threshold energy records, the classifier
+#' mislabels some into negative classes, and the keyword layer catches explicit
+#' mentions the other two dilute. Taking their union favours recall (this step
+#' runs before acquisition; precision can still be improved downstream), while
+#' the fossil/oil-gas/nuclear trim drops records that are clearly off-target for
+#' BIOGAIN.
 #'
 #' @param records A tibble that has been scored (`relevance_score_<slug>`
 #'   columns) and classified (`class_label`, `class_relevant`, `class_score`).

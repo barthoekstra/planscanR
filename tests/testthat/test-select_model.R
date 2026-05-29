@@ -16,7 +16,8 @@ synth_records <- function(n = 120, seed = 1) {
   for (s in topics) {
     base <- ifelse(keep, 0.65, 0.2)
     df[[paste0("relevance_score_", s)]] <- pmin(
-      1, pmax(0, base + stats::rnorm(n, 0, 0.08))
+      1,
+      pmax(0, base + stats::rnorm(n, 0, 0.08))
     )
   }
   for (l in labels) {
@@ -123,17 +124,25 @@ test_that("consensus_reviews keeps agreements, drops conflicts, latest-per-revie
     document_id = c("1", "1", "2", "2", "3", "3", "4", "4"),
     country = c("nl", "nl", "nl", "nl", "de", "de", "de", "de"),
     decision = c(
-      "keep", "keep", # rec 1: two reviewers agree -> keep
-      "keep", "drop", # rec 2: two reviewers disagree -> dropped
-      "drop", "keep", # rec 3: same reviewer changed mind -> latest (keep)
-      "keep", "unsure" # rec 4: one keep + one unsure -> keep (unsure ignored)
+      "keep",
+      "keep", # rec 1: two reviewers agree -> keep
+      "keep",
+      "drop", # rec 2: two reviewers disagree -> dropped
+      "drop",
+      "keep", # rec 3: same reviewer changed mind -> latest (keep)
+      "keep",
+      "unsure" # rec 4: one keep + one unsure -> keep (unsure ignored)
     ),
     reviewer = c("A", "B", "A", "B", "A", "A", "A", "B"),
     reviewed_at = c(
-      "2026-01-01T10:00:00", "2026-01-01T11:00:00",
-      "2026-01-01T10:00:00", "2026-01-01T11:00:00",
-      "2026-01-01T10:00:00", "2026-01-02T10:00:00", # rec 3 latest is keep
-      "2026-01-01T10:00:00", "2026-01-01T11:00:00"
+      "2026-01-01T10:00:00",
+      "2026-01-01T11:00:00",
+      "2026-01-01T10:00:00",
+      "2026-01-01T11:00:00",
+      "2026-01-01T10:00:00",
+      "2026-01-02T10:00:00", # rec 3 latest is keep
+      "2026-01-01T10:00:00",
+      "2026-01-01T11:00:00"
     )
   )
   out <- consensus_reviews(rev)

@@ -26,7 +26,7 @@
 #' last-year-modified procedures and silently drops ~80% of historical
 #' records.
 #'
-#' On a cold cache, a full enumeration over ~2,427 pages is slow; users are
+#' On a cold cache, a full enumeration over ~2,258 pages is slow; users are
 #' strongly encouraged to set `limit` (and ideally `query`) when exploring.
 #'
 #' @section Filter coverage (v0.1):
@@ -70,7 +70,7 @@
 #' auto-slugged sections in page order. Required by the planscanR schema.
 #'
 #' When `download = TRUE`, files in **all** discovered sections are fetched —
-#' subject to `max_file_size_mb` and the relevance gate. (The
+#' subject to `max_file_size_mb` and the relevance threshold. (The
 #' `data-raw/biogain_acquire.R` runbook can restrict downloads to a chosen
 #' subset of sections; the handler itself always captures them all.)
 #'
@@ -78,13 +78,13 @@
 #'   strings. Filters by `date_decision`.
 #' @param limit Integer. Maximum records to return. Defaults to `Inf`; you
 #'   are strongly encouraged to set a small value (e.g. `50`) when exploring,
-#'   because a cold-cache full crawl enumerates all ~2,427 search pages.
+#'   because a cold-cache full crawl enumerates all ~2,258 search pages.
 #' @param download,cache_dir,overwrite,max_file_size_mb,write_sidecar,refresh
 #'   See [get_assessments()].
 #' @param topic,relevance_threshold,relevance_model Forwarded from
-#'   [get_assessments()]. `relevance_threshold` is a **download-gate only**:
-#'   records below it keep their sidecar + tibble row, only their PDFs are
-#'   skipped.
+#'   [get_assessments()]. `relevance_threshold` **only affects downloading**:
+#'   records below it keep their sidecar and their tibble row, only their PDFs
+#'   are skipped.
 #' @param query Free-text search string. Sent server-side as `q=<query>`.
 #'   When `NULL`, the broad fallback `q=uvp` is used (matches ~93% of the
 #'   register). The portal's own `q=*:*` wildcard is unusable because page 2+
@@ -138,7 +138,7 @@ get_assessments_de <- function(
     withr::local_options(list(planscanR.cache_dir = cache_dir))
   }
 
-  rel <- de_setup_relevance(topic, relevance_model, country = "de")
+  rel <- setup_relevance(topic, relevance_model, country = "de")
 
   if (is.null(query) && !is.finite(limit)) {
     de_warn_full_crawl()
@@ -203,9 +203,9 @@ get_assessments_de <- function(
         next
       }
       if (!is.null(rel)) {
-        rec <- de_apply_relevance(rec, rel)
+        rec <- apply_relevance(rec, rel)
       }
-      should_download <- download && de_passes_download_gate(rec, rel, relevance_threshold)
+      should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
       rec <- de_finalise_record(
         rec,
         download = should_download,
@@ -682,88 +682,4 @@ de_record_matches <- function(rec, date_range, jurisdiction) {
     }
   }
   TRUE
-}
-
-# -----------------------------------------------------------------------------
-# Relevance gate (mirrors NL handler)
-# -----------------------------------------------------------------------------
-
-#' Set up the relevance-scoring context (or NULL when no `topic` was given).
-#' @noRd
-de_setup_relevance <- function(topic, model, country) {
-  if (is.null(topic)) {
-    return(NULL)
-  }
-  topics <- normalise_topics(topic)
-  if (is.null(model)) {
-    model <- embedding_model_minilm()
-  }
-  if (!inherits(model, "planscanR_embedding_model")) {
-    cli::cli_abort(
-      "{.arg relevance_model} must be a planscanR_embedding_model object."
-    )
-  }
-  langs <- languages_for_country(country)
-  supp <- supported_languages(model)
-  if (length(langs) > 0L && !any(langs %in% supp)) {
-    key <- paste(model_name(model), country, sep = ":")
-    if (!key %in% get_warned_languages(model_name(model))) {
-      warn_partial(c(
-        "Country {.val {country}} uses language{?s} {.val {langs}}, which {?is/are} not in the supported set of model {.val {model_name(model)}}.",
-        i = "Records will still be scored, but quality may be reduced."
-      ))
-      mark_warned_language(key)
-    }
-  }
-  list(
-    model = model,
-    topics = topics,
-    topic_vecs = embed_text(model, unname(topics))
-  )
-}
-
-#' Attach relevance score(s) to a single record.
-#' @noRd
-de_apply_relevance <- function(rec, rel) {
-  text <- paste(rec$title %||% "", rec$summary %||% "", sep = "\n")
-  doc_vec <- embed_text(rel$model, text)
-  scores <- as.numeric(cosine_similarity_matrix(doc_vec, rel$topic_vecs))
-  for (i in seq_along(rel$topics)) {
-    rec[[paste0("relevance_score_", names(rel$topics)[i])]] <- scores[i]
-  }
-  rec$relevance_model <- model_name(rel$model)
-  rec
-}
-
-#' Decide whether a record's PDFs should be downloaded under the threshold.
-#'
-#' Same semantics as the NL handler's gate: scalar threshold passes if any
-#' topic score clears it; named-vector threshold passes if any named topic
-#' clears its own cutoff; `NULL` always passes.
-#' @noRd
-de_passes_download_gate <- function(rec, rel, threshold) {
-  if (is.null(threshold) || is.null(rel)) {
-    return(TRUE)
-  }
-  if (is.null(names(threshold))) {
-    scores <- vapply(
-      names(rel$topics),
-      function(nm) rec[[paste0("relevance_score_", nm)]],
-      numeric(1)
-    )
-    return(any(!is.na(scores) & scores >= threshold[[1]]))
-  }
-  ok <- vapply(
-    names(threshold),
-    function(nm) {
-      col <- paste0("relevance_score_", nm)
-      if (is.null(rec[[col]])) {
-        return(FALSE)
-      }
-      s <- rec[[col]]
-      !is.na(s) && s >= threshold[[nm]]
-    },
-    logical(1)
-  )
-  any(ok)
 }

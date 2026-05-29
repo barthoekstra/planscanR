@@ -7,11 +7,10 @@
 # classifier S3 frameworks already in the package: swap the algorithm, keep the
 # interface.
 #
-# The default learner is plain logistic regression on the base-R `glm` engine —
+# The built-in learner is plain logistic regression on the base-R `glm` engine —
 # no modelling backend beyond the tidymodels glue (parsnip / recipes / rsample /
-# workflows). Heavier learners (glmnet, xgboost, ranger) name their engine
-# package in `engine_pkg` so training can fail early with a helpful message when
-# it isn't installed.
+# workflows). A custom learner can name extra engine packages in `engine_pkg` so
+# training fails early with a helpful message when one isn't installed.
 
 #' Construct a custom selection learner.
 #'
@@ -53,12 +52,12 @@ selection_learner <- function(name, spec, engine_pkg = character(0), recipe_fn =
   )
 }
 
-#' Built-in selection learners.
+#' Built-in selection learner.
 #'
-#' @param penalty,mixture glmnet regularisation: total penalty and the
-#'   elastic-net mixing parameter (`0` = ridge, `1` = lasso).
-#' @param trees,tree_depth,learn_rate xgboost hyperparameters.
-#' @param mtry,min_n ranger hyperparameters.
+#' Logistic regression on the base-R `glm` engine — the default the BIOGAIN
+#' selection model trains. Needs only the tidymodels glue (parsnip / recipes /
+#' rsample / workflows), no extra modelling backend.
+#'
 #' @return A `planscanR_selection_learner`.
 #' @name selection_learners_builtin
 #' @export
@@ -69,71 +68,20 @@ selection_learner_logistic <- function() {
   selection_learner("logistic_glm", spec_fn)
 }
 
-#' @rdname selection_learners_builtin
-#' @export
-selection_learner_glmnet <- function(penalty = 0.01, mixture = 0) {
-  spec_fn <- function() {
-    parsnip::set_engine(
-      parsnip::logistic_reg(penalty = penalty, mixture = mixture),
-      "glmnet"
-    )
-  }
-  selection_learner("logistic_glmnet", spec_fn, engine_pkg = "glmnet")
-}
-
-#' @rdname selection_learners_builtin
-#' @export
-selection_learner_xgboost <- function(trees = 500, tree_depth = 4, learn_rate = 0.05) {
-  spec_fn <- function() {
-    parsnip::set_mode(
-      parsnip::set_engine(
-        parsnip::boost_tree(
-          trees = trees,
-          tree_depth = tree_depth,
-          learn_rate = learn_rate
-        ),
-        "xgboost"
-      ),
-      "classification"
-    )
-  }
-  selection_learner("xgboost", spec_fn, engine_pkg = "xgboost")
-}
-
-#' @rdname selection_learners_builtin
-#' @export
-selection_learner_ranger <- function(trees = 500, mtry = NULL, min_n = NULL) {
-  spec_fn <- function() {
-    parsnip::set_mode(
-      parsnip::set_engine(
-        parsnip::rand_forest(trees = trees, mtry = mtry, min_n = min_n),
-        "ranger"
-      ),
-      "classification"
-    )
-  }
-  selection_learner("ranger", spec_fn, engine_pkg = "ranger")
-}
-
 #' Registry of the built-in learners.
 #'
 #' Maps a stable key to a zero-argument constructor, for UIs that let the user
-#' pick a learner. `available_only = TRUE` drops learners whose engine package
-#' isn't installed.
+#' pick a learner. `available_only = TRUE` returns an empty list when the
+#' tidymodels packages needed to fit any learner aren't installed.
 #'
-#' @param available_only If `TRUE`, return only learners whose engine package is
-#'   installed.
+#' @param available_only If `TRUE`, return learners only when they can actually
+#'   be trained (the tidymodels packages are installed).
 #' @return A named list of constructor functions, keyed by learner key.
 #' @export
 #' @examples
 #' names(selection_learners())
 selection_learners <- function(available_only = FALSE) {
-  reg <- list(
-    logistic = selection_learner_logistic,
-    glmnet = selection_learner_glmnet,
-    xgboost = selection_learner_xgboost,
-    ranger = selection_learner_ranger
-  )
+  reg <- list(logistic = selection_learner_logistic)
   if (!available_only) {
     return(reg)
   }
@@ -141,21 +89,7 @@ selection_learners <- function(available_only = FALSE) {
   if (!all(vapply(glue, requireNamespace, logical(1), quietly = TRUE))) {
     return(reg[FALSE]) # no glue -> nothing is trainable
   }
-  ok <- vapply(
-    names(reg),
-    function(k) {
-      pkg <- switch(
-        k,
-        glmnet = "glmnet",
-        xgboost = "xgboost",
-        ranger = "ranger",
-        character(0)
-      )
-      length(pkg) == 0L || requireNamespace(pkg, quietly = TRUE)
-    },
-    logical(1)
-  )
-  reg[ok]
+  reg
 }
 
 #' @export
@@ -189,8 +123,9 @@ require_tidymodels <- function(engine_pkg = character(0)) {
 
 # Default preprocessing recipe. Uses the explicit predictor list (not `~ .`) so
 # the key columns (document_id, country) are never treated as predictors unless
-# the caller opted country in via `include`. Normalising is harmless for the
-# tree learners and required for glmnet.
+# the caller opted country in via `include`. Numeric predictors are normalised,
+# which is harmless for logistic regression and helps any scale-sensitive
+# learner a custom learner might plug in.
 #' @noRd
 selection_recipe <- function(train, feature_names) {
   rec <- recipes::recipe(

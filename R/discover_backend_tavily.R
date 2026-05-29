@@ -15,11 +15,9 @@
 #'   logged or persisted by the package.
 #' @param search_depth Either `"basic"` (default, cheaper) or `"advanced"`
 #'   (deeper crawl per result, ~3x the cost).
-#' @param max_results_cap Hard cap passed through as `max_results`. Tavily's
-#'   basic search depth caps responses at ~20 results regardless of what we
-#'   send; advanced search depth goes higher. We accept up to 100 here so
-#'   that future API tiers (and the advanced depth) aren't bottlenecked at
-#'   the package layer. Tavily silently caps the actual returned count.
+#' @param max_results_cap Maximum results to request per query, passed through
+#'   as `max_results` (default `10`, allowed range 1-100). Tavily may return
+#'   fewer than requested.
 #' @return A `planscanR_search_backend`.
 #' @export
 #' @examples

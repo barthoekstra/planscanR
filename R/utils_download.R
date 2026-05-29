@@ -432,8 +432,8 @@ empty_download_status <- function() {
 #' Build a per-URL "pending" download_status for known but not-yet-fetched URLs.
 #'
 #' Records whose PDFs we deliberately didn't fetch this run (download = FALSE,
-#' or the relevance gate skipped them) still need their URL list captured on
-#' the sidecar so a later run can find them. A pending row carries the URL
+#' or the relevance threshold skipped them) still need their URL list captured
+#' on the sidecar so a later run can find them. A pending row carries the URL
 #' and its section tag (set later by the sidecar writer) but `local_path = NA`.
 #'
 #' @noRd

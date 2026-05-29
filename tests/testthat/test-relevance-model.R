@@ -29,24 +29,6 @@ test_that("S3 dispatch falls through on unknown classes", {
   expect_error(model_name(list()), class = "planscanR_error_no_method")
 })
 
-test_that("cosine_similarity returns 1 for identical embeddings", {
-  m <- matrix(c(1, 0, 0), nrow = 1)
-  v <- matrix(c(1, 0, 0), nrow = 1)
-  expect_equal(planscanR:::cosine_similarity(m, v), 1)
-})
-
-test_that("cosine_similarity returns 0 for orthogonal vectors", {
-  m <- matrix(c(1, 0, 0), nrow = 1)
-  v <- matrix(c(0, 1, 0), nrow = 1)
-  expect_equal(planscanR:::cosine_similarity(m, v), 0)
-})
-
-test_that("cosine_similarity returns NA when either vector is zero", {
-  m <- matrix(c(0, 0), nrow = 1)
-  v <- matrix(c(1, 1), nrow = 1)
-  expect_true(is.na(planscanR:::cosine_similarity(m, v)))
-})
-
 test_that("normalise_topics validates and auto-slugs", {
   expect_null(planscanR:::normalise_topics(NULL))
   # Scalar gets auto-slugged into its single name

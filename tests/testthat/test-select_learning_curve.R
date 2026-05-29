@@ -70,8 +70,15 @@ test_that("selection_learning_curve returns the expected long shape over sizes",
   expect_named(
     summ,
     c(
-      "size", "n_train_used", "n",
-      "f1_mean", "f1_sd", "precision_mean", "precision_sd", "recall_mean", "recall_sd"
+      "size",
+      "n_train_used",
+      "n",
+      "f1_mean",
+      "f1_sd",
+      "precision_mean",
+      "precision_sd",
+      "recall_mean",
+      "recall_sd"
     )
   )
   expect_true(all(summ$f1_mean >= 0 & summ$f1_mean <= 1, na.rm = TRUE))

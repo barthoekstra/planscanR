@@ -54,9 +54,9 @@ actually changed something).}
 \item{topic, relevance_threshold, relevance_model}{Forwarded from
 \code{\link[=get_assessments]{get_assessments()}}. When \code{topic} is supplied, each candidate record is
 scored, and every scored record is sidecar'd and returned regardless of
-threshold. \code{relevance_threshold} is a \strong{download-gate only}: records
-below threshold keep their sidecar + tibble row but their PDFs are not
-downloaded.}
+threshold. \code{relevance_threshold} \strong{only affects downloading}: records
+below the threshold keep their sidecar and their tibble row, but their PDFs
+are not downloaded.}
 
 \item{theme, advice_type, status, province}{Character vectors. See "Filter
 coverage". For \code{theme}, \code{advice_type}, \code{status} the valid slugs are in
@@ -72,9 +72,10 @@ A tibble; see \code{\link[=get_assessments]{get_assessments()}} for the schema.
 \description{
 Implementation of \code{\link[=get_assessments]{get_assessments()}} for the Netherlands. Backed by the
 Commissie m.e.r. adviezenregister at
-\url{https://www.commissiemer.nl/adviezen/}. URL enumeration uses the portal's
-published sitemap (\code{advice-sitemap*.xml}); per-record metadata is parsed
-from each detail page with rvest. Free-text and date-range filters are
+\url{https://www.commissiemer.nl/adviezen/}. Record URLs are read from the
+portal's sitemap index (\code{wp-sitemap.xml}), following its \verb{advice-sitemap*}
+sub-sitemaps; per-record metadata is parsed from each detail page with
+rvest. Free-text and date-range filters are
 applied client-side as records are parsed; taxonomy filters
 (\code{theme}, \code{advice_type}, \code{status}) are accepted for forward compatibility
 but \strong{not yet honoured} in v0.1 — see the "Filter coverage" section below.
@@ -102,11 +103,12 @@ these through to a working portal-side filter path.
 \section{Performance}{
 
 The portal hosts ~3600 advisory records. Each detail page is fetched once
-and cached via httr2 for \code{getOption("planscanR.cache_ttl")} seconds
-(default 1 h), so repeat runs are fast. \strong{However}, on a cold cache,
-enumerating the full register can take many minutes and downloading every
-attachment can use significant disk space. Always start with a \code{limit}
-(and ideally a \code{query}) when exploring.
+and saved to a sidecar JSON on disk (see \code{\link[=index_cache]{index_cache()}}); on later runs a
+record with an existing sidecar is read straight from disk instead of being
+re-fetched, so repeat runs are fast. On a first, cold run, enumerating the
+full register can take many minutes and downloading every attachment can use
+significant disk space. Always start with a \code{limit} (and ideally a \code{query})
+when exploring.
 
 To avoid stressing the server (commissiemer.nl returns HTTP 429 under a
 sustained burst), NL requests are throttled to one per second by default

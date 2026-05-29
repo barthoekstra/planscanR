@@ -20,8 +20,6 @@
 #'   * `aktenzahl_regex` — regex that detects the country's primary
 #'     identifier in PDF text. For AT it matches the UBA-internal AZ
 #'     `02 NNNN` plus a couple of dash/no-space variants.
-#'   * `extract_proponent` — function(record) -> character, pulls the
-#'     proponent name out of the record's summary (returns NA on failure).
 #'   * `extra_signals` — character vector of additional patterns the
 #'     validator will check for in PDF text (e.g. legal-basis strings).
 #' @export
@@ -147,7 +145,6 @@ at_discovery_config <- function() {
     # whole-word match. Used by the validator to confirm a candidate PDF
     # actually references the record's Aktenzahl.
     aktenzahl_regex = "\\b02[ \\-]?\\d{4}\\b",
-    extract_proponent = function(rec) at_extract_proponent_from_summary(rec$summary),
     # Patterns that, when present, raise the validator's confidence that a
     # PDF is a real UVP document. Loose substring matches.
     extra_signals = c(
@@ -169,23 +166,59 @@ at_discovery_config <- function() {
     # through.
     title_stoplist = c(
       # subtype labels
-      "windpark", "windparks", "windkraft", "windkraftanlage",
-      "windkraftanlagen", "kraftwerk", "kraftwerks", "kraftwerke",
-      "wasserkraftanlage", "wasserkraftwerk", "fernheizwerk", "fernheizwerks",
-      "freileitung", "leitung", "leitungen", "anlage", "anlagen",
+      "windpark",
+      "windparks",
+      "windkraft",
+      "windkraftanlage",
+      "windkraftanlagen",
+      "kraftwerk",
+      "kraftwerks",
+      "kraftwerke",
+      "wasserkraftanlage",
+      "wasserkraftwerk",
+      "fernheizwerk",
+      "fernheizwerks",
+      "freileitung",
+      "leitung",
+      "leitungen",
+      "anlage",
+      "anlagen",
       # document-type words
-      "bescheid", "bescheide", "antrag", "antrage", "genehmigung",
-      "genehmigungsantrag", "stellungnahme", "vorhaben", "projekt",
+      "bescheid",
+      "bescheide",
+      "antrag",
+      "antrage",
+      "genehmigung",
+      "genehmigungsantrag",
+      "stellungnahme",
+      "vorhaben",
+      "projekt",
       "kundmachung",
       # modifier words common across many projects
-      "erweiterung", "neuerrichtung", "neubau", "ersatzneubau",
-      "repowering", "anderung", "anderungsbescheid", "verlangerung",
+      "erweiterung",
+      "neuerrichtung",
+      "neubau",
+      "ersatzneubau",
+      "repowering",
+      "anderung",
+      "anderungsbescheid",
+      "verlangerung",
       # legal frame
-      "umwelt", "umweltvertraglichkeitsprufung", "umweltbericht",
+      "umwelt",
+      "umweltvertraglichkeitsprufung",
+      "umweltbericht",
       "umweltgutachten",
       # very common geography words
-      "burgenland", "niederosterreich", "oberosterreich", "steiermark",
-      "salzburg", "vorarlberg", "tirol", "karnten", "wien", "osterreich"
+      "burgenland",
+      "niederosterreich",
+      "oberosterreich",
+      "steiermark",
+      "salzburg",
+      "vorarlberg",
+      "tirol",
+      "karnten",
+      "wien",
+      "osterreich"
     )
   )
 }
