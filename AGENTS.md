@@ -364,6 +364,64 @@ model, write_sidecar = ...)`. Pairs well with `index_cache()`.
   `relevance_score_<slug>` columns. Old sidecars (without the array) still
   read fine — they just don't add per-topic columns.
 
+## 5c. The BIOGAIN review app (`inst/biogain-review/`)
+
+A bundled Shiny app for inspecting how records flow through the pipeline and for
+building a **human ground-truth selection** to benchmark the automated
+`select_assessments()` gate against. Launched via the exported
+`run_biogain_review()` (in `R/biogain_review_app.R`), which locates the app with
+`system.file()`, checks the optional UI deps, and forwards `cache_dir`/`data_dir`.
+
+**It is a consumer of the package, never a modifier.** It reads the sidecar
+cache read-only through `index_cache()` / `score_keywords()` /
+`select_assessments()`, and only *writes* two things: human review decisions and
+cached translations.
+
+**Where things live**
+- App: `inst/biogain-review/app.R` (UI + server) plus self-contained helpers in
+  `inst/biogain-review/R/` — Shiny auto-sources that `R/` dir. Helpers reach the
+  package via `planscanR::` / `planscanR:::`, so the app only needs planscanR
+  installed (or `load_all`-ed in dev).
+  - `data.R` — `load_or_build_snapshot()` (walks `index_cache()` once → an
+    enriched, scalar-column snapshot cached as `corpus_snapshot.rds`),
+    `apply_selection()` (live wrapper over `select_assessments()`), and
+    `draw_random_sample()` / `build_review_queue()` (stratified + prioritised
+    sampling).
+  - `store.R` — review decisions as a human-readable CSV (`reviews.csv`), one row
+    per **(country, document_id, reviewer)** so multiple reviewers coexist; plus
+    a reviewers-name list (`reviewers.txt`).
+  - `funnel.R` — per-stage funnel counts, the interactive plotly funnel,
+    `selection_vs_human()` (auto-vs-human precision/recall/F1, deduped to the
+    most-recent decision per record), and `inter_reviewer_summary()`.
+  - `table.R` — the styled reactable (per-row + bulk keep/drop/unsure, lazy
+    translation fold-down), the single-record stepper card, and the metric /
+    column info popovers.
+  - `translate.R` — offline **Argos Translate** (`argostranslate` via reticulate)
+    for title/summary → English.
+
+**Data location (important).** The app's artefacts default to the **cache root**
+(`cache_dir`, i.e. alongside `files/`), NOT a separate user dir, so reviews
+travel with a cache sync. They sit at the root — `reviews.csv`, `reviewers.txt`,
+`corpus_snapshot.rds`, `random_sample.rds` — not under `files/`, so
+`clear_cache()` (which only wipes `files/`) leaves them intact. Override with the
+`data_dir` arg or `BIOGAIN_REVIEW_DATA`. Cache root resolves: `cache_dir` →
+`PLANSCANR_CACHE` → `getOption("planscanR.cache_dir")` → package default.
+
+**Translations are persisted into the sidecars NON-DESTRUCTIVELY** — under each
+record's `extras` as `translation_*` keys, via the package's own merge-write — so
+they survive a later scan/score/classify rewrite and surface through
+`index_cache()`. CTranslate2 is forced single-threaded (`OMP_NUM_THREADS=1`) to
+avoid an OpenMP/Shiny segfault.
+
+**Inter-reviewer workflow.** A reviewer name is required before classifying
+(enforced by a load modal + server gates). A new reviewer's queue first serves
+records *others* have reviewed but they haven't (to measure cross-reviewer
+agreement); only once caught up does it sample fresh, unreviewed records.
+
+**Deps** are in `Suggests` (shiny, bslib, reactable, plotly, htmltools); the app
+is excluded from `R CMD check`/build only in that its runtime data dir is never
+shipped. The launcher errors helpfully if a Suggested package is missing.
+
 ## 6. Roadmap (informational; not actionable in v0.1)
 
 - **`classify_assessments()`** — separate function that takes the tibble from
