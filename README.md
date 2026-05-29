@@ -1,2 +1,75 @@
 # planscanR
-R package for retrieving SEA, EIA, and zoning documents from national and regional spatial-data portals across Europe. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.
+
+`planscanR` collects environmental-assessment records — Environmental Impact
+Assessments (EIA), Strategic Environmental Assessments (SEA), and related
+advice — from European government portals, and gives you one consistent table
+to work with no matter which country a record came from.
+
+It was built for the [BIOGAIN](https://www.biodiversa.eu/) project, which studies
+how to achieve a net gain in biodiversity when planning where energy
+infrastructure goes. To do that, the project needs to find the relevant
+assessments scattered across national portals — which is what this package
+automates.
+
+## What it does
+
+1. **Fetch.** One function, `get_assessments()`, retrieves records from a
+   national portal and returns them as a tidy table. The same columns come back
+   for every country, so you can stack results together.
+2. **Score.** Optionally rank each record by how closely it matches topics you
+   care about (e.g. wind, solar, power grids), using a multilingual text-similarity
+   model so a German record and a Dutch one are judged on the same footing.
+3. **Select.** Combine the relevance signals into a single keep/drop decision,
+   so you can narrow thousands of records down to the ones worth reading.
+
+Supported portals:
+
+| Country | Portal | Notes |
+|---|---|---|
+| Netherlands (`"nl"`) | Commissie m.e.r. adviezenregister | full records + document downloads |
+| Germany (`"de"`) | UVP-Verbund | full records + document downloads |
+| Austria (`"at"`) | Umweltbundesamt UVP-DB | record details only (documents sit behind a login) |
+
+## Installation
+
+```r
+# install.packages("pak")
+pak::pak("barthoekstra/planscanR")
+```
+
+The relevance-scoring step uses a Python model through
+[reticulate](https://rstudio.github.io/reticulate/). Install it once with:
+
+```r
+reticulate::py_install("sentence-transformers")
+```
+
+You only need this if you pass a `topic` to `get_assessments()`; plain fetching
+works without it.
+
+## Quick start
+
+```r
+library(planscanR)
+
+# Grab 20 records from the Netherlands (no documents downloaded yet).
+records <- get_assessments("nl", limit = 20, download = FALSE)
+
+# Score them against the BIOGAIN energy topics and keep the relevant ones.
+records <- get_assessments(
+  "nl",
+  topic = biogain_assessment_topics(),
+  relevance_threshold = 0.5,
+  limit = 20,
+  download = FALSE
+)
+records$relevance_score_wind
+```
+
+See `vignette("planscanR")` for an end-to-end walkthrough (fetch → score →
+select), and `get_assessments_coverage()` for the portals and search options
+available at runtime.
+
+## License
+
+GPL (>= 3).

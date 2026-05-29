@@ -1,6 +1,29 @@
 # planscanR 0.0.0.9000
 
 * Initial development scaffold.
+* Austria handler `get_assessments_at()` fetches record metadata from the
+  Umweltbundesamt UVP-DB (`secure.umweltbundesamt.at/uvpdb`). Metadata-only:
+  the portal's documents sit behind a login, so `attachment_urls` are empty.
+* Topic relevance scoring. Pass `topic` to `get_assessments()` (or use
+  `score_assessments()` on existing records) to rank each record by how closely
+  its title and summary match one or more topics, via a multilingual
+  text-similarity model. `biogain_assessment_topics()` returns the six energy
+  topics the BIOGAIN project uses. The embedding model is pluggable through
+  `embedding_model()`.
+* Lexical keyword scoring (`score_keywords()`, `biogain_keyword_lexicon()`)
+  counts energy-related terms as a complementary signal.
+* Classification. `classify_assessments()` assigns each record a canonical
+  class via a pluggable zero-shot classifier (`classify_model_zeroshot()`).
+* Selection. `select_assessments()` combines the relevance, classifier, and
+  keyword signals into a single keep/drop decision. A model learned from human
+  keep/drop labels (`train_selection_model()` / `predict_selection()`) is also
+  available; the built-in learner is logistic regression.
+* Attachment discovery. For portals that don't expose documents directly,
+  `discover_attachments()` finds and validates PDFs through a pluggable
+  web-search backend (`search_backend_tavily()`).
+* Review app. `run_biogain_review()` launches a bundled Shiny app for inspecting
+  how records flow through the pipeline and building a human ground-truth
+  selection to benchmark the automated decision against.
 * Unified entry function `get_assessments()` dispatches on country code.
 * Netherlands handler `get_assessments_nl()` fetches from the Commissie m.e.r.
   adviezenregister (`commissiemer.nl`) via sitemap-based URL discovery and
