@@ -1,0 +1,197 @@
+# Supported sources
+
+`planscanR` is a thin layer over a handful of national
+environmental-assessment portals. There is no shared API behind the
+scenes — each country gives us a different mix of HTML pages, sitemaps,
+search endpoints, and undocumented JSON handlers, and each one comes
+with its own quirks. This vignette describes what each handler does,
+where it pulls data from, and what to expect (or watch out for) when
+using it.
+
+For the runtime equivalent — the same information in tabular form,
+including the valid vocabularies for the search facets each handler
+accepts — call:
+
+``` r
+
+get_assessments_coverage()
+```
+
+## A note on stability
+
+> \[!WARNING\] None of these portals expose a contractually stable API.
+> Three of the four handlers parse HTML detail pages with `rvest`; the
+> fourth uses an undocumented JSON service. Any of the operators can
+> change a CSS class, rename a field, or slip a login wall in front of
+> an endpoint without warning, and the corresponding handler will then
+> break — sometimes silently. Treat the results with the scepticism that
+> a scraping pipeline deserves, and please file an issue when you spot
+> drift.
+
+> \[!CAUTION\] Because we are often not talking to real APIs, we have no
+> rate-limit contract with these servers. The package throttles where we
+> know it matters (NL is capped at ~1 request/second, DK at 5), but a
+> careless full-register crawl can still put real load on a small
+> government portal. Use `limit` and `query` while exploring.
+
+## Netherlands — `"nl"`
+
+- **Portal:** Commissie m.e.r. adviezenregister
+  ([commissiemer.nl/adviezen](https://www.commissiemer.nl/adviezen/))
+- **Status:** supported — full records and document downloads.
+- **Authentication:** none.
+- **Coverage:** ~3,600 advisory records.
+- **Throttle:** ~1 request/second by default
+  (`getOption("planscanR.nl_throttle_rate")`).
+
+URL enumeration is driven by the portal’s own sitemap index
+(`wp-sitemap.xml`, following the `advice-sitemap*` sub-sitemaps).
+Per-record metadata is parsed from each detail page with `rvest` and
+persisted to a sidecar JSON, so re-running a slice is essentially free
+once the cache is warm.
+
+**Filter coverage.** Free-text `query`, `date_range` (matched against
+`date_decision`), and `province` (substring match against
+`competent_authority`) are honoured. The portal’s taxonomy facets —
+`theme`, `advice_type`, `status` — are driven by a client-side FacetWP
+layer that does not yield to programmatic access; those arguments are
+accepted for forward compatibility but currently emit a one-shot
+warning.
+
+**Documents.** Detail pages group PDFs into two on-page sections, which
+are exposed as separate list-columns (`attachment_urls_source` and the
+deduplicated `attachment_urls` union). See
+[`?get_assessments_nl`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md)
+for the section layout.
+
+``` r
+
+get_assessments_nl(limit = 20, download = FALSE)
+```
+
+## Germany — `"de"`
+
+- **Portal:** UVP-Verbund
+  ([uvp-verbund.de](https://www.uvp-verbund.de/))
+- **Status:** supported — full records and document downloads.
+- **Authentication:** none.
+- **Coverage:** ~24,289 records federated across all federal-state
+  authorities (the full register).
+
+The portal exposes no sitemap, no OAI-PMH, and no CSW endpoint.
+Enumeration goes through the portal’s Solr-backed full-text search
+(`/freitextsuche`). When no `query` is supplied the handler sends the
+wildcard `q=*:*`, which paginates through the full register (~2,429
+pages of 10 records each). The `toggle_procedure=` parameter is
+explicitly set to an empty value so the portal does not silently
+restrict results to currently-running and last-year-modified procedures.
+
+**Filter coverage.** `query` is passed straight through as the
+server-side `q` parameter (real full-text search, not a client-side
+substring match). `date_range` matches against the detail-page “Zuletzt
+geändert” timestamp, exposed as `date_decision`. `jurisdiction` is a
+substring match against the federal-state partner (e.g. `"Bayern"`,
+`"Baden-Württemberg"`).
+
+**Documents.** Detail pages group documents under open-ended
+`h4.title-font` section headings. Each heading becomes its own
+`attachment_urls_<slug>` / `local_path_<slug>` column; known headings
+get a curated slug (`uvp_bericht`, `berichte`, `entscheidung`,
+`auslegung`, `weitere`) and any unknown heading is auto-slugged from its
+title so a new section type appears without a code change. See
+[`?get_assessments_de`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md)
+for the full layout.
+
+``` r
+
+get_assessments_de(query = "windenergie", limit = 20, download = FALSE)
+```
+
+## Austria — `"at"`
+
+- **Portal:** Umweltbundesamt UVP-DB
+  ([secure.umweltbundesamt.at/uvpdb/public](https://secure.umweltbundesamt.at/uvpdb/public))
+- **Status:** supported (metadata-only) — documents sit behind a
+  Keycloak login wall and are not retrievable by this version.
+- **Authentication:** none for metadata.
+- **Coverage:** ~500 procedures (the full register is small).
+
+The public HTML pages of the portal sit behind a Keycloak login, but
+three JSON service handlers are open: `mapsdata`, `mapsgeom`, and
+`vorhabenInfo`. Enumeration is a single `mapsdata` call that returns the
+full index keyed by Aktenzahl; per-record detail is one `vorhabenInfo`
+call per `v2id`. No pagination, no CSRF, no session required.
+
+**Filter coverage.** `query` is a case-insensitive substring match on
+`title` + `summary`. `date_range` is matched against the record’s `year`
+(treated as a Jan 1 – Dec 31 span) — `date_decision` is always `NA`,
+because the anonymous service handlers do not expose a decision or
+last-modified timestamp. `jurisdiction` is a substring match against the
+comma-joined Austrian federal-state list (so `"Wien"` works, `"Bayern"`
+will not).
+
+**Documents.** Not available to anonymous callers. Every record returns
+`attachment_urls = character(0)`. The `download` argument is accepted
+for API symmetry but has no effect. If you need attachments, point
+`get_assessments(..., discover = TRUE)` at a web-search backend — see
+\[[`?discover_attachments`](https://barthoekstra.github.io/planscanR/reference/discover_attachments.md)\].
+
+``` r
+
+get_assessments_at(query = "Windpark", limit = 20, download = FALSE)
+```
+
+## Denmark — `"dk"`
+
+- **Portal:** Danmarks Miljøportal EA-Hub
+  ([eahub.miljoeportal.dk](https://eahub.miljoeportal.dk/))
+- **Status:** supported (metadata-only) — full metadata and polygon
+  geometry are fetched; document downloads are a future addition.
+- **Authentication:** none.
+- **Coverage:** ~2,700 records (both EIA, “miljøvurdering af projekter”,
+  and SEA, “miljøvurdering af planer”).
+- **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.dk_throttle_rate")`), because the geometry
+  fetch is one tiny GET per record-with-geometry.
+
+EA-Hub is a Vue SPA sitting on a public REST API (Swagger at
+`/api/swagger/v1/swagger.json`). One `POST /assessments/search` call
+returns the entire register — each row already carries title, year
+range, status, authorities, EIA-Directive Annex I/II categories, plan
+types/categories, and a `hasGeometry` flag — so no detail call is needed
+during the scan phase.
+
+**Geometry.** Records with `hasGeometry == TRUE` carry a polygon
+(typically a MULTIPOLYGON in EPSG:25832 / ETRS89-UTM32N). When
+`write_sidecar = TRUE`, the geometry is fetched from
+`GET /assessments/{id}/geometry` and saved next to the sidecar as
+`<document_id>.geometry.geojson`; the sidecar carries a `geometry_path`
+and `geometry_crs` for downstream consumption with `sf`.
+
+**Filter coverage.** `query` is forwarded to the API’s server-side
+`freeText`. `assessment_type` (`"All"`, `"Plans"`, `"Project"`) is
+honoured. `date_range` is matched client-side against each record’s
+`fromYear`/`toYear` (treated as Jan 1 – Dec 31 spans); `date_decision`
+is always `NA` because EA-Hub exposes only year fields, no decision
+timestamp.
+
+**Documents.** EA-Hub exposes PDFs at public Azure blob URLs reachable
+via `GET /assessments/{id}/documents/{docId}/links`, but resolving them
+costs an extra HTTP call per document. The current handler is scan +
+classify only; a future release will add the download phase.
+
+``` r
+
+get_assessments_dk(query = "vindmølle", limit = 20, download = FALSE)
+```
+
+## Adding a new source
+
+Adding a handler for another national portal is a matter of writing one
+`get_assessments_<cc>()` that returns a tibble with the planscanR
+required columns (`country`, `source_portal`, `document_id`, `url`,
+`retrieved_at`, `attachment_urls`, `local_path`) and wiring it into the
+dispatcher in
+[`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md).
+If you have a portal in mind, open an issue describing what it exposes
+(sitemap? search? open JSON?) and we can sketch out a handler.

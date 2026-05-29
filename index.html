@@ -33,6 +33,12 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/planscanR.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/supported_sources.html">Supported sources</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -89,10 +95,26 @@
 <tr>
 <td>Austria (<code>"at"</code>)</td>
 <td>Umweltbundesamt UVP-DB</td>
-<td>record details only (documents sit behind a login)</td>
+<td>record details only (no documents)</td>
+</tr>
+<tr>
+<td>Denmark (<code>"dk"</code>)</td>
+<td>Danmarks Miljøportal EA-Hub</td>
+<td>record metadata + polygon geometry + document downloads</td>
 </tr>
 </tbody>
 </table>
+<p>See <code><a href="articles/supported_sources.html">vignette("supported_sources")</a></code> for per-portal details: how each portal is accessed, what filters are honoured, and what data comes back.</p>
+</div>
+<div class="section level2">
+<h2 id="a-word-of-caution">A word of caution<a class="anchor" aria-label="anchor" href="#a-word-of-caution"></a>
+</h2>
+<blockquote>
+<p>[!WARNING] <code>planscanR</code> is only as stable as the portals it pulls from. None of the target sites expose a contractually stable API; most are scraped from HTML detail pages, and the rest sit on undocumented JSON endpoints that the portal operators can change at will. A tiny redesign on any of these sites — a renamed CSS class, a moved field, a new login wall — is enough to break the corresponding handler, sometimes silently. Treat results with a healthy dose of scepticism, sanity-check them against the portal’s own UI when something looks off, and please file an issue when you spot drift.</p>
+</blockquote>
+<blockquote>
+<p>[!CAUTION] Because we are often not talking to real APIs, we have no formal rate-limit contract with these servers. The package throttles requests where we know it matters (e.g. NL is capped at ~1 request per second, DK at 5), but you can override those, and a careless full-register crawl can put real load on a small government portal. Use <code>limit</code> and <code>query</code> while exploring, keep the throttle on for production runs, and don’t scan everything in parallel from many machines.</p>
+</blockquote>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
