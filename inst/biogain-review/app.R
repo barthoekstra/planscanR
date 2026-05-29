@@ -40,7 +40,7 @@ if (!nzchar(CACHE_DIR)) {
     tools::R_user_dir("planscanR", "cache")
   )
 }
-COUNTRIES <- c("nl", "de", "at")
+COUNTRIES <- c("nl", "de", "at", "dk")
 # Where the app's own artefacts live (snapshot + reviews.csv + reviewers list).
 # Defaults to the cache ROOT so the human annotations sit alongside the data
 # they describe (and travel with any cache sync). They live at the root, not

@@ -14,9 +14,9 @@ TRANSLATE_ENGINE <- "argos"
 # responsive; longer text is truncated with a marker.
 ARGOS_MAX_CHARS <- 4000L
 
-# Country -> source language (NL Dutch; DE/AT German).
+# Country -> source language (NL Dutch; DE/AT German; DK Danish).
 country_src_lang <- function(country) {
-  m <- c(nl = "nl", de = "de", at = "de")
+  m <- c(nl = "nl", de = "de", at = "de", dk = "da")
   v <- m[[country]]
   if (is.null(v)) NA_character_ else v
 }

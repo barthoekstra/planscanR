@@ -57,8 +57,16 @@
 # Override with the PLANSCANR_CACHE env var without editing this file.
 CACHE_DIR <- Sys.getenv("PLANSCANR_CACHE", "/Users/barthoekstra/Development/plans")
 
-# Which portals to process, in order.
-COUNTRIES <- c("nl", "de", "at")
+# Which portals to process, in order. Override with the BIOGAIN_COUNTRIES env
+# var (comma-separated, e.g. BIOGAIN_COUNTRIES=de) without editing this file.
+COUNTRIES <- {
+  v <- Sys.getenv("BIOGAIN_COUNTRIES", unset = NA_character_)
+  if (is.na(v) || !nzchar(v)) {
+    c("nl", "de", "at", "dk")
+  } else {
+    trimws(strsplit(v, ",", fixed = TRUE)[[1]])
+  }
+}
 
 # Phase toggles. Default = scan only; classification, downloads, and discovery
 # are deliberate opt-ins. Each is overridable from the environment without
@@ -136,6 +144,18 @@ COUNTRY_CFG <- list(
     download_sections = NULL,
     category_regex = NULL,
     discover = TRUE
+  ),
+  dk = list(
+    # No server-side filter applied at scan time — the EA-Hub search call
+    # returns the entire register in one shot (~2700 records as of writing).
+    scan_args = list(),
+    # No portal downloads in v0.1: EA-Hub's per-document /links endpoint is
+    # public and the resulting Azure-blob PDFs are anonymous, but the SCAN
+    # phase deliberately stops at metadata. Wire downloads here once the
+    # DK download path is implemented.
+    download_sections = NULL,
+    category_regex = NULL,
+    discover = FALSE
   )
 )
 

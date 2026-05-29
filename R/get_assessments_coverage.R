@@ -14,16 +14,51 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "at"),
-    source_portal = c("commissiemer.nl", "uvp-verbund.de", "umweltbundesamt.at/uvpdb"),
+    country = c("nl", "de", "at", "dk"),
+    source_portal = c(
+      "commissiemer.nl",
+      "uvp-verbund.de",
+      "umweltbundesamt.at/uvpdb",
+      "miljoeportal.dk/eahub"
+    ),
     base_url = c(
       "https://www.commissiemer.nl",
       "https://www.uvp-verbund.de",
-      "https://secure.umweltbundesamt.at/uvpdb/public"
+      "https://secure.umweltbundesamt.at/uvpdb/public",
+      "https://eahub.miljoeportal.dk"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE),
-    status = c("supported", "supported", "supported (metadata-only)"),
-    facets = list(commissiemer_facets(), uvp_facets(), uvpdb_at_facets())
+    requires_auth = c(FALSE, FALSE, FALSE, FALSE),
+    status = c(
+      "supported",
+      "supported",
+      "supported (metadata-only)",
+      "supported (metadata-only)"
+    ),
+    facets = list(
+      commissiemer_facets(),
+      uvp_facets(),
+      uvpdb_at_facets(),
+      eahub_dk_facets()
+    )
+  )
+}
+
+#' Static lookup of the EA-Hub (Denmark) facet vocabularies.
+#'
+#' EA-Hub's master-data endpoints (`/api/master-data/...`) are the
+#' authoritative source for these vocabularies; this static snapshot
+#' captures only the search-time discriminators we currently honour
+#' (`assessment_type`), plus the EIA-Directive Annex I/II numeric labels
+#' so users have an at-a-glance reference. Anything richer (plan types,
+#' plan categories, statuses, etc.) is best fetched live from the API.
+#' @noRd
+eahub_dk_facets <- function() {
+  list(
+    assessment_type = c("All", "Plans", "Project"),
+    annex = c(
+      "Annex I (mandatory EIA)",
+      "Annex II (case-by-case screening)"
+    )
   )
 }
 
