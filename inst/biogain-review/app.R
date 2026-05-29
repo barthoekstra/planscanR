@@ -134,7 +134,11 @@ review_assets <- function() {
       "#eval_on .radio-inline{margin-right:1.75rem;}",
       # White circular info button on metric cards (clear hover affordance).
       ".metric-info:hover,.metric-info:focus{background:rgba(255,255,255,.4)",
-      "!important;outline:none;}"
+      "!important;outline:none;}",
+      # Small group label sitting above a value-box metric name. White so it
+      # reads cleanly on the coloured (themed) value-box backgrounds.
+      ".metric-group{font-size:0.7rem;font-weight:600;letter-spacing:.04em;",
+      "text-transform:uppercase;color:#fff;opacity:.85;margin-bottom:1px;}"
     )),
     tags$script(HTML(
       "window.__reviewState = window.__reviewState || {};
@@ -288,7 +292,7 @@ review_assets <- function() {
 # anything. They pick an existing name or type a new full name.
 reviewer_modal <- function() {
   modalDialog(
-    title = "Welcome to the planscanR review tool",
+    title = "Welcome to the planscanR curation tool",
     selectizeInput(
       "modal_reviewer",
       "Your full name",
@@ -305,7 +309,7 @@ reviewer_modal <- function() {
       "New reviewers start by re-checking records others have already reviewed ",
       "(to measure agreement) before fresh records are sampled."
     ),
-    footer = actionButton("modal_ok", "Start reviewing", class = "btn-primary"),
+    footer = actionButton("modal_ok", "Start curating", class = "btn-primary"),
     easyClose = FALSE,
     fade = FALSE
   )
@@ -315,7 +319,7 @@ reviewer_modal <- function() {
 # UI
 # -----------------------------------------------------------------------------
 ui <- page_navbar(
-  title = "planscanR — pipeline funnel & review",
+  title = "planscanR — Curation",
   id = "nav",
   theme = bs_theme(
     version = 5,
@@ -368,6 +372,33 @@ ui <- page_navbar(
       )
     ),
     hr(),
+    selectInput(
+      "learner",
+      "Selection model",
+      choices = selection_learner_choices(),
+      selected = "logistic"
+    ),
+    actionButton("train_model", "Train selection model", class = "btn-outline-primary btn-sm"),
+    helpText(
+      "Fits a model on your keep/drop labels (random sample) over the sidecar ",
+      "scores. Cross-validated metrics appear on the Overview tab."
+    ),
+    uiOutput("model_info"),
+    sliderInput(
+      "model_threshold",
+      "Model decision threshold",
+      min = 0,
+      max = 1,
+      value = 0.5,
+      step = 0.01
+    ),
+    actionButton("compute_lc", "Compute learning curve", class = "btn-primary btn-sm"),
+    plotly::plotlyOutput("learning_curve_plot", height = "220px"),
+    helpText(
+      "Repeated held-out resampling on the random sample: F1 vs. number of ",
+      "labels. Shows where adding more labels stops helping."
+    ),
+    hr(),
     actionButton("rebuild", "Rebuild snapshot", class = "btn-outline-secondary btn-sm"),
     helpText("Re-reads the sidecar cache. Slow; only needed after a new pipeline run."),
     uiOutput("snapshot_info")
@@ -379,8 +410,9 @@ ui <- page_navbar(
     layout_columns(
       fill = FALSE,
       value_box("Indexed", textOutput("vb_total"), theme = "secondary"),
-      value_box("Selected", textOutput("vb_selected"), theme = "primary"),
-      value_box("Reviewed", textOutput("vb_reviewed"), theme = "success")
+      value_box("Selected (heuristic)", textOutput("vb_selected"), theme = "primary"),
+      value_box("Selected (model)", textOutput("vb_selected_model"), theme = "primary"),
+      value_box("Reviewed", textOutput("vb_reviewed"), theme = "secondary")
     ),
     layout_columns(
       col_widths = c(7, 5),
@@ -400,7 +432,17 @@ ui <- page_navbar(
       )
     ),
     card(
-      card_header("Automated selection vs. human review"),
+      card_header(
+        div(
+          class = "d-flex justify-content-between align-items-center",
+          span("Automated selection vs. human review"),
+          actionButton(
+            "show_perf_country",
+            "Performance by country",
+            class = "btn-outline-secondary btn-sm"
+          )
+        )
+      ),
       radioButtons(
         "eval_on",
         NULL,
@@ -412,6 +454,7 @@ ui <- page_navbar(
         selected = "all"
       ),
       uiOutput("agreement_ui"),
+      uiOutput("model_agreement_ui"),
       # Pin top cards + this stats card; only the middle plot/table row grows.
       fill = FALSE
     )
@@ -433,8 +476,11 @@ ui <- page_navbar(
             "Show",
             choices = c(
               "All" = "all",
-              "Selected only" = "selected",
-              "Not selected" = "not_selected",
+              "Heuristic-selected" = "selected",
+              "Heuristic not selected" = "not_selected",
+              "Model-selected" = "model_selected",
+              "Model not selected" = "model_not_selected",
+              "Heuristic vs Model differ" = "model_vs_heuristic",
               "Reviewed" = "reviewed",
               "Unreviewed" = "unreviewed",
               "Disagreements (auto vs human)" = "disagree"
@@ -455,6 +501,11 @@ ui <- page_navbar(
         "decisions, tick rows with the checkboxes and use the toolbar buttons ",
         "above. Click anywhere on a row to fold down its summary — original on ",
         "the left, English translation on the right."
+      ),
+      helpText(
+        "The blue \"Pre-selected\" column is the heuristic rule; the green ",
+        "\"Model\" column is the trained model's decision at the current ",
+        "decision threshold (set in the sidebar)."
       ),
       reactable::reactableOutput("review_tbl")
     )
@@ -550,8 +601,14 @@ ui <- page_navbar(
 # Server
 # -----------------------------------------------------------------------------
 server <- function(input, output, session) {
+  # Value-box title with a small muted group label above the metric name.
+  metric_title <- function(group, label) {
+    htmltools::div(htmltools::div(group, class = "metric-group"), label)
+  }
+
   snap <- reactiveVal(load_or_build_snapshot(CACHE_DIR, COUNTRIES, APP_DATA_DIR))
   reviews <- reactiveVal(load_reviews(APP_DATA_DIR))
+  sel_model <- reactiveVal(load_app_model(APP_DATA_DIR))
 
   # #1 — force the reviewer to identify themselves on load.
   showModal(reviewer_modal())
@@ -612,9 +669,257 @@ server <- function(input, output, session) {
     showNotification("Snapshot rebuilt.", type = "message")
   })
 
-  # Selection applied to the whole snapshot at the current thresholds.
+  # Train the learned selection model on the current snapshot + reviews, persist
+  # it next to reviews.csv, and surface its CV metrics on the Overview tab.
+  observeEvent(input$train_model, {
+    res <- tryCatch(
+      withProgress(message = "Training selection model (cross-validating)...", value = 0.5, {
+        train_app_model(snap(), reviews(), input$learner, APP_DATA_DIR)
+      }),
+      error = function(e) e
+    )
+    if (inherits(res, "error")) {
+      showNotification(
+        paste0("Training failed: ", conditionMessage(res)),
+        type = "error",
+        duration = 8
+      )
+      return()
+    }
+    sel_model(res)
+    cv <- res$cv
+    showNotification(
+      sprintf(
+        "Model trained on %d labels — CV F1 %.2f (P %.2f / R %.2f).",
+        res$n_train,
+        cv$f1,
+        cv$precision,
+        cv$recall
+      ),
+      type = "message",
+      duration = 6
+    )
+  })
+
+  # Learning curve: held-out F1 vs. number of labels, computed on demand.
+  lc_data <- reactiveVal(NULL)
+  observeEvent(input$compute_lc, {
+    res <- tryCatch(
+      withProgress(message = "Computing learning curve (repeated held-out resampling)...", value = 0.5, {
+        compute_learning_curve(snap(), reviews(), input$learner)
+      }),
+      error = function(e) e
+    )
+    if (inherits(res, "error")) {
+      showNotification(
+        paste0("Learning curve failed: ", conditionMessage(res)),
+        type = "error",
+        duration = 8
+      )
+      return()
+    }
+    lc_data(res)
+  })
+
+  output$learning_curve_plot <- plotly::renderPlotly({
+    curve <- lc_data()
+    if (is.null(curve)) {
+      return(learning_curve_plot(NULL))
+    }
+    learning_curve_plot(planscanR::learning_curve_summary(curve))
+  })
+
+  output$model_info <- renderUI({
+    m <- sel_model()
+    if (is.null(m)) {
+      return(helpText("No model trained yet."))
+    }
+    helpText(sprintf(
+      "Model: %s · %d labels · trained %s",
+      m$learner_name,
+      m$n_train,
+      format(m$trained_at, "%Y-%m-%d %H:%M")
+    ))
+  })
+
+  # Learned-model metrics row on the Overview dashboard. Always shown for the
+  # out-of-fold (random-sample) CV, recomputed at the chosen threshold without
+  # retraining, with the F1 delta against the heuristic on the same sample.
+  output$model_agreement_ui <- renderUI({
+    m <- sel_model()
+    if (is.null(m)) {
+      return(helpText(
+        "No learned model yet — click \"Train selection model\" in the sidebar."
+      ))
+    }
+    cv <- selection_cv_metrics_safe(m, input$model_threshold)
+    if (is.null(cv)) {
+      return(helpText("Model has no cross-validation data."))
+    }
+    fmtv <- function(x) if (is.na(x)) "—" else sprintf("%.2f", x)
+
+    # Heuristic F1 on the SAME (random) sample, for an apples-to-apples delta.
+    rv_rand <- reviews()
+    rv_rand <- rv_rand[rv_rand$source %in% "random", , drop = FALSE]
+    base <- selection_vs_human(filtered(), rv_rand)
+    delta_ui <- NULL
+    if (!is.null(base) && !is.na(base$f1) && !is.na(cv$f1)) {
+      d <- cv$f1 - base$f1
+      delta_ui <- helpText(sprintf(
+        "F1 vs heuristic (random sample): %+.2f (model %.2f vs %.2f).",
+        d,
+        cv$f1,
+        base$f1
+      ))
+    }
+    tagList(
+      helpText(
+        "Model — the trained selection model, cross-validated (out-of-fold: ",
+        "each record is predicted by a model that did not see it in training) ",
+        "on the unbiased random sample. These numbers are directly comparable ",
+        "to the heuristic row above and aren't inflated by training on the ",
+        "test data."
+      ),
+      layout_columns(
+        fill = FALSE,
+        value_box(
+          metric_title("Model", "CV labels"),
+          cv$n_reviewed,
+          theme = "secondary"
+        ),
+        value_box(
+          metric_title(
+            "Model",
+            div(
+              class = "d-flex align-items-center",
+              style = "gap:4px;",
+              span("Precision · Recall · F1"),
+              prf_help_ui_model()
+            )
+          ),
+          sprintf("%s · %s · %s", fmtv(cv$precision), fmtv(cv$recall), fmtv(cv$f1)),
+          theme = "success"
+        ),
+        value_box(
+          metric_title(
+            "Model",
+            div(
+              class = "d-flex align-items-center",
+              style = "gap:4px;",
+              span("Confusion (TP/FP/FN/TN)"),
+              confusion_help_ui_model()
+            )
+          ),
+          sprintf("%d / %d / %d / %d", cv$tp, cv$fp, cv$fn, cv$tn),
+          theme = "secondary"
+        )
+      ),
+      delta_ui
+    )
+  })
+
+  # Per-country precision/recall/F1 — heuristic vs model — on the random sample.
+  # Both evaluate on the same (random) consensus labels; the model figures come
+  # from its stored out-of-fold predictions, the heuristic from select_assessments.
+  output$perf_by_country <- reactable::renderReactable({
+    rvr <- reviews()
+    rvr <- rvr[rvr$source %in% "random", , drop = FALSE]
+    heur <- selection_vs_human(selected_snap(), rvr, by_country = TRUE)
+    if (is.null(heur)) {
+      return(reactable::reactable(
+        data.frame(Note = "No random-sample keep/drop labels yet.")
+      ))
+    }
+    m <- sel_model()
+    mdl <- if (is.null(m)) {
+      NULL
+    } else {
+      selection_cv_metrics_safe(m, input$model_threshold, by_country = TRUE)
+    }
+    performance_by_country_table(heur, mdl)
+  })
+
+  # Open the per-country performance table in a modal (button in the agreement
+  # panel header). The reactable binds to the output$perf_by_country above.
+  observeEvent(input$show_perf_country, {
+    showModal(modalDialog(
+      title = "Performance by country",
+      size = "l",
+      easyClose = TRUE,
+      helpText(
+        "Per-country precision / recall / F1 on the random sample — heuristic ",
+        "vs. model (model figures are out-of-fold). Per-country label counts ",
+        "are small, so read these as noisier than the overall numbers (see the ",
+        "Labels column)."
+      ),
+      div(
+        style = "font-size:13px;line-height:1.5;margin:4px 0 12px;",
+        tags$p(
+          style = "margin:0 0 6px;",
+          "Each metric compares the automated selection against your reviews, ",
+          "treating the records you marked ", tags$b("keep"), " as correct:"
+        ),
+        tags$ul(
+          style = "margin:0 0 6px;padding-left:18px;",
+          tags$li(
+            tags$b("Precision"),
+            " — of the records the system selected, the share you also kept ",
+            "(how much of what it picked was actually wanted). Low = too much junk."
+          ),
+          tags$li(
+            tags$b("Recall"),
+            " — of the records you kept, the share the system selected ",
+            "(how much of what was wanted it caught). Low = it misses relevant records."
+          ),
+          tags$li(
+            tags$b("F1"),
+            " — the harmonic mean of precision and recall; high only when both are."
+          )
+        ),
+        tags$p(
+          style = "margin:0;color:#8a949e;",
+          "The heuristic is scored directly on the labels (it has no fitted ",
+          "parameters); the model is scored out-of-fold — each record is ",
+          "predicted by a model that did not see it in training — so the two are ",
+          "directly comparable."
+        )
+      ),
+      reactable::reactableOutput("perf_by_country"),
+      footer = modalButton("Close")
+    ))
+  })
+
+  # Model P(keep) over the whole snapshot. Depends only on the snapshot + the
+  # trained model (NOT the threshold), so moving the decision slider doesn't
+  # re-predict all ~26k rows — the threshold cut is applied cheaply downstream.
+  model_scored <- reactive({
+    s <- snap()
+    m <- sel_model()
+    if (is.null(m)) {
+      s$select_prob <- NA_real_
+      return(s)
+    }
+    tryCatch(
+      {
+        s$select_prob <- planscanR::predict_selection(m, s)$select_prob
+        s
+      },
+      error = function(e) {
+        s$select_prob <- NA_real_
+        s
+      }
+    )
+  })
+
+  # Selection applied to the whole snapshot at the current thresholds. Builds on
+  # the model-scored snapshot so it carries both the heuristic `selected` and the
+  # model `selected_model` (the latter derived from the model decision threshold).
   selected_snap <- reactive({
-    apply_selection(snap(), input$threshold, as.integer(input$kw_min))
+    s <- apply_selection(model_scored(), input$threshold, as.integer(input$kw_min))
+    thr <- input$model_threshold
+    if (is.null(thr) || is.na(thr)) thr <- 0.5
+    s$selected_model <- !is.na(s$select_prob) & s$select_prob >= thr
+    s
   })
 
   # Restricted to the chosen countries (used by both tabs).
@@ -634,6 +939,14 @@ server <- function(input, output, session) {
     }
     sprintf("%s (%.1f%%)", format(n, big.mark = ","), 100 * n / nrow(f))
   })
+  output$vb_selected_model <- renderText({
+    f <- filtered()
+    if (nrow(f) == 0 || !any(!is.na(f$select_prob))) {
+      return("—") # no model trained yet
+    }
+    n <- sum(f$selected_model %in% TRUE)
+    sprintf("%s (%.1f%%)", format(n, big.mark = ","), 100 * n / nrow(f))
+  })
   output$vb_reviewed <- renderText({
     f <- filtered()
     if (nrow(f) == 0) {
@@ -646,11 +959,19 @@ server <- function(input, output, session) {
   })
 
   output$funnel_plot <- plotly::renderPlotly({
-    funnel_plot(compute_funnel(filtered(), by_country = FALSE))
+    funnel_plot(compute_funnel(
+      filtered(),
+      by_country = FALSE,
+      has_model = any(!is.na(filtered()$select_prob))
+    ))
   })
 
   output$funnel_table <- reactable::renderReactable({
-    fd <- compute_funnel(filtered(), by_country = TRUE)
+    fd <- compute_funnel(
+      filtered(),
+      by_country = TRUE,
+      has_model = any(!is.na(filtered()$select_prob))
+    )
     fd <- fd[order(fd$country, fd$order), ]
     reactable::reactable(
       fd[, c("country", "stage", "n", "pct")],
@@ -706,25 +1027,41 @@ server <- function(input, output, session) {
     fmtv <- function(x) if (is.na(x)) "—" else sprintf("%.2f", x)
     tagList(
       irs_ui,
+      helpText(
+        "Heuristic — the fixed select_assessments() rule (cosine OR classifier ",
+        "OR keyword match, minus the confident fossil/nuclear trim) scored ",
+        "against the human keep/drop ground truth. It has no fitted parameters, ",
+        "so evaluating it directly on the labels is fair."
+      ),
       layout_columns(
         fill = FALSE,
-        value_box("Reviewed (keep/drop)", cmp$n_reviewed, theme = "secondary"),
         value_box(
-          div(
-            class = "d-flex align-items-center",
-            style = "gap:4px;",
-            span("Precision · Recall · F1"),
-            prf_help_ui()
+          metric_title("Heuristic", "Reviewed (keep/drop)"),
+          cmp$n_reviewed,
+          theme = "secondary"
+        ),
+        value_box(
+          metric_title(
+            "Heuristic",
+            div(
+              class = "d-flex align-items-center",
+              style = "gap:4px;",
+              span("Precision · Recall · F1"),
+              prf_help_ui()
+            )
           ),
           sprintf("%s · %s · %s", fmtv(cmp$precision), fmtv(cmp$recall), fmtv(cmp$f1)),
           theme = "primary"
         ),
         value_box(
-          div(
-            class = "d-flex align-items-center",
-            style = "gap:4px;",
-            span("Confusion (TP/FP/FN/TN)"),
-            confusion_help_ui()
+          metric_title(
+            "Heuristic",
+            div(
+              class = "d-flex align-items-center",
+              style = "gap:4px;",
+              span("Confusion (TP/FP/FN/TN)"),
+              confusion_help_ui()
+            )
           ),
           sprintf("%d / %d / %d / %d", cmp$tp, cmp$fp, cmp$fn, cmp$tn),
           theme = "secondary"
@@ -749,6 +1086,9 @@ server <- function(input, output, session) {
       all = s,
       selected = s[s$selected %in% TRUE, , drop = FALSE],
       not_selected = s[!(s$selected %in% TRUE), , drop = FALSE],
+      model_selected = s[s$selected_model %in% TRUE, , drop = FALSE],
+      model_not_selected = s[!(s$selected_model %in% TRUE), , drop = FALSE],
+      model_vs_heuristic = s[(s$selected %in% TRUE) != (s$selected_model %in% TRUE), , drop = FALSE],
       reviewed = s[s_key %in% reviewed_keys, , drop = FALSE],
       unreviewed = s[!s_key %in% reviewed_keys, , drop = FALSE],
       disagree = {
@@ -924,7 +1264,7 @@ server <- function(input, output, session) {
   # a decision does not reload the table.
   random_df <- reactive({
     samp <- random_ids()
-    base <- apply_selection(snap(), input$threshold, as.integer(input$kw_min))
+    base <- selected_snap()
     if (nrow(samp) == 0L) {
       return(base[0, , drop = FALSE])
     }

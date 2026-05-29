@@ -374,8 +374,11 @@ building a **human ground-truth selection** to benchmark the automated
 
 **It is a consumer of the package, never a modifier.** It reads the sidecar
 cache read-only through `index_cache()` / `score_keywords()` /
-`select_assessments()`, and only *writes* two things: human review decisions and
-cached translations.
+`select_assessments()`, and only *writes* three things: human review decisions,
+cached translations, and the trained selection-model artifact
+(`selection_model.rds`; see §5d). All model *logic* lives in the package — the
+app just calls `train_selection_model()` / `predict_selection()` and persists
+the result.
 
 **Where things live**
 - App: `inst/biogain-review/app.R` (UI + server) plus self-contained helpers in
@@ -391,8 +394,10 @@ cached translations.
     per **(country, document_id, reviewer)** so multiple reviewers coexist; plus
     a reviewers-name list (`reviewers.txt`).
   - `funnel.R` — per-stage funnel counts, the interactive plotly funnel,
-    `selection_vs_human()` (auto-vs-human precision/recall/F1, deduped to the
-    most-recent decision per record), and `inter_reviewer_summary()`.
+    `selection_vs_human()` (auto-vs-human precision/recall/F1; ground truth is
+    one decision per record via `planscanR::consensus_reviews()` — each
+    reviewer's most-recent verdict, then kept only if all reviewers agree, so
+    conflicting records are excluded), and `inter_reviewer_summary()`.
   - `table.R` — the styled reactable (per-row + bulk keep/drop/unsure, lazy
     translation fold-down), the single-record stepper card, and the metric /
     column info popovers.
@@ -402,7 +407,8 @@ cached translations.
 **Data location (important).** The app's artefacts default to the **cache root**
 (`cache_dir`, i.e. alongside `files/`), NOT a separate user dir, so reviews
 travel with a cache sync. They sit at the root — `reviews.csv`, `reviewers.txt`,
-`corpus_snapshot.rds`, `random_sample.rds` — not under `files/`, so
+`corpus_snapshot.rds`, `random_sample.rds`, `selection_model.rds` — not under
+`files/`, so
 `clear_cache()` (which only wipes `files/`) leaves them intact. Override with the
 `data_dir` arg or `BIOGAIN_REVIEW_DATA`. Cache root resolves: `cache_dir` →
 `PLANSCANR_CACHE` → `getOption("planscanR.cache_dir")` → package default.
@@ -421,6 +427,42 @@ agreement); only once caught up does it sample fresh, unreviewed records.
 **Deps** are in `Suggests` (shiny, bslib, reactable, plotly, htmltools); the app
 is excluded from `R CMD check`/build only in that its runtime data dir is never
 shipped. The launcher errors helpfully if a Suggested package is missing.
+
+## 5d. Learned selection model (supervised, from human labels)
+
+A trainable counterpart to the hand-tuned `select_assessments()` rule: instead
+of OR-ing the three signals at fixed thresholds, it **learns** the keep/drop
+decision from the review app's `reviews.csv` labels over the per-record scores
+already on the sidecars. Lives entirely in the package (the app is a consumer,
+§5c). Files: [R/select_features.R](R/select_features.R),
+[R/select_learner.R](R/select_learner.R),
+[R/train_selection.R](R/train_selection.R).
+
+- **Feature contract — `selection_features()`.** The single function both
+  training and prediction call (no train/serve skew). Default feature set is
+  the 6 `relevance_score_<slug>` cosine scores + 13 `class_score_<label>`
+  classifier scores + `kw_total`, all already persisted on sidecars and surfaced
+  by `index_cache()`. Missing/NA numerics → `0`. **Deliberately
+  country-agnostic** so a model transfers to a new portal; `country` /
+  `native_type` are opt-in via `include =` but OFF by default.
+- **Pluggable learner — `selection_learner_*()`.** Mirrors the
+  `embedding_model()` / classifier S3 pattern, built on tidymodels. Default
+  `selection_learner_logistic()` uses the base-R `glm` engine (needs only the
+  tidymodels *glue*: parsnip / recipes / rsample / workflows — all Suggests).
+  `selection_learner_glmnet()` / `_xgboost()` / `_ranger()` are heavier opt-ins
+  that name their engine package. `selection_learners(available_only = TRUE)`
+  filters to what's installed (the app dropdown). Specs are built lazily, so a
+  learner can be listed without parsnip present.
+- **Honest metrics — `train_selection_model()`.** Fits the final model on all
+  labels but reports **out-of-fold** (stratified k-fold CV) precision/recall/F1
+  + confusion, default on the unbiased `source == "random"` sample — directly
+  comparable to `selection_vs_human()` for the heuristic, no train-on-test
+  inflation. `predict_selection()` adds `select_prob` + `selected_model`.
+  `selection_cv_metrics(model, threshold)` re-scores the stored OOF predictions
+  at any threshold with no retrain (the app's threshold slider).
+- **NOT yet wired into `biogain_acquire.R`.** Intentional: prove the learned
+  gate beats the heuristic first. When it does, the runbook / `select_assessments()`
+  can gate on `predict_selection()`.
 
 ## 6. Roadmap (informational; not actionable in v0.1)
 

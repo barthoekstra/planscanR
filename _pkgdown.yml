@@ -51,9 +51,22 @@ reference:
 - title: Selection
   desc: >
     Combine the relevance signals (embedding cosine, zero-shot classifier,
-    lexical keywords) into a single selection decision.
+    lexical keywords) into a single selection decision — either the hand-tuned
+    rule or a model learned from human keep/drop labels.
   contents:
   - select_assessments
+  - selection_features
+  - selection_feature_names
+  - selection_learner
+  - selection_learners
+  - selection_learners_builtin
+  - train_selection_model
+  - predict_selection
+  - selection_cv_metrics
+  - selection_learning_curve
+  - learning_curve_summary
+  - consensus_reviews
+  - save_selection_model
 
 - title: Attachment discovery (web search)
   desc: >

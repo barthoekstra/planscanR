@@ -3,8 +3,8 @@
 
 # Ordered stage definitions. Each predicate takes the selection-applied snapshot
 # and returns a logical vector of records that reach that stage.
-funnel_stages <- function() {
-  list(
+funnel_stages <- function(has_model = FALSE) {
+  stages <- list(
     list(key = "indexed", label = "Indexed", fn = function(d) rep(TRUE, nrow(d))),
     list(key = "cosine", label = "Cosine-relevant", fn = function(d) d$cosine_relevant %in% TRUE),
     list(key = "classifier", label = "Classifier-relevant", fn = function(d) d$class_relevant %in% TRUE),
@@ -13,13 +13,24 @@ funnel_stages <- function() {
     list(key = "attachments", label = "Has attachments", fn = function(d) d$has_attachments %in% TRUE),
     list(key = "downloaded", label = "Downloaded", fn = function(d) d$has_downloaded %in% TRUE)
   )
+  if (has_model) {
+    # Insert the model-selection stage right after the heuristic "selected" one.
+    model_stage <- list(
+      key = "selected_model",
+      label = "Selected (model)",
+      fn = function(d) d$selected_model %in% TRUE
+    )
+    sel_i <- which(vapply(stages, function(s) s$key == "selected", logical(1)))
+    stages <- append(stages, list(model_stage), after = sel_i)
+  }
+  stages
 }
 
 # Compute the funnel table. `by_country = TRUE` returns one row per stage per
 # country; otherwise an overall roll-up. pct is relative to the indexed total
 # (of that country, or overall).
-compute_funnel <- function(sel, by_country = FALSE) {
-  stages <- funnel_stages()
+compute_funnel <- function(sel, by_country = FALSE, has_model = FALSE) {
+  stages <- funnel_stages(has_model)
   one <- function(d) {
     total <- nrow(d)
     dplyr::bind_rows(lapply(seq_along(stages), function(i) {
@@ -101,34 +112,14 @@ funnel_plot <- function(funnel_df) {
 }
 
 # Confusion of automated selection vs. human review (ground truth). Considers
-# only records the human has decided keep/drop. Returns a one-row tibble of
-# counts + precision/recall/F1 of `selected` against human "keep".
-selection_vs_human <- function(sel, reviews) {
-  decided <- reviews[reviews$decision %in% c("keep", "drop"), , drop = FALSE]
-  if (nrow(decided) == 0L) {
-    return(NULL)
-  }
-  # Multiple reviewers may have decided the same record; collapse to one row per
-  # (country, document_id) keeping the most recent decision (max reviewed_at).
-  ra <- decided$reviewed_at
-  if (is.character(ra)) {
-    parsed <- as.POSIXct(ra, format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
-    if (anyNA(parsed)) {
-      parsed <- as.POSIXct(ra, tz = "UTC")
-    }
-    ra <- parsed
-  }
-  ord <- order(ra, decreasing = TRUE)
-  decided <- decided[ord, , drop = FALSE]
-  decided <- decided[!duplicated(paste(decided$country, decided$document_id)), , drop = FALSE]
-  d <- merge(
-    sel[, c("document_id", "country", "selected")],
-    decided[, c("document_id", "country", "decision")],
-    by = c("document_id", "country")
-  )
-  if (nrow(d) == 0L) {
-    return(NULL)
-  }
+# only records with an AGREED keep/drop decision: a multiply-reviewed record is
+# used only when its reviewers unanimously agree (planscanR::consensus_reviews),
+# so a disagreement is excluded rather than silently resolved by recency.
+# Returns a one-row tibble of counts + precision/recall/F1 of `selected` against
+# human "keep".
+# Precision/recall/F1 + confusion for one merged frame (auto `selected` vs human
+# `decision`). Factored out so the overall and per-country paths share it.
+prf_one <- function(d) {
   human_keep <- d$decision == "keep"
   auto_keep <- d$selected %in% TRUE
   tp <- sum(auto_keep & human_keep)
@@ -152,6 +143,33 @@ selection_vs_human <- function(sel, reviews) {
     recall = recall,
     f1 = f1
   )
+}
+
+selection_vs_human <- function(sel, reviews, by_country = FALSE) {
+  decided <- planscanR::consensus_reviews(reviews)
+  if (nrow(decided) == 0L) {
+    return(NULL)
+  }
+  d <- merge(
+    sel[, c("document_id", "country", "selected")],
+    decided[, c("document_id", "country", "decision")],
+    by = c("document_id", "country")
+  )
+  if (nrow(d) == 0L) {
+    return(NULL)
+  }
+  if (!by_country) {
+    return(prf_one(d))
+  }
+  rows <- lapply(split(d, d$country), function(dd) {
+    m <- prf_one(dd)
+    m$country <- dd$country[1]
+    m
+  })
+  allm <- prf_one(d)
+  allm$country <- "all"
+  out <- dplyr::bind_rows(c(list(allm), rows))
+  out[, c("country", setdiff(names(out), "country")), drop = FALSE]
 }
 
 # Cross-reviewer agreement over records that >=2 distinct reviewers have decided

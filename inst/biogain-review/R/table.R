@@ -157,6 +157,10 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
   )
   df$decision <- unname(dec_lookup[review_key(df$country, df$document_id)])
 
+  # Only surface the model column when this slice actually carries model scores;
+  # otherwise an all-"No" column would be confusing (no model trained).
+  has_model <- "select_prob" %in% names(df) && any(!is.na(df$select_prob))
+
   cols <- list(
     decision = reactable::colDef(
       header = hdr(
@@ -215,7 +219,7 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
     selected = reactable::colDef(
       header = hdr(
         "Pre-selected",
-        "Whether the automated pipeline keeps this record (topic match OR category OR keywords, minus confident non-renewables). This is what your review is compared against."
+        "Whether the HEURISTIC pipeline rule keeps this record (topic match OR category OR keywords, minus confident non-renewables). Distinct from the trained Model column. This is what your review is compared against."
       ),
       width = 150,
       align = "center",
@@ -230,6 +234,24 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
         }
       }
     ),
+    selected_model = reactable::colDef(
+      header = hdr(
+        "Model",
+        "Whether the trained model keeps this record at the current decision threshold (out-of-fold-validated). Distinct from the heuristic Pre-selected."
+      ),
+      width = 130,
+      align = "center",
+      cell = function(value) {
+        if (isTRUE(value)) {
+          htmltools::span(
+            "Yes",
+            style = "background:#31a354;color:white;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600;"
+          )
+        } else {
+          htmltools::span("No", style = "color:#aaa;")
+        }
+      }
+    ),
     n_attachments = reactable::colDef(
       header = hdr("Attachments", "Number of document files (PDFs etc.) attached to this record."),
       width = 124,
@@ -237,10 +259,16 @@ build_review_table <- function(df, reviews, source = "browse", blind = FALSE) {
     )
   )
 
+  # Hide the model column when the slice has no model scores (no model trained),
+  # so we never show a confusing all-"No" column.
+  if (!has_model) {
+    cols$selected_model <- NULL
+  }
+
   # Blind review: drop the pipeline-signal columns so they can't anchor the
   # reviewer's judgement.
   if (blind) {
-    for (sig in c("cosine_max", "class_label", "class_score", "kw_total", "selected")) {
+    for (sig in c("cosine_max", "class_label", "class_score", "kw_total", "selected", "selected_model")) {
       cols[[sig]] <- NULL
     }
   }
@@ -365,6 +393,57 @@ confusion_help_ui <- function() {
         htmltools::tags$li(htmltools::tags$b("TP"), " — both kept (pipeline pre-selected, you kept)."),
         htmltools::tags$li(htmltools::tags$b("FP"), " — pipeline kept, but you dropped."),
         htmltools::tags$li(htmltools::tags$b("FN"), " — pipeline dropped, but you kept."),
+        htmltools::tags$li(htmltools::tags$b("TN"), " — both dropped.")
+      )
+    )
+  )
+}
+
+# Model-row counterpart of prf_help_ui(): same precision/recall/F1 concepts,
+# phrased around the model's out-of-fold prediction rather than the heuristic.
+prf_help_ui_model <- function() {
+  info_popover(
+    "What do these metrics mean?",
+    htmltools::div(
+      style = "font-size:13px;line-height:1.4;max-width:320px;",
+      htmltools::p(
+        style = "margin:0 0 8px;",
+        "We compare the model's cross-validated (out-of-fold) prediction against your review, treating the records you marked “keep” as the correct answer. Out-of-fold means each record is scored by a model that did not see it in training."
+      ),
+      htmltools::tags$ul(
+        style = "margin:0;padding-left:18px;",
+        htmltools::tags$li(
+          htmltools::tags$b("Precision"),
+          " — of the records the model predicted “keep”, the share you also kept (how much of what it picked was actually wanted)."
+        ),
+        htmltools::tags$li(
+          htmltools::tags$b("Recall"),
+          " — of the records you kept, the share the model also predicted “keep” (how much of what was wanted it caught)."
+        ),
+        htmltools::tags$li(
+          htmltools::tags$b("F1"),
+          " — one score balancing precision and recall (their harmonic mean); high only when both are high."
+        )
+      )
+    )
+  )
+}
+
+# Model-row counterpart of confusion_help_ui().
+confusion_help_ui_model <- function() {
+  info_popover(
+    "What is the confusion count?",
+    htmltools::div(
+      style = "font-size:13px;line-height:1.4;max-width:320px;",
+      htmltools::p(
+        style = "margin:0 0 6px;",
+        "How the model's out-of-fold prediction lines up with your keep/drop decisions:"
+      ),
+      htmltools::tags$ul(
+        style = "margin:0;padding-left:18px;",
+        htmltools::tags$li(htmltools::tags$b("TP"), " — both kept (model predicted “keep”, you kept)."),
+        htmltools::tags$li(htmltools::tags$b("FP"), " — model predicted “keep”, but you dropped."),
+        htmltools::tags$li(htmltools::tags$b("FN"), " — model predicted “drop”, but you kept."),
         htmltools::tags$li(htmltools::tags$b("TN"), " — both dropped.")
       )
     )
