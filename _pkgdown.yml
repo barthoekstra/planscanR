@@ -20,6 +20,8 @@ reference:
   - get_assessments_nl
   - get_assessments_de
   - get_assessments_at
+  - get_assessments_dk
+  - get_assessments_be
   - get_assessments_coverage
   - supported_countries
   - bind_results

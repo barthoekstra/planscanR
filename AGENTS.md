@@ -12,11 +12,23 @@ in spatial energy planning). It provides a single, unified R API
 follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad).
 
-**v0.1 scope.** Three country handlers ship:
+**v0.1 scope.** Five country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
   `uvp-verbund.de`.
+- Denmark (`get_assessments_dk()`) — Danmarks Miljøportal EA-Hub at
+  `eahub.miljoeportal.dk`. **Metadata-only** in v0.x (records carry full
+  metadata + polygon geometry; document downloads deferred). Geometry is
+  persisted as `<document_id>.geometry.geojson` next to the sidecar
+  (EPSG:25832).
+- Belgium (Flanders) (`get_assessments_be()`) — Departement Omgeving
+  MER-register at `merregister.omgeving.vlaanderen.be`. Project-MER and
+  ontheffingsaanvragen only (Plan-MER is a separate Flemish register).
+  Full metadata, polygon geometry (EPSG:31370, persisted in the same
+  GeoJSON layout as DK), and direct anonymous document downloads. The
+  geometry sidecar's CRS is the only thing that distinguishes it from a
+  DK file.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only

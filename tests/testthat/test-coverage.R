@@ -34,6 +34,19 @@ test_that("DE coverage row exposes the procedure / bundesland vocabularies", {
   expect_true("obj_class_zv" %in% f$procedure)
 })
 
+test_that("BE coverage row exposes the dossier-type vocabulary", {
+  c <- get_assessments_coverage()
+  be <- c[c$country == "be", ]
+  expect_identical(be$source_portal, "omgeving.vlaanderen.be/merregister")
+  expect_false(be$requires_auth)
+  expect_identical(be$status, "supported")
+  f <- be$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("dossier_type"))
+  expect_true("PROJECT_MER" %in% f$dossier_type)
+  expect_true("VERZOEK_TOT_ONTHEFFING" %in% f$dossier_type)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

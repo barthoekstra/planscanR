@@ -37,9 +37,8 @@ records below it keep their sidecar and their tibble row, only their PDFs
 are skipped.}
 
 \item{query}{Free-text search string. Sent server-side as \verb{q=<query>}.
-When \code{NULL}, the broad fallback \code{q=uvp} is used (matches ~93\% of the
-register). The portal's own \verb{q=*:*} wildcard is unusable because page 2+
-never renders — see the \emph{URL enumeration} section.}
+When \code{NULL}, the wildcard \verb{q=*:*} is used, which enumerates the full
+register (~24,289 records across ~2,429 search pages).}
 
 \item{jurisdiction}{Character vector. Substring match on the
 federal-state partner displayed on each detail page
@@ -66,18 +65,18 @@ enumeration route is the search interface itself:
 \if{html}{\out{<div class="sourceCode">}}\preformatted{https://www.uvp-verbund.de/freitextsuche?q=<query>&toggle_procedure=&ranking=score&page=<n>
 }\if{html}{\out{</div>}}
 
-The portal is Solr-backed but its \verb{q=*:*} wildcard is broken for
-pagination: page 1 renders, every subsequent page returns the header but
-no results. As a "match-most" fallback when \code{query} is \code{NULL} we use
-\code{q=uvp}, which paginates correctly and covers ~93\% of the register
-(~22,574 of ~24,270 records). For full coverage, run the scan against
-multiple seed queries and union the results.
+The portal is Solr-backed; when \code{query} is \code{NULL} we send the
+match-everything wildcard \verb{q=*:*}, which today returns the full register
+(~24,289 records) and paginates correctly. Earlier versions of this
+handler fell back to \code{q=uvp} because \verb{q=*:*} rendered page 1 but then
+returned empty pages from page 2 onwards; the portal has since fixed
+that, and the wildcard is now the default.
 \verb{toggle_procedure=} (empty value) is set explicitly: the portal's default
 (\code{toggle_procedure=on}) restricts results to currently-running plus
 last-year-modified procedures and silently drops ~80\% of historical
 records.
 
-On a cold cache, a full enumeration over ~2,258 pages is slow; users are
+On a cold cache, a full enumeration over ~2,429 pages is slow; users are
 strongly encouraged to set \code{limit} (and ideally \code{query}) when exploring.
 }
 

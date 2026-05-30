@@ -14,32 +14,50 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "at", "dk"),
+    country = c("nl", "de", "at", "dk", "be"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
       "umweltbundesamt.at/uvpdb",
-      "miljoeportal.dk/eahub"
+      "miljoeportal.dk/eahub",
+      "omgeving.vlaanderen.be/merregister"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
       "https://www.uvp-verbund.de",
       "https://secure.umweltbundesamt.at/uvpdb/public",
-      "https://eahub.miljoeportal.dk"
+      "https://eahub.miljoeportal.dk",
+      "https://merregister.omgeving.vlaanderen.be"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE, FALSE),
+    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE),
     status = c(
       "supported",
       "supported",
       "supported (metadata-only)",
-      "supported (metadata-only)"
+      "supported (metadata-only)",
+      "supported"
     ),
     facets = list(
       commissiemer_facets(),
       uvp_facets(),
       uvpdb_at_facets(),
-      eahub_dk_facets()
+      eahub_dk_facets(),
+      merregister_be_facets()
     )
+  )
+}
+
+#' Static lookup of the Flemish MER-register (Belgium) facet vocabularies.
+#'
+#' The DMVB API only honours two server-side filters (`nummer`, `niscode`)
+#' and ignores anything else, so the only first-class vocabulary worth
+#' surfacing here is the `dossierType` enum the API stamps on each row.
+#' Municipality NIS codes are not enumerated — they're served live by
+#' `https://dmvb.omgeving.vlaanderen.be/api/v1/locatie`.
+#' @noRd
+merregister_be_facets <- function() {
+  list(
+    dossier_type = c("PROJECT_MER", "VERZOEK_TOT_ONTHEFFING")
   )
 }
 

@@ -148,7 +148,8 @@ records <- score_assessments(records, topic = biogain_assessment_topics())
 ## Where to go next
 
 * `?get_assessments` — every fetching option, including date and region filters.
-* `?get_assessments_nl`, `?get_assessments_de`, `?get_assessments_at` — the
-  portal-specific details for each country.
+* `?get_assessments_nl`, `?get_assessments_de`, `?get_assessments_at`,
+  `?get_assessments_dk`, `?get_assessments_be` — the portal-specific details
+  for each country.
 * `run_biogain_review()` — a point-and-click app for inspecting how records flow
   through fetch → score → select, and for building a hand-checked benchmark.

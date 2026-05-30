@@ -7,7 +7,8 @@ Description: A unified R interface for fetching environmental-assessment
     records (EIA, SEA, follow-up advice) from European national portals,
     with built-in tools to score records by topic relevance and select the
     ones worth a closer look. Handlers ship for the Netherlands (Commissie
-    m.e.r.), Germany (UVP-Verbund), and Austria (Umweltbundesamt UVP-DB).
+    m.e.r.), Germany (UVP-Verbund), Austria (Umweltbundesamt UVP-DB),
+    Denmark (EA-Hub), and Belgium (Flanders; MER-register).
     Developed for the BIOGAIN project to support Net Biodiversity Gain in
     spatial energy planning.
 License: GPL (>= 3)
