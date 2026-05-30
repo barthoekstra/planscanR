@@ -43,24 +43,25 @@ honoured, and what data comes back.
 
 ## A word of caution
 
-> \[!WARNING\] `planscanR` is only as stable as the portals it pulls
-> from. None of the target sites expose a contractually stable API; most
-> are scraped from HTML detail pages, and the rest sit on undocumented
-> JSON endpoints that the portal operators can change at will. A tiny
+> [!WARNING]
+> `planscanR` is only as stable as the portals it pulls from. None of
+> the target sites expose a contractually stable API; most are scraped
+> from HTML detail pages, and the rest sit on undocumented JSON
+> endpoints that the portal operators can change at will. A tiny
 > redesign on any of these sites — a renamed CSS class, a moved field, a
 > new login wall — is enough to break the corresponding handler,
 > sometimes silently. Treat results with a healthy dose of scepticism,
 > sanity-check them against the portal’s own UI when something looks
-> off, and please file an issue when you spot drift.
+> off, and please file an issue when you spot differences.
 
-> \[!CAUTION\] Because we are often not talking to real APIs, we have no
-> formal rate-limit contract with these servers. The package throttles
-> requests where we know it matters (e.g. NL is capped at ~1 request per
-> second, DK at 5), but you can override those, and a careless
-> full-register crawl can put real load on a small government portal.
-> Use `limit` and `query` while exploring, keep the throttle on for
-> production runs, and don’t scan everything in parallel from many
-> machines.
+> [!CAUTION]
+> Because we are often not talking to real APIs, we have no formal
+> rate-limit contract with these servers. The package throttles requests
+> where we know it matters (e.g. NL is capped at ~1 request per second,
+> DK at 5), but you can override those, and a careless full-register
+> crawl can put real load on a small government portal. Use `limit` and
+> `query` while exploring, keep the throttle on for production runs, and
+> don’t scan everything in parallel from many machines.
 
 ## Installation
 

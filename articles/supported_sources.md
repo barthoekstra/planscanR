@@ -19,20 +19,22 @@ get_assessments_coverage()
 
 ## A note on stability
 
-> \[!WARNING\] None of these portals expose a contractually stable API.
-> Three of the four handlers parse HTML detail pages with `rvest`; the
-> fourth uses an undocumented JSON service. Any of the operators can
-> change a CSS class, rename a field, or slip a login wall in front of
-> an endpoint without warning, and the corresponding handler will then
-> break — sometimes silently. Treat the results with the scepticism that
-> a scraping pipeline deserves, and please file an issue when you spot
-> drift.
+> [!WARNING]
+> None of these portals expose a contractually stable API. Three of the
+> four handlers parse HTML detail pages with `rvest`; the fourth uses an
+> undocumented JSON service. Any of the operators can change a CSS
+> class, rename a field, or slip a login wall in front of an endpoint
+> without warning, and the corresponding handler will then break —
+> sometimes silently. Treat the results with the scepticism that a
+> scraping pipeline deserves, and please file an issue when you spot
+> differences.
 
-> \[!CAUTION\] Because we are often not talking to real APIs, we have no
-> rate-limit contract with these servers. The package throttles where we
-> know it matters (NL is capped at ~1 request/second, DK at 5), but a
-> careless full-register crawl can still put real load on a small
-> government portal. Use `limit` and `query` while exploring.
+> [!CAUTION]
+> Because we are often not talking to real APIs, we have no rate-limit
+> contract with these servers. The package throttles where we know it
+> matters (NL is capped at ~1 request/second, DK at 5), but a careless
+> full-register crawl can still put real load on a small government
+> portal. Use `limit` and `query` while exploring.
 
 ## Netherlands — `"nl"`
 
