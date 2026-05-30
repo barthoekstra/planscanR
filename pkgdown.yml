@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   planscanR: planscanR.html
   supported_sources: supported_sources.html
-last_built: 2026-05-30T05:54Z
+last_built: 2026-05-30T08:38Z
 urls:
   reference: https://barthoekstra.github.io/planscanR/reference
   article: https://barthoekstra.github.io/planscanR/articles

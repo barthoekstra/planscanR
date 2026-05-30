@@ -164,7 +164,9 @@ records <- score_assessments(records, topic = biogain_assessment_topics())
   — every fetching option, including date and region filters.
 - [`?get_assessments_nl`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md),
   [`?get_assessments_de`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md),
-  [`?get_assessments_at`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md)
+  [`?get_assessments_at`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md),
+  [`?get_assessments_dk`](https://barthoekstra.github.io/planscanR/reference/get_assessments_dk.md),
+  [`?get_assessments_be`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md)
   — the portal-specific details for each country.
 - [`run_biogain_review()`](https://barthoekstra.github.io/planscanR/reference/run_biogain_review.md)
   — a point-and-click app for inspecting how records flow through fetch

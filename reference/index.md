@@ -13,6 +13,10 @@ plus portal coverage and result helpers.
   : Fetch environmental-assessment records from Germany.
 - [`get_assessments_at()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md)
   : Fetch environmental-assessment records from Austria.
+- [`get_assessments_dk()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_dk.md)
+  : Fetch environmental-assessment records from Denmark.
+- [`get_assessments_be()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md)
+  : Fetch environmental-assessment records from Belgium (Flanders).
 - [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md)
   : List supported countries and portals.
 - [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)

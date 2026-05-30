@@ -67,12 +67,13 @@
     
     
 <p><code>planscanR</code> is a thin layer over a handful of national
-environmental-assessment portals. There is no shared API behind the
-scenes — each country gives us a different mix of HTML pages, sitemaps,
-search endpoints, and undocumented JSON handlers, and each one comes
-with its own quirks. This vignette describes what each handler does,
-where it pulls data from, and what to expect (or watch out for) when
-using it.</p>
+environmental-assessment portals (currently Netherlands, Germany,
+Austria, Denmark, and Belgium (Flanders)). There is no shared API behind
+the scenes — each country gives us a different mix of HTML pages,
+sitemaps, search endpoints, and undocumented JSON handlers, and each one
+comes with its own quirks. This vignette describes what each handler
+does, where it pulls data from, and what to expect (or watch out for)
+when using it.</p>
 <p>For the runtime equivalent — the same information in tabular form,
 including the valid vocabularies for the search facets each handler
 accepts — call:</p>
@@ -100,9 +101,9 @@ differences.</p>
 </div>
 <p>Because we are often not talking to real APIs, we have no rate-limit
 contract with these servers. The package throttles where we know it
-matters (NL is capped at ~1 request/second, DK at 5), but a careless
-full-register crawl can still put real load on a small government
-portal. Use <code>limit</code> and <code>query</code> while
+matters (NL is capped at ~1 request/second, DK and BE at 5), but a
+careless full-register crawl can still put real load on a small
+government portal. Use <code>limit</code> and <code>query</code> while
 exploring.</p>
 </div>
 </div>
@@ -278,7 +279,65 @@ resolving them costs an extra HTTP call per document. The current
 handler is scan + classify only; a future release will add the download
 phase.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">get_assessments_dk</span><span class="op">(</span>query <span class="op">=</span> <span class="st">"vindmølle"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_dk.html">get_assessments_dk</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"vindmølle"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="belgium-flanders--be">Belgium (Flanders) — <code>"be"</code><a class="anchor" aria-label="anchor" href="#belgium-flanders--be"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> Departement Omgeving MER-register (<a href="https://merregister.omgeving.vlaanderen.be/" class="external-link">merregister.omgeving.vlaanderen.be</a>)</li>
+<li>
+<strong>Status:</strong> supported — full metadata, polygon
+geometry, and document downloads.</li>
+<li>
+<strong>Authentication:</strong> none.</li>
+<li>
+<strong>Coverage:</strong> ~3,000 Project-MER dossiers
+(project-level EIA) and dossier MER-plicht ontheffingsaanvragen
+(exemption requests). Plan-MER (SEA) lives in a separate Flemish
+register and is out of scope for this handler.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.be_throttle_rate")</code>).</li>
+</ul>
+<p>The portal is a Vue SPA backed by a public REST API at
+<code>https://dmvb.omgeving.vlaanderen.be/api/v1/</code>. The SPA reads
+its backend host from <code>/rest/configuratie</code> and then paginates
+<code>/api/v1/dossier</code> to enumerate the register (page size capped
+server-side at 25). The full per-record payload — coordinator, expertise
+domains, document list, geometry — is one
+<code>/api/v1/dossier/{nummer}</code> call.</p>
+<p><strong>Geometry.</strong> Every detail record carries a
+<code>locatie</code> field in GeoJSON-style (typically MULTIPOLYGON)
+directly inline — no separate geometry call. Coordinates are in
+<strong>EPSG:31370</strong> (Belgian Lambert 72). When
+<code>write_sidecar = TRUE</code>, the geometry is saved next to the
+sidecar as <code>&lt;document_id&gt;.geometry.geojson</code>; the
+sidecar carries <code>geometry_path</code> and <code>geometry_crs</code>
+for downstream consumption with <code>sf</code>.</p>
+<p><strong>Filter coverage.</strong> <code>query</code> is a
+case-insensitive substring match on <code>title</code> +
+<code>document_id</code>. <code>niscode</code> (5-digit municipality
+code) and <code>nummer</code> (dossier ID, e.g. <code>"PR4037"</code>)
+are forwarded server-side; the API ignores anything else.
+<code>dossier_type</code> (<code>"PROJECT_MER"</code> /
+<code>"VERZOEK_TOT_ONTHEFFING"</code>) is applied client-side.
+<code>date_range</code> matches against <code>date_published</code>,
+derived from the earliest document creation date on the record;
+<code>date_decision</code> is always <code>NA</code> because the API
+exposes no separate decision timestamp.</p>
+<p><strong>Documents.</strong> Direct, anonymous download URLs are
+emitted for every <code>documenten[]</code> entry. Documents are grouped
+by their portal <code>type</code> (<code>Aanmelding</code>,
+<code>Ontheffingsaanvraag</code>,
+<code>Verslag toekenning ontheffing</code>, …); each type becomes its
+own <code>attachment_urls_&lt;slug&gt;</code> /
+<code>local_path_&lt;slug&gt;</code> column. The deduplicated union is
+at <code>attachment_urls</code> / <code>local_path</code> as the schema
+requires.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_be.html">get_assessments_be</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"wind"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="adding-a-new-source">Adding a new source<a class="anchor" aria-label="anchor" href="#adding-a-new-source"></a>

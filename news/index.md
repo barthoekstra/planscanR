@@ -89,3 +89,37 @@
   `attachment_urls_<section>` / `local_path_<section>` columns
   regardless of country, and now also restores country-specific extras
   (e.g. DE’s `native_type`).
+- Denmark handler
+  [`get_assessments_dk()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_dk.md)
+  fetches from Danmarks Miljøportal’s EA-Hub (`eahub.miljoeportal.dk`).
+  One `POST /assessments/search` call returns the entire register
+  (~2,700 records); each row already carries title, year range, status,
+  authorities, EIA-Directive Annex I/II categories, plan
+  types/categories, and a `hasGeometry` flag, so no detail call is
+  needed during the scan phase. Records with geometry get a
+  `<document_id>.geometry.geojson` file written alongside the sidecar in
+  EPSG:25832 (ETRS89-UTM32N), and the record exposes `geometry_path` /
+  `geometry_crs` for downstream consumption with `sf`. Metadata-only in
+  v0.1: `attachment_urls = character(0)` for every record — document
+  downloads are deferred to a future release. Filter surface: `query`
+  (server-side `freeText`), `assessment_type` (`"All"` / `"Plans"` /
+  `"Project"`), and `date_range` (matched against each record’s
+  `fromYear` / `toYear`; `date_decision` is `NA` because the API only
+  exposes year fields).
+- Belgium (Flanders) handler
+  [`get_assessments_be()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md)
+  fetches from the Departement Omgeving’s MER-register
+  (`merregister.omgeving.vlaanderen.be`). Enumeration paginates a public
+  REST API (`/api/v1/dossier`, 25 records/page); detail records carry an
+  inline GeoJSON geometry in EPSG:31370 (Belgian Lambert 72), which is
+  persisted next to the sidecar as `<document_id>.geometry.geojson`
+  (same pattern as DK). Documents are exposed as direct download URLs,
+  so unlike DK the handler downloads PDFs from day one.
+  Per-document-type attachment splits emit `attachment_urls_<type>`
+  columns dynamically (`aanmelding`, `ontheffingsaanvraag`,
+  `verslag_toekenning_ontheffing`, …). Filter surface: `query`
+  (client-side substring on title + nummer), `niscode` / `nummer`
+  (server-side), `dossier_type` (`"PROJECT_MER"` /
+  `"VERZOEK_TOT_ONTHEFFING"`, client-side), and `date_range` (matched
+  against the earliest document creation date as `date_published`;
+  `date_decision` is `NA`).

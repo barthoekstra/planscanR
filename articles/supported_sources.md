@@ -1,12 +1,13 @@
 # Supported sources
 
 `planscanR` is a thin layer over a handful of national
-environmental-assessment portals. There is no shared API behind the
-scenes — each country gives us a different mix of HTML pages, sitemaps,
-search endpoints, and undocumented JSON handlers, and each one comes
-with its own quirks. This vignette describes what each handler does,
-where it pulls data from, and what to expect (or watch out for) when
-using it.
+environmental-assessment portals (currently Netherlands, Germany,
+Austria, Denmark, and Belgium (Flanders)). There is no shared API behind
+the scenes — each country gives us a different mix of HTML pages,
+sitemaps, search endpoints, and undocumented JSON handlers, and each one
+comes with its own quirks. This vignette describes what each handler
+does, where it pulls data from, and what to expect (or watch out for)
+when using it.
 
 For the runtime equivalent — the same information in tabular form,
 including the valid vocabularies for the search facets each handler
@@ -32,9 +33,9 @@ get_assessments_coverage()
 > [!CAUTION]
 > Because we are often not talking to real APIs, we have no rate-limit
 > contract with these servers. The package throttles where we know it
-> matters (NL is capped at ~1 request/second, DK at 5), but a careless
-> full-register crawl can still put real load on a small government
-> portal. Use `limit` and `query` while exploring.
+> matters (NL is capped at ~1 request/second, DK and BE at 5), but a
+> careless full-register crawl can still put real load on a small
+> government portal. Use `limit` and `query` while exploring.
 
 ## Netherlands — `"nl"`
 
@@ -185,6 +186,55 @@ classify only; a future release will add the download phase.
 ``` r
 
 get_assessments_dk(query = "vindmølle", limit = 20, download = FALSE)
+```
+
+## Belgium (Flanders) — `"be"`
+
+- **Portal:** Departement Omgeving MER-register
+  ([merregister.omgeving.vlaanderen.be](https://merregister.omgeving.vlaanderen.be/))
+- **Status:** supported — full metadata, polygon geometry, and document
+  downloads.
+- **Authentication:** none.
+- **Coverage:** ~3,000 Project-MER dossiers (project-level EIA) and
+  dossier MER-plicht ontheffingsaanvragen (exemption requests). Plan-MER
+  (SEA) lives in a separate Flemish register and is out of scope for
+  this handler.
+- **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.be_throttle_rate")`).
+
+The portal is a Vue SPA backed by a public REST API at
+`https://dmvb.omgeving.vlaanderen.be/api/v1/`. The SPA reads its backend
+host from `/rest/configuratie` and then paginates `/api/v1/dossier` to
+enumerate the register (page size capped server-side at 25). The full
+per-record payload — coordinator, expertise domains, document list,
+geometry — is one `/api/v1/dossier/{nummer}` call.
+
+**Geometry.** Every detail record carries a `locatie` field in
+GeoJSON-style (typically MULTIPOLYGON) directly inline — no separate
+geometry call. Coordinates are in **EPSG:31370** (Belgian Lambert 72).
+When `write_sidecar = TRUE`, the geometry is saved next to the sidecar
+as `<document_id>.geometry.geojson`; the sidecar carries `geometry_path`
+and `geometry_crs` for downstream consumption with `sf`.
+
+**Filter coverage.** `query` is a case-insensitive substring match on
+`title` + `document_id`. `niscode` (5-digit municipality code) and
+`nummer` (dossier ID, e.g. `"PR4037"`) are forwarded server-side; the
+API ignores anything else. `dossier_type` (`"PROJECT_MER"` /
+`"VERZOEK_TOT_ONTHEFFING"`) is applied client-side. `date_range` matches
+against `date_published`, derived from the earliest document creation
+date on the record; `date_decision` is always `NA` because the API
+exposes no separate decision timestamp.
+
+**Documents.** Direct, anonymous download URLs are emitted for every
+`documenten[]` entry. Documents are grouped by their portal `type`
+(`Aanmelding`, `Ontheffingsaanvraag`, `Verslag toekenning ontheffing`,
+…); each type becomes its own `attachment_urls_<slug>` /
+`local_path_<slug>` column. The deduplicated union is at
+`attachment_urls` / `local_path` as the schema requires.
+
+``` r
+
+get_assessments_be(query = "wind", limit = 20, download = FALSE)
 ```
 
 ## Adding a new source

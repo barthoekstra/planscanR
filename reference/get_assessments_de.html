@@ -105,9 +105,8 @@ are skipped.</p></dd>
 
 <dt id="arg-query">query<a class="anchor" aria-label="anchor" href="#arg-query"></a></dt>
 <dd><p>Free-text search string. Sent server-side as <code>q=&lt;query&gt;</code>.
-When <code>NULL</code>, the broad fallback <code>q=uvp</code> is used (matches ~93% of the
-register). The portal's own <code>q=*:*</code> wildcard is unusable because page 2+
-never renders — see the <em>URL enumeration</em> section.</p></dd>
+When <code>NULL</code>, the wildcard <code>q=*:*</code> is used, which enumerates the full
+register (~24,289 records across ~2,429 search pages).</p></dd>
 
 
 <dt id="arg-jurisdiction">jurisdiction<a class="anchor" aria-label="anchor" href="#arg-jurisdiction"></a></dt>
@@ -131,17 +130,17 @@ federal-state partner displayed on each detail page
 <p>The portal exposes no sitemap, no OAI-PMH, and no CSW endpoint. The only
 enumeration route is the search interface itself:</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>https<span class="sc">:</span><span class="er">//</span>www.uvp<span class="sc">-</span>verbund.de<span class="sc">/</span>freitextsuche?q<span class="ot">=</span><span class="er">&lt;</span>query<span class="sc">&gt;</span><span class="er">&amp;</span>toggle_procedure<span class="ot">=</span><span class="er">&amp;</span>ranking<span class="ot">=</span>score<span class="sc">&amp;</span>page<span class="ot">=</span><span class="er">&lt;</span>n<span class="sc">&gt;</span></span></code></pre><p></p></div>
-<p>The portal is Solr-backed but its <code>q=*:*</code> wildcard is broken for
-pagination: page 1 renders, every subsequent page returns the header but
-no results. As a "match-most" fallback when <code>query</code> is <code>NULL</code> we use
-<code>q=uvp</code>, which paginates correctly and covers ~93% of the register
-(~22,574 of ~24,270 records). For full coverage, run the scan against
-multiple seed queries and union the results.
+<p>The portal is Solr-backed; when <code>query</code> is <code>NULL</code> we send the
+match-everything wildcard <code>q=*:*</code>, which today returns the full register
+(~24,289 records) and paginates correctly. Earlier versions of this
+handler fell back to <code>q=uvp</code> because <code>q=*:*</code> rendered page 1 but then
+returned empty pages from page 2 onwards; the portal has since fixed
+that, and the wildcard is now the default.
 <code>toggle_procedure=</code> (empty value) is set explicitly: the portal's default
 (<code>toggle_procedure=on</code>) restricts results to currently-running plus
 last-year-modified procedures and silently drops ~80% of historical
 records.</p>
-<p>On a cold cache, a full enumeration over ~2,258 pages is slow; users are
+<p>On a cold cache, a full enumeration over ~2,429 pages is slow; users are
 strongly encouraged to set <code>limit</code> (and ideally <code>query</code>) when exploring.</p>
     </div>
     <div class="section level2">

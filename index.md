@@ -34,7 +34,8 @@ Supported portals:
 | Netherlands (`"nl"`) | Commissie m.e.r. adviezenregister | full records + document downloads |
 | Germany (`"de"`) | UVP-Verbund | full records + document downloads |
 | Austria (`"at"`) | Umweltbundesamt UVP-DB | record details only (no documents) |
-| Denmark (`"dk"`) | Danmarks Miljøportal EA-Hub | record metadata + polygon geometry + document downloads |
+| Denmark (`"dk"`) | Danmarks Miljøportal EA-Hub | record metadata + polygon geometry (document downloads deferred) |
+| Belgium (Flanders) (`"be"`) | Departement Omgeving MER-register | full records + polygon geometry + document downloads |
 
 See
 [`vignette("supported_sources")`](https://barthoekstra.github.io/planscanR/articles/supported_sources.md)
