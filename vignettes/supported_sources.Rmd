@@ -43,7 +43,7 @@ get_assessments_coverage()
 > rename a field, or slip a login wall in front of an endpoint without
 > warning, and the corresponding handler will then break — sometimes
 > silently. Treat the results with the scepticism that a scraping pipeline
-> deserves, and please file an issue when you spot drift.
+> deserves, and please file an issue when you spot differences.
 
 > [!CAUTION]
 > Because we are often not talking to real APIs, we have no rate-limit

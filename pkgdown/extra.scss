@@ -1,0 +1,38 @@
+// Style pandoc's GFM-alert output as Bootstrap-flavoured callouts.
+//
+// With pandoc's `+alerts` extension enabled, `> [!WARNING]` becomes:
+//   <div class="warning">
+//     <div class="title"><p>Warning</p></div>
+//     <p>...body...</p>
+//   </div>
+// We map each of the five GFM kinds (note, tip, important, warning, caution)
+// to a Bootstrap colour and give it a left-bar + soft background, matching
+// the look of GitHub's own alerts so the README and the pkgdown homepage
+// stay visually in sync.
+
+@mixin gfm-alert($accent, $bg-alpha: 0.08) {
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-left: 0.25rem solid $accent;
+  background-color: rgba($accent, $bg-alpha);
+  border-radius: 0.25rem;
+
+  > .title {
+    margin-bottom: 0.25rem;
+    > p {
+      color: $accent;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+
+  > p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+div.note      { @include gfm-alert($primary); }
+div.tip       { @include gfm-alert($success); }
+div.important { @include gfm-alert(#8250df); } // GitHub's "important" purple
+div.warning   { @include gfm-alert($warning, 0.12); }
+div.caution   { @include gfm-alert($danger); }

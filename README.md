@@ -44,7 +44,7 @@ is accessed, what filters are honoured, and what data comes back.
 > renamed CSS class, a moved field, a new login wall — is enough to break the
 > corresponding handler, sometimes silently. Treat results with a healthy dose
 > of scepticism, sanity-check them against the portal's own UI when something
-> looks off, and please file an issue when you spot drift.
+> looks off, and please file an issue when you spot differences.
 
 > [!CAUTION]
 > Because we are often not talking to real APIs, we have no formal rate-limit
