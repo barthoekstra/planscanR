@@ -194,6 +194,12 @@ Read previously-downloaded slices offline and manage the file cache.
   : Invalidate (delete) part or all of the planscanR cache.
 - [`cache_dir_default()`](https://barthoekstra.github.io/planscanR/reference/cache_dir_default.md)
   : Resolve the planscanR cache root.
+- [`cache_path()`](https://barthoekstra.github.io/planscanR/reference/cache_path.md)
+  : Compute the local cache path an attachment URL would land at.
+- [`resolve_cached_path()`](https://barthoekstra.github.io/planscanR/reference/resolve_cached_path.md)
+  : Locate the on-disk file for a (possibly placeholder) cache path.
+- [`download_to_cache()`](https://barthoekstra.github.io/planscanR/reference/download_to_cache.md)
+  : Download one attachment URL into the planscanR cache.
 - [`read_record_sidecar()`](https://barthoekstra.github.io/planscanR/reference/read_record_sidecar.md)
   : Read a sidecar JSON back into a 1-row tibble matching the planscanR
   schema.

@@ -14,9 +14,11 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/backend_name.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/bind_results.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/cache_dir_default.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/cache_path.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/clear_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/discover_attachments.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/discover_validate.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/download_to_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_at.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_be.html</loc></url>
@@ -29,6 +31,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/index_cache.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/planscanR-package.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/read_record_sidecar.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/resolve_cached_path.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend_mock.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend_tavily.html</loc></url>

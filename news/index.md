@@ -2,6 +2,22 @@
 
 ## planscanR 0.0.0.9000
 
+- New public download helpers:
+  [`download_to_cache()`](https://barthoekstra.github.io/planscanR/reference/download_to_cache.md),
+  [`cache_path()`](https://barthoekstra.github.io/planscanR/reference/cache_path.md),
+  and
+  [`resolve_cached_path()`](https://barthoekstra.github.io/planscanR/reference/resolve_cached_path.md).
+  [`download_to_cache()`](https://barthoekstra.github.io/planscanR/reference/download_to_cache.md)
+  fetches a single attachment URL into the cache the same way the
+  fetcher does internally — same throttled client, same size cap, same
+  `files/<country>/<document_id>/` layout — and returns the local path,
+  size, and SHA-256.
+  [`cache_path()`](https://barthoekstra.github.io/planscanR/reference/cache_path.md)
+  tells you where a URL will land before you fetch it, and
+  [`resolve_cached_path()`](https://barthoekstra.github.io/planscanR/reference/resolve_cached_path.md)
+  finds the file once it has, so callers can skip a download when a copy
+  already exists. With these, downstream packages no longer need to call
+  `planscanR:::` internals.
 - Breaking: `download` now defaults to `FALSE` across
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
   and all per-country handlers
