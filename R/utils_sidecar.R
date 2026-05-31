@@ -22,7 +22,9 @@ assert_sidecar_schema <- function(payload, path = NULL) {
     return(invisible(1L)) # legacy v1 sidecar: no version field.
   }
   ver <- suppressWarnings(as.integer(ver))
-  where <- if (is.null(path)) "" else sprintf(" ({.file {path}})", path = path)
+  # cli interpolates {ver}, {SCHEMA_VERSION}, and {.file {path}} from this
+  # frame; build the optional location suffix as cli markup, not via sprintf.
+  where <- if (is.null(path)) "" else " ({.file {path}})"
   if (is.na(ver)) {
     cli::cli_abort(
       paste0("Sidecar has a non-integer {.field schema_version}", where, "."),
