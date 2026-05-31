@@ -401,7 +401,7 @@ ee_parse_index_rows <- function(html, register) {
     title <- ee_text(rvest::html_text2(a))
     region_cell <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Piirkond']")))
     init_date <- ee_parse_dmy(ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise kpv']"))))
-    init_reason <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise põhjus']")))
+    init_reason <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise p\u00f5hjus']")))
     status_cell <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Menetluse seis']")))
     # KMH uses "Arendaja" (developer); KSH uses "Korraldaja" (organiser).
     party_cell <- ee_text(rvest::html_text2(
@@ -680,12 +680,12 @@ ee_section_slug <- function(liik) {
   }
   s <- liik
   # Estonian diacritics that show up in document type labels.
-  s <- gsub("ä", "a", s)
-  s <- gsub("ö", "o", s)
-  s <- gsub("õ", "o", s)
-  s <- gsub("ü", "u", s)
-  s <- gsub("š", "s", s)
-  s <- gsub("ž", "z", s)
+  s <- gsub("\u00e4", "a", s)
+  s <- gsub("\u00f6", "o", s)
+  s <- gsub("\u00f5", "o", s)
+  s <- gsub("\u00fc", "u", s)
+  s <- gsub("\u0161", "s", s)
+  s <- gsub("\u017e", "z", s)
   s <- tolower(s)
   s <- gsub("[^a-z0-9]+", "_", s)
   s <- gsub("(^_+|_+$)", "", s)

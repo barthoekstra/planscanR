@@ -85,20 +85,20 @@ at_discovery_config <- function() {
         "ig-windkraft.at",
         "oekobuero.at"
       ),
-      Kärnten = c(
+      "K\u00e4rnten" = c(
         "ktn.gv.at",
         "verwaltung.ktn.gv.at",
         "ris.bka.gv.at",
         "bvwg.gv.at"
       ),
-      Niederösterreich = c(
+      "Nieder\u00f6sterreich" = c(
         "noe.gv.at",
         "ris.bka.gv.at",
         "bvwg.gv.at",
         "ig-windkraft.at",
         "oekobuero.at"
       ),
-      Oberösterreich = c(
+      "Ober\u00f6sterreich" = c(
         "land-oberoesterreich.gv.at",
         "ris.bka.gv.at",
         "bvwg.gv.at",
@@ -261,7 +261,7 @@ at_extract_proponent_from_summary <- function(summary) {
   m <- regmatches(
     summary,
     regexpr(
-      "\\bDie\\s+([A-ZÄÖÜ][^.]+?)\\s+(plant|beabsichtigt|projektiert|plante|beabsichtigte|ist|hat)\\b",
+      "\\bDie\\s+([A-Z\u00c4\u00d6\u00dc][^.]+?)\\s+(plant|beabsichtigt|projektiert|plante|beabsichtigte|ist|hat)\\b",
       summary,
       perl = TRUE
     )

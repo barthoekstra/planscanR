@@ -488,12 +488,12 @@ be_section_slug <- function(type) {
   }
   s <- type
   # Dutch / French diacritics that show up in document type labels.
-  s <- gsub("é|è|ê|ë", "e", s)
-  s <- gsub("à|â|ä", "a", s)
-  s <- gsub("î|ï", "i", s)
-  s <- gsub("ô|ö", "o", s)
-  s <- gsub("û|ü", "u", s)
-  s <- gsub("ç", "c", s)
+  s <- gsub("\u00e9|\u00e8|\u00ea|\u00eb", "e", s)
+  s <- gsub("\u00e0|\u00e2|\u00e4", "a", s)
+  s <- gsub("\u00ee|\u00ef", "i", s)
+  s <- gsub("\u00f4|\u00f6", "o", s)
+  s <- gsub("\u00fb|\u00fc", "u", s)
+  s <- gsub("\u00e7", "c", s)
   s <- tolower(s)
   s <- gsub("[^a-z0-9]+", "_", s)
   s <- gsub("(^_+|_+$)", "", s)
