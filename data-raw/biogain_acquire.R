@@ -20,10 +20,12 @@
 #     later classification routine can decide which files are useful
 #     (UVP-Bericht vs. lubricant datasheet, which project a file belongs to,
 #     etc.). The fetcher stays deliberately undiscriminating.
-# The only knob that still gates the (opt-in) DOWNLOAD/DISCOVER phases is the
-# relevance threshold below — it's the lever for "once I've decided, pull the
-# PDFs for the records above score X". Leave downloads off for a pure
-# information harvest.
+# The (opt-in) DOWNLOAD/DISCOVER phases gate on the BIOGAIN ensemble selection
+# (select_assessments(): cosine OR classifier OR keywords, minus the confident
+# fossil/oil-gas/nuclear trim) — the single source of truth for "which records
+# are in scope". The cosine threshold below feeds that rule's cosine arm. Leave
+# downloads off for a pure information harvest; run CLASSIFY before DOWNLOAD so
+# the selection has all three signals (it degrades to cosine OR keyword if not).
 #
 # Run it:
 #   Rscript data-raw/biogain_acquire.R
@@ -62,7 +64,7 @@ CACHE_DIR <- Sys.getenv("PLANSCANR_CACHE", "/Users/barthoekstra/Development/plan
 COUNTRIES <- {
   v <- Sys.getenv("BIOGAIN_COUNTRIES", unset = NA_character_)
   if (is.na(v) || !nzchar(v)) {
-    c("nl", "de", "at", "dk")
+    c("nl", "de", "at", "dk", "be", "ee")
   } else {
     trimws(strsplit(v, ",", fixed = TRUE)[[1]])
   }
@@ -84,9 +86,11 @@ RUN_CLASSIFY <- env_flag("BIOGAIN_RUN_CLASSIFY", FALSE)
 RUN_DOWNLOAD <- env_flag("BIOGAIN_RUN_DOWNLOAD", FALSE)
 RUN_DISCOVER <- env_flag("BIOGAIN_RUN_DISCOVER", FALSE)
 
-# Relevance gate for the DOWNLOAD and DISCOVER phases: a record is a download
-# candidate if ANY BIOGAIN topic clears this cosine threshold. Scan-phase
-# scoring is unconditional (every record gets scored regardless).
+# Cosine threshold for the DOWNLOAD/DISCOVER selection: this is the cutoff for
+# the cosine arm of the BIOGAIN ensemble (select_assessments()), i.e. a record
+# clears the cosine arm if ANY BIOGAIN topic reaches this score. The other arms
+# (classifier, keywords) and the fossil/nuclear trim are applied alongside it.
+# Scan-phase scoring is unconditional (every record gets scored regardless).
 DL_THRESHOLD <- 0.50
 
 # Per-file size cap (MiB) for downloads. Our DE probe averaged ~2.4 MB/PDF and
@@ -156,6 +160,31 @@ COUNTRY_CFG <- list(
     download_sections = NULL,
     category_regex = NULL,
     discover = FALSE
+  ),
+  be = list(
+    # No server-side filter at scan time — the Flemish MER-register's
+    # /api/v1/dossier endpoint returns the entire register (~3000 records)
+    # in 25-row pages, and the handler walks all pages internally.
+    scan_args = list(),
+    # BE exposes direct anonymous PDF download URLs, so DOWNLOAD can pull
+    # every per-type section the records carry (aanmelding,
+    # ontheffingsaanvraag, verslag_toekenning_ontheffing, ...).
+    download_sections = "all",
+    category_regex = NULL,
+    discover = FALSE
+  ),
+  ee = list(
+    # No server-side filter at scan time — the KOTKAS handler enumerates
+    # both registers (KMH + KSH, ~1250 records combined) internally,
+    # paginating via the qs= offset. Use assessment_type = "EIA" / "SEA"
+    # here if you want to restrict the crawl to one register.
+    scan_args = list(),
+    # EE exposes direct anonymous PDF download URLs in the Dokumendid
+    # table, so DOWNLOAD can pull every per-Liik section the records
+    # carry (algatamise_otsus, programm, programmi_otsus, aruanne, ...).
+    download_sections = "all",
+    category_regex = NULL,
+    discover = FALSE
   )
 )
 
@@ -222,10 +251,11 @@ biogain_topic_max <- function(recs, slugs = BIOGAIN_SLUGS) {
 #' Download one country's gated slice, section-selectively, and merge results
 #' back into the on-disk sidecars.
 #'
-#' Stacks three gates: relevance (any BIOGAIN topic >= threshold), optional
-#' category regex on native_type, and section selection. Only the URLs in the
-#' configured sections are fetched; pending entries for the other sections stay
-#' on the sidecar untouched.
+#' Stacks three gates: the BIOGAIN ensemble selection (select_assessments():
+#' cosine OR classifier OR keywords, minus the fossil/oil-gas/nuclear trim), an
+#' optional category regex on native_type, and section selection. Only the URLs
+#' in the configured sections are fetched; pending entries for the other
+#' sections stay on the sidecar untouched.
 download_slice <- function(country, cfg, threshold = DL_THRESHOLD, max_mb = DL_MAX_MB) {
   sections <- cfg$download_sections
   if (is.null(sections) || length(sections) == 0L) {
@@ -240,11 +270,15 @@ download_slice <- function(country, cfg, threshold = DL_THRESHOLD, max_mb = DL_M
     return(invisible(NULL))
   }
 
-  # Gate 1: relevance.
-  tmax <- biogain_topic_max(recs)
-  keep <- !is.na(tmax) & tmax >= threshold
+  # Gate 1: the BIOGAIN ensemble selection — the single source of truth for
+  # "is this record in scope". select_assessments() combines all three signals
+  # (cosine OR classifier OR keywords) and trims confident fossil/oil-gas/
+  # nuclear records. It degrades gracefully on un-classified slices (cosine OR
+  # keyword only), so run the CLASSIFY phase first for the full signal.
+  recs <- select_assessments(recs, relevance_threshold = threshold)
+  keep <- recs$selected %in% TRUE
 
-  # Gate 2: category (optional).
+  # Gate 2: category (optional, applied on top of the ensemble selection).
   if (!is.null(cfg$category_regex)) {
     nt <- if ("native_type" %in% names(recs)) recs$native_type else rep(NA_character_, nrow(recs))
     keep <- keep & !is.na(nt) & grepl(cfg$category_regex, nt)
@@ -374,9 +408,11 @@ discover_slice <- function(country, threshold = DL_THRESHOLD, max_mb = DL_MAX_MB
     log_step("[%s] no sidecars; run SCAN first.", country)
     return(invisible(NULL))
   }
-  tmax <- biogain_topic_max(recs)
-  target <- recs[!is.na(tmax) & tmax >= threshold, , drop = FALSE]
-  log_step("[%s] discovery slice: %d records pass relevance gate.", country, nrow(target))
+  # Same BIOGAIN ensemble gate as the download slice (see select_assessments()),
+  # so portal-download and discovery countries select an identical scope.
+  sel <- select_assessments(recs, relevance_threshold = threshold)
+  target <- sel[sel$selected %in% TRUE, , drop = FALSE]
+  log_step("[%s] discovery slice: %d records pass the selection gate.", country, nrow(target))
   if (nrow(target) == 0L) {
     return(invisible(NULL))
   }

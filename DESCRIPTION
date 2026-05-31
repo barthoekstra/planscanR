@@ -8,7 +8,8 @@ Description: A unified R interface for fetching environmental-assessment
     with built-in tools to score records by topic relevance and select the
     ones worth a closer look. Handlers ship for the Netherlands (Commissie
     m.e.r.), Germany (UVP-Verbund), Austria (Umweltbundesamt UVP-DB),
-    Denmark (EA-Hub), and Belgium (Flanders; MER-register).
+    Denmark (EA-Hub), Belgium (Flanders; MER-register), and Estonia
+    (Keskkonnaamet KOTKAS; KMH + KSH).
     Developed for the BIOGAIN project to support Net Biodiversity Gain in
     spatial energy planning.
 License: GPL (>= 3)

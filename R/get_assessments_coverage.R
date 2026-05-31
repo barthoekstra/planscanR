@@ -14,27 +14,30 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "at", "dk", "be"),
+    country = c("nl", "de", "at", "dk", "be", "ee"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
       "umweltbundesamt.at/uvpdb",
       "miljoeportal.dk/eahub",
-      "omgeving.vlaanderen.be/merregister"
+      "omgeving.vlaanderen.be/merregister",
+      "kotkas.envir.ee"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
       "https://www.uvp-verbund.de",
       "https://secure.umweltbundesamt.at/uvpdb/public",
       "https://eahub.miljoeportal.dk",
-      "https://merregister.omgeving.vlaanderen.be"
+      "https://merregister.omgeving.vlaanderen.be",
+      "https://kotkas.envir.ee"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE),
+    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
     status = c(
       "supported",
       "supported",
       "supported (metadata-only)",
       "supported (metadata-only)",
+      "supported",
       "supported"
     ),
     facets = list(
@@ -42,7 +45,8 @@ get_assessments_coverage <- function() {
       uvp_facets(),
       uvpdb_at_facets(),
       eahub_dk_facets(),
-      merregister_be_facets()
+      merregister_be_facets(),
+      kotkas_ee_facets()
     )
   )
 }
@@ -58,6 +62,75 @@ get_assessments_coverage <- function() {
 merregister_be_facets <- function() {
   list(
     dossier_type = c("PROJECT_MER", "VERZOEK_TOT_ONTHEFFING")
+  )
+}
+
+#' Static lookup of the KOTKAS (Estonia) facet vocabularies.
+#'
+#' KOTKAS exposes a small set of server-side filters on its KMH / KSH
+#' indexes. The values here are the discriminators we currently honour:
+#' the `assessment_type` discriminator (which register to crawl — KMH for
+#' EIA, KSH for SEA, or both), the procedural-status enum, the maakond
+#' (county) codes that the portal accepts as `s__activity_area`, and the
+#' activity-sector codes that the portal accepts as `s__activity`. The
+#' detailed `initiation_activity` (Annex-I-style) sub-vocabulary is
+#' available on the portal but is not enumerated here — pass the code
+#' directly via `...` if needed.
+#' @noRd
+kotkas_ee_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    proceeding_status = c("INITIATED", "ONGOING", "SUSPENDED", "FINISHED"),
+    activity_area = c(
+      ESTONIA = "Üle Eesti",
+      SEA = "Meri",
+      CROSSBORDER = "Piiriülene",
+      `0037` = "Harju maakond",
+      `0039` = "Hiiu maakond",
+      `0045` = "Ida-Viru maakond",
+      `0050` = "Jõgeva maakond",
+      `0052` = "Järva maakond",
+      `0056` = "Lääne maakond",
+      `0060` = "Lääne-Viru maakond",
+      `0064` = "Põlva maakond",
+      `0068` = "Pärnu maakond",
+      `0071` = "Rapla maakond",
+      `0074` = "Saare maakond",
+      `0079` = "Tartu maakond",
+      `0081` = "Valga maakond",
+      `0084` = "Viljandi maakond",
+      `0087` = "Võru maakond"
+    ),
+    activity = c(
+      `1100` = "Jäätmekäitlus",
+      `1200` = "Ehitussektor",
+      `1300` = "Energeetika ja energiakandjate tootmine",
+      `1400` = "Info- ja kommunikatsioonitehnoloogia",
+      `1500` = "Keemiatööstus",
+      `1600` = "Kiirgus",
+      `1700` = "Metallide tootmine ja töötlemine",
+      `1800` = "Mineraalsete materjalide töötlemine",
+      `1900` = "Kaevandamine ja geoloogia",
+      `2000` = "Ohtlike ainete käitlus",
+      `2100` = "Puidu, tselluloosi- ja paberitööstus",
+      `2200` = "Põllumajandus ja vesiviljelus",
+      `2300` = "Toiduainetööstus ja sööda tootmine",
+      `2400` = "Transport ja taristu",
+      `2500` = "Veekasutus",
+      `2600` = "Muud tegevusvaldkonnad ja muud juhud"
+    ),
+    ksh_type = c(
+      `1000` = "Üleriigiline planeering",
+      `1100` = "Riigi eriplaneering",
+      `1200` = "Maakonnaplaneering",
+      `1300` = "Üldplaneering",
+      `1400` = "Kohaliku omavalitsuse eriplaneering",
+      `1500` = "Detailplaneering",
+      `1600` = "Arengukava",
+      `1700` = "Strateegia",
+      `1800` = "Programm",
+      `1900` = "Muu"
+    )
   )
 }
 

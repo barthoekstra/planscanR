@@ -12,7 +12,7 @@ in spatial energy planning). It provides a single, unified R API
 follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad).
 
-**v0.1 scope.** Five country handlers ship:
+**v0.1 scope.** Six country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -29,6 +29,18 @@ follow-up advice) from European national portals — modelled on
   GeoJSON layout as DK), and direct anonymous document downloads. The
   geometry sidecar's CRS is the only thing that distinguishes it from a
   DK file.
+- Estonia (`get_assessments_ee()`) — Keskkonnaamet KOTKAS at
+  `kotkas.envir.ee`. Merges both Estonian registers — **KMH** (EIA) and
+  **KSH** (SEA) — into one result tibble; each row carries an
+  `assessment_type` column (`"EIA"` / `"SEA"`) and `document_id` is
+  prefixed `"KMH-"` / `"KSH-"` so the two registers never collide on disk.
+  Server-rendered (jQuery / Bootstrap) portal: index pages paginate via a
+  numeric `qs=` offset, detail pages are scraped with `rvest`. Detail
+  records carry an inline GeoJSON geometry (hidden form input) in
+  **EPSG:3301** (L-EST97), persisted as `<document_id>.geometry.geojson`
+  next to the sidecar in the same layout as DK / BE. Direct anonymous
+  document downloads, grouped per `Liik` (document type) into
+  `attachment_urls_<slug>` columns dynamically.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only

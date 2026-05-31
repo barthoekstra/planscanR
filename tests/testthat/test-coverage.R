@@ -47,6 +47,26 @@ test_that("BE coverage row exposes the dossier-type vocabulary", {
   expect_true("VERZOEK_TOT_ONTHEFFING" %in% f$dossier_type)
 })
 
+test_that("EE coverage row exposes the KOTKAS facet vocabularies", {
+  c <- get_assessments_coverage()
+  ee <- c[c$country == "ee", ]
+  expect_identical(ee$source_portal, "kotkas.envir.ee")
+  expect_false(ee$requires_auth)
+  expect_identical(ee$status, "supported")
+  f <- ee$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(
+    names(f),
+    c("assessment_type", "proceeding_status", "activity_area", "activity", "ksh_type")
+  )
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  expect_true("ONGOING" %in% f$proceeding_status)
+  expect_true("Harju maakond" %in% f$activity_area)
+  expect_true("Energeetika ja energiakandjate tootmine" %in% f$activity)
+  expect_true("Detailplaneering" %in% f$ksh_type)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

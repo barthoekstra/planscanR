@@ -14,9 +14,11 @@ TRANSLATE_ENGINE <- "argos"
 # responsive; longer text is truncated with a marker.
 ARGOS_MAX_CHARS <- 4000L
 
-# Country -> source language (NL Dutch; DE/AT German; DK Danish).
+# Country -> source language. Flanders (BE) is Dutch, so it reuses the
+# same nl->en Argos pair the NL handler does. Estonia (EE) uses Estonian
+# (et).
 country_src_lang <- function(country) {
-  m <- c(nl = "nl", de = "de", at = "de", dk = "da")
+  m <- c(nl = "nl", de = "de", at = "de", dk = "da", be = "nl", ee = "et")
   v <- m[[country]]
   if (is.null(v)) NA_character_ else v
 }
