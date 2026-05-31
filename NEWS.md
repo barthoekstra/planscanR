@@ -8,16 +8,12 @@
 * Austria handler `get_assessments_at()` fetches record metadata from the
   Umweltbundesamt UVP-DB (`secure.umweltbundesamt.at/uvpdb`). Metadata-only:
   the portal's documents sit behind a login, so `attachment_urls` are empty.
-* **The family split: scoring, classification, and selection moved out.**
-  planscanR is now the pure-R *fetcher* leaf of a three-package family. Topic
-  relevance scoring, the keyword lexicon, zero-shot classification, and the
-  learned selection model now live in **planscanR.screen**; the
-  BIOGAIN-specific topic/label/keyword config, the ensemble selection rule, the
-  review Shiny app, and the acquisition runbook now live in
-  **planscanR.biogain**. Functions that left planscanR include
-  `score_assessments()`, `score_keywords()`, `biogain_keyword_lexicon()`,
-  `classify_assessments()`, `select_assessments()`,
-  `biogain_assessment_topics()`, and `run_biogain_review()`.
+* **Scoring, classification, and selection moved out.** planscanR is now a
+  pure-R *fetcher*. Topic relevance scoring, the keyword lexicon, zero-shot
+  classification, and the learned selection model now live in the companion
+  **planscanR.screen** package. Functions that left planscanR include
+  `score_assessments()`, `score_keywords()`, `classify_assessments()`, and
+  `select_assessments()`.
 * Optional fetch-time relevance scoring stays. Pass `topic` (and, to gate
   downloads, `relevance_threshold`) to `get_assessments()` to score records as
   they are fetched, adding one `relevance_score_<slug>` column per topic plus a

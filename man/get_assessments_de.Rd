@@ -126,9 +126,8 @@ discovered sections, ordered curated-first (in the order above) then any
 auto-slugged sections in page order. Required by the planscanR schema.
 
 When \code{download = TRUE}, files in \strong{all} discovered sections are fetched —
-subject to \code{max_file_size_mb} and the relevance threshold. (The
-\code{data-raw/biogain_acquire.R} runbook can restrict downloads to a chosen
-subset of sections; the handler itself always captures them all.)
+subject to \code{max_file_size_mb} and the relevance threshold. The handler
+itself always captures every section.
 }
 
 \examples{

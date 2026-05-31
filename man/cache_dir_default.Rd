@@ -14,8 +14,8 @@ The cache root is owned by \code{planscanR}: it is \code{getOption("planscanR.ca
 when set, otherwise \code{\link[tools:userdir]{tools::R_user_dir()}}\verb{("planscanR", "cache")}. This is the
 same resolution as the internal \code{cache_dir()} but without auto-creating the
 directory, so it is safe in read-only paths. Exported so the downstream
-family packages (\code{planscanR.screen}, \code{planscanR.biogain}) read and write
-through the one cache root without reimplementing the resolution chain.
+\code{planscanR.screen} package reads and writes through the one cache root
+without reimplementing the resolution chain.
 }
 \examples{
 cache_dir_default()

@@ -70,9 +70,8 @@
 #' auto-slugged sections in page order. Required by the planscanR schema.
 #'
 #' When `download = TRUE`, files in **all** discovered sections are fetched —
-#' subject to `max_file_size_mb` and the relevance threshold. (The
-#' `data-raw/biogain_acquire.R` runbook can restrict downloads to a chosen
-#' subset of sections; the handler itself always captures them all.)
+#' subject to `max_file_size_mb` and the relevance threshold. The handler
+#' itself always captures every section.
 #'
 #' @param date_range Length-2 vector `c(from, to)` of dates or parseable
 #'   strings. Filters by `date_decision`.

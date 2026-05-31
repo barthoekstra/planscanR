@@ -24,10 +24,9 @@ half-written sidecar in place.
 }
 \details{
 This is part of the sidecar I/O contract between \code{planscanR} (the cache
-owner) and the downstream family packages: \code{planscanR.screen} and
-\code{planscanR.biogain} persist their derived columns (relevance / class scores,
-review translations) by calling \code{planscanR::write_record_sidecar()}. The
-merge logic that preserves existing \code{files[]} / \code{relevance_scores[]} /
-\verb{class_*} arrays lives here, so adding a new score family never wipes
-existing ones.
+owner) and the downstream \code{planscanR.screen} package, which persists its
+derived columns (relevance / class scores) by calling
+\code{planscanR::write_record_sidecar()}. The merge logic that preserves existing
+\code{files[]} / \code{relevance_scores[]} / \verb{class_*} arrays lives here, so adding a
+new score family never wipes existing ones.
 }

@@ -11,7 +11,7 @@ SCHEMA_VERSION <- 2L
 #' Assert a sidecar's schema version is one this package understands.
 #'
 #' The sidecar JSON is the load-bearing contract between `planscanR` (writer)
-#' and the downstream `planscanR.screen` / `planscanR.biogain` readers. A
+#' and the downstream `planscanR.screen` reader. A
 #' sidecar written by a *newer* planscanR (a higher `schema_version`) may carry
 #' fields or semantics this version doesn't know about, so we fail loudly rather
 #' than silently misread it. Missing field = legacy v1, which reads cleanly.
@@ -67,12 +67,11 @@ sidecar_path <- function(country, document_id, root = NULL, create = TRUE) {
 #' half-written sidecar in place.
 #'
 #' This is part of the sidecar I/O contract between `planscanR` (the cache
-#' owner) and the downstream family packages: `planscanR.screen` and
-#' `planscanR.biogain` persist their derived columns (relevance / class scores,
-#' review translations) by calling `planscanR::write_record_sidecar()`. The
-#' merge logic that preserves existing `files[]` / `relevance_scores[]` /
-#' `class_*` arrays lives here, so adding a new score family never wipes
-#' existing ones.
+#' owner) and the downstream `planscanR.screen` package, which persists its
+#' derived columns (relevance / class scores) by calling
+#' `planscanR::write_record_sidecar()`. The merge logic that preserves existing
+#' `files[]` / `relevance_scores[]` / `class_*` arrays lives here, so adding a
+#' new score family never wipes existing ones.
 #'
 #' @param record A 1-row tibble in the planscanR result shape.
 #' @param downloads The structured download-status tibble produced by
@@ -595,8 +594,8 @@ index_cache <- function(cache_dir = NULL, country = NULL) {
 #' when set, otherwise [tools::R_user_dir()]`("planscanR", "cache")`. This is the
 #' same resolution as the internal `cache_dir()` but without auto-creating the
 #' directory, so it is safe in read-only paths. Exported so the downstream
-#' family packages (`planscanR.screen`, `planscanR.biogain`) read and write
-#' through the one cache root without reimplementing the resolution chain.
+#' `planscanR.screen` package reads and writes through the one cache root
+#' without reimplementing the resolution chain.
 #'
 #' @return A single path string (the cache root; not guaranteed to exist).
 #' @export
