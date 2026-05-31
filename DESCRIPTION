@@ -16,6 +16,8 @@ License: GPL (>= 3)
 URL: https://github.com/barthoekstra/planscanR,
     https://barthoekstra.github.io/planscanR/
 BugReports: https://github.com/barthoekstra/planscanR/issues
+Remotes:
+    barthoekstra/planscanR.screen
 Depends:
     R (>= 4.1)
 Imports:
