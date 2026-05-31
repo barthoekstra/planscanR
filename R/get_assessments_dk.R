@@ -539,13 +539,18 @@ wkt_split_paren_blocks <- function(s) {
 #' @noRd
 wkt_split_rings <- function(s) {
   blocks <- wkt_split_paren_blocks(s)
-  vapply(blocks, function(b) {
-    if (startsWith(b, "(") && endsWith(b, ")")) {
-      substr(b, 2L, nchar(b) - 1L)
-    } else {
-      b
-    }
-  }, character(1), USE.NAMES = FALSE)
+  vapply(
+    blocks,
+    function(b) {
+      if (startsWith(b, "(") && endsWith(b, ")")) {
+        substr(b, 2L, nchar(b) - 1L)
+      } else {
+        b
+      }
+    },
+    character(1),
+    USE.NAMES = FALSE
+  )
 }
 
 # -----------------------------------------------------------------------------
@@ -601,8 +606,12 @@ dk_year_in_range <- function(from_year, to_year, date_range) {
   if (is.na(fy) && is.na(ty)) {
     return(FALSE)
   }
-  if (is.na(fy)) fy <- ty
-  if (is.na(ty)) ty <- fy
+  if (is.na(fy)) {
+    fy <- ty
+  }
+  if (is.na(ty)) {
+    ty <- fy
+  }
   yr_start <- as.Date(sprintf("%04d-01-01", fy))
   yr_end <- as.Date(sprintf("%04d-12-31", ty))
   !(yr_end < date_range[1] || yr_start > date_range[2])
