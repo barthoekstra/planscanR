@@ -7,11 +7,14 @@ with_temp_cache <- function(code) {
   withr::with_options(list(planscanR.cache_dir = d), code)
 }
 
-# Skip a live-HTTP test when CI / offline-test mode is set.
+# Skip a live-HTTP test on CI, when offline-test mode is forced, or when there
+# is no internet. The portals these tests hit can block or rate-limit CI runner
+# IPs (403 / 429), so live tests are local-only by design (see AGENTS.md).
 skip_if_offline_tests <- function() {
   if (isTRUE(as.logical(Sys.getenv("PLANSCANR_OFFLINE_TESTS", "false")))) {
     testthat::skip("PLANSCANR_OFFLINE_TESTS is set; skipping live HTTP")
   }
+  testthat::skip_on_ci()
   testthat::skip_if_offline()
 }
 
