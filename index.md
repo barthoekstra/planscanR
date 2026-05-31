@@ -36,6 +36,7 @@ Supported portals:
 | Austria (`"at"`) | Umweltbundesamt UVP-DB | record details only (no documents) |
 | Denmark (`"dk"`) | Danmarks Miljøportal EA-Hub | record metadata + polygon geometry (document downloads deferred) |
 | Belgium (Flanders) (`"be"`) | Departement Omgeving MER-register | full records + polygon geometry + document downloads |
+| Estonia (`"ee"`) | Keskkonnaamet KOTKAS (KMH + KSH) | EIA + SEA in one handler, full records + polygon geometry + document downloads |
 
 See
 [`vignette("supported_sources")`](https://barthoekstra.github.io/planscanR/articles/supported_sources.md)

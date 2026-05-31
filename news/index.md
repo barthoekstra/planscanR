@@ -2,6 +2,13 @@
 
 ## planscanR 0.0.0.9000
 
+- Breaking: `download` now defaults to `FALSE` across
+  [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
+  and all per-country handlers
+  ([`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md),
+  `_de()`, `_at()`, `_dk()`, `_be()`, `_ee()`). Downloading attachments
+  is computationally intensive, so it is now opt-in — pass
+  `download = TRUE` explicitly to fetch PDFs.
 - Initial development scaffold.
 - Austria handler
   [`get_assessments_at()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md)
@@ -106,6 +113,31 @@
   `"Project"`), and `date_range` (matched against each record’s
   `fromYear` / `toYear`; `date_decision` is `NA` because the API only
   exposes year fields).
+- Estonia handler
+  [`get_assessments_ee()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.md)
+  fetches from the Keskkonnaamet’s KOTKAS portal (`kotkas.envir.ee`),
+  merging both Estonian registers — KMH (project-level EIA,
+  *Keskkonnamõju hindamine*) and KSH (plan/programme SEA, *Keskkonnamõju
+  strateegiline hindamine*) — into one result tibble. Each row is tagged
+  via the `assessment_type` column (`"EIA"` for KMH, `"SEA"` for KSH)
+  and round-tripped to the sidecar so downstream tooling can tell them
+  apart without re-fetching anything; `document_id` is prefixed `"KMH-"`
+  / `"KSH-"` so the two registers never collide on disk. KOTKAS is a
+  server-rendered (jQuery / Bootstrap) portal: index pages paginate via
+  a numeric `qs=` offset and detail pages are scraped with `rvest`.
+  Detail records carry an inline GeoJSON geometry (hidden form input) in
+  EPSG:3301 (L-EST97), persisted next to the sidecar as
+  `<document_id>.geometry.geojson` (same pattern as DK / BE).
+  Per-document `Liik` (type) attachment splits emit
+  `attachment_urls_<slug>` columns dynamically (e.g. `algatamise_otsus`,
+  `programm`, `programmi_otsus`, `aruanne`, …). Filter surface: `query`
+  (server-side `s__search_keyword`), `assessment_type` (`"All"` /
+  `"EIA"` / `"SEA"`), `proceeding_status` (`"INITIATED"` / `"ONGOING"` /
+  `"SUSPENDED"` / `"FINISHED"`), `activity_area` (maakond code), and
+  `activity` (sector code) — all forwarded server-side; `date_range` is
+  matched client-side against `date_published` (the portal’s *Algatamise
+  kpv* / initiation date; `date_decision` is `NA` because the portal
+  exposes no dossier-level decision timestamp).
 - Belgium (Flanders) handler
   [`get_assessments_be()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md)
   fetches from the Departement Omgeving’s MER-register

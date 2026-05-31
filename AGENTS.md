@@ -14,7 +14,7 @@ for fetching environmental-assessment records (EIA, SEA, follow-up
 advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad).
 
-**v0.1 scope.** Five country handlers ship: - Netherlands
+**v0.1 scope.** Six country handlers ship: - Netherlands
 ([`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md))
 — Commissie m.e.r. adviezenregister at `commissiemer.nl`. - Germany
 ([`get_assessments_de()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md))
@@ -32,7 +32,20 @@ ontheffingsaanvragen only (Plan-MER is a separate Flemish register).
 Full metadata, polygon geometry (EPSG:31370, persisted in the same
 GeoJSON layout as DK), and direct anonymous document downloads. The
 geometry sidecar’s CRS is the only thing that distinguishes it from a DK
-file. - Austria
+file. - Estonia
+([`get_assessments_ee()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.md))
+— Keskkonnaamet KOTKAS at `kotkas.envir.ee`. Merges both Estonian
+registers — **KMH** (EIA) and **KSH** (SEA) — into one result tibble;
+each row carries an `assessment_type` column (`"EIA"` / `"SEA"`) and
+`document_id` is prefixed `"KMH-"` / `"KSH-"` so the two registers never
+collide on disk. Server-rendered (jQuery / Bootstrap) portal: index
+pages paginate via a numeric `qs=` offset, detail pages are scraped with
+`rvest`. Detail records carry an inline GeoJSON geometry (hidden form
+input) in **EPSG:3301** (L-EST97), persisted as
+`<document_id>.geometry.geojson` next to the sidecar in the same layout
+as DK / BE. Direct anonymous document downloads, grouped per `Liik`
+(document type) into `attachment_urls_<slug>` columns dynamically. -
+Austria
 ([`get_assessments_at()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md))
 — Umweltbundesamt UVP-DB at `secure.umweltbundesamt.at/uvpdb`.
 **Metadata-only**: the portal’s HTML pages and document attachments sit
@@ -47,9 +60,10 @@ The architecture is multi-country from day one — adding DK / etc. is a
 pure additive change.
 
 **Out of scope for v0.1.** Spatial output (`sf`), zoning/plan documents,
-credential management (`keyring`), LLM-based classification &
-normalisation. All are flagged on the roadmap (§6) so they don’t get
-prematurely wedged in.
+LLM-based classification & normalisation. All are flagged on the roadmap
+(§6) so they don’t get prematurely wedged in. Credential management via
+`keyring` is no longer deferred — it landed alongside the Yoda / iRODS
+sync layer; see §4c.
 
 ## 1a. The acquisition runbook is the central reference
 
@@ -173,12 +187,17 @@ set. New conventional columns can be promoted in a later minor release.
           <document_id>.meta.json                          # sidecar (see §4b)
           <country>_<document_id>_<slug>.<ext>             # flatten-safe basename
 
-  There is no separate HTTP cache — the sidecar JSONs ARE the cache, and
-  per-country handlers consult them via `sidecar_url_index()` before
-  going to the network. \[clear_cache()\] removes the `files/` tree
-  (optionally scoped by `country`); pair with `refresh = TRUE` on the
-  next call if you want fresh fetches afterwards. The download layer
-  pre-flights every URL with HEAD; files exceeding
+  When a portal’s attachment URLs don’t expose an extension in the path
+  (e.g. Kotkas: `?attachment_id=...`), the slug carries an 8-char SHA-1
+  of the full URL for per-attachment uniqueness, and the final `<ext>`
+  is assigned post-download from the `Content-Type` header (with a
+  magic-byte fallback for `application/octet-stream`). There is no
+  separate HTTP cache — the sidecar JSONs ARE the cache, and per-country
+  handlers consult them via `sidecar_url_index()` before going to the
+  network. \[clear_cache()\] removes the `files/` tree (optionally
+  scoped by `country`); pair with `refresh = TRUE` on the next call if
+  you want fresh fetches afterwards. The download layer pre-flights
+  every URL with HEAD; files exceeding
   `getOption("planscanR.max_file_size_mb", 50)` are skipped and recorded
   in `download_status`. Already-on-disk non-empty files become
   `status = "cached"` unless `overwrite = TRUE`.
@@ -192,8 +211,9 @@ set. New conventional columns can be promoted in a later minor release.
   in CI**. Live tests, if any, live under `tests/manual/` and are
   git-ignored.
 
-- **Secrets**: deferred to a future release; no `keyring` dependency in
-  v0.1.
+- **Secrets**: `keyring` is a Suggests dependency used by the Yoda sync
+  layer (§4c) under the `planscanR_yoda` service slot. Portal handlers
+  themselves remain anonymous-access in v0.x and don’t need credentials.
 
 ## 4b. Persistence and offline indexing
 
@@ -228,6 +248,93 @@ offline; - enumerate what’s on disk before deciding what else to
 fetch; - recover after manually relocating or flattening files (because
 the basenames are globally unique, `find files/ -exec mv {} flat/` is
 safe).
+
+## 4c. Yoda / iRODS sync ([R/sync_yoda.R](https://barthoekstra.github.io/planscanR/R/sync_yoda.R))
+
+Push the local cache to a
+[Yoda](https://utrechtuniversity.github.io/yoda/) iRODS server via the
+Python [`ibridges`](https://ibridges.readthedocs.io/) package (called
+through reticulate). The function pair replaces the WebDAV-via-rsync
+workflow in
+[`data-raw/sync_cache_to_server.sh`](https://barthoekstra.github.io/planscanR/data-raw/sync_cache_to_server.sh).
+
+**Cache-resident configuration** — all Yoda config lives inside the
+cache root, so a cache copied to another machine is immediately syncable
+from there too. Layout:
+
+    <cache_dir>/
+      yoda/
+        irods_environment.json   # user-provided; downloaded from the Yoda portal
+      yoda_config.json           # { "remote_root": "/zone/home/research-X/..." }
+      files/<cc>/<doc>/...       # source for the sync (mirrored 1:1 onto Yoda)
+
+Bootstrap (once per cache):
+
+``` r
+
+yoda_init(remote_root = "/nluu12p/home/research-biogain/planning-documents/raw")
+# then drop your irods_environment.json (downloaded from the Yoda portal,
+# "iRODS settings") into <cache>/yoda/
+```
+
+**Credentials.** `ibridges.Session` needs the iRODS password. Resolution
+order: explicit `password =` arg → `YODA_PASSWORD` env var (`.Renviron`)
+→ `keyring::key_get("planscanR_yoda", <username>)` (where `username`
+comes from the `irods_environment.json`) → interactive prompt. The
+standard choice is
+`keyring::key_set("planscanR_yoda", "<your-yoda-user>")` once, and never
+type the password again.
+
+**Sync workflow** (idempotent; intelligent across runs):
+
+``` r
+
+# 1. Sidecars first (kilobytes; fast). After this, the server has a
+#    complete offline-indexable metadata set.
+sync_cache_to_yoda(what = "sidecars")
+
+# 2. Then the PDFs (heavy). Skip what's already there at the same size.
+sync_cache_to_yoda(what = "files")
+
+# Country-scoped / dry-run / force overwrite variants
+sync_cache_to_yoda(country = "nl")
+sync_cache_to_yoda(dry_run = TRUE)
+sync_cache_to_yoda(overwrite = TRUE)
+```
+
+Comparison strategy is **size-only** (matches the existing rsync
+`--size-only` rationale: same-size means “the upload finished”, and we
+avoid the server-side checksum CPU cost). The walk drops Mac/Windows
+cruft (`.DS_Store`, `._*`, `Thumbs.db`, `desktop.ini`, …) and zero-byte
+files. `sync_cache_to_yoda()` returns a tibble:
+`local_path, remote_path, kind, size_bytes, status, reason` where status
+is one of `uploaded` / `skipped_size_match` / `would_upload` / `failed`.
+
+**Local-thin downloads** — `fetch_attachments_via_yoda(records, ...)`
+takes a records tibble (typically from
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
+or a `download = FALSE` call), downloads each URL to the local cache,
+uploads to Yoda, verifies by size round-trip, and **deletes the local
+file** unless `keep_local = TRUE`. Use this when operating a small
+laptop against a large corpus: the PDFs live on Yoda, the sidecars stay
+indexable locally. Sidecars are not modified by this function; rerun
+`sync_cache_to_yoda(what = "sidecars")` after a fresh scan/score if you
+want the latest metadata pushed too.
+
+**Testing.** All `sync_cache_to_yoda` paths route through four small
+indirections (`.yoda_exists`, `.yoda_size`, `.yoda_mkdir_p`,
+`.yoda_upload`) that dispatch on the session’s S3 subclass. Tests inject
+a fake session via the (internal) `yoda_session_fake()` helper — see
+[tests/testthat/test-sync_yoda.R](https://barthoekstra.github.io/planscanR/tests/testthat/test-sync_yoda.R).
+The fake records every upload call, so a test can assert what would have
+been sent to the server without touching Python or Yoda.
+
+**Out of scope (deliberate, for v1).** Wiring an `upload_to = "yoda"`
+flag into
+[`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md);
+iRODS AVU metadata writes; an `index_yoda_cache()` counterpart to
+[`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md).
+The local sidecars remain the authoritative index.
 
 ## 5. Adding a country
 
@@ -575,8 +682,10 @@ entirely in the package (the app is a consumer, §5c). Files:
       `derived/` subdir under the cache root.
 - **Additional country handlers** — DE, DK, AT and beyond. Order not
   committed.
-- **`keyring`-based secrets** for portals that grow to require API keys;
-  slot naming convention reserved as `planscanR_<country>_<portal>`.
+- **`keyring`-based secrets for portal handlers** — `keyring` is already
+  a Suggests dep (used by the Yoda sync layer in §4c). When a portal
+  grows to require API keys, reuse the existing `keyring` pattern under
+  the slot convention `planscanR_<country>_<portal>`.
 - **[`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)
   is also the home for cross-portal vocabulary normalisation** (status,
   type, jurisdiction); the fetcher stays raw.

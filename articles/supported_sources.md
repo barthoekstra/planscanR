@@ -2,12 +2,12 @@
 
 `planscanR` is a thin layer over a handful of national
 environmental-assessment portals (currently Netherlands, Germany,
-Austria, Denmark, and Belgium (Flanders)). There is no shared API behind
-the scenes — each country gives us a different mix of HTML pages,
-sitemaps, search endpoints, and undocumented JSON handlers, and each one
-comes with its own quirks. This vignette describes what each handler
-does, where it pulls data from, and what to expect (or watch out for)
-when using it.
+Austria, Denmark, Belgium (Flanders), and Estonia). There is no shared
+API behind the scenes — each country gives us a different mix of HTML
+pages, sitemaps, search endpoints, and undocumented JSON handlers, and
+each one comes with its own quirks. This vignette describes what each
+handler does, where it pulls data from, and what to expect (or watch out
+for) when using it.
 
 For the runtime equivalent — the same information in tabular form,
 including the valid vocabularies for the search facets each handler
@@ -235,6 +235,69 @@ exposes no separate decision timestamp.
 ``` r
 
 get_assessments_be(query = "wind", limit = 20, download = FALSE)
+```
+
+## Estonia — `"ee"`
+
+- **Portal:** Keskkonnaamet KOTKAS (KMH-register and KSH-register)
+  ([kotkas.envir.ee](https://kotkas.envir.ee/))
+- **Status:** supported — full metadata, polygon geometry, and document
+  downloads, across **both** registers.
+- **Authentication:** none.
+- **Coverage:** ~500 EIA records (KMH, *Keskkonnamõju hindamine*) and
+  ~750 SEA records (KSH, *Keskkonnamõju strateegiline hindamine*) at the
+  time of writing. The handler merges both registers into one result
+  tibble and tags each row via the `assessment_type` column (`"EIA"` for
+  KMH, `"SEA"` for KSH). `document_id` is prefixed `"KMH-"` / `"KSH-"`
+  so the two registers never collide on disk.
+- **Throttle:** 2 requests/second by default
+  (`getOption("planscanR.ee_throttle_rate")`) — the portal pushes back
+  with a 300 s retry-backoff at 5 req/s under sustained load.
+
+KOTKAS is a server-rendered jQuery/Bootstrap portal (not a SPA). Each
+register’s index paginates via a numeric `qs=` offset (page size = 40,
+server-controlled); detail pages live at `/kmh/kmh_view?kmh_id=<id>` and
+`/kmh/ksh_view?ksh_id=<id>` respectively. Every field a downstream
+classifier needs — full title, narrative summary, developer/proponent,
+decider/competent authority, KOV municipality, geometry, attachment URLs
+— is on the detail page.
+
+**Geometry.** Every detail record carries its activity area as an inline
+GeoJSON geometry, embedded in a hidden form input
+(`#activity_area_geojson`). Coordinates are in **EPSG:3301** (Estonian
+Coordinate System of 1997 / L-EST97). When `write_sidecar = TRUE`, the
+geometry is saved next to the sidecar as
+`<document_id>.geometry.geojson`; the sidecar carries `geometry_path`
+and `geometry_crs` for downstream consumption with `sf`.
+
+**Filter coverage.** `query` is forwarded server-side as
+`s__search_keyword` (matches title / code / related-person).
+`assessment_type` (`"All"`, `"EIA"`, `"SEA"`) decides which register(s)
+to crawl. `proceeding_status` (`"INITIATED"`, `"ONGOING"`,
+`"SUSPENDED"`, `"FINISHED"`), `activity_area` (maakond code,
+e.g. `"0037"` = Harju), and `activity` (sector code, e.g. `"1300"` =
+energy) are all forwarded server-side. `date_range` is matched
+client-side against `date_published` (the portal’s *Algatamise kpv* /
+initiation date); `date_decision` is always `NA` because the portal does
+not expose a separate decision timestamp on the detail page (only
+per-document dates inside the *Dokumendid* table).
+
+**Documents.** Detail pages expose a *Dokumendid* table whose rows have
+direct, anonymous download URLs (`/kmh/<kmh|ksh>_file_download?...`).
+Documents are grouped by their portal *Liik* (type) — common ones
+include *Algatamise otsus* (initiation decision), *Programm* (assessment
+programme), *Programmi otsus* (programme decision), *Aruanne* (report),
+*Aruande otsus* (report decision). Each type becomes its own
+`attachment_urls_<slug>` / `local_path_<slug>` column. The deduplicated
+union is at `attachment_urls` / `local_path` as the schema requires.
+
+``` r
+
+# Both registers, wind-themed slice
+get_assessments_ee(query = "tuulepark", limit = 20, download = FALSE)
+
+# SEA only
+get_assessments_ee(assessment_type = "SEA", limit = 20, download = FALSE)
 ```
 
 ## Adding a new source

@@ -13,7 +13,7 @@ get_assessments(
   country,
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,
@@ -33,7 +33,8 @@ get_assessments(
 - country:
 
   Character scalar, ISO-3166-1 alpha-2 country code (any case). v0.1
-  supports `"nl"`, `"de"`, `"at"`, `"dk"`, and `"be"` (Flanders). See
+  supports `"nl"`, `"de"`, `"at"`, `"dk"`, `"be"` (Flanders), and
+  `"ee"`. See
   [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md).
 
 - date_range:
@@ -48,9 +49,11 @@ get_assessments(
 
 - download:
 
-  Logical. If `TRUE` (default), attachment files referenced by each
-  record are downloaded into the local cache. If `FALSE`, only metadata
-  is returned; `local_path` is `character(0)` in every row.
+  Logical. If `TRUE`, attachment files referenced by each record are
+  downloaded into the local cache. Defaults to `FALSE` — fetching PDFs
+  is computationally intensive, so downloading is opt-in. When `FALSE`,
+  only metadata is returned; `local_path` is `character(0)` in every
+  row.
 
 - cache_dir:
 

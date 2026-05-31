@@ -17,7 +17,7 @@ client-side as records are parsed; taxonomy filters (`theme`,
 get_assessments_nl(
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,
@@ -49,7 +49,8 @@ get_assessments_nl(
 
 - download:
 
-  Logical. Download PDF attachments? Default `TRUE`.
+  Logical. Download PDF attachments? Default `FALSE` (downloading is
+  opt-in because it is computationally intensive).
 
 - cache_dir:
 

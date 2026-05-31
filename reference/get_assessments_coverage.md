@@ -22,7 +22,7 @@ search parameter the handler accepts.
 
 ``` r
 get_assessments_coverage()
-#> # A tibble: 5 × 6
+#> # A tibble: 6 × 6
 #>   country source_portal               base_url requires_auth status facets      
 #>   <chr>   <chr>                       <chr>    <lgl>         <chr>  <list>      
 #> 1 nl      commissiemer.nl             https:/… FALSE         suppo… <named list>
@@ -30,4 +30,5 @@ get_assessments_coverage()
 #> 3 at      umweltbundesamt.at/uvpdb    https:/… FALSE         suppo… <named list>
 #> 4 dk      miljoeportal.dk/eahub       https:/… FALSE         suppo… <named list>
 #> 5 be      omgeving.vlaanderen.be/mer… https:/… FALSE         suppo… <named list>
+#> 6 ee      kotkas.envir.ee             https:/… FALSE         suppo… <named list>
 ```

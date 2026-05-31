@@ -17,8 +17,10 @@ learning_curve_summary(curve)
 
 ## Value
 
-A tibble with one row per `size`: `size`, `n_train_used`, `n` (number of
-repeats contributing), and the mean/sd of `f1`, `precision`, `recall`.
+A tibble with one row per `size` (or per (country, size) when the
+`curve` carries a `country` column): `size`, `n_train_used`, `n` (number
+of repeats contributing), and the mean/sd of `f1`, `precision`,
+`recall`.
 
 ## Examples
 

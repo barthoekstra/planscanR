@@ -22,7 +22,8 @@ selection_learning_curve(
   repeats = 10,
   eval_source = "random",
   threshold = 0.5,
-  seed = NULL
+  seed = NULL,
+  by_country = FALSE
 )
 ```
 
@@ -78,10 +79,23 @@ selection_learning_curve(
 
   Optional RNG seed for reproducible splits.
 
+- by_country:
+
+  If `TRUE`, also slice the held-out test set per country and compute
+  one set of metrics per country at every (size, repeat), plus an
+  `"all"` row that matches the default output. A `country` column is
+  prepended. The model is still trained corpus-wide — this only varies
+  the evaluation slice, so it shows where the shared model performs as
+  the training pool grows. Slices smaller than 1 record are dropped
+  silently.
+
 ## Value
 
 A long tibble with one row per (size, repeat), columns in order: `size`,
-`n_train_used`, `rep`, `n_test`, `precision`, `recall`, `f1`.
+`n_train_used`, `rep`, `n_test`, `precision`, `recall`, `f1`. When
+`by_country = TRUE`, a leading `country` column is added and there is
+one row per (country, size, repeat) plus an `"all"` row per (size,
+repeat).
 
 ## See also
 

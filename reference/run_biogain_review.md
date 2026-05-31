@@ -34,11 +34,10 @@ run_biogain_review(
 
 - data_dir:
 
-  Writable directory for the app's snapshot, `reviews.csv`, and
-  reviewers list. `NULL` (default) uses the **cache root**
-  (`cache_dir`), so the human annotations sit alongside the data they
-  describe and travel with any cache sync. They are written at the root,
-  not under `files/`, so
+  Writable directory for the app's snapshot and `reviews.csv`. `NULL`
+  (default) uses the **cache root** (`cache_dir`), so the human
+  annotations sit alongside the data they describe and travel with any
+  cache sync. They are written at the root, not under `files/`, so
   [`clear_cache()`](https://barthoekstra.github.io/planscanR/reference/clear_cache.md)
   leaves them intact.
 

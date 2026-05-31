@@ -1,7 +1,9 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://barthoekstra.github.io/planscanR/404.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/ADDING_A_COUNTRY.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/AGENTS.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/CLAUDE.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/ESTONIA_CHAT.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/LICENSE-text.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/articles/index.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/articles/planscanR.html</loc></url>
@@ -33,6 +35,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_de.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_dk.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/index.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/index_cache.html</loc></url>

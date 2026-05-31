@@ -36,6 +36,7 @@ Supported portals:
 | Austria (`"at"`) | Umweltbundesamt UVP-DB | record details only (no documents) |
 | Denmark (`"dk"`) | Danmarks Miljøportal EA-Hub | record metadata + polygon geometry (document downloads deferred) |
 | Belgium (Flanders) (`"be"`) | Departement Omgeving MER-register | full records + polygon geometry + document downloads |
+| Estonia (`"ee"`) | Keskkonnaamet KOTKAS (KMH + KSH) | EIA + SEA in one handler, full records + polygon geometry + document downloads |
 
 See
 [`vignette("supported_sources")`](https://barthoekstra.github.io/planscanR/articles/supported_sources.md)
@@ -134,6 +135,8 @@ plus portal coverage and result helpers.
   : Fetch environmental-assessment records from Denmark.
 - [`get_assessments_be()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md)
   : Fetch environmental-assessment records from Belgium (Flanders).
+- [`get_assessments_ee()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.md)
+  : Fetch environmental-assessment records from Estonia.
 - [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md)
   : List supported countries and portals.
 - [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)
