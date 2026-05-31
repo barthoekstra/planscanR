@@ -8,7 +8,7 @@ get_assessments(
   country,
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,
@@ -33,9 +33,10 @@ semantics decided per handler.}
 
 \item{limit}{Maximum number of records to return (default \code{Inf}).}
 
-\item{download}{Logical. If \code{TRUE} (default), attachment files referenced by
-each record are downloaded into the local cache. If \code{FALSE}, only metadata
-is returned; \code{local_path} is \code{character(0)} in every row.}
+\item{download}{Logical. If \code{TRUE}, attachment files referenced by each
+record are downloaded into the local cache. Defaults to \code{FALSE} — fetching
+PDFs is computationally intensive, so downloading is opt-in. When \code{FALSE},
+only metadata is returned; \code{local_path} is \code{character(0)} in every row.}
 
 \item{cache_dir}{Optional cache root. Defaults to
 \code{tools::R_user_dir("planscanR", "cache")}.}

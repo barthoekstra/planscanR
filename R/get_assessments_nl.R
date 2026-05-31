@@ -46,7 +46,8 @@
 #'   Filters by `date_decision`. `NULL` (default) returns all dates.
 #' @param limit Integer. Maximum records to return. Defaults to `Inf`; you
 #'   are strongly encouraged to set a small value (e.g. `50`) when exploring.
-#' @param download Logical. Download PDF attachments? Default `TRUE`.
+#' @param download Logical. Download PDF attachments? Default `FALSE`
+#'   (downloading is opt-in because it is computationally intensive).
 #' @param cache_dir Optional cache root. Defaults to
 #'   `tools::R_user_dir("planscanR", "cache")`.
 #' @param overwrite Logical. If `TRUE`, re-download attachments that are
@@ -110,7 +111,7 @@
 get_assessments_nl <- function(
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,

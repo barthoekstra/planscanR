@@ -296,8 +296,15 @@ discover_attachments <- function(
         if (!dry_run) {
           dest <- cache_path(cand$url, country, rec_row$document_id)
           dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
-          if (!file.exists(dest)) {
+          existing <- resolve_cached_path(dest)
+          if (is.na(existing)) {
+            # `scratch` already validated as PDF; we know the real extension.
+            if (tools::file_ext(dest) == "x") {
+              dest <- paste0(tools::file_path_sans_ext(dest), ".pdf")
+            }
             file.copy(scratch, dest, overwrite = FALSE)
+          } else {
+            dest <- existing
           }
           size_b <- unname(file.info(dest)$size)
           sha <- file_sha256(dest)

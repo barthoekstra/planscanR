@@ -81,7 +81,7 @@
 get_assessments_at <- function(
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,

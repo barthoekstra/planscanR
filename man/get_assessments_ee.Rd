@@ -7,7 +7,7 @@
 get_assessments_ee(
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,
@@ -140,7 +140,7 @@ table).
 The two registers are ~500 (KMH) + ~750 (KSH) records, so a cold full
 crawl is ~30 index-page fetches plus one detail fetch per record. To
 avoid disrupting other users of the service, EE requests are throttled to
-3 requests per second by default — the portal pushes back with a 300 s
+2 requests per second by default — the portal pushes back with a 300 s
 retry-backoff at 5 req/s under sustained load. Override via
 \code{getOption("planscanR.ee_throttle_rate")} (requests/sec; falsy disables).
 }

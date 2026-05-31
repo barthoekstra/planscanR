@@ -30,6 +30,13 @@ cache_dir <- function(sub = NULL, create = TRUE, root = NULL) {
 #' filename portion, lowercased and with any character outside
 #' `[a-z0-9._-]` replaced by `-`; consecutive hyphens are collapsed.
 #'
+#' When the URL's path does not carry a file extension (e.g. Kotkas's
+#' `?attachment_id=...` endpoints), two things happen: an 8-char SHA-1 of
+#' the full URL is folded into the slug to keep per-attachment names
+#' unique under one record, and `.x` is used as a placeholder extension
+#' that [finalize_extension()] rewrites to the real type after the body
+#' has been fetched.
+#'
 #' If the resulting name exceeds `max_chars`, the slug portion is truncated
 #' and a short SHA-1 prefix of the URL is appended to keep collisions
 #' impossible.
@@ -51,32 +58,42 @@ slugify_filename <- function(url, country, document_id, max_chars = 200L) {
     raw <- "attachment"
   }
   raw <- tryCatch(utils::URLdecode(raw), error = function(e) raw)
-  ext <- tools::file_ext(raw)
-  stem <- tools::file_path_sans_ext(raw)
+  url_ext <- tools::file_ext(raw)
+  url_stem <- tools::file_path_sans_ext(raw)
 
-  slug_part <- function(x) {
+  clean <- function(x) {
     x <- tolower(x)
     x <- gsub("[^a-z0-9._-]+", "-", x, perl = TRUE)
     x <- gsub("-{2,}", "-", x)
     x <- gsub("(^[-._]+|[-._]+$)", "", x)
-    if (!nzchar(x)) "x" else x
+    x
   }
-  country <- slug_part(country)
-  document_id <- slug_part(document_id)
-  stem <- slug_part(stem)
-  ext <- slug_part(ext)
+  country <- clean(country)
+  if (!nzchar(country)) country <- "x"
+  document_id <- clean(document_id)
+  if (!nzchar(document_id)) document_id <- "x"
+  stem <- clean(url_stem)
+  if (!nzchar(stem)) stem <- "attachment"
+  ext <- clean(url_ext)
 
-  base <- paste0(country, "_", document_id, "_", stem)
-  if (nzchar(ext)) {
-    base <- paste0(base, ".", ext)
+  if (!nzchar(ext)) {
+    # Portals whose URL path doesn't expose a filename (Kotkas, similar)
+    # need a per-URL disambiguator or every attachment of one record
+    # collides on the same basename and downloads overwrite each other.
+    stem <- paste0(stem, "-", substr(openssl::sha1(url), 1L, 8L))
+    ext <- "x"
   }
+
+  base <- paste0(country, "_", document_id, "_", stem, ".", ext)
 
   if (nchar(base) > max_chars) {
     short_hash <- substr(openssl::sha1(url), 1L, 8L)
     keep <- max_chars - nchar(country) - nchar(document_id) - nchar(ext) - 12L
     keep <- max(8L, keep)
-    base <- paste0(country, "_", document_id, "_", substr(stem, 1L, keep), "-", short_hash)
-    if (nzchar(ext)) base <- paste0(base, ".", ext)
+    base <- paste0(
+      country, "_", document_id, "_",
+      substr(stem, 1L, keep), "-", short_hash, ".", ext
+    )
   }
   base
 }
@@ -96,6 +113,135 @@ slugify_filename <- function(url, country, document_id, max_chars = 200L) {
 cache_path <- function(url, country, document_id, root = NULL) {
   dir <- cache_dir(file.path("files", country, document_id), create = TRUE, root = root)
   file.path(dir, slugify_filename(url, country, document_id))
+}
+
+#' Locate the actual on-disk file for a placeholder-extension cache path.
+#'
+#' When a URL has no file extension, [cache_path()] returns a `.x`
+#' placeholder; the real file may have been renamed to e.g. `.pdf` after
+#' the body was fetched. This helper returns the real path when a single
+#' non-empty match exists, the original `dest` if it is already on disk,
+#' or `NA_character_` if nothing has been cached yet.
+#' @noRd
+resolve_cached_path <- function(dest) {
+  if (length(dest) != 1L || is.na(dest) || !nzchar(dest)) {
+    return(NA_character_)
+  }
+  if (file.exists(dest) && file.info(dest)$size > 0L) {
+    return(dest)
+  }
+  if (tools::file_ext(dest) != "x") {
+    return(NA_character_)
+  }
+  stem <- tools::file_path_sans_ext(dest)
+  # Sys.glob doesn't escape its input; the slug only contains [a-z0-9._-]
+  # so there are no glob metacharacters to worry about.
+  matches <- Sys.glob(paste0(stem, ".*"))
+  if (length(matches) == 0L) {
+    return(NA_character_)
+  }
+  sizes <- file.info(matches)$size
+  matches <- matches[!is.na(sizes) & sizes > 0L]
+  if (length(matches) == 1L) matches[[1]] else NA_character_
+}
+
+#' Map an HTTP Content-Type header value to a file extension.
+#'
+#' Returns `NA_character_` when no mapping applies — the caller leaves the
+#' file with its placeholder `.x` extension rather than guessing.
+#' @noRd
+content_type_to_ext <- function(content_type) {
+  if (is.null(content_type) || length(content_type) != 1L ||
+      is.na(content_type) || !nzchar(content_type)) {
+    return(NA_character_)
+  }
+  mime <- tolower(trimws(sub(";.*$", "", content_type)))
+  switch(mime,
+    "application/pdf" = "pdf",
+    "application/zip" = "zip",
+    "application/x-zip-compressed" = "zip",
+    "application/msword" = "doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "docx",
+    "application/vnd.ms-excel" = "xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "xlsx",
+    "application/vnd.ms-powerpoint" = "ppt",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation" = "pptx",
+    "application/rtf" = "rtf",
+    "application/json" = "json",
+    "application/xml" = "xml",
+    "text/xml" = "xml",
+    "text/plain" = "txt",
+    "text/html" = "html",
+    "text/csv" = "csv",
+    "image/jpeg" = "jpg",
+    "image/png" = "png",
+    "image/tiff" = "tif",
+    "image/gif" = "gif",
+    "image/webp" = "webp",
+    "image/svg+xml" = "svg",
+    NA_character_
+  )
+}
+
+#' Sniff a file's leading bytes to identify its real type.
+#'
+#' Used as a fallback when the server replies with a generic
+#' `application/octet-stream`. Returns `NA_character_` for unrecognised
+#' content so the caller can leave the placeholder extension in place.
+#' @noRd
+sniff_magic_ext <- function(path) {
+  if (length(path) != 1L || is.na(path) || !file.exists(path)) {
+    return(NA_character_)
+  }
+  if (file.info(path)$size < 4L) {
+    return(NA_character_)
+  }
+  con <- file(path, open = "rb")
+  on.exit(close(con), add = TRUE)
+  b <- readBin(con, what = "raw", n = 8L)
+  eq <- function(prefix) length(b) >= length(prefix) && all(b[seq_along(prefix)] == as.raw(prefix))
+  if (eq(c(0x25, 0x50, 0x44, 0x46))) return("pdf")          # %PDF
+  if (eq(c(0x50, 0x4B, 0x03, 0x04))) return("zip")          # PK..  (also docx/xlsx/pptx containers)
+  if (eq(c(0xFF, 0xD8, 0xFF))) return("jpg")
+  if (eq(c(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))) return("png")
+  if (eq(c(0x47, 0x49, 0x46, 0x38))) return("gif")
+  if (eq(c(0x49, 0x49, 0x2A, 0x00)) || eq(c(0x4D, 0x4D, 0x00, 0x2A))) return("tif")
+  NA_character_
+}
+
+#' Rewrite a placeholder `.x` filename to its real extension.
+#'
+#' Called after a successful download for paths produced by
+#' [slugify_filename()] from URLs whose path didn't expose an extension.
+#' Content-Type is the primary signal; magic-byte sniffing is a fallback
+#' for generic responses. If neither yields a known type, the placeholder
+#' extension is left in place so the file is still usable.
+#'
+#' @param dest On-disk path (already populated with the response body).
+#' @param content_type Value of the `Content-Type` response header, or
+#'   `NULL` / `NA` when unavailable.
+#' @return The (possibly renamed) on-disk path.
+#' @noRd
+finalize_extension <- function(dest, content_type) {
+  if (length(dest) != 1L || is.na(dest) || !nzchar(dest)) {
+    return(dest)
+  }
+  if (tools::file_ext(dest) != "x" || !file.exists(dest)) {
+    return(dest)
+  }
+  ext <- content_type_to_ext(content_type)
+  if (is.na(ext)) {
+    ext <- sniff_magic_ext(dest)
+  }
+  if (is.na(ext) || identical(ext, "x")) {
+    return(dest)
+  }
+  new_dest <- paste0(tools::file_path_sans_ext(dest), ".", ext)
+  if (identical(new_dest, dest) || file.exists(new_dest)) {
+    return(dest)
+  }
+  ok <- tryCatch(file.rename(dest, new_dest), error = function(e) FALSE)
+  if (isTRUE(ok)) new_dest else dest
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
@@ -222,15 +368,25 @@ download_attachments <- function(urls, country, document_id, overwrite = FALSE, 
   cap <- max_file_size_bytes(max_file_size_mb)
   results <- lapply(urls, function(u) {
     dest <- cache_path(u, country, document_id, root = root)
-    if (file.exists(dest) && !overwrite && file.info(dest)$size > 0L) {
+    cached <- resolve_cached_path(dest)
+    if (!is.na(cached) && !overwrite) {
       return(list(
         url = u,
-        local_path = dest,
+        local_path = cached,
         status = "cached",
-        size_bytes = unname(file.info(dest)$size),
-        sha256 = file_sha256(dest),
+        size_bytes = unname(file.info(cached)$size),
+        sha256 = file_sha256(cached),
         reason = NA_character_
       ))
+    }
+    if (overwrite) {
+      # Sweep any pre-existing copies (placeholder or finalized) so the
+      # new download can settle into the right name without colliding
+      # with a stale finalized extension from a previous run.
+      stem <- tools::file_path_sans_ext(dest)
+      for (p in Sys.glob(paste0(stem, ".*"))) {
+        unlink(p, force = TRUE)
+      }
     }
     # Pre-flight size check via HEAD
     announced <- head_content_length(u)
@@ -247,7 +403,7 @@ download_attachments <- function(urls, country, document_id, overwrite = FALSE, 
     out <- tryCatch(
       {
         req <- req_planscanr(url_encode_safe(u))
-        httr2::req_perform(req, path = dest)
+        resp <- httr2::req_perform(req, path = dest)
         size <- unname(file.info(dest)$size)
         if (!is.na(size) && size > cap) {
           unlink(dest, force = TRUE)
@@ -260,12 +416,14 @@ download_attachments <- function(urls, country, document_id, overwrite = FALSE, 
             reason = sprintf("downloaded size %s exceeds cap %s", format(size), format(cap))
           ))
         }
+        ct <- tryCatch(httr2::resp_header(resp, "Content-Type"), error = function(e) NULL)
+        final_dest <- finalize_extension(dest, ct)
         list(
           url = u,
-          local_path = dest,
+          local_path = final_dest,
           status = "downloaded",
-          size_bytes = size,
-          sha256 = file_sha256(dest),
+          size_bytes = unname(file.info(final_dest)$size),
+          sha256 = file_sha256(final_dest),
           reason = NA_character_
         )
       },

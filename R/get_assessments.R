@@ -19,9 +19,10 @@
 #'   `POSIXct`, or character. Filters by `date_published` / `date_decision`
 #'   semantics decided per handler.
 #' @param limit Maximum number of records to return (default `Inf`).
-#' @param download Logical. If `TRUE` (default), attachment files referenced by
-#'   each record are downloaded into the local cache. If `FALSE`, only metadata
-#'   is returned; `local_path` is `character(0)` in every row.
+#' @param download Logical. If `TRUE`, attachment files referenced by each
+#'   record are downloaded into the local cache. Defaults to `FALSE` — fetching
+#'   PDFs is computationally intensive, so downloading is opt-in. When `FALSE`,
+#'   only metadata is returned; `local_path` is `character(0)` in every row.
 #' @param cache_dir Optional cache root. Defaults to
 #'   `tools::R_user_dir("planscanR", "cache")`.
 #' @param overwrite Logical. If `TRUE`, re-download attachments even when a
@@ -96,7 +97,7 @@ get_assessments <- function(
   country,
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,

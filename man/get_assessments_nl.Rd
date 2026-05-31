@@ -7,7 +7,7 @@
 get_assessments_nl(
   date_range = NULL,
   limit = Inf,
-  download = TRUE,
+  download = FALSE,
   cache_dir = NULL,
   overwrite = FALSE,
   max_file_size_mb = NULL,
@@ -31,7 +31,8 @@ Filters by \code{date_decision}. \code{NULL} (default) returns all dates.}
 \item{limit}{Integer. Maximum records to return. Defaults to \code{Inf}; you
 are strongly encouraged to set a small value (e.g. \code{50}) when exploring.}
 
-\item{download}{Logical. Download PDF attachments? Default \code{TRUE}.}
+\item{download}{Logical. Download PDF attachments? Default \code{FALSE}
+(downloading is opt-in because it is computationally intensive).}
 
 \item{cache_dir}{Optional cache root. Defaults to
 \code{tools::R_user_dir("planscanR", "cache")}.}

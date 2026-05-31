@@ -40,6 +40,112 @@ test_that("slugify_filename produces flatten-safe lowercase ASCII names", {
   )
 })
 
+test_that("slugify_filename disambiguates extension-less URLs by attachment_id", {
+  # Kotkas (EE) URLs share an identical path; identity lives in the query
+  # string. Without the URL-hash suffix, every attachment for one record
+  # would collide on the same basename and overwrite each other on disk.
+  a <- planscanR:::slugify_filename(
+    "https://kotkas.envir.ee/kmh/kmh_file_download?kmh_id=44&attachment_id=12345",
+    "ee",
+    "KMH-44"
+  )
+  b <- planscanR:::slugify_filename(
+    "https://kotkas.envir.ee/kmh/kmh_file_download?kmh_id=44&attachment_id=12346",
+    "ee",
+    "KMH-44"
+  )
+  expect_false(identical(a, b))
+  expect_match(a, "^ee_kmh-44_kmh_file_download-[0-9a-f]{8}\\.x$")
+  expect_match(b, "^ee_kmh-44_kmh_file_download-[0-9a-f]{8}\\.x$")
+  # Stable for the same URL across calls.
+  expect_identical(
+    a,
+    planscanR:::slugify_filename(
+      "https://kotkas.envir.ee/kmh/kmh_file_download?kmh_id=44&attachment_id=12345",
+      "ee",
+      "KMH-44"
+    )
+  )
+})
+
+test_that("content_type_to_ext maps the common MIME types and ignores parameters", {
+  expect_identical(planscanR:::content_type_to_ext("application/pdf"), "pdf")
+  expect_identical(planscanR:::content_type_to_ext("application/pdf; charset=binary"), "pdf")
+  expect_identical(planscanR:::content_type_to_ext("APPLICATION/PDF"), "pdf")
+  expect_identical(planscanR:::content_type_to_ext("image/jpeg"), "jpg")
+  expect_identical(
+    planscanR:::content_type_to_ext(
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ),
+    "docx"
+  )
+  expect_true(is.na(planscanR:::content_type_to_ext("application/octet-stream")))
+  expect_true(is.na(planscanR:::content_type_to_ext(NA_character_)))
+  expect_true(is.na(planscanR:::content_type_to_ext("")))
+  expect_true(is.na(planscanR:::content_type_to_ext(NULL)))
+})
+
+test_that("sniff_magic_ext recognises PDF / PNG / JPEG / ZIP byte signatures", {
+  withr::with_tempdir({
+    writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34)), "doc")
+    writeBin(as.raw(c(0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10)), "img")
+    writeBin(as.raw(c(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)), "pic")
+    writeBin(as.raw(c(0x50, 0x4B, 0x03, 0x04, 0x14, 0x00)), "bundle")
+    writeBin(as.raw(rep(0x00, 16L)), "blank")
+    expect_identical(planscanR:::sniff_magic_ext("doc"), "pdf")
+    expect_identical(planscanR:::sniff_magic_ext("img"), "jpg")
+    expect_identical(planscanR:::sniff_magic_ext("pic"), "png")
+    expect_identical(planscanR:::sniff_magic_ext("bundle"), "zip")
+    expect_true(is.na(planscanR:::sniff_magic_ext("blank")))
+    expect_true(is.na(planscanR:::sniff_magic_ext("nonexistent-file")))
+  })
+})
+
+test_that("finalize_extension renames .x placeholders using Content-Type or magic bytes", {
+  withr::with_tempdir({
+    # Header wins.
+    writeBin(as.raw(c(0x00, 0x00, 0x00, 0x00)), "a.x")
+    out <- planscanR:::finalize_extension("a.x", "application/pdf; charset=binary")
+    expect_identical(basename(out), "a.pdf")
+    expect_true(file.exists("a.pdf"))
+    expect_false(file.exists("a.x"))
+
+    # No header → fall back to magic bytes.
+    writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46, 0x2D)), "b.x")
+    out <- planscanR:::finalize_extension("b.x", "application/octet-stream")
+    expect_identical(basename(out), "b.pdf")
+
+    # Unknown type / unknown bytes: leave the placeholder in place.
+    writeBin(as.raw(rep(0xAB, 8L)), "c.x")
+    out <- planscanR:::finalize_extension("c.x", "application/x-weird")
+    expect_identical(basename(out), "c.x")
+    expect_true(file.exists("c.x"))
+
+    # Not a placeholder: no-op even when Content-Type disagrees.
+    writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46)), "d.pdf")
+    out <- planscanR:::finalize_extension("d.pdf", "image/png")
+    expect_identical(basename(out), "d.pdf")
+  })
+})
+
+test_that("resolve_cached_path finds the finalized file when only the placeholder is known", {
+  withr::with_tempdir({
+    writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46)), "ee_kmh-44_kmh_file_download-deadbeef.pdf")
+    out <- planscanR:::resolve_cached_path("ee_kmh-44_kmh_file_download-deadbeef.x")
+    expect_identical(basename(out), "ee_kmh-44_kmh_file_download-deadbeef.pdf")
+  })
+  withr::with_tempdir({
+    # Two finalized files for the same stem is ambiguous — refuse to guess.
+    writeBin(as.raw(1L), "stem.pdf")
+    writeBin(as.raw(1L), "stem.zip")
+    expect_true(is.na(planscanR:::resolve_cached_path("stem.x")))
+  })
+  withr::with_tempdir({
+    # Nothing yet on disk → NA, so callers know to proceed with the download.
+    expect_true(is.na(planscanR:::resolve_cached_path("missing.x")))
+  })
+})
+
 test_that("slugify_filename truncates very long names with a URL-hash suffix", {
   long_name <- paste0(strrep("a", 250), ".pdf")
   url <- paste0("https://example.org/", long_name)

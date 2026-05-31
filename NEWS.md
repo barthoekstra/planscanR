@@ -1,5 +1,9 @@
 # planscanR 0.0.0.9000
 
+* Breaking: `download` now defaults to `FALSE` across `get_assessments()` and
+  all per-country handlers (`get_assessments_nl()`, `_de()`, `_at()`, `_dk()`,
+  `_be()`, `_ee()`). Downloading attachments is computationally intensive, so
+  it is now opt-in — pass `download = TRUE` explicitly to fetch PDFs.
 * Initial development scaffold.
 * Austria handler `get_assessments_at()` fetches record metadata from the
   Umweltbundesamt UVP-DB (`secure.umweltbundesamt.at/uvpdb`). Metadata-only:
