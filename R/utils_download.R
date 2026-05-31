@@ -34,7 +34,7 @@ cache_dir <- function(sub = NULL, create = TRUE, root = NULL) {
 #' `?attachment_id=...` endpoints), two things happen: an 8-char SHA-1 of
 #' the full URL is folded into the slug to keep per-attachment names
 #' unique under one record, and `.x` is used as a placeholder extension
-#' that [finalize_extension()] rewrites to the real type after the body
+#' that `finalize_extension()` rewrites to the real type after the body
 #' has been fetched.
 #'
 #' If the resulting name exceeds `max_chars`, the slug portion is truncated
@@ -117,7 +117,7 @@ cache_path <- function(url, country, document_id, root = NULL) {
 
 #' Locate the actual on-disk file for a placeholder-extension cache path.
 #'
-#' When a URL has no file extension, [cache_path()] returns a `.x`
+#' When a URL has no file extension, `cache_path()` returns a `.x`
 #' placeholder; the real file may have been renamed to e.g. `.pdf` after
 #' the body was fetched. This helper returns the real path when a single
 #' non-empty match exists, the original `dest` if it is already on disk,
@@ -212,7 +212,7 @@ sniff_magic_ext <- function(path) {
 #' Rewrite a placeholder `.x` filename to its real extension.
 #'
 #' Called after a successful download for paths produced by
-#' [slugify_filename()] from URLs whose path didn't expose an extension.
+#' `slugify_filename()` from URLs whose path didn't expose an extension.
 #' Content-Type is the primary signal; magic-byte sniffing is a fallback
 #' for generic responses. If neither yields a known type, the placeholder
 #' extension is left in place so the file is still usable.

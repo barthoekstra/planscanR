@@ -81,7 +81,7 @@
 #'   **"Documenten waarop het advies is gebaseerd"** section. These are the
 #'   underlying EIA/SEA reports submitted by the proponent and reviewed by the
 #'   Commissie. **These are the substantive documents for downstream analysis**
-#'   (e.g. for the future `classify_assessments()` LLM pipeline).
+#'   (e.g. the classification pipeline in \pkg{planscanR.screen}).
 #' * `attachment_urls_advice` / `local_path_advice` — files in the
 #'   **"Adviezen en persberichten"** section: the Commissie's own advisory
 #'   reports and press releases.
@@ -366,7 +366,7 @@ nl_parse_detail <- function(url) {
   #   * "Adviezen en persberichten" — the Commissie's own advice + press releases.
   #   * "Documenten waarop het advies is gebaseerd" — the underlying EIA/SEA
   #     documents the Commissie reviewed. These are the substantive documents
-  #     for downstream analysis (BIOGAIN / classify_assessments()).
+  #     for downstream analysis (BIOGAIN / planscanR.screen classification).
   pdf_advice <- nl_section_pdfs(html, "Adviezen en persberichten")
   pdf_source <- nl_section_pdfs(html, "Documenten waarop het advies is gebaseerd")
   # `attachment_urls` is the required-schema union; ordered with source docs

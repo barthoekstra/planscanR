@@ -233,8 +233,8 @@ get_assessments_de <- function(
 #'
 #' This is NOT an exhaustive list of what the portal can show — it's the set
 #' of titles we give a hand-picked, stable slug to. Any heading not listed
-#' here is still captured by [de_parse_detail()]; it just gets an auto-slug
-#' from [de_section_slug()] instead of a curated one. The map also fixes the
+#' here is still captured by `de_parse_detail()`; it just gets an auto-slug
+#' from `de_section_slug()` instead of a curated one. The map also fixes the
 #' canonical ordering of the deduplicated `attachment_urls` union (these
 #' first, substantive sections leading).
 #'
@@ -255,7 +255,7 @@ de_section_map <- function() {
 #'
 #' The portal renders each attachment group under an `h4.title-font` heading.
 #' We collapse internal whitespace (so the value lines up with the
-#' `normalize-space()` comparison in [de_section_pdfs()]) and de-duplicate, so
+#' `normalize-space()` comparison in `de_section_pdfs()`) and de-duplicate, so
 #' a page that repeats a heading is visited once.
 #' @noRd
 de_document_section_titles <- function(html) {
@@ -269,7 +269,7 @@ de_document_section_titles <- function(html) {
 
 #' Map a section heading to a column/sidecar slug.
 #'
-#' Known headings (see [de_section_map()]) get their curated slug. Everything
+#' Known headings (see `de_section_map()`) get their curated slug. Everything
 #' else is auto-slugged from the title: German digraphs are transliterated
 #' (ae/oe/ue/ss) so the slug is ASCII, then lowercased with non-alphanumerics
 #' collapsed to underscores. This is what lets a previously-unseen section

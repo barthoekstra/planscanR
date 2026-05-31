@@ -13,14 +13,23 @@ automates.
 
 ## What it does
 
-1. **Fetch.** One function, `get_assessments()`, retrieves records from a
-   national portal and returns them as a tidy table. The same columns come back
-   for every country, so you can stack results together.
-2. **Score.** Optionally rank each record by how closely it matches topics you
-   care about (e.g. wind, solar, power grids), using a multilingual text-similarity
-   model so a German record and a Dutch one are judged on the same footing.
-3. **Select.** Combine the relevance signals into a single keep/drop decision,
-   so you can narrow thousands of records down to the ones worth reading.
+One function, `get_assessments()`, retrieves records from a national portal and
+returns them as a tidy table. The same columns come back for every country, so
+you can stack results together, cache them on disk, and (optionally) download
+their PDF documents.
+
+`planscanR` is the pure-R **leaf** of a three-package family. It only fetches —
+scoring, classification, and selection live in its siblings:
+
+- **[planscanR.screen](https://github.com/barthoekstra/planscanR.screen)** —
+  score records by topic relevance, classify them, and learn a selection model.
+- **planscanR.biogain** — the BIOGAIN-specific topic/label/keyword config, the
+  ensemble selection rule, the review app, and the acquisition runbook.
+
+As a convenience, `get_assessments()` can score records *during* the fetch (pass
+a `topic`) and gate PDF downloads on the score — but the embedding work is
+delegated to planscanR.screen, which is an optional dependency (see
+[Scoring](#scoring-optional) below). Omit `topic` and no Python is required.
 
 Supported portals:
 
@@ -64,15 +73,17 @@ is accessed, what filters are honoured, and what data comes back.
 pak::pak("barthoekstra/planscanR")
 ```
 
-The relevance-scoring step uses a Python model through
-[reticulate](https://rstudio.github.io/reticulate/). Install it once with:
+Plain fetching needs nothing else — `planscanR` is pure R, no Python. Topic
+scoring is optional and provided by the sibling package, which pulls in a
+multilingual text-similarity model through
+[reticulate](https://rstudio.github.io/reticulate/):
 
 ```r
+pak::pak("barthoekstra/planscanR.screen")
 reticulate::py_install("sentence-transformers")
 ```
 
-You only need this if you pass a `topic` to `get_assessments()`; plain fetching
-works without it.
+You only need this if you pass a `topic` to `get_assessments()`.
 
 ## Quick start
 
@@ -81,11 +92,18 @@ library(planscanR)
 
 # Grab 20 records from the Netherlands (no documents downloaded yet).
 records <- get_assessments("nl", limit = 20, download = FALSE)
+```
 
-# Score them against the BIOGAIN energy topics and keep the relevant ones.
+### Scoring (optional)
+
+With **planscanR.screen** installed, pass a `topic` to score each record as it
+is fetched, and use `relevance_threshold` to gate which records' PDFs are
+downloaded:
+
+```r
 records <- get_assessments(
   "nl",
-  topic = biogain_assessment_topics(),
+  topic = c(wind = "wind energy", solar = "solar energy"),
   relevance_threshold = 0.5,
   limit = 20,
   download = FALSE
@@ -93,9 +111,11 @@ records <- get_assessments(
 records$relevance_score_wind
 ```
 
-See `vignette("planscanR")` for an end-to-end walkthrough (fetch → score →
-select), and `get_assessments_coverage()` for the portals and search options
-available at runtime.
+The BIOGAIN project's canonical topic set ships with **planscanR.biogain**.
+
+See `vignette("planscanR")` for an end-to-end walkthrough, and
+`get_assessments_coverage()` for the portals and search options available at
+runtime.
 
 ## License
 

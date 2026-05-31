@@ -39,9 +39,10 @@ get_assessments_coverage()
 ## A note on stability
 
 > [!WARNING]
-> None of these portals expose a contractually stable API. Three of the four
-> handlers parse HTML detail pages with `rvest`; the fourth uses an
-> undocumented JSON service. Any of the operators can change a CSS class,
+> None of these portals expose a contractually stable API. Some handlers parse
+> HTML detail pages with `rvest` (NL, DE, EE), the rest sit on undocumented
+> JSON or REST endpoints (AT, DK, BE). Any of the operators can change a CSS
+> class,
 > rename a field, or slip a login wall in front of an endpoint without
 > warning, and the corresponding handler will then break — sometimes
 > silently. Treat the results with the scepticism that a scraping pipeline

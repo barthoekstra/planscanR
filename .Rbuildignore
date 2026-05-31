@@ -12,6 +12,7 @@
 ^data-raw$
 ^AGENTS\.md$
 ^CLAUDE\.md$
+^ADDING_A_COUNTRY\.md$
 ^cran-comments\.md$
 ^tests/manual$
 ^\.lintr$

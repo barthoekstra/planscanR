@@ -127,7 +127,7 @@ sections, which this handler exposes as separate list-columns:
 \strong{"Documenten waarop het advies is gebaseerd"} section. These are the
 underlying EIA/SEA reports submitted by the proponent and reviewed by the
 Commissie. \strong{These are the substantive documents for downstream analysis}
-(e.g. for the future \code{classify_assessments()} LLM pipeline).
+(e.g. the classification pipeline in \pkg{planscanR.screen}).
 \item \code{attachment_urls_advice} / \code{local_path_advice} — files in the
 \strong{"Adviezen en persberichten"} section: the Commissie's own advisory
 reports and press releases.

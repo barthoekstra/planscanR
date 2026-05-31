@@ -1,8 +1,8 @@
 # AGENTS.md — planscanR project orientation
 
-Written for AI agents and human contributors landing in the repo cold. The full
-design rationale lives in the approved plan at
-`~/.claude/plans/i-want-to-set-virtual-scroll.md`.
+Written for AI agents and human contributors landing in the repo cold. For the
+family-level picture (dependency direction, the sidecar-schema contract shared
+across all three packages), see the parent-folder `CLAUDE.md`.
 
 ## 1. What this package is
 
@@ -117,10 +117,13 @@ get_assessments(country, ...)
   ├── normalise_country() / assert_country()
   ├── select_assessments_handler(country)    # switch() returning a function
   │     ├── get_assessments_nl(...)          # commissiemer.nl
-  │     └── get_assessments_de(...)          # uvp-verbund.de
-  │     # get_assessments_dk(...)            # post-v0.1
-  │     # get_assessments_at(...)            # post-v0.1
-  └── validate_result_schema()               # invariant gate before returning
+  │     ├── get_assessments_de(...)          # uvp-verbund.de
+  │     ├── get_assessments_at(...)          # secure.umweltbundesamt.at/uvpdb
+  │     ├── get_assessments_dk(...)          # eahub.miljoeportal.dk
+  │     ├── get_assessments_be(...)          # merregister.omgeving.vlaanderen.be
+  │     └── get_assessments_ee(...)          # kotkas.envir.ee
+  ├── validate_result_schema()               # invariant gate before returning
+  └── discover_attachments()                 # optional, when discover = TRUE
 ```
 
 Every per-country handler is a self-contained file at `R/get_assessments_<cc>.R`
@@ -241,8 +244,12 @@ even there the embedding is delegated to planscanR.screen.
 - **Errors** carry classed conditions (`planscanR_error_unsupported_country`,
   `planscanR_error_bad_input`, `planscanR_error_bad_schema`,
   `planscanR_warning_partial`) so tests can target them cleanly.
-- **Tests**: `testthat` (edition 3) + `httptest2` mocks; **no live HTTP in
-  CI**. Live tests, if any, live under `tests/manual/` and are git-ignored.
+- **Tests**: `testthat` (edition 3). HTTP is intercepted with
+  `testthat::local_mocked_bindings()` against recorded fixtures under
+  `tests/testthat/fixtures/<cc>/` (each handler exposes an internal
+  `perform_*` seam — e.g. `perform_json`, `perform_html` — that the tests
+  rebind); **no live HTTP in CI**. Live tests, if any, live under
+  `tests/manual/` and are git-ignored.
 - **Secrets**: portal handlers remain anonymous-access in v0.x and don't need
   credentials. The discovery backend (`R/discover_backend_tavily.R`) reads a
   `TAVILY_API_KEY` from the environment. Credentialed sync (Yoda / iRODS) is a
@@ -308,8 +315,11 @@ calls. Use it to:
    `<cc> = get_assessments_<cc>,`.
 3. Update `supported_countries()` in `R/utils_dispatch.R` and the
    `get_assessments_coverage()` tibble accordingly.
-4. Record fixtures with `httptest2::capture_requests()` into
-   `tests/testthat/fixtures/<cc>/` and add `tests/testthat/test-get_assessments_<cc>.R`.
+4. Save the portal's responses as fixture files under
+   `tests/testthat/fixtures/<cc>/` and add
+   `tests/testthat/test-get_assessments_<cc>.R`, intercepting the network by
+   rebinding the handler's `perform_*` seam(s) with
+   `testthat::local_mocked_bindings()` (see the existing handler tests).
 5. Document portal-specific search-facet vocabularies (`status`, `native_type`,
    etc.) in the handler's roxygen.
 
@@ -362,14 +372,11 @@ everything past scoring — classify, select, review, sync, report — see
 - Family-level orientation, dependency direction, and the sidecar-schema
   contract: the parent-folder `CLAUDE.md`.
 - Architectural reference: <https://github.com/aloftdata/getRad>
-- Original design rationale + scope decisions:
-  `~/.claude/plans/i-want-to-set-virtual-scroll.md`
-- Implementation handover notes (env snapshot, probe findings):
-  `~/.claude/plans/i-want-to-set-virtual-scroll-progress.md`
+- Adding a new country, end to end: `ADDING_A_COUNTRY.md`.
 - Cache contract (exported): `cache_dir_default()`, `read_record_sidecar()`,
   `write_record_sidecar()`; schema + merge logic in `R/utils_sidecar.R`.
 - Attachment discovery: `R/discover_attachments.R` (+ `discover_validate()`,
   `discover_backend*`); the AT escape hatch is `at_discovery_config()`.
-- Per-portal vocabulary documentation lives in
-  `vignettes/supported-portals.Rmd` (when added) — until then,
-  `get_assessments_coverage()$facets` is the runtime-accessible source.
+- Per-portal documentation lives in `vignettes/supported_sources.Rmd`; the
+  runtime-accessible equivalent (including the valid search-facet
+  vocabularies) is `get_assessments_coverage()`.

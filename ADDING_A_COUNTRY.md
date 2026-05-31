@@ -280,8 +280,9 @@ is too high if it's only noticed during a labelling session. So:
   recordings of the API/HTML responses the handler parses. Two to three
   records is enough; pick at least one with attachments and one without (or
   one with geometry and one without, for portals that have geometry).
-  Recordings can be captured by hand (`curl ... > fixture.json`) or via
-  `httptest2::capture_requests()`.
+  Recordings are captured by hand (`curl ... > fixture.json`, or saving a
+  detail page's HTML) and replayed in the tests by rebinding the handler's
+  `perform_*` seam with `testthat::local_mocked_bindings()`.
 * `tests/testthat/test-dispatch.R` — widen the `supported_countries()`
   set-equality check and add a `select_assessments_handler("<cc>")`
   identity assertion.
@@ -351,9 +352,9 @@ system("air format .")
 #    sequence is complete).
 devtools::document()
 
-# 3. Run the test suite. Fast; uses httptest2 fixtures and skips live HTTP,
-#    so it works offline. The dispatch / coverage tests you just widened
-#    fail loudly if you forgot to wire something through.
+# 3. Run the test suite. Fast; replays recorded fixtures via mocked bindings
+#    and skips live HTTP, so it works offline. The dispatch / coverage tests
+#    you just widened fail loudly if you forgot to wire something through.
 devtools::test()
 
 # 4. Full R CMD check. The gold standard — catches roxygen tag typos,

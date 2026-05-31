@@ -501,8 +501,8 @@ read_record_sidecar <- function(path) {
   out$discovery_log <- list(payload$discovery_log %||% list())
 
   # Fan the zero-shot classification verdict back into class_* columns, so a
-  # round-tripped record matches what classify_assessments() returns at
-  # runtime. Absent on sidecars that were never classified.
+  # round-tripped record matches what planscanR.screen's classifier writes
+  # into the sidecar. Absent on sidecars that were never classified.
   cls <- payload$classification
   if (!is.null(cls) && !is.null(cls$label)) {
     out$class_label <- cls$label
