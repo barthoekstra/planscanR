@@ -27,93 +27,6 @@ plus portal coverage and result helpers.
   : Tolerant row-bind across result tibbles with differing extra
   columns.
 
-## Relevance scoring & topics
-
-Score records by semantic similarity to one or more topics, and the
-pluggable embedding-model interface behind it.
-
-- [`biogain_assessment_topics()`](https://barthoekstra.github.io/planscanR/reference/biogain_assessment_topics.md)
-  : BIOGAIN-default topic phrases for relevance scoring.
-- [`biogain_keyword_lexicon()`](https://barthoekstra.github.io/planscanR/reference/biogain_keyword_lexicon.md)
-  : BIOGAIN keyword lexicon (multilingual).
-- [`score_assessments()`](https://barthoekstra.github.io/planscanR/reference/score_assessments.md)
-  : Re-score an existing planscanR result tibble against (additional)
-  topics.
-- [`score_records()`](https://barthoekstra.github.io/planscanR/reference/score_records.md)
-  : Compute relevance scores for a set of records against one or more
-  topics.
-- [`score_keywords()`](https://barthoekstra.github.io/planscanR/reference/score_keywords.md)
-  : Score records against the keyword lexicon.
-- [`embedding_model()`](https://barthoekstra.github.io/planscanR/reference/embedding_model.md)
-  : Build a custom planscanR embedding model.
-- [`embedding_model_minilm()`](https://barthoekstra.github.io/planscanR/reference/embedding_model_minilm.md)
-  : Build an embedding model backed by sentence-transformers.
-- [`embed_text()`](https://barthoekstra.github.io/planscanR/reference/embed_text.md)
-  : Embed a character vector with a planscanR embedding model.
-- [`model_name()`](https://barthoekstra.github.io/planscanR/reference/model_name.md)
-  : Identify a model with a stable name string for logging / sidecars.
-- [`supported_languages()`](https://barthoekstra.github.io/planscanR/reference/supported_languages.md)
-  : Report which ISO-639-1 languages a model has been trained on.
-- [`reset_embedding_cache()`](https://barthoekstra.github.io/planscanR/reference/reset_embedding_cache.md)
-  : Reset the cached Python model for testing or to free memory.
-- [`reset_relevance_warnings()`](https://barthoekstra.github.io/planscanR/reference/reset_relevance_warnings.md)
-  : Reset the relevance-model warning ledger for the current session.
-
-## Classification
-
-Assign canonical assessment classes to records, and the pluggable
-classifier interface behind it.
-
-- [`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)
-  : Classify assessment records with a zero-shot model.
-- [`biogain_classification_labels()`](https://barthoekstra.github.io/planscanR/reference/biogain_classification_labels.md)
-  : Candidate labels for BIOGAIN zero-shot classification.
-- [`classifier()`](https://barthoekstra.github.io/planscanR/reference/classifier.md)
-  : Build a custom planscanR classifier.
-- [`classify_model_zeroshot()`](https://barthoekstra.github.io/planscanR/reference/classify_model_zeroshot.md)
-  : Local zero-shot classifier backed by a HuggingFace NLI model.
-- [`classify_text()`](https://barthoekstra.github.io/planscanR/reference/classify_text.md)
-  : Classify a character vector against candidate labels.
-- [`classifier_name()`](https://barthoekstra.github.io/planscanR/reference/classifier_name.md)
-  : Identify a classifier with a stable name string for sidecars /
-  logging.
-- [`reset_classifier_cache()`](https://barthoekstra.github.io/planscanR/reference/reset_classifier_cache.md)
-  : Evict cached zero-shot pipeline(s) to free memory or for tests.
-
-## Selection
-
-Combine the relevance signals (embedding cosine, zero-shot classifier,
-lexical keywords) into a single selection decision — either the
-hand-tuned rule or a model learned from human keep/drop labels.
-
-- [`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
-  : Apply the BIOGAIN selection rule to scored + classified records.
-- [`selection_features()`](https://barthoekstra.github.io/planscanR/reference/selection_features.md)
-  : Build the selection-model feature frame from records.
-- [`selection_feature_names()`](https://barthoekstra.github.io/planscanR/reference/selection_feature_names.md)
-  : Names of the features the selection model is trained on.
-- [`selection_learner()`](https://barthoekstra.github.io/planscanR/reference/selection_learner.md)
-  : Construct a custom selection learner.
-- [`selection_learners()`](https://barthoekstra.github.io/planscanR/reference/selection_learners.md)
-  : Registry of the built-in learners.
-- [`selection_learner_logistic()`](https://barthoekstra.github.io/planscanR/reference/selection_learners_builtin.md)
-  : Built-in selection learner.
-- [`train_selection_model()`](https://barthoekstra.github.io/planscanR/reference/train_selection_model.md)
-  : Train the learned selection model from human review labels.
-- [`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md)
-  : Predict the learned selection decision for records.
-- [`selection_cv_metrics()`](https://barthoekstra.github.io/planscanR/reference/selection_cv_metrics.md)
-  : Out-of-fold metrics for a trained model at an arbitrary threshold.
-- [`selection_learning_curve()`](https://barthoekstra.github.io/planscanR/reference/selection_learning_curve.md)
-  : Learning curve for the learned selection model.
-- [`learning_curve_summary()`](https://barthoekstra.github.io/planscanR/reference/learning_curve_summary.md)
-  : Aggregate a learning curve to mean +/- sd per training size.
-- [`consensus_reviews()`](https://barthoekstra.github.io/planscanR/reference/consensus_reviews.md)
-  : Resolve a review store to one agreed decision per record.
-- [`save_selection_model()`](https://barthoekstra.github.io/planscanR/reference/save_selection_model.md)
-  [`load_selection_model()`](https://barthoekstra.github.io/planscanR/reference/save_selection_model.md)
-  : Persist / restore a trained selection model.
-
 ## Attachment discovery (web search)
 
 Locate and validate document attachments via a pluggable web-search
@@ -144,14 +57,13 @@ Read previously-downloaded slices offline and manage the file cache.
   : Walk a planscanR cache and reconstruct a tibble from every sidecar.
 - [`clear_cache()`](https://barthoekstra.github.io/planscanR/reference/clear_cache.md)
   : Invalidate (delete) part or all of the planscanR cache.
-
-## Review app
-
-Launch the bundled BIOGAIN Shiny app for inspecting the pipeline funnel
-and building a human ground-truth selection.
-
-- [`run_biogain_review()`](https://barthoekstra.github.io/planscanR/reference/run_biogain_review.md)
-  : Launch the BIOGAIN review and pipeline-funnel app
+- [`cache_dir_default()`](https://barthoekstra.github.io/planscanR/reference/cache_dir_default.md)
+  : Resolve the planscanR cache root.
+- [`read_record_sidecar()`](https://barthoekstra.github.io/planscanR/reference/read_record_sidecar.md)
+  : Read a sidecar JSON back into a 1-row tibble matching the planscanR
+  schema.
+- [`write_record_sidecar()`](https://barthoekstra.github.io/planscanR/reference/write_record_sidecar.md)
+  : Write a sidecar JSON for a single record.
 
 ## Package
 

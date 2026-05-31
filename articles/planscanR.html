@@ -69,19 +69,15 @@
 <p><code>planscanR</code> helps you find environmental-assessment
 records — Environmental Impact Assessments (EIA), Strategic
 Environmental Assessments (SEA), and related advice — across European
-government portals. This vignette walks through the three steps you will
-use most:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Fetch</strong> records from a portal.</li>
-<li>
-<strong>Score</strong> them by how relevant they are to topics you
-care about.</li>
-<li>
-<strong>Select</strong> the ones worth reading.</li>
-</ol>
+government portals. It fetches records into a tidy table, caches them on
+disk, and (optionally) downloads their PDF documents.</p>
+<p>It is the pure-R <strong>leaf</strong> of a three-package family:
+scoring records by topic relevance lives in
+<strong>planscanR.screen</strong>, and the BIOGAIN-specific
+configuration and tooling in <strong>planscanR.biogain</strong>. This
+vignette covers planscanR itself — fetching and the offline cache.</p>
 <div class="section level2">
-<h2 id="id_1-fetch-records">1. Fetch records<a class="anchor" aria-label="anchor" href="#id_1-fetch-records"></a>
+<h2 id="fetch-records">Fetch records<a class="anchor" aria-label="anchor" href="#fetch-records"></a>
 </h2>
 <p>A single function, <code><a href="../reference/get_assessments.html">get_assessments()</a></code>, retrieves records
 from a portal. You choose the country with a two-letter code:</p>
@@ -113,93 +109,29 @@ on), so you can fetch from several countries and stack the results:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_coverage.html">get_assessments_coverage</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="id_2-score-records-by-relevance">2. Score records by relevance<a class="anchor" aria-label="anchor" href="#id_2-score-records-by-relevance"></a>
-</h2>
-<p>Portals return everything; usually you only want records about a
-particular subject. Pass a <code>topic</code> and each record’s title
-and summary are compared against it, producing a relevance score between
--1 and 1 (higher means a closer match).</p>
-<p>A topic is just a short phrase. You can pass one phrase, or several
-named ones:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments.html">get_assessments</a></span><span class="op">(</span></span>
-<span>  <span class="st">"nl"</span>,</span>
-<span>  topic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>wind <span class="op">=</span> <span class="st">"wind energy"</span>, solar <span class="op">=</span> <span class="st">"solar energy"</span><span class="op">)</span>,</span>
-<span>  limit <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  download <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>This adds a <code>relevance_score_wind</code> and
-<code>relevance_score_solar</code> column to the table. Because the
-comparison is done with a multilingual model, an English topic phrase
-still matches Dutch or German text — you do not need to translate your
-topics for each country.</p>
-<p>The BIOGAIN project uses a standard set of six energy topics,
-returned by <code><a href="../reference/biogain_assessment_topics.html">biogain_assessment_topics()</a></code>:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/biogain_assessment_topics.html">biogain_assessment_topics</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                                        wind </span></span>
-<span><span class="co">#&gt;                                               "wind energy" </span></span>
-<span><span class="co">#&gt;                                                       solar </span></span>
-<span><span class="co">#&gt;                                              "solar energy" </span></span>
-<span><span class="co">#&gt;                                                  power_grid </span></span>
-<span><span class="co">#&gt; "power lines, distribution and transmission infrastructure" </span></span>
-<span><span class="co">#&gt;                                            renewable_energy </span></span>
-<span><span class="co">#&gt;                                          "renewable energy" </span></span>
-<span><span class="co">#&gt;                                  energy_transition_strategy </span></span>
-<span><span class="co">#&gt;          "regional energy transition strategy and planning" </span></span>
-<span><span class="co">#&gt;                                            renewable_zoning </span></span>
-<span><span class="co">#&gt;  "renewable energy zoning and designated development areas"</span></span></code></pre></div>
-<p>Pass that whole set as the topic, and optionally a
-<code>relevance_threshold</code>. The threshold only affects
-<strong>downloading</strong>: records below it still appear in your
-table (with their scores), but their PDF documents are skipped. That
-means you can re-run later with a different threshold without fetching
-from the portal again.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_assessments.html">get_assessments</a></span><span class="op">(</span></span>
-<span>  <span class="st">"nl"</span>,</span>
-<span>  topic <span class="op">=</span> <span class="fu"><a href="../reference/biogain_assessment_topics.html">biogain_assessment_topics</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  relevance_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  limit <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  download <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<blockquote>
-<p><strong>One-time setup.</strong> Relevance scoring runs a small
-Python model through the reticulate package. Install it once per machine
-with <code>reticulate::py_install("sentence-transformers")</code>. Plain
-fetching (no <code>topic</code>) does not need this.</p>
-</blockquote>
-</div>
-<div class="section level2">
-<h2 id="id_3-select-the-records-worth-reading">3. Select the records worth reading<a class="anchor" aria-label="anchor" href="#id_3-select-the-records-worth-reading"></a>
-</h2>
-<p>Scoring gives you numbers; <code><a href="../reference/select_assessments.html">select_assessments()</a></code> turns
-them into a single keep-or-drop decision. It combines three
-complementary signals — the relevance score above, a topic classifier,
-and a count of energy-related keywords — and marks a record as selected
-if any signal points to “relevant”, unless the record is clearly about
-something off-topic (such as fossil power or nuclear).</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">selected</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/select_assessments.html">select_assessments</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">selected</span><span class="op">$</span><span class="va">selected</span><span class="op">)</span></span></code></pre></div>
-<p>The result adds a <code>selected</code> column you can filter on.
-Casting a wide net here is deliberate: it is better to keep a few
-borderline records than to miss a relevant one, and you can always
-tighten the decision afterwards.</p>
-</div>
-<div class="section level2">
 <h2 id="working-offline">Working offline<a class="anchor" aria-label="anchor" href="#working-offline"></a>
 </h2>
-<p>Every record you fetch is saved to a small file on disk (a
-“sidecar”). You can read those back later without going to the portal at
-all:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<p>Every record you fetch is saved to a small file on disk (a “sidecar”)
+under the cache root, which you can read back later without going to the
+portal at all:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/index_cache.html">index_cache</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"nl"</span><span class="op">)</span></span></code></pre></div>
-<p>This is handy for re-scoring an existing set of records against new
-topics, or for picking up where you left off. To re-score records you
-already have, use <code><a href="../reference/score_assessments.html">score_assessments()</a></code>:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/score_assessments.html">score_assessments</a></span><span class="op">(</span><span class="va">records</span>, topic <span class="op">=</span> <span class="fu"><a href="../reference/biogain_assessment_topics.html">biogain_assessment_topics</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>This is handy for picking up where you left off, or for re-scoring an
+existing set of records against new topics. The cache root resolves
+through <code><a href="../reference/cache_dir_default.html">cache_dir_default()</a></code>; <code><a href="../reference/clear_cache.html">clear_cache()</a></code>
+wipes the downloaded files but leaves the sidecars (and any derived
+artefacts) in place.</p>
+</div>
+<div class="section level2">
+<h2 id="scoring-records-optional">Scoring records (optional)<a class="anchor" aria-label="anchor" href="#scoring-records-optional"></a>
+</h2>
+<p><code><a href="../reference/get_assessments.html">get_assessments()</a></code> accepts an optional <code>topic</code>
+(and <code>relevance_threshold</code>) to score records during the fetch
+and gate PDF downloads on the score. The scoring itself is delegated to
+the <strong>planscanR.screen</strong> package: install it to enable
+<code>topic =</code>, and see its “Scoring records” vignette for the
+walkthrough. Without it, omit <code>topic</code> and planscanR fetches
+without scoring — no Python required.</p>
 </div>
 <div class="section level2">
 <h2 id="where-to-go-next">Where to go next<a class="anchor" aria-label="anchor" href="#where-to-go-next"></a>
@@ -214,9 +146,12 @@ date and region filters.</li>
 <code><a href="../reference/get_assessments_be.html">?get_assessments_be</a></code>, <code><a href="../reference/get_assessments_ee.html">?get_assessments_ee</a></code> — the
 portal-specific details for each country.</li>
 <li>
-<code><a href="../reference/run_biogain_review.html">run_biogain_review()</a></code> — a point-and-click app for
-inspecting how records flow through fetch → score → select, and for
-building a hand-checked benchmark.</li>
+<strong>planscanR.screen</strong> — score records by topic
+relevance, classify them, and learn a selection model.</li>
+<li>
+<strong>planscanR.biogain</strong> — the BIOGAIN topic/label/keyword
+config, the <code>select_assessments()</code> ensemble rule, the review
+app, and the acquisition runbook.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

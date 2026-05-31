@@ -117,12 +117,13 @@ get_assessments(
 
 - relevance_model:
 
-  A `planscanR_embedding_model`. Defaults to
-  [`embedding_model_minilm()`](https://barthoekstra.github.io/planscanR/reference/embedding_model_minilm.md)
+  A `planscanR_embedding_model` from planscanR.screen. Defaults to
+  [`planscanR.screen::embedding_model_minilm()`](https://rdrr.io/pkg/planscanR.screen/man/embedding_model_minilm.html)
   (sentence-transformers `paraphrase-multilingual-MiniLM-L12-v2` via
   reticulate). Pass a custom one built with
-  [`embedding_model()`](https://barthoekstra.github.io/planscanR/reference/embedding_model.md)
-  to plug in a different backend.
+  [`planscanR.screen::embedding_model()`](https://rdrr.io/pkg/planscanR.screen/man/embedding_model.html)
+  to plug in a different backend. Passing `topic` requires
+  planscanR.screen to be installed.
 
 - discover:
 

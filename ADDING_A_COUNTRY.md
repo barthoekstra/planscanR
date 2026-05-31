@@ -100,7 +100,8 @@ het advies is gebaseerd”* vs. *“Adviezen en persberichten”*, or
 schema allows you to emit one list-column per section:
 `attachment_urls_<slug>` / `local_path_<slug>`.
 
-You don’t have to enumerate sections up-front — `read_record_sidecar()`
+You don’t have to enumerate sections up-front —
+[`read_record_sidecar()`](https://barthoekstra.github.io/planscanR/reference/read_record_sidecar.md)
 is country-agnostic, so a slug that appears in your handler appears on
 disk and flows back out without any extra code. Two patterns work:
 
@@ -202,9 +203,8 @@ country there is one entry in `COUNTRY_CFG`:
 Once that entry exists, every phase — scan + score, zero-shot
 classification, gated downloads, discovery, reporting — picks up the new
 country with no further code changes. The review app
-([`run_biogain_review()`](https://barthoekstra.github.io/planscanR/reference/run_biogain_review.md))
-also reads from the same sidecars, so labelling works the moment the
-scan has run.
+(`run_biogain_review()`) also reads from the same sidecars, so labelling
+works the moment the scan has run.
 
 **The review app discovers countries from the cache itself** — the
 `COUNTRIES` vector at the top of `inst/biogain-review/app.R` is derived

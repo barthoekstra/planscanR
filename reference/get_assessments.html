@@ -160,10 +160,12 @@ score-only; every record's PDFs are downloaded (when <code>download = TRUE</code
 
 
 <dt id="arg-relevance-model">relevance_model<a class="anchor" aria-label="anchor" href="#arg-relevance-model"></a></dt>
-<dd><p>A <code>planscanR_embedding_model</code>. Defaults to
-<code><a href="embedding_model_minilm.html">embedding_model_minilm()</a></code> (sentence-transformers
-<code>paraphrase-multilingual-MiniLM-L12-v2</code> via reticulate). Pass a custom
-one built with <code><a href="embedding_model.html">embedding_model()</a></code> to plug in a different backend.</p></dd>
+<dd><p>A <code>planscanR_embedding_model</code> from
+<span class="pkg">planscanR.screen</span>. Defaults to
+<code><a href="https://rdrr.io/pkg/planscanR.screen/man/embedding_model_minilm.html" class="external-link">planscanR.screen::embedding_model_minilm()</a></code> (sentence-transformers
+<code>paraphrase-multilingual-MiniLM-L12-v2</code> via reticulate). Pass a custom one
+built with <code><a href="https://rdrr.io/pkg/planscanR.screen/man/embedding_model.html" class="external-link">planscanR.screen::embedding_model()</a></code> to plug in a different
+backend. Passing <code>topic</code> requires <span class="pkg">planscanR.screen</span> to be installed.</p></dd>
 
 
 <dt id="arg-discover">discover<a class="anchor" aria-label="anchor" href="#arg-discover"></a></dt>

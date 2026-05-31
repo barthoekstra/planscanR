@@ -78,7 +78,7 @@
 <div class="section level3">
 <h3 id="step-3--decide-how-attachments-are-grouped">Step 3 — Decide how attachments are grouped<a class="anchor" aria-label="anchor" href="#step-3--decide-how-attachments-are-grouped"></a></h3>
 <p>Most portals group documents into named sections — <em>“Documenten waarop het advies is gebaseerd”</em> vs. <em>“Adviezen en persberichten”</em>, or <em>“UVP-Bericht”</em> vs. <em>“Berichte”</em> vs. <em>“Auslegung”</em> vs. <em>“Weitere”</em>. The schema allows you to emit one list-column per section: <code>attachment_urls_&lt;slug&gt;</code> / <code>local_path_&lt;slug&gt;</code>.</p>
-<p>You don’t have to enumerate sections up-front — <code>read_record_sidecar()</code> is country-agnostic, so a slug that appears in your handler appears on disk and flows back out without any extra code. Two patterns work:</p>
+<p>You don’t have to enumerate sections up-front — <code><a href="reference/read_record_sidecar.html">read_record_sidecar()</a></code> is country-agnostic, so a slug that appears in your handler appears on disk and flows back out without any extra code. Two patterns work:</p>
 <ul><li>
 <strong>Curated map + auto-slug fallback</strong> (DE handler). A small named vector of <code>"Section heading" = "stable_slug"</code> covers the known cases; anything unrecognised is auto-slugged from the heading. New section types appear in their own column the next time the portal adds one, without a code change.</li>
 <li>
@@ -132,7 +132,7 @@
 <code>category_regex</code> — optional <code>native_type</code> filter (almost always <code>NULL</code>);</li>
 <li>
 <code>discover</code> — <code>TRUE</code> for portals that hide PDFs behind auth (then the discovery phase uses Tavily instead).</li>
-</ul><p>Once that entry exists, every phase — scan + score, zero-shot classification, gated downloads, discovery, reporting — picks up the new country with no further code changes. The review app (<code><a href="reference/run_biogain_review.html">run_biogain_review()</a></code>) also reads from the same sidecars, so labelling works the moment the scan has run.</p>
+</ul><p>Once that entry exists, every phase — scan + score, zero-shot classification, gated downloads, discovery, reporting — picks up the new country with no further code changes. The review app (<code>run_biogain_review()</code>) also reads from the same sidecars, so labelling works the moment the scan has run.</p>
 <p><strong>The review app discovers countries from the cache itself</strong> — the <code>COUNTRIES</code> vector at the top of <code>inst/biogain-review/app.R</code> is derived from <code>list.dirs(&lt;cache_dir&gt;/files)</code> (filtered to lowercase two-letter names), so a new handler that has written sidecars shows up in the country filter, funnel, and queue without any edit to the app. After a fresh scan, click “Rebuild snapshot” in the sidebar once to fold the new records into <code>corpus_snapshot.rds</code> and the country becomes selectable immediately.</p>
 <p><strong>One review-app file does still need the new country added by hand.</strong> The offline-translation layer (<a href="inst/biogain-review/R/translate.R">inst/biogain-review/R/translate.R</a>) keeps a small country → source-language map so it knows which Argos Translate pair to download (e.g. <code>nl → en</code>, <code>de → en</code>):</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">

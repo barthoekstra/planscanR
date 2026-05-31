@@ -17,42 +17,30 @@
   documents sit behind a login, so `attachment_urls` are empty.
 - Topic relevance scoring. Pass `topic` to
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
-  (or use
-  [`score_assessments()`](https://barthoekstra.github.io/planscanR/reference/score_assessments.md)
-  on existing records) to rank each record by how closely its title and
-  summary match one or more topics, via a multilingual text-similarity
-  model.
-  [`biogain_assessment_topics()`](https://barthoekstra.github.io/planscanR/reference/biogain_assessment_topics.md)
+  (or use `score_assessments()` on existing records) to rank each record
+  by how closely its title and summary match one or more topics, via a
+  multilingual text-similarity model. `biogain_assessment_topics()`
   returns the six energy topics the BIOGAIN project uses. The embedding
-  model is pluggable through
-  [`embedding_model()`](https://barthoekstra.github.io/planscanR/reference/embedding_model.md).
-- Lexical keyword scoring
-  ([`score_keywords()`](https://barthoekstra.github.io/planscanR/reference/score_keywords.md),
-  [`biogain_keyword_lexicon()`](https://barthoekstra.github.io/planscanR/reference/biogain_keyword_lexicon.md))
-  counts energy-related terms as a complementary signal.
-- Classification.
-  [`classify_assessments()`](https://barthoekstra.github.io/planscanR/reference/classify_assessments.md)
-  assigns each record a canonical class via a pluggable zero-shot
-  classifier
-  ([`classify_model_zeroshot()`](https://barthoekstra.github.io/planscanR/reference/classify_model_zeroshot.md)).
-- Selection.
-  [`select_assessments()`](https://barthoekstra.github.io/planscanR/reference/select_assessments.md)
-  combines the relevance, classifier, and keyword signals into a single
-  keep/drop decision. A model learned from human keep/drop labels
-  ([`train_selection_model()`](https://barthoekstra.github.io/planscanR/reference/train_selection_model.md)
-  /
-  [`predict_selection()`](https://barthoekstra.github.io/planscanR/reference/predict_selection.md))
-  is also available; the built-in learner is logistic regression.
+  model is pluggable through `embedding_model()`.
+- Lexical keyword scoring (`score_keywords()`,
+  `biogain_keyword_lexicon()`) counts energy-related terms as a
+  complementary signal.
+- Classification. `classify_assessments()` assigns each record a
+  canonical class via a pluggable zero-shot classifier
+  (`classify_model_zeroshot()`).
+- Selection. `select_assessments()` combines the relevance, classifier,
+  and keyword signals into a single keep/drop decision. A model learned
+  from human keep/drop labels (`train_selection_model()` /
+  `predict_selection()`) is also available; the built-in learner is
+  logistic regression.
 - Attachment discovery. For portals that don’t expose documents
   directly,
   [`discover_attachments()`](https://barthoekstra.github.io/planscanR/reference/discover_attachments.md)
   finds and validates PDFs through a pluggable web-search backend
   ([`search_backend_tavily()`](https://barthoekstra.github.io/planscanR/reference/search_backend_tavily.md)).
-- Review app.
-  [`run_biogain_review()`](https://barthoekstra.github.io/planscanR/reference/run_biogain_review.md)
-  launches a bundled Shiny app for inspecting how records flow through
-  the pipeline and building a human ground-truth selection to benchmark
-  the automated decision against.
+- Review app. `run_biogain_review()` launches a bundled Shiny app for
+  inspecting how records flow through the pipeline and building a human
+  ground-truth selection to benchmark the automated decision against.
 - Unified entry function
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
   dispatches on country code.
@@ -90,7 +78,9 @@
   network. Applies to both NL and DE handlers.
 - Sidecar JSONs now carry the URL list (and per-URL section tags) even
   when `download = FALSE` — each known but not-yet-fetched URL gets a
-  `pending` row in `download_status`. `read_record_sidecar()` /
+  `pending` row in `download_status`.
+  [`read_record_sidecar()`](https://barthoekstra.github.io/planscanR/reference/read_record_sidecar.md)
+  /
   [`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
   fan per-section URLs back out into the same
   `attachment_urls_<section>` / `local_path_<section>` columns
