@@ -1,0 +1,180 @@
+[
+  {
+    "relevance": 6.2969,
+    "documentSearchMatches": [
+      {
+        "documentId": "f57a4e1a-227f-47aa-973b-0f132fc2b334",
+        "documentName": "0975_vindmøller_Vassingerød_Nord.pdf",
+        "snippet": "",
+        "numberOfMatches": 20
+      }
+    ],
+    "id": "1bf4de5f-3944-4204-9bca-1d060b1959a8",
+    "name": "Vindmølle i Vassingerød Nord\r\nVVM-redegørelse og miljørapport",
+    "fromYear": 2009,
+    "toYear": 2009,
+    "isProjectAssessment": true,
+    "isRelatedToPlan": true,
+    "isDraft": false,
+    "status": {
+      "id": "95075fb1-df1c-446d-9c24-00b8e5faa9fb",
+      "name": {
+        "en-US": "EIA report in hearing",
+        "da-DK": "Høring af miljøkonsekvensrapport"
+      }
+    },
+    "appealedStatus": null,
+    "affectedStates": [],
+    "planTypesAndCategories": {
+      "planTypes": [
+        {
+          "id": "2edbb824-4519-4203-9987-c3a4e83561c7",
+          "name": {
+            "en-US": "Plan supplement",
+            "da-DK": "Kommuneplantillæg"
+          }
+        },
+        {
+          "id": "56b9306c-4bc8-48ab-a7a5-3e9a4b64322d",
+          "name": {
+            "en-US": "Localplan",
+            "da-DK": "Lokalplan"
+          }
+        }
+      ],
+      "planCategories": [
+        {
+          "id": "91aa667d-392c-4135-b2bc-0fda00722115",
+          "name": {
+            "en-US": "Physical planning and land use",
+            "da-DK": "Fysisk planlægning og arealanvendelse"
+          }
+        }
+      ],
+      "specificCategories": [
+        {
+          "id": "5eb87b7d-241e-4aa1-b412-1ba1e2791f9b",
+          "name": {
+            "en-US": "Other",
+            "da-DK": "Andet"
+          }
+        }
+      ],
+      "specificationOfOthers": [
+        "Ukendt"
+      ]
+    },
+    "planningAuthorities": [],
+    "responsibleAuthorities": [
+      {
+        "id": "62525d98-8397-4a6f-9315-51331965a5c0",
+        "name": "ALLERØD KOMMUNE",
+        "vat": "60183112",
+        "countryId": "f9d8cec5-e555-4ebe-a7e3-9c91896f56c0"
+      }
+    ],
+    "developers": [
+      {
+        "id": "9d5603e5-e022-4431-93d2-fc93ddb6cd97",
+        "name": "SELSKABET AF 18.08.2009 ApS",
+        "vat": "32363733",
+        "countryId": "f9d8cec5-e555-4ebe-a7e3-9c91896f56c0"
+      }
+    ],
+    "annex1": {
+      "categories": [],
+      "specificCategories": []
+    },
+    "annex2": {
+      "categories": [
+        {
+          "id": "29c156b0-c95d-45f1-86cf-cc3b55b0b9dd",
+          "name": {
+            "en-US": "3j",
+            "da-DK": "3j. Anlæg:vindmøller"
+          }
+        }
+      ],
+      "specificCategories": [
+        "vindmøller"
+      ]
+    },
+    "created": "2023-11-17T11:14:54.394756+00:00",
+    "createdOrganization": "DK29776938",
+    "createdUser": "ec6c3ab0-08e5-4bec-878e-65a75441a567",
+    "lastUpdated": "2023-11-17T11:14:54.491067+00:00",
+    "hasGeometry": true
+  },
+  {
+    "relevance": null,
+    "documentSearchMatches": null,
+    "id": "3defb931-66ca-4d2b-b49d-7e091ff086da",
+    "name": "Miljøkonsekvensrapport Frederikshavn Havvindmøllepark",
+    "fromYear": 2022,
+    "toYear": 2022,
+    "isProjectAssessment": true,
+    "isRelatedToPlan": false,
+    "isDraft": false,
+    "status": {
+      "id": "95075fb1-df1c-446d-9c24-00b8e5faa9fb",
+      "name": {
+        "en-US": "EIA report in hearing",
+        "da-DK": "Høring af miljøkonsekvensrapport"
+      }
+    },
+    "appealedStatus": null,
+    "affectedStates": [],
+    "planTypesAndCategories": {
+      "planTypes": [],
+      "planCategories": [],
+      "specificCategories": [],
+      "specificationOfOthers": []
+    },
+    "planningAuthorities": [],
+    "responsibleAuthorities": [
+      {
+        "id": "e702df7f-af66-47f9-b040-968e9f72eae9",
+        "name": "Energistyrelsen",
+        "vat": "59778714",
+        "countryId": "f9d8cec5-e555-4ebe-a7e3-9c91896f56c0"
+      },
+      {
+        "id": "3eeae8c1-a7f7-4e69-9b9d-4f73870f379d",
+        "name": "Frederikshavn Kommune",
+        "vat": "29189498",
+        "countryId": "f9d8cec5-e555-4ebe-a7e3-9c91896f56c0"
+      }
+    ],
+    "developers": [
+      {
+        "id": "177e5bb0-5098-4e40-bfcf-2be5ce503663",
+        "name": "Den Kommunale Selvstyrehavn       Frederikshavn Havn",
+        "vat": "25996127",
+        "countryId": "f9d8cec5-e555-4ebe-a7e3-9c91896f56c0"
+      }
+    ],
+    "annex1": {
+      "categories": [],
+      "specificCategories": []
+    },
+    "annex2": {
+      "categories": [
+        {
+          "id": "5fb3dac9-22bc-47c1-8c48-46b81b6a8647",
+          "name": {
+            "en-US": "3a",
+            "da-DK": "3a. Industrianlæg:el/varme"
+          }
+        }
+      ],
+      "specificCategories": [
+        "vindmøller"
+      ]
+    },
+    "created": "2025-09-11T08:23:48.52868+00:00",
+    "createdOrganization": "DK29189498",
+    "createdUser": "ba2df73a-12d9-426a-beef-5f556170e3e8",
+    "lastUpdated": "2025-09-11T08:27:21.676632+00:00",
+    "hasGeometry": false
+  }
+]

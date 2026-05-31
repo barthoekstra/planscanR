@@ -1,0 +1,1874 @@
+
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="utf-8">
+    <title>KOTKAS - AVE  v2.13.53</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1">
+    <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/static/web/icons/favicon_1.ico">
+    <link rel="icon" type="image/vnd.microsoft.icon" href="/static/web/icons/favicon_1.ico">
+
+    <link rel="stylesheet" type="text/css" href="/static/web/NEW_styles.css?v2.13.53">
+
+
+    <script src="/static/web/js/jquery.min.js?v2.13.53"></script>
+    <script src="/static/web/js/jquery-ui-1.13.2.custom/jquery-ui.min.js?v2.13.53"></script>
+    <script src="/static/web/js/popper.min.js?v2.13.53"></script>
+    <script src="/static/web/js/bootstrap5/bootstrap.bundle.min.js?v2.13.53"></script>
+    <script src="/static/web/js/bootstrap-multiselect/js/bootstrap-multiselect.js?v2.13.53"></script>
+    <script src="/static/web/js/bootstrap4-dialog/bootstrap-dialog.min.js?v2.13.53"></script>
+
+    <script src="/static/web/js/ave_app.js?v2.13.53"></script>
+    <script src="/javascript/lang_est?v2.13.53"></script>
+    <script>
+    $(function(){
+        App.site = 'ave';
+        App.bootstrap_version = 5;
+        App.base_url = '/';
+        App.maps_url = "/static/web/maps/";
+        App.cft = '87343fc5';
+        App.session_drift = 0;
+        App.session_ttl = 7200;
+        App.session_expire_warning = 300;
+        App.module_name = 'kmh';
+        App.func_name = 'ksh_index';
+        App.lang = 'est';
+        App.is_logged_in = false;
+        App.INADS_URL = 'https://inaadress.maaamet.ee/inaadress/';
+        App.represented_id = '';
+        App.version = 'v2.13.53';
+        App.internal_version = '2.13.53 - 2026-05-07';
+        App.UPLOADED_FILE_MAX_SIZE = 104857600;
+        App.maintenance = null;
+        App.init();
+    });
+    </script>
+
+    
+</head>
+<body  class="site-ave page-kmh_ksh_index lang-est ">
+    
+    <noscript>
+      <p class="bg-danger text-white text-center p-4"><b>NB! Antud lehekülg ei toimi korrektselt ilma Javascript-i toeta. Palun lülitage see sisse.</b></p>
+    </noscript>
+    <div class="toast-container"></div>
+    <div id="ajax-loading">
+        <div class="spinner-ajax">
+          <div class="bounce1"></div>
+          <div class="bounce2"></div>
+          <div class="bounce3"></div>
+        </div>
+    </div>
+
+    <!-- header area start	 -->
+    <header class="p2header">
+        <div class="px-xxl-0 container-xxl">
+            <div
+                class="header_wrapper d-flex align-items-center justify-content-between px-sm-1 px-xxl-0 position-relative"
+            >
+                <div class="d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 18h16M4 12h16M4 6h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+
+                <div class="logo">
+                    <a href="/?represented_id=None">
+                        <img src="/static/web/img/logo.svg" alt="logo" />
+                    </a>
+                </div>
+                <div class="main_menu d-none d-lg-block">
+                    
+    
+        <ul>
+            <li class="dropdown-center">
+                <a href="#Keskkonnakaitseload" class=""
+                    data-bs-toggle="dropdown" 
+                        data-bs-offset="0,15"
+                    >Keskkonnakaitseload
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        dropdown-menu top_menu shadow-sm
+                    "
+                    id="top-menu-kkl"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                            <li class=""
+                                ><a href="/permits/public_index?represented_id="
+                                    class="dropdown-item"
+                                >Keskkonnakaitselubade register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_document_index?represented_id="
+                                    class="dropdown-item"
+                                >Dokumentide register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_application_index?represented_id="
+                                    class="dropdown-item"
+                                >Taotluste ja menetluste register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_assignment_index?represented_id="
+                                    class="dropdown-item"
+                                >Seirearuannete register</a></li>
+                            <li class=""
+                                ><a href="/wastewater?represented_id="
+                                    class="dropdown-item"
+                                >Heitvee nõuetele vastavuse register</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+                <li
+                    ><a href="/annual_reports_registry?represented_id="
+                        class=""
+                    >Aruanded</a></li>
+            <li class="dropdown-center">
+                <a href="#Juhised" class=""
+                    data-bs-toggle="dropdown" 
+                        data-bs-offset="0,15"
+                    >Juhised
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        dropdown-menu top_menu shadow-sm
+                    "
+                    id="top-menu-annual"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/public/services?represented_id="
+                                        class="dropdown-item"
+                                        >Juhised</a></li>
+                                <li class=""
+                                    ><a href="/public/permit_infopage?represented_id="
+                                        class="dropdown-item"
+                                        >Loa omaja tervituspakett</a></li>
+                            <li class=""
+                                ><a href="/public/rvjv_application_help?represented_id="
+                                    class="dropdown-item"
+                                    >Riikidevahelise jäätmeveo info</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+            <li class="dropdown-center">
+                <a href="#Registrid ja avaandmed" class="active"
+                    data-bs-toggle="dropdown" 
+                        data-bs-offset="0,15"
+                    >Registrid ja avaandmed
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        dropdown-menu top_menu shadow-sm
+                    "
+                    id="top-menu-regspub"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/registry_facility/index?represented_id=&nav_tab=registry_facility"
+                                        class="dropdown-item"
+                                        >Käitiste register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_emission_source"
+                                        class="dropdown-item"
+                                        >Heiteallikate register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_waste_facility"
+                                        class="dropdown-item"
+                                        >Jäätmekäitluskohtade register</a></li>
+                            <li class=""
+                                ><a href="/registry/index?represented_id=&nav_tab=registry_oilshale"
+                                    class="dropdown-item"
+                                    >Kaevandamata jäänud põlevkivi register</a>
+                            </li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_windplant"
+                                        class="dropdown-item"
+                                        >Tuuleelektrijaamade register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/kmh_index?tab=KMH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) register</a></li>
+                                <li class="active"
+                                    ><a href="/kmh/ksh_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju strateegiliste hindamiste (KSH) register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/index?tab=PUBLICATION&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) avalike väljapanekute register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/expert_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item"
+                                        >KMH ja KSH ekspertide register</a></li>
+                            <li class=""
+                                ><a href="/opendata?represented_id="
+                                    class="dropdown-item"
+                                    >Avaandmed</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+                </div>
+                    <div class="header_login dropdown">
+                            <button type="button" class="btn d-lg-none" onclick="return auth_govsso();"
+                                ><svg width="30" height="30" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.466 37.534c0-6.05 7.85-10.958 17.532-10.958 9.686 0 17.536 4.905 17.536 10.958M19.998 20a8.768 8.768 0 1 0 0-17.534 8.768 8.768 0 0 0 0 17.534z" stroke="currentColor" stroke-width="4.931" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </button>
+                            <button type="button" class="d-none d-lg-inline-block btn 1btn-primary btn--header" onclick="return auth_govsso();"
+                                ><svg class="me-2" width="20" height="20" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.466 37.534c0-6.05 7.85-10.958 17.532-10.958 9.686 0 17.536 4.905 17.536 10.958M19.998 20a8.768 8.768 0 1 0 0-17.534 8.768 8.768 0 0 0 0 17.534z" stroke="currentColor" stroke-width="4.931" stroke-linecap="round" stroke-linejoin="round"/></svg
+                                    >Sisene
+                            </button>
+
+                        <div class="dropdown-menu p-4 kotkas_login_modal_dialog">
+                            <form name="authform" action="/" method="POST" onsubmit="return false;">
+                                <input type="submit" class="submit-hidden" tabindex="-1">
+                            </form>
+
+
+                        </div>
+
+                    </div>
+            </div>
+        </div>
+    </header>
+    <!-- header area end  -->
+
+    <!-- mobile_menu area start -->
+    <div
+      class="offcanvas offcanvas-start"
+      tabindex="-1"
+      id="mobileMenu"
+      aria-labelledby="mobileMenuLabel"
+        >
+      <div class="offcanvas-header">
+        <a class="canvaslogo" href="/?represented_id=None">
+          <img src="/static/web/img/logo.svg" alt="" />
+        </a>
+        <button
+          type="button"
+          class="btn-close text-reset"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body">
+        <div class="main_menu d-block">
+            
+    
+        <ul>
+            <li class="dropdown-center">
+                <a href="#Keskkonnakaitseload" class=""
+                    data-bs-toggle="collapse" 
+                        data-bs-target="#top-menu-kkl"
+                    >Keskkonnakaitseload
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        accordion-collapse collapse
+                    "
+                    id="top-menu-kkl"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                            <li class=""
+                                ><a href="/permits/public_index?represented_id="
+                                    class="dropdown-item"
+                                >Keskkonnakaitselubade register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_document_index?represented_id="
+                                    class="dropdown-item"
+                                >Dokumentide register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_application_index?represented_id="
+                                    class="dropdown-item"
+                                >Taotluste ja menetluste register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_assignment_index?represented_id="
+                                    class="dropdown-item"
+                                >Seirearuannete register</a></li>
+                            <li class=""
+                                ><a href="/wastewater?represented_id="
+                                    class="dropdown-item"
+                                >Heitvee nõuetele vastavuse register</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+                <li
+                    ><a href="/annual_reports_registry?represented_id="
+                        class=""
+                    >Aruanded</a></li>
+            <li class="dropdown-center">
+                <a href="#Juhised" class=""
+                    data-bs-toggle="collapse" 
+                        data-bs-target="#top-menu-annual"
+                    >Juhised
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        accordion-collapse collapse
+                    "
+                    id="top-menu-annual"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/public/services?represented_id="
+                                        class="dropdown-item"
+                                        >Juhised</a></li>
+                                <li class=""
+                                    ><a href="/public/permit_infopage?represented_id="
+                                        class="dropdown-item"
+                                        >Loa omaja tervituspakett</a></li>
+                            <li class=""
+                                ><a href="/public/rvjv_application_help?represented_id="
+                                    class="dropdown-item"
+                                    >Riikidevahelise jäätmeveo info</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+            <li class="dropdown-center">
+                <a href="#Registrid ja avaandmed" class="active"
+                    data-bs-toggle="collapse" 
+                        data-bs-target="#top-menu-regspub"
+                    >Registrid ja avaandmed
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        accordion-collapse collapse
+                    "
+                    id="top-menu-regspub"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/registry_facility/index?represented_id=&nav_tab=registry_facility"
+                                        class="dropdown-item"
+                                        >Käitiste register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_emission_source"
+                                        class="dropdown-item"
+                                        >Heiteallikate register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_waste_facility"
+                                        class="dropdown-item"
+                                        >Jäätmekäitluskohtade register</a></li>
+                            <li class=""
+                                ><a href="/registry/index?represented_id=&nav_tab=registry_oilshale"
+                                    class="dropdown-item"
+                                    >Kaevandamata jäänud põlevkivi register</a>
+                            </li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_windplant"
+                                        class="dropdown-item"
+                                        >Tuuleelektrijaamade register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/kmh_index?tab=KMH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) register</a></li>
+                                <li class="active"
+                                    ><a href="/kmh/ksh_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju strateegiliste hindamiste (KSH) register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/index?tab=PUBLICATION&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) avalike väljapanekute register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/expert_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item"
+                                        >KMH ja KSH ekspertide register</a></li>
+                            <li class=""
+                                ><a href="/opendata?represented_id="
+                                    class="dropdown-item"
+                                    >Avaandmed</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        </div>
+      </div>
+    </div>
+    <!-- mobile_menu area end -->
+
+    <div class="primary-alerts">
+    </div>
+
+        <main class="main-body py-3 px-xxl-0 container-xxl " 
+            >
+
+    
+
+<h1>Keskkonnamõju strateegilise hindamise register (KSH)</h1>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12 pad15bottom position-relative">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    Siin on võimalik tutvuda Keskkonnaametis heaks kiidetud või nõuetele vastavaks tunnistatud KSH aruannetega (enamik), samuti taastuvenergiat puudutavate KSH aruannetega, mille digitaliseerimist on rahastanud Euroopa Liit taasterahastu NextGenerationEU vahenditest. <br>
+Huvipakkuva aruande leiab otsingu abil ja failid on võimalik alla laadida.
+<br><br>
+KSH aruanded, nendega seotud ekspertarvamused ja uuringud on ka masinloetavad (täistekstiotsing). Vajaliku KSH aruande, ekspertarvamuse või uuringu leiab kasutades detailotsingut. Täpsemad juhised leiad <a href="https://kotkas.envir.ee/public/teade/?id=133" target="_blank"><b>siit</b></a>.
+                </div>
+
+                <a class="d-flex align-items-center text-decoration-none" href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh" target="_blank">
+                    <img src="/static/web/icons/map.svg"/>
+                    <span class="mar5left">Kaardirakendus</span>
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- search -->
+<div class="filter-container">
+
+    <form name="searchForm" id="searchForm" method="GET" action="/kmh/ksh_index" autocomplete="off">
+        <input type="hidden" name="search" value="1">
+        <input type="hidden" name="represented_id" value="">
+        <input type="hidden" name="tab" value="KSH">
+        <input type="submit" class="submit-hidden" tabindex="-1">
+
+        <div class="row g-2 g-md-3">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="s__proceeding_status">Olek</label>
+                    <select name="s__proceeding_status" id="s__proceeding_status" class="form-control">
+                        <option value="">Kõik</option>
+                            <option value="INITIATED" >Menetlus algatatud</option>
+                            <option value="ONGOING" >Menetlus pooleli</option>
+                            <option value="SUSPENDED" >Menetlus peatatud</option>
+                            <option value="FINISHED" >Menetlus lõpetatud</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="s__search_keyword">Märksõna</label>
+                    <input type="text" class="form-control" name="s__search_keyword" id="s__search_keyword" placeholder="Nimetus, kood või seotud isik" value="">
+                </div>
+            </div>
+
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+
+                    <label for="s__ksh_type">Liik</label>
+                    <select class="form-control kotkas-multiselect_js" name="s__ksh_type" id="s__ksh_type" data-options='{"enableFiltering": false, "enableCaseInsensitiveFiltering": false}'>
+                        <option value="">Kõik</option>
+                            <option value="1000" >Üleriigiline planeering</option>
+                            <option value="1100" >Riigi eriplaneering</option>
+                            <option value="1200" >Maakonnaplaneering</option>
+                            <option value="1300" >Üldplaneering</option>
+                            <option value="1400" >Kohaliku omavalitsuse eriplaneering</option>
+                            <option value="1500" >Detailplaneering</option>
+                            <option value="1600" >Arengukava</option>
+                            <option value="1700" >Strateegia</option>
+                            <option value="1800" >Programm</option>
+                            <option value="1900" >Muu</option>
+                    </select>
+
+                </div>
+            </div>
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__activity">Tegevusvaldkond</label>
+                    <select class="form-control kotkas-multiselect_js" name="s__activity" id="s__activity" data-options='{"enableFiltering": true, "enableCaseInsensitiveFiltering": true}'>
+                        <option value="">Kõik</option>
+                            <option value="1100" >Jäätmekäitlus</option>
+                            <option value="1200" >Ehitussektor</option>
+                            <option value="1300" >Energeetika ja energiakandjate tootmine</option>
+                            <option value="1400" >Info- ja kommunikatsioonitehnoloogia</option>
+                            <option value="1500" >Keemiatööstus</option>
+                            <option value="1600" >Kiirgus</option>
+                            <option value="1700" >Metallide tootmine ja töötlemine</option>
+                            <option value="1800" >Mineraalsete materjalide töötlemine</option>
+                            <option value="1900" >Kaevandamine ja geoloogia</option>
+                            <option value="2000" >Ohtlike ainete käitlus</option>
+                            <option value="2100" >Puidu, tselluloosi- ja paberitööstus</option>
+                            <option value="2200" >Põllumajandus ja vesiviljelus</option>
+                            <option value="2300" >Toiduainetööstus ja sööda tootmine</option>
+                            <option value="2400" >Transport ja taristu</option>
+                            <option value="2500" >Veekasutus</option>
+                            <option value="2600" >Muud tegevusvaldkonnad ja muud juhud</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__activity_area">Piirkond</label>
+                    <select class="form-control kotkas-multiselect_js" name="s__activity_area" id="s__activity_area" data-options='{"enableFiltering": true, "enableCaseInsensitiveFiltering": true}'>
+                        <option value="">Kõik</option>
+                            <option value="ESTONIA" >Üle Eesti</option>
+                            <option value="SEA" >Meri</option>
+                            <option value="CROSSBORDER" >Piiriülene</option>
+                            <option value="0037" >Harju maakond</option>
+                            <option value="0039" >Hiiu maakond</option>
+                            <option value="0045" >Ida-Viru maakond</option>
+                            <option value="0050" >Jõgeva maakond</option>
+                            <option value="0052" >Järva maakond</option>
+                            <option value="0056" >Lääne maakond</option>
+                            <option value="0060" >Lääne-Viru maakond</option>
+                            <option value="0064" >Põlva maakond</option>
+                            <option value="0068" >Pärnu maakond</option>
+                            <option value="0071" >Rapla maakond</option>
+                            <option value="0074" >Saare maakond</option>
+                            <option value="0079" >Tartu maakond</option>
+                            <option value="0081" >Valga maakond</option>
+                            <option value="0084" >Viljandi maakond</option>
+                            <option value="0087" >Võru maakond</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__kov_ehaks">KOV</label>
+                    <select id="s__kov_ehaks" name="s__kov_ehaks"  class="form-control  kotkas-multiselect_js" data-options='{"enableFiltering": true, "enableCaseInsensitiveFiltering": true}'>
+                        <option value="">Kõik</option>
+                                <option value="0130">Alutaguse vald, Ida-Viru maakond</option>
+                                <option value="0141">Anija vald, Harju maakond</option>
+                                <option value="0145">Antsla vald, Võru maakond</option>
+                                <option value="0171">Elva vald, Tartu maakond</option>
+                                <option value="0184">Haapsalu linn, Lääne maakond</option>
+                                <option value="0191">Haljala vald, Lääne-Viru maakond</option>
+                                <option value="0198">Harku vald, Harju maakond</option>
+                                <option value="0205">Hiiumaa vald, Hiiu maakond</option>
+                                <option value="0214">Häädemeeste vald, Pärnu maakond</option>
+                                <option value="0245">Jõelähtme vald, Harju maakond</option>
+                                <option value="0247">Jõgeva vald, Jõgeva maakond</option>
+                                <option value="0250">Jõhvi vald, Ida-Viru maakond</option>
+                                <option value="0255">Järva vald, Järva maakond</option>
+                                <option value="0272">Kadrina vald, Lääne-Viru maakond</option>
+                                <option value="0283">Kambja vald, Tartu maakond</option>
+                                <option value="0284">Kanepi vald, Põlva maakond</option>
+                                <option value="0291">Kastre vald, Tartu maakond</option>
+                                <option value="0293">Kehtna vald, Rapla maakond</option>
+                                <option value="0296">Keila linn, Harju maakond</option>
+                                <option value="0303">Kihnu vald, Pärnu maakond</option>
+                                <option value="0305">Kiili vald, Harju maakond</option>
+                                <option value="0317">Kohila vald, Rapla maakond</option>
+                                <option value="0321">Kohtla-Järve linn, Ida-Viru maakond</option>
+                                <option value="0338">Kose vald, Harju maakond</option>
+                                <option value="0353">Kuusalu vald, Harju maakond</option>
+                                <option value="0424">Loksa linn, Harju maakond</option>
+                                <option value="0432">Luunja vald, Tartu maakond</option>
+                                <option value="0431">Lääne-Harju vald, Harju maakond</option>
+                                <option value="0441">Lääne-Nigula vald, Lääne maakond</option>
+                                <option value="0430">Lääneranna vald, Pärnu maakond</option>
+                                <option value="0442">Lüganuse vald, Ida-Viru maakond</option>
+                                <option value="0446">Maardu linn, Harju maakond</option>
+                                <option value="0478">Muhu vald, Saare maakond</option>
+                                <option value="0480">Mulgi vald, Viljandi maakond</option>
+                                <option value="0486">Mustvee vald, Jõgeva maakond</option>
+                                <option value="0502">Märjamaa vald, Rapla maakond</option>
+                                <option value="0515">Narva-Jõesuu linn, Ida-Viru maakond</option>
+                                <option value="0511">Narva linn, Ida-Viru maakond</option>
+                                <option value="0528">Nõo vald, Tartu maakond</option>
+                                <option value="0557">Otepää vald, Valga maakond</option>
+                                <option value="0567">Paide linn, Järva maakond</option>
+                                <option value="0586">Peipsiääre vald, Tartu maakond</option>
+                                <option value="0637">Põhja-Pärnumaa vald, Pärnu maakond</option>
+                                <option value="0615">Põhja-Sakala vald, Viljandi maakond</option>
+                                <option value="0618">Põltsamaa vald, Jõgeva maakond</option>
+                                <option value="0622">Põlva vald, Põlva maakond</option>
+                                <option value="0624">Pärnu linn, Pärnu maakond</option>
+                                <option value="0651">Raasiku vald, Harju maakond</option>
+                                <option value="0653">Rae vald, Harju maakond</option>
+                                <option value="0663">Rakvere linn, Lääne-Viru maakond</option>
+                                <option value="0661">Rakvere vald, Lääne-Viru maakond</option>
+                                <option value="0668">Rapla vald, Rapla maakond</option>
+                                <option value="0689">Ruhnu vald, Saare maakond</option>
+                                <option value="0698">Rõuge vald, Võru maakond</option>
+                                <option value="0708">Räpina vald, Põlva maakond</option>
+                                <option value="0712">Saarde vald, Pärnu maakond</option>
+                                <option value="0714">Saaremaa vald, Saare maakond</option>
+                                <option value="0719">Saku vald, Harju maakond</option>
+                                <option value="0725">Saue vald, Harju maakond</option>
+                                <option value="0732">Setomaa vald, Võru maakond</option>
+                                <option value="0736">Sillamäe linn, Ida-Viru maakond</option>
+                                <option value="0784">Tallinn, Harju maakond</option>
+                                <option value="0792">Tapa vald, Lääne-Viru maakond</option>
+                                <option value="0793">Tartu linn, Tartu maakond</option>
+                                <option value="0796">Tartu vald, Tartu maakond</option>
+                                <option value="0806">Tori vald, Pärnu maakond</option>
+                                <option value="0824">Tõrva vald, Valga maakond</option>
+                                <option value="0834">Türi vald, Järva maakond</option>
+                                <option value="0857">Valga vald, Valga maakond</option>
+                                <option value="0890">Viimsi vald, Harju maakond</option>
+                                <option value="0897">Viljandi linn, Viljandi maakond</option>
+                                <option value="0899">Viljandi vald, Viljandi maakond</option>
+                                <option value="0901">Vinni vald, Lääne-Viru maakond</option>
+                                <option value="0903">Viru-Nigula vald, Lääne-Viru maakond</option>
+                                <option value="0907">Vormsi vald, Lääne maakond</option>
+                                <option value="0919">Võru linn, Võru maakond</option>
+                                <option value="0917">Võru vald, Võru maakond</option>
+                                <option value="0928">Väike-Maarja vald, Lääne-Viru maakond</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__initiation_reason">Algatamise põhjus</label>
+                    <select class="form-control kotkas-multiselect_js" name="s__initiation_reason" id="s__initiation_reason" data-options='{"enableFiltering": false, "enableCaseInsensitiveFiltering": false}'>
+                        <option value="">Kõik</option>
+                                <option value="1000" >Kohustuslik</option>
+                                <option value="2000" >Kaalutletud</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__initiator">Algataja</label>
+                    <input type="text" class="form-control" name="s__initiator" id="s__initiator" placeholder="Nimi või kood" value="">
+                </div>
+            </div>
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__organizer">Korraldaja</label>
+                    <input type="text" class="form-control" name="s__organizer" id="s__organizer" placeholder="Nimi või kood" value="">
+                </div>
+            </div>
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__creator">Koostaja</label>
+                    <input type="text" class="form-control" name="s__creator" id="s__creator" placeholder="Nimi või kood" value="">
+                </div>
+            </div>
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__expert">Ekspert</label>
+                    <input type="text" class="form-control" name="s__expert" id="s__expert" placeholder="Nimi või kood" value="">
+                </div>
+            </div>
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group">
+                    <label for="s__expert_group">Ekspertgrupp</label>
+                    <input type="text" class="form-control" name="s__expert_group" id="s__expert_group" placeholder="Nimi või kood" value="">
+                </div>
+            </div>
+
+
+            <div class="col-md-3 detailed d-none">
+                <div class="form-group ">
+                    <label for="s__has_attachment_types">
+                        Aruandel on dokumendi liik
+                    </label>
+                    <select autocomplete="off" multiple  name="s__has_attachment_types" id="s__has_attachment_types" data-options='{"enableFiltering": true, "enableFiltering": false}' data-width="500" class="form-control kotkas-multiselect_js">
+
+                        <option value="KMH_ALGATAMISE_OTSUS" >Algatamise otsus</option>
+                        <option value="KMH_PROGRAMM" >Programm</option>
+                        <option value="KMH_PROGRAMMI_OTSUS" >Programmi otsus</option>
+                        <option value="KMH_ARUANNE" >Aruanne</option>
+                        <option value="KMH_ARUANDE_LISA" >Aruande lisa</option>
+                        <option value="KMH_ARUANNE_EE" >Esimese etapi aruanne</option>
+                        <option value="KMH_ARUANNE_EE_LISA" >Esimese etapi aruande lisa</option>
+                        <option value="KMH_ARUANDE_OTSUS" >Aruande otsus</option>
+                        <option value="TAIENDAVAD_MATERJALID" >Täiendavad materjalid</option>
+                        <option value="EKSPERTARVAMUS" >Ekspertarvamused, uuringud</option>
+                        <option value="SEIREANDMED" >Seireandmed</option>
+                        <option value="JARELHINDAMISE_TULEMUSED" >Järelhindamise tulemused</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="row detailed d-none">
+                <h4 class="mar15top mar10bottom">Täistekstiotsing dokumentide sisust</h4>
+
+                <div class="col-md-3">
+                    <div class="form-group ">
+                        <label for="s__attachment_types">
+                            Dokumendi liigid
+                            <span class="kotkas_icon kotkas_icon-info-circled" data-toggle="tooltip"  data-html="true" title="Dokumendi liigid, mille sisust otsingut teostatakse."></span>
+                        </label>
+                        <select autocomplete="off" multiple class="form-control kotkas-multiselect_js" name="s__attachment_types" id="s__attachment_types" data-options='{"enableFiltering": true, "enableFiltering": false}' data-width="500">
+                                    <option value="KMH_ARUANNE" >Aruanne</option>
+                                    <option value="EKSPERTARVAMUS" >Ekspertarvamused, uuringud</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group search_keyword_attach">
+                        <label for="s__search_keyword_attach">
+                            Otsingu fraas
+                            <span class="kotkas_icon kotkas_icon-info-circled" data-toggle="tooltip"  data-html="true" title="&lt;ul&gt;
+&lt;li&gt;Pärisnimed tuleb sisestada suure algustähega, nt Tallinn, Eesti, Juhan Liiv. Süsteem eristab suuri ja väikseid tähti pärisnimede puhul.&lt;/li&gt;
+&lt;li&gt;Otsing toimub lemmade põhjal – näiteks „jooksma“, „jooksid“ ja „jookseb“ leiab kui sisestada jooksma.&lt;/li&gt;
+&lt;li&gt;Sõnajärjel pole tähtsust – kõik otsitavad sõnad võivad esineda tekstis ükskõik mis järjekorras.&lt;/li&gt;
+&lt;li&gt;Täpne vaste – otsing ei kasuta &amp;quot;osalist vastet&amp;quot;, nt sõna &amp;quot;rahvas&amp;quot; ei leia sõna &amp;quot;rahvastik&amp;quot; ega &amp;quot;rahvasaadik&amp;quot;.&lt;/li&gt;
+&lt;li&gt;Sõnaühendite otsing: mitme sõna otsimisel kuvatakse ainult dokumendid, kus kõik otsitud sõnad esinevad.&lt;/li&gt;
+&lt;li&gt;Otsing ei toeta metamärke (*, ?, jne) ega fraaside otsingut jutumärkides.&lt;/li&gt;
+&lt;/ul&gt;"></span>
+                        </label>
+                        <input type="text" class="form-control" name="s__search_keyword_attach" id="s__search_keyword_attach" placeholder="Fraas" value="">
+                    </div>
+                </div>
+
+            </div>
+
+
+
+
+
+            <div class="d-flex gap-3 align-items-md-center flex-column flex-md-row">
+                <button type="submit" class="btn btn-primary px-lg-5">Otsi</button>
+                <button type="button" class="btn btn-secondary px-lg-5" onclick="document.location.href='/kmh/ksh_index?tab=KSH&represented_id=';"> Tühjenda </button>
+                <button type="button" class="btn btn-outline-primary px-lg-5" onclick="$('.detailed').toggleClass('d-none')"> Detailotsing </button>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<div class="bordered-container">
+        <table class="table table-mobile-vertical table-sorted mb-0" data-sort="" data-sort_dir="asc" data-sort_url="/kmh/ksh_index?tab=KSH&amp;search=1&amp;">
+        <thead>
+            <tr>
+                <th data-sort="name" class="" style="width: 350px;">Nimetus</th>
+                <th data-sort="type" class="">Liik</th>
+                <th data-sort="activity_area" class="">Piirkond</th>
+                <th data-sort="initiation_date" class="">Algatamise kpv</th>
+                <th data-sort="initiation_reason" class="">Algatamise põhjus</th>
+                <th data-sort="proceeding_status" class="">Menetluse seis</th>
+                <th data-sort="organizer_name" class="">Korraldaja</th>
+                <th style="width: 25px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=319&amp;represented_id=">Aaspere Agro OÜ Kõldu veisefarmi detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Lääne-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">04.09.2012</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Haljala Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=319"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=98&amp;represented_id=">Aasumäe piirkonna detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Harju maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">05.10.2010</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Kose Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=98"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=110&amp;represented_id=">Abja valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Viljandi maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">12.02.2007</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Abja Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=110"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=350&amp;represented_id=">Aheraine detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">10.03.2009</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Mäetaguse Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=350"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=208&amp;represented_id=">Ahja vald Ibaste küla Avitaja kinnistu kalakasvanduse ja lähiala detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Põlva maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">18.11.2015</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Ahja Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=208"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=69&amp;represented_id=">Ahja valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Põlva maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">29.11.2006</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Ahja Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=69"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=575&amp;represented_id=">Aidu ja Aidu-Liiva detailplaneeringu keskkonnamõjude strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">18.12.2025</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Algatatud
+                    </td>
+                    <td data-label="Korraldaja">Lüganuse Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=575"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=452&amp;represented_id=">Aidu taastuvenergia detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">28.01.2021</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Lüganuse Vallavalitsus, Alutaguse Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=452"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=20&amp;represented_id=">Alatskivi valla üldplaneeringu KSH</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Tartu maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">26.10.2007</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Alatskivi Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=20"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=140&amp;represented_id=">A. Lauteri tn 3 kinnistu ja lähiala detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Harju maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">31.08.2011</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Tallinna Linnaplaneerimise Amet</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=140"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=199&amp;represented_id=">Albu valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Järva maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">05.06.2006</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Albu Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=199"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=547&amp;represented_id=">Alexela Kiviõli hübriidpargi kohaliku omavalitsuse eriplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Kohaliku omavalitsuse eriplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">30.05.2024</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Pooleli
+                    </td>
+                    <td data-label="Korraldaja">Lüganuse Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=547"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=394&amp;represented_id=">Alexela Terminali laienduse ehk Paldiski linna Pallase piirkond 16 ja 18 ning selle lähiala detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Harju maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">18.08.2011</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Paldiski Linnavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=394"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=514&amp;represented_id=">Alutaguse valla eriplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Kohaliku omavalitsuse eriplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">25.02.2021</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Pooleli
+                    </td>
+                    <td data-label="Korraldaja">Alutaguse Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=514"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=441&amp;represented_id=">Alutaguse valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">30.11.2017</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Alutaguse Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=441"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=252&amp;represented_id=">Ambla valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Järva maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">19.04.2007</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Ambla Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=252"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=436&amp;represented_id=">Anija valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Harju maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">21.08.2015</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Anija Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=436"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=76&amp;represented_id=">Antsla valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Võru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">16.09.2008</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Antsla Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=76"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=448&amp;represented_id=">Antsla valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Võru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">25.09.2018</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Antsla Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=448"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=226&amp;represented_id=">Aruküla 330/110/10kV alajaama ja selle võrku ühendamiseks vajalike 330kV liini sisseviikude Aruküla AJ-Vaida sõlme vahel keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Harju maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">24.04.2009</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Raasiku Vallavalitsus, Rae Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=226"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=160&amp;represented_id=">Aseri valla olulise ruumilise mõjuga objekti (tuulepargi) asukohavaliku üldplaneeringu teemaplaneeringu keskkonnamõju strateegiline hindamine aruanne Kõrkküla ja Kestla küla territooriumil</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Lääne-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">31.08.2009</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Aseri Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=160"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=417&amp;represented_id=">Aseri valla Oru, Rannu ja Aseriaru küla olulise ruumilise mõjuga objekti (tuulikupargi) asukohavaliku üldplaneeringu teemaplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Lääne-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">02.11.2005</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Aseri Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=417"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=150&amp;represented_id=">Astangu tn 7 kinnistu detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Harju maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">16.06.2010</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Tallinna Linnaplaneerimise Amet</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=150"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=282&amp;represented_id=">Audru valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Pärnu maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">18.06.2007</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Audru Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=282"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=414&amp;represented_id=">Auvere külas asuva Õlitehase maa-ala detailplaneering</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">21.10.2010</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Narva-Jõesuu Linnavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=414"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=502&amp;represented_id=">Auvere tuulepargi eriplaneeringu keskkonnamõju strateegiline  hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Kohaliku omavalitsuse eriplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">30.03.2016</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Pooleli
+                    </td>
+                    <td data-label="Korraldaja">Vaivara Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=502"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=542&amp;represented_id=">Avispea tuuleala detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Lääne-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">17.10.2024</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Algatatud
+                    </td>
+                    <td data-label="Korraldaja">Väike-Maarja Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=542"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=325&amp;represented_id=">Ebavere külas Karja katastriüksusele algatatud detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Lääne-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">24.01.2007</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Väike-Maarja Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=325"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=115&amp;represented_id=">Eesti Elektrijaama uute energiaplokkide (CFB) biomassikütuse ettevalmistamise ja etteande lao maa-ala detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">31.10.2012</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Vaivara Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=115"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=518&amp;represented_id=">Eesti-Läti neljanda elektriühenduse riigi eriplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Riigi eriplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Järva maakond<br>
+                                Lääne maakond<br>
+                                Pärnu maakond<br>
+                                Rapla maakond<br>
+                                Saare maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">15.02.2024</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Pooleli
+                    </td>
+                    <td data-label="Korraldaja">Regionaal- ja Põllumajandusministeerium</td>
+                    <td class="d-none d-md-table-cell">
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=416&amp;represented_id=">Eesti maaelu arengukava 2014-2020 keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Arengukava<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Üle Eesti<br>
+                    </td>
+                    <td data-label="Algatamise kpv">05.11.2012</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Põllumajandusministeerium</td>
+                    <td class="d-none d-md-table-cell">
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=420&amp;represented_id=">Eesti mereala planeeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üleriigiline planeering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Meri<br>
+                    </td>
+                    <td data-label="Algatamise kpv">25.05.2017</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Rahandusministeerium</td>
+                    <td class="d-none d-md-table-cell">
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=310&amp;represented_id=">&#34;Eesti metsanduse arengukava aastani 2020&#34; keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Arengukava<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Üle Eesti<br>
+                    </td>
+                    <td data-label="Algatamise kpv">04.08.2009</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Keskkonnaministeerium</td>
+                    <td class="d-none d-md-table-cell">
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=28&amp;represented_id=">Elva linnas Järve tn 1 kinnistu detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Tartu maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">28.08.2008</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Elva Linnavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=28"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=162&amp;represented_id=">Elva linna üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Tartu maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">28.04.2014</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Elva Linnavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=162"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=446&amp;represented_id=">Elva valla üldplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Üldplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Tartu maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">01.10.2018</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Elva Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=446"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=206&amp;represented_id=">&#34;Energiamajanduse arengukava aastani 2030&#34; keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Arengukava<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Üle Eesti<br>
+                    </td>
+                    <td data-label="Algatamise kpv">18.09.2013</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Majandus- ja Kommunikatsiooniministeerium, Eesti Arengufond</td>
+                    <td class="d-none d-md-table-cell">
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=456&amp;represented_id=">Energiamajanduse arengukava aastani 2035 keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Arengukava<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Üle Eesti<br>
+                    </td>
+                    <td data-label="Algatamise kpv">07.12.2021</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Kliimaministeerium</td>
+                    <td class="d-none d-md-table-cell">
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=565&amp;represented_id=">Esivere küla Rebasekivi kinnistu detailplaneeringu keskkonnamõju hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Pärnu maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">15.01.2002</td>
+                    <td data-label="Algatamise põhjus">
+                            Kaalutletud
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Hanila Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=565"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+                <tr class="">
+                    <td data-label="Nimetus">
+                        <a href="/kmh/ksh_view?ksh_id=453&amp;represented_id=">Estonia pumphüdroelektrijaama detailplaneeringu keskkonnamõju strateegiline hindamine</a>
+                    </td>
+                    <td data-label="Liik">
+                            Detailplaneering<br>
+                    </td>
+                    <td data-label="Piirkond">
+                                Ida-Viru maakond<br>
+                    </td>
+                    <td data-label="Algatamise kpv">23.08.2018</td>
+                    <td data-label="Algatamise põhjus">
+                            Kohustuslik
+                    </td>
+                    <td data-label="Menetluse seis">
+                            Lõpetatud
+                    </td>
+                    <td data-label="Korraldaja">Alutaguse Vallavalitsus</td>
+                    <td class="d-none d-md-table-cell">
+                            <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=ksh&amp;registryId=kmh&amp;registryObjectId=453"
+                                target="_blank"
+                                title="Kuva kaardil"
+                                data-toggle="tooltip"><img src="/static/web/icons/map.svg" alt="map" /></a>
+                    </td>
+                </tr>
+
+        </tbody>
+        </table>
+    <div class="pagination2"> <span class="active">1</span> <a href="/kmh/ksh_index?tab=KSH&amp;qs=40&amp;search=1&amp;cft=None">2</a> <a href="/kmh/ksh_index?tab=KSH&amp;qs=80&amp;search=1&amp;cft=None">3</a> <a href="/kmh/ksh_index?tab=KSH&amp;qs=120&amp;search=1&amp;cft=None">4</a> <a href="/kmh/ksh_index?tab=KSH&amp;qs=160&amp;search=1&amp;cft=None">5</a> <span class="spacer">..</span> <a href="/kmh/ksh_index?tab=KSH&amp;qs=560&amp;search=1&amp;cft=None">15</a> <a href="/kmh/ksh_index?tab=KSH&amp;qs=40&amp;search=1&amp;cft=None">Järgmine <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a><span class="totals">lk 1/15-st. Kokku 566 kirjet</span></div>
+</div>
+
+
+
+
+        </main>
+
+    <!-- footer area start -->
+    <footer>
+      <div class="px-xxl-0 container-xxl">
+        <div class="footer-wrapper">
+          <div class="row">
+            <div class="col-lg-7">
+              <div class="footer_left_wrapper d-flex justify-content-between">
+                <div class="footer_left">
+                    <div class="footer_left_top">
+    <p>Klienditoe tööaeg: E-R 09.00-16.00</p>
+    <p>
+        Väljaspool tööaega vastab telefonile automaatvastaja.<br>
+        Aastaaruandluse info leiad <a href="https://kotkas.envir.ee/public/service_view?service_id=7&represented_id=" target="_blank">siit</a>.
+    </p>
+</div>
+<div class="footer_left_bottom">
+    <ul>
+        <li>
+        <a href="tel:662 5999"
+            ><img src="/static/web/img/phone.svg" alt="" />662 5999</a
+        >
+        </li>
+        <li>
+        <a href="/cdn-cgi/l/email-protection#93f8fffaf6fdf7fae7e6f4fad3f8f6e0f8f8fcfdfdf2f2fef6e7bdf6f6"><img
+            src="/static/web/img/email.svg"
+            alt=""
+            /><span class="__cf_email__" data-cfemail="83e8efeae6ede7eaf7f6e4eac3e8e6f0e8e8ecedede2e2eee6f7ade6e6">[email&#160;protected]</span></a
+        >
+        </li>
+    </ul>
+</div>
+    
+                </div>
+                <div class="footer_right">
+                        <a href="http://www.keskkonnaamet.ee">Keskkonnaamet</a><br>Roheline 64, 80010 Pärnu<br><a href="http://www.kemit.ee">KEMIT</a><br>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-5">
+              <div  class="footer_logo d-flex align-items-center justify-content-end">
+                <div class="footer_logo_one footer_logo_two">
+                  <img src="/static/web/img/nextgen-logo.svg" alt="NextGenerationEU logo"/>
+                </div>
+                <div class="footer_logo_one footer_logo_two">
+                  <img src="/static/web/img/flag.svg" alt="SF logo" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        <div class="container">
+          <div class="copyright_wrapper text-center">
+            <p>© 2026 Keskkonnaamet</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- footer area end -->
+
+    
+    
+
+    
+    
+
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0457c02b8f5fb9e',t:'MTc4MDIyNTMyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

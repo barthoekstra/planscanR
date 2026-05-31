@@ -1,0 +1,25 @@
+{
+  "content": [
+    {
+      "nummer": "PR4038",
+      "dossierType": "PROJECT_MER",
+      "titel": "Project Flite - Lanzatech",
+      "initiatiefnemer": {
+        "naam": "LANZATECH INC.",
+        "kboNummer": "0797133231"
+      }
+    },
+    {
+      "nummer": "PR4037",
+      "dossierType": "PROJECT_MER",
+      "titel": "Windturbineproject Overhaem",
+      "initiatiefnemer": {
+        "naam": "Spark Power",
+        "kboNummer": "1002476390"
+      }
+    }
+  ],
+  "number": 1,
+  "size": 2,
+  "totalElements": 3047
+}

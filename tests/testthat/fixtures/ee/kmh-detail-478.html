@@ -1,0 +1,1273 @@
+
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="utf-8">
+    <title>KOTKAS - AVE  v2.13.53</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1">
+    <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/static/web/icons/favicon_1.ico">
+    <link rel="icon" type="image/vnd.microsoft.icon" href="/static/web/icons/favicon_1.ico">
+
+    <link rel="stylesheet" type="text/css" href="/static/web/NEW_styles.css?v2.13.53">
+
+
+    <script src="/static/web/js/jquery.min.js?v2.13.53"></script>
+    <script src="/static/web/js/jquery-ui-1.13.2.custom/jquery-ui.min.js?v2.13.53"></script>
+    <script src="/static/web/js/popper.min.js?v2.13.53"></script>
+    <script src="/static/web/js/bootstrap5/bootstrap.bundle.min.js?v2.13.53"></script>
+    <script src="/static/web/js/bootstrap-multiselect/js/bootstrap-multiselect.js?v2.13.53"></script>
+    <script src="/static/web/js/bootstrap4-dialog/bootstrap-dialog.min.js?v2.13.53"></script>
+
+    <script src="/static/web/js/ave_app.js?v2.13.53"></script>
+    <script src="/javascript/lang_est?v2.13.53"></script>
+    <script>
+    $(function(){
+        App.site = 'ave';
+        App.bootstrap_version = 5;
+        App.base_url = '/';
+        App.maps_url = "/static/web/maps/";
+        App.cft = '87343fc5';
+        App.session_drift = 0;
+        App.session_ttl = 7200;
+        App.session_expire_warning = 300;
+        App.module_name = 'kmh';
+        App.func_name = 'kmh_view';
+        App.lang = 'est';
+        App.is_logged_in = false;
+        App.INADS_URL = 'https://inaadress.maaamet.ee/inaadress/';
+        App.represented_id = '';
+        App.version = 'v2.13.53';
+        App.internal_version = '2.13.53 - 2026-05-07';
+        App.UPLOADED_FILE_MAX_SIZE = 104857600;
+        App.maintenance = null;
+        App.init();
+    });
+    </script>
+
+    
+</head>
+<body  class="site-ave page-kmh_kmh_view lang-est ">
+    
+    <noscript>
+      <p class="bg-danger text-white text-center p-4"><b>NB! Antud lehekülg ei toimi korrektselt ilma Javascript-i toeta. Palun lülitage see sisse.</b></p>
+    </noscript>
+    <div class="toast-container"></div>
+    <div id="ajax-loading">
+        <div class="spinner-ajax">
+          <div class="bounce1"></div>
+          <div class="bounce2"></div>
+          <div class="bounce3"></div>
+        </div>
+    </div>
+
+    <!-- header area start	 -->
+    <header class="p2header">
+        <div class="px-xxl-0 container-xxl">
+            <div
+                class="header_wrapper d-flex align-items-center justify-content-between px-sm-1 px-xxl-0 position-relative"
+            >
+                <div class="d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 18h16M4 12h16M4 6h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+
+                <div class="logo">
+                    <a href="/?represented_id=None">
+                        <img src="/static/web/img/logo.svg" alt="logo" />
+                    </a>
+                </div>
+                <div class="main_menu d-none d-lg-block">
+                    
+    
+        <ul>
+            <li class="dropdown-center">
+                <a href="#Keskkonnakaitseload" class=""
+                    data-bs-toggle="dropdown" 
+                        data-bs-offset="0,15"
+                    >Keskkonnakaitseload
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        dropdown-menu top_menu shadow-sm
+                    "
+                    id="top-menu-kkl"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                            <li class=""
+                                ><a href="/permits/public_index?represented_id="
+                                    class="dropdown-item"
+                                >Keskkonnakaitselubade register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_document_index?represented_id="
+                                    class="dropdown-item"
+                                >Dokumentide register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_application_index?represented_id="
+                                    class="dropdown-item"
+                                >Taotluste ja menetluste register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_assignment_index?represented_id="
+                                    class="dropdown-item"
+                                >Seirearuannete register</a></li>
+                            <li class=""
+                                ><a href="/wastewater?represented_id="
+                                    class="dropdown-item"
+                                >Heitvee nõuetele vastavuse register</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+                <li
+                    ><a href="/annual_reports_registry?represented_id="
+                        class=""
+                    >Aruanded</a></li>
+            <li class="dropdown-center">
+                <a href="#Juhised" class=""
+                    data-bs-toggle="dropdown" 
+                        data-bs-offset="0,15"
+                    >Juhised
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        dropdown-menu top_menu shadow-sm
+                    "
+                    id="top-menu-annual"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/public/services?represented_id="
+                                        class="dropdown-item"
+                                        >Juhised</a></li>
+                                <li class=""
+                                    ><a href="/public/permit_infopage?represented_id="
+                                        class="dropdown-item"
+                                        >Loa omaja tervituspakett</a></li>
+                            <li class=""
+                                ><a href="/public/rvjv_application_help?represented_id="
+                                    class="dropdown-item"
+                                    >Riikidevahelise jäätmeveo info</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+            <li class="dropdown-center">
+                <a href="#Registrid ja avaandmed" class="active"
+                    data-bs-toggle="dropdown" 
+                        data-bs-offset="0,15"
+                    >Registrid ja avaandmed
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        dropdown-menu top_menu shadow-sm
+                    "
+                    id="top-menu-regspub"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/registry_facility/index?represented_id=&nav_tab=registry_facility"
+                                        class="dropdown-item"
+                                        >Käitiste register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_emission_source"
+                                        class="dropdown-item"
+                                        >Heiteallikate register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_waste_facility"
+                                        class="dropdown-item"
+                                        >Jäätmekäitluskohtade register</a></li>
+                            <li class=""
+                                ><a href="/registry/index?represented_id=&nav_tab=registry_oilshale"
+                                    class="dropdown-item"
+                                    >Kaevandamata jäänud põlevkivi register</a>
+                            </li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_windplant"
+                                        class="dropdown-item"
+                                        >Tuuleelektrijaamade register</a></li>
+                                <li class="active"
+                                    ><a href="/kmh/kmh_index?tab=KMH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/ksh_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju strateegiliste hindamiste (KSH) register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/index?tab=PUBLICATION&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) avalike väljapanekute register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/expert_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item"
+                                        >KMH ja KSH ekspertide register</a></li>
+                            <li class=""
+                                ><a href="/opendata?represented_id="
+                                    class="dropdown-item"
+                                    >Avaandmed</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+                </div>
+                    <div class="header_login dropdown">
+                            <button type="button" class="btn d-lg-none" onclick="return auth_govsso();"
+                                ><svg width="30" height="30" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.466 37.534c0-6.05 7.85-10.958 17.532-10.958 9.686 0 17.536 4.905 17.536 10.958M19.998 20a8.768 8.768 0 1 0 0-17.534 8.768 8.768 0 0 0 0 17.534z" stroke="currentColor" stroke-width="4.931" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </button>
+                            <button type="button" class="d-none d-lg-inline-block btn 1btn-primary btn--header" onclick="return auth_govsso();"
+                                ><svg class="me-2" width="20" height="20" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.466 37.534c0-6.05 7.85-10.958 17.532-10.958 9.686 0 17.536 4.905 17.536 10.958M19.998 20a8.768 8.768 0 1 0 0-17.534 8.768 8.768 0 0 0 0 17.534z" stroke="currentColor" stroke-width="4.931" stroke-linecap="round" stroke-linejoin="round"/></svg
+                                    >Sisene
+                            </button>
+
+                        <div class="dropdown-menu p-4 kotkas_login_modal_dialog">
+                            <form name="authform" action="/" method="POST" onsubmit="return false;">
+                                <input type="submit" class="submit-hidden" tabindex="-1">
+                            </form>
+
+
+                        </div>
+
+                    </div>
+            </div>
+        </div>
+    </header>
+    <!-- header area end  -->
+
+    <!-- mobile_menu area start -->
+    <div
+      class="offcanvas offcanvas-start"
+      tabindex="-1"
+      id="mobileMenu"
+      aria-labelledby="mobileMenuLabel"
+        >
+      <div class="offcanvas-header">
+        <a class="canvaslogo" href="/?represented_id=None">
+          <img src="/static/web/img/logo.svg" alt="" />
+        </a>
+        <button
+          type="button"
+          class="btn-close text-reset"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body">
+        <div class="main_menu d-block">
+            
+    
+        <ul>
+            <li class="dropdown-center">
+                <a href="#Keskkonnakaitseload" class=""
+                    data-bs-toggle="collapse" 
+                        data-bs-target="#top-menu-kkl"
+                    >Keskkonnakaitseload
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        accordion-collapse collapse
+                    "
+                    id="top-menu-kkl"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                            <li class=""
+                                ><a href="/permits/public_index?represented_id="
+                                    class="dropdown-item"
+                                >Keskkonnakaitselubade register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_document_index?represented_id="
+                                    class="dropdown-item"
+                                >Dokumentide register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_application_index?represented_id="
+                                    class="dropdown-item"
+                                >Taotluste ja menetluste register</a></li>
+                            <li class=""
+                                ><a href="/permits/public_assignment_index?represented_id="
+                                    class="dropdown-item"
+                                >Seirearuannete register</a></li>
+                            <li class=""
+                                ><a href="/wastewater?represented_id="
+                                    class="dropdown-item"
+                                >Heitvee nõuetele vastavuse register</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+                <li
+                    ><a href="/annual_reports_registry?represented_id="
+                        class=""
+                    >Aruanded</a></li>
+            <li class="dropdown-center">
+                <a href="#Juhised" class=""
+                    data-bs-toggle="collapse" 
+                        data-bs-target="#top-menu-annual"
+                    >Juhised
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        accordion-collapse collapse
+                    "
+                    id="top-menu-annual"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/public/services?represented_id="
+                                        class="dropdown-item"
+                                        >Juhised</a></li>
+                                <li class=""
+                                    ><a href="/public/permit_infopage?represented_id="
+                                        class="dropdown-item"
+                                        >Loa omaja tervituspakett</a></li>
+                            <li class=""
+                                ><a href="/public/rvjv_application_help?represented_id="
+                                    class="dropdown-item"
+                                    >Riikidevahelise jäätmeveo info</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+            <li class="dropdown-center">
+                <a href="#Registrid ja avaandmed" class="active"
+                    data-bs-toggle="collapse" 
+                        data-bs-target="#top-menu-regspub"
+                    >Registrid ja avaandmed
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                </a>
+                <div class="
+                        accordion-collapse collapse
+                    "
+                    id="top-menu-regspub"
+                    >
+                    <div class="NOrow NOgx-5 top_menu__container">
+                        <ul class="col">
+                                <li class=""
+                                    ><a href="/registry_facility/index?represented_id=&nav_tab=registry_facility"
+                                        class="dropdown-item"
+                                        >Käitiste register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_emission_source"
+                                        class="dropdown-item"
+                                        >Heiteallikate register</a></li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_waste_facility"
+                                        class="dropdown-item"
+                                        >Jäätmekäitluskohtade register</a></li>
+                            <li class=""
+                                ><a href="/registry/index?represented_id=&nav_tab=registry_oilshale"
+                                    class="dropdown-item"
+                                    >Kaevandamata jäänud põlevkivi register</a>
+                            </li>
+                                <li class=""
+                                    ><a href="/registry/index?represented_id=&nav_tab=registry_windplant"
+                                        class="dropdown-item"
+                                        >Tuuleelektrijaamade register</a></li>
+                                <li class="active"
+                                    ><a href="/kmh/kmh_index?tab=KMH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/ksh_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju strateegiliste hindamiste (KSH) register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/index?tab=PUBLICATION&amp;represented_id="
+                                        class="dropdown-item text-wrap"
+                                        >Keskkonnamõju hindamiste (KMH) avalike väljapanekute register</a></li>
+                                <li class=""
+                                    ><a href="/kmh/expert_index?tab=KSH&amp;represented_id="
+                                        class="dropdown-item"
+                                        >KMH ja KSH ekspertide register</a></li>
+                            <li class=""
+                                ><a href="/opendata?represented_id="
+                                    class="dropdown-item"
+                                    >Avaandmed</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        </div>
+      </div>
+    </div>
+    <!-- mobile_menu area end -->
+
+    <div class="primary-alerts">
+    </div>
+
+        <main class="main-body py-3 px-xxl-0 container-xxl " 
+            >
+
+    
+<div class="d-flex gap-3 flex-column flex-md-row justify-content-between align-items-start align-items-lg-center">
+    <h1 class="order-md-first mt-lg-3 mb-lg-4">
+        Keskkonnamõjude hindamine nr KMH00125
+    </h1>
+
+    <a href="/kmh/kmh_index?active_kmh_id=478&amp;represented_id=" class="btn btn-sm btn-default btn--ave-def" role="button"><span class="glyphicon glyphicon-chevron-left"></span> Tagasi nimekirja</a>
+</div>
+
+
+
+<div class="bordered-container kotkas_main-container container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div role="tabpanel">
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active">
+                            <div class="tab-content container-fluid">
+    <br>
+    <form class="form-horizontal group-border form-striped" action="/">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_registry__name">KMH nimetus</label>
+                <div class="col-md-9 pad5top">
+                     Aarnamäe II liivakarjääri keskkonnaloa keskkonnamõju hindamine
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_proceeding_status">Menetluse seis</label>
+                <div class="col-md-9 pad5top">
+                        Menetlus pooleli<br>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_activity">Tegevusvaldkond</label>
+                <div class="col-md-9 pad5top">
+                        Kaevandamine ja geoloogia<br>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_activity_description">Tegevuse eesmärk, lühikirjeldus või vajadus</label>
+                <div class="col-md-9 pad5top">
+                    AS TREV-2 Grupp taotleb ehitusliiva kaevandamiseks keskkonnaluba. Kavandatava tegevuse eesmärgiks on ehitusliiva kaevandamine taotletavas Aarnamäe II liivakarjääris, mis asub Harju maakonnas Lääne-Harju vallas Tuulna küla, Kloogaranna küla ja Klooga aleviku territooriumitel riigiomandisse kuuluvatel katastriüksustel: Keila metskond 45 (katastritunnus 29501:007:0212), Keila metskond 44 (29501:007:0211) ja Keila metskond 346 (29501:001:0532). Riigivara valitsejaks on Kliimaministeeriumi ning volitatud asutus on Riigimetsa Majandamise Keskus. 
+Taotletava mäeeraldise teenindusmaa pindala on 57,60 ha, sh mäeeraldise pindala 52,37 ha, mis ruumiliselt paiknevad kolmel lahustükil. Ehitusliiva taotletav kaevandatav varu on 1864 tuh m3, millest veealune 1779 tuh m3. Keskkonnaluba taotletakse 15 aastaks.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_activity_area">KMH piirkond</label>
+                <div class="col-md-9 pad5top">
+                        Harju maakond<br>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_kov_ehaks">KOV</label>
+                <div class="col-md-9 pad5top">
+                        
+                        0431 - Lääne-Harju vald, Harju maakond
+                        <br>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_activity_area_geom">Piirkond kaardil</label>
+                <div class="col-md-9 pad5top">
+                    <input type="hidden" id="activity_area_geojson" name="activity_area_geojson" value="{&#34;type&#34;:&#34;MultiPolygon&#34;,&#34;coordinates&#34;:[[[[515735.97,6576719.04],[516031.96,6576660.95],[516288.01,6576610.99],[516285.96,6576605.99],[516105,6575984.92],[516101.11,6575970.1],[515956,6575943.92],[515881,6575953.41],[515841,6576025.41],[515872,6576200.92],[515435.02,6576293.92],[515667.76,6576731.91],[515735.97,6576719.04]]],[[[516230.11,6577020.95],[516403,6576688.96],[516409.98,6576675.96],[516171.07,6576722.97],[516143.91,6576728.02],[516037,6576748.92],[515988.82,6576758.11],[515763.19,6576802.1],[516225.05,6577028.89],[516230.11,6577020.95]]],[[[515585.99,6577040.32],[515470.98,6576871],[515464.03,6576860.8],[515385.22,6576876.89],[515340.05,6576886.13],[514975.99,6576957.17],[515192.24,6577109.12],[515212.01,6577105],[515585.99,6577040.32]]]]}">
+                    <input type="hidden" id="activity_area_drawn" name="activity_area_drawn" value="{&#34;type&#34;:&#34;MultiPolygon&#34;,&#34;coordinates&#34;:[[[[515735.97,6576719.04],[516031.96,6576660.95],[516288.01,6576610.99],[516285.96,6576605.99],[516105,6575984.92],[516101.11,6575970.1],[515956,6575943.92],[515881,6575953.41],[515841,6576025.41],[515872,6576200.92],[515435.02,6576293.92],[515667.76,6576731.91],[515735.97,6576719.04]]],[[[516230.11,6577020.95],[516403,6576688.96],[516409.98,6576675.96],[516171.07,6576722.97],[516143.91,6576728.02],[516037,6576748.92],[515988.82,6576758.11],[515763.19,6576802.1],[516225.05,6577028.89],[516230.11,6577020.95]]],[[[515585.99,6577040.32],[515470.98,6576871],[515464.03,6576860.8],[515385.22,6576876.89],[515340.05,6576886.13],[514975.99,6576957.17],[515192.24,6577109.12],[515212.01,6577105],[515585.99,6577040.32]]]]}">
+
+
+
+                        <a href="/static/web/maps/?baseLayer=maamet_live_aluskaart&amp;modules=registries&amp;registryId=kmh&amp;registryId=ksh&amp;registryObjectId=478"
+                       target="_blank"
+                       class="btn btn-primary btn-xs float-right"
+                       title="Kuva kaardil"
+                       data-toggle="tooltip">Vaata kaardil</a>
+
+                    <div class="multipolygon-coordinates-preview hide-if-empty activity_area_drawn__preview">
+
+                        
+                        Määratud, 
+                            puudutatud 3 katastriüksust.
+                    </div>
+
+
+                </div>
+            </div>
+
+
+            <div>
+
+                <a id="kmh_proceeding"></a>
+                <br>
+                <h2>
+                    Seotud keskkonnakaitseloa menetlused
+                </h2>
+
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Menetluse nr.</th>
+                                    <th>Liik</th>
+                                    <th>Olek</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                    
+                                    <tr class="">
+                                        <td>
+                                            <a href="/permits/public_application_view?proceeding_id=31160&amp;represented_id=">M-130545</a>
+                                        </td>
+                                        <td>
+                                                Keskkonnakaitseloa esmataotlus
+                                        </td>
+                                        <td>
+                                                Menetlemisel
+                                        </td>
+                                    </tr>
+
+                            </tbody>
+                        </table>
+
+            </div>
+
+
+        </div>
+        <div class="col-md-6">
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_initiation_date">Algatamise kpv</label>
+                <div class="col-md-9 pad5top">
+                    22.01.2025
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_initiation_reason">Algatamise põhjus</label>
+                <div class="col-md-9 pad5top">
+                        Kohustuslik<br>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_initiation_activity">Kohustuslik – tegevused</label>
+                <div class="col-md-9 pad5top">
+                        1.28 - pealmaakaevandamine suuremal kui 25 hektari suurusel alal või turba kaevandamine suuremal kui 150 hektari suurusel alal või allmaakaevandamine<br>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_initiation_area">Kaalutletud – valdkonnad</label>
+                <div class="col-md-9 pad5top">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_developer">Arendaja</label>
+                <div class="col-md-9 pad5top">
+                    <div class="row">
+                    </div>
+                        <div style="padding-top: 2px;">
+                            <div class="col-sm-11 p-0">
+                                <!--small -->
+                                    AS TREV-2 Grupp
+                                        (10047362)
+                                <!--/small -->
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_decider">Otsustaja</label>
+                <div class="col-md-9 pad5top">
+                    <div class="row">
+                    </div>
+                        <div style="padding-top: 2px;">
+                            <div class="col-sm-11 p-0">
+                                <!--small -->
+                                    Keskkonnaamet
+                                        (70008658)
+                                <!--/small -->
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" id="label_decider">Ekspert</label>
+                <div class="col-md-9 pad5top">
+                    <div class="row">
+                    </div>
+                        <div style="padding-top: 2px;">
+                            <div class="col-sm-10 p-0">
+                                Maves OÜ
+                                    (10097377)
+                            </div>
+                        </div>
+                </div>
+            </div>
+            
+
+
+        </div>
+
+    </div>
+
+
+
+    <a id="kmh_expert_group"></a>
+    <br>
+    <h2>
+        Juhtekspert ja eksperdirühm
+    </h2>
+
+    
+        <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th>Nimi</th>
+                <th>Liik</th>
+                <th>On juhtekspert</th>
+                <th>Osales programmi koostamisel</th>
+                <th>Osales aruande koostamisel</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="">
+                <td>
+                            <a href="#" onclick="RegistryKMH.expert_group_details(event, '302')">Tuuli Vreimann</a>
+                </td>
+                <td>
+                        KMH juhtekspert<br>
+                        KMH eksperdirühma liige<br>
+                </td>
+                <td>Jah</td>
+                <td>Jah</td>
+                <td>Ei</td>
+                <td class="text-nowrap text-right">
+                </td>
+            </tr>
+            <tr class="">
+                <td>
+                            <a href="#" onclick="RegistryKMH.expert_group_details(event, '85')">Karl Kupits</a>
+                </td>
+                <td>
+                        KMH juhtekspert<br>
+                        KMH eksperdirühma liige<br>
+                        KSH juhtekspert<br>
+                        KSH eksperdirühma liige<br>
+                </td>
+                <td>Ei</td>
+                <td>Jah</td>
+                <td>Ei</td>
+                <td class="text-nowrap text-right">
+                </td>
+            </tr>
+        </tbody>
+        </table>
+
+    
+    
+    <a id="kmh_attachment"></a>
+    <br>
+    <h2>
+        Dokumendid
+    </h2>
+
+        <table class="table table-condensed">
+        <thead>
+            <tr>
+                    <th style="width: 300px;">Pealkiri</th>
+                    <th>Suurus</th>
+                    <th>Liik</th>
+                    <th>Dokumendi või otsuse kpv</th>
+                    <th>Sisu</th>
+                    <th>Lisatud</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr class="">
+
+                    <td>
+                            <IMG src="/static/web/icons/mime_ddoc2.svg" title="" style="margin-top:-4px;" alt="">
+                            <a href="/kmh/kmh_file_download?kmh_id=478&amp;attachment_id=3824&amp;represented_id=">DM 130545 7.pdf</a>
+
+                    </td>
+                    <td>
+                            167 KB
+                    </td>
+                    <td>
+                        Algatamise otsus
+                    </td>
+                    <td>22.01.2025</td>
+                    <td>
+                    </td>
+                    <td data-toggle="tooltip">28.01.2025</td>
+            </tr>
+            <tr class="">
+
+                    <td>
+                            <IMG src="/static/web/icons/mime_pdf.svg" title="" style="margin-top:-4px;" alt="">
+                            <a href="/kmh/kmh_file_download?kmh_id=478&amp;attachment_id=5285&amp;represented_id=">Aarnamae II liivakarjaari keskkonnaloa taotluse KMH programm kinnitamiseks</a>
+
+                    </td>
+                    <td>
+                            5.0 MB
+                    </td>
+                    <td>
+                        Programm
+                    </td>
+                    <td></td>
+                    <td>
+                            <input type="hidden" name="attachment_body_5285" id="attachment_body_5285" value="Nõuetele vastavaks tunnistatud KMH programm.">
+                            <button type="button" class="btn btn-primary btn-xs" onclick="RegistryKMH.attachment_view_body(event, '5285');">Vaata</button>
+                    </td>
+                    <td data-toggle="tooltip">18.11.2025</td>
+            </tr>
+            <tr class="">
+
+                    <td>
+                            <IMG src="/static/web/icons/mime_ddoc2.svg" title="" style="margin-top:-4px;" alt="">
+                            <a href="/kmh/kmh_file_download?kmh_id=478&amp;attachment_id=5286&amp;represented_id=">Aarnamae II liivakarjaari keskkonnaloa taotluse keskkonnamoju hindamise programmi nouetele vastavaks tunnistamine</a>
+
+                    </td>
+                    <td>
+                            211 KB
+                    </td>
+                    <td>
+                        Programmi otsus
+                    </td>
+                    <td>12.11.2025</td>
+                    <td>
+                    </td>
+                    <td data-toggle="tooltip">18.11.2025</td>
+            </tr>
+        </tbody>
+        </table>
+
+    <a id="kmh_image"></a>
+    
+
+    </form>
+</div>
+
+
+<script id="template-activity-geojson-source" type="text/template">
+<pre style="border: 1px solid #ccc; background: #efefef; padding: 10px; white-space: pre-wrap;">
+    {
+    "type": "MultiPolygon",
+    "coordinates": [
+        [
+            [
+                [
+                    515735.97,
+                    6576719.04
+                ],
+                [
+                    516031.96,
+                    6576660.95
+                ],
+                [
+                    516288.01,
+                    6576610.99
+                ],
+                [
+                    516285.96,
+                    6576605.99
+                ],
+                [
+                    516105,
+                    6575984.92
+                ],
+                [
+                    516101.11,
+                    6575970.1
+                ],
+                [
+                    515956,
+                    6575943.92
+                ],
+                [
+                    515881,
+                    6575953.41
+                ],
+                [
+                    515841,
+                    6576025.41
+                ],
+                [
+                    515872,
+                    6576200.92
+                ],
+                [
+                    515435.02,
+                    6576293.92
+                ],
+                [
+                    515667.76,
+                    6576731.91
+                ],
+                [
+                    515735.97,
+                    6576719.04
+                ]
+            ]
+        ],
+        [
+            [
+                [
+                    516230.11,
+                    6577020.95
+                ],
+                [
+                    516403,
+                    6576688.96
+                ],
+                [
+                    516409.98,
+                    6576675.96
+                ],
+                [
+                    516171.07,
+                    6576722.97
+                ],
+                [
+                    516143.91,
+                    6576728.02
+                ],
+                [
+                    516037,
+                    6576748.92
+                ],
+                [
+                    515988.82,
+                    6576758.11
+                ],
+                [
+                    515763.19,
+                    6576802.1
+                ],
+                [
+                    516225.05,
+                    6577028.89
+                ],
+                [
+                    516230.11,
+                    6577020.95
+                ]
+            ]
+        ],
+        [
+            [
+                [
+                    515585.99,
+                    6577040.32
+                ],
+                [
+                    515470.98,
+                    6576871
+                ],
+                [
+                    515464.03,
+                    6576860.8
+                ],
+                [
+                    515385.22,
+                    6576876.89
+                ],
+                [
+                    515340.05,
+                    6576886.13
+                ],
+                [
+                    514975.99,
+                    6576957.17
+                ],
+                [
+                    515192.24,
+                    6577109.12
+                ],
+                [
+                    515212.01,
+                    6577105
+                ],
+                [
+                    515585.99,
+                    6577040.32
+                ]
+            ]
+        ]
+    ]
+}
+</pre>
+</script>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    RegistryKMH.init();
+});
+
+
+var RegistryKMH = {
+
+    attachment_view_body: function(e, attachment_id) {
+        var att_html = $('#attachment_body_'+attachment_id).val();
+        App.dialog.alert(att_html, {title: "Dokumendi sisu"});
+    },
+
+    show_activity_geojson: function(e) {
+        var dialog_html =  $('#template-activity-geojson-source').html();
+        var geojson_dialog = App.dialog.show(
+            dialog_html,
+            {
+                title: 'Ruumiandmete geojson',
+                size: BootstrapDialog.SIZE_WIDE,
+                autoOpen: false,
+                buttons: [{
+                    label: App.TLS('tls_js_dialog_close'),
+                    cssClass: 'btn-default btn-sm pull-left',
+                    action: function(dialog){
+                        dialog.close();
+                    }
+                }]
+            }
+        );
+        geojson_dialog.open();
+
+
+    },
+
+    show_activity_area_map: function(e, code) {
+
+        var polygon_str = $.trim($('#activity_area_geojson').val()),
+            polygon_json = null
+        ;
+
+        try {
+            polygon_json = JSON.parse(polygon_str);
+        }
+        catch(error) {}
+
+        if(!polygon_json){
+            App.dialog.alert(code + ' ruumikuju on vigane.');
+            return;
+        }
+
+        polygon_json.customStyleName = 'mineral_deposit';
+        polygon_json.name = code + ' ala';
+        polygon_json.showTooltip = false;
+
+        let mapConf = {
+            modules: [''],
+            showCadasterInfo: 1,
+            showCadasterOwners: 1
+        }
+        App.GEO.openMapDialog(mapConf).then(function(mapActions, dialog){
+            mapActions.wait('neighbours.updated').then(function(){
+                console.log('neighbours.updated')
+                dialog.onHidden(function(){
+                    ;
+                })
+            })
+            mapActions.sendWait('viewer.addFeature', polygon_json).then(function(){
+                mapActions.send('viewer.fitView')
+            })
+        });
+
+    },
+
+
+    show_activity_area_multiple_map: function(e, code) {
+
+        var polygon_str = $.trim($('#activity_area_geojson').val()),
+            polygon_json = null
+        ;
+
+        try {
+            polygon_json = JSON.parse(polygon_str);
+        }
+        catch(error) {}
+
+        if(!polygon_json){
+            App.dialog.alert(code + ' ruumikuju on vigane.');
+            return;
+        }
+
+        polygon_json.customStyleName = 'mineral_deposit';
+        polygon_json.name = code + ' ala';
+        console.log("nimi on: " + polygon_json.name);
+        polygon_json.showTooltip = false;
+
+        let mapConf = {
+            modules: [''],
+            showCadasterInfo: 1,
+            showCadasterOwners: 1
+        }
+        App.GEO.openMapDialog(mapConf).then(function(mapActions, dialog){
+            mapActions.wait('neighbours.updated').then(function(){
+                console.log('neighbours.updated')
+                dialog.onHidden(function(){
+                    ;
+                })
+            })
+            mapActions.sendWait('viewer.addFeature', polygon_json).then(function(){
+                $('.nearby_id_js').each(function() {
+                    var this_id = $(this).val(),
+                        this_code = $('#nearby_code_'+this_id).val(),
+                        this_json_str = $('#nearby_geojson_'+this_id).val(),
+                        this_poly = null
+                    ;
+                    try {
+                        this_poly = JSON.parse(this_json_str);
+                    }
+                    catch(error) {}
+
+                    if(!this_poly){
+                        App.dialog.alert(this_code + ' ruumikuju on vigane.');
+                        console.log(this_json_str);
+                        return;
+                    }
+                    this_poly.customStyleName = 'mineral_service_land';
+                    this_poly.name = this_code + ' ala';
+                    this_poly.showTooltip = false;
+                    mapActions.sendWait('viewer.addFeature', this_poly).then(function(){
+                        mapActions.send('viewer.fitView');
+                    });
+
+                });
+            })
+        });
+
+    },
+
+
+    show_impact_activity_area_map: function(e, code) {
+
+        var polygon1_str = $.trim($('#activity_area_geojson').val()),
+            polygon1_json = null
+        ;
+
+        try {
+            polygon1_json = JSON.parse(polygon1_str);
+        }
+        catch(error) {}
+
+        if(!polygon1_json){
+            App.dialog.alert(code + ' ala ruumikuju on vigane.');
+            return;
+        }
+
+        polygon1_json.customStyleName = 'mineral_deposit';
+        polygon1_json.name = code + ' ala';
+        polygon1_json.showTooltip = false;
+
+        var polygon2_str = $.trim($('#activity_impact_area_geojson').val()),
+            polygon2_json = null
+        ;
+
+        try {
+            polygon2_json = JSON.parse(polygon2_str);
+        }
+        catch(error) {}
+
+        if(!polygon2_json){
+            App.dialog.alert(code + ' mõjuala ruumikuju on vigane.');
+            return;
+        }
+
+        polygon2_json.customStyleName = 'mineral_service_land';
+        polygon2_json.name = code + ' mõjuala';
+        polygon2_json.showTooltip = false;
+
+        let mapConf = {
+            modules: [''],
+            showCadasterInfo: 1,
+            showCadasterOwners: 1
+        }
+        App.GEO.openMapDialog(mapConf).then(function(mapActions, dialog){
+            mapActions.wait('neighbours.updated').then(function(){
+                console.log('neighbours.updated')
+                dialog.onHidden(function(){
+                    ;
+                })
+            });
+            mapActions.sendWait('viewer.addFeature', polygon1_json).then(function(){
+                ;
+            });
+
+            mapActions.sendWait('viewer.addFeature', polygon2_json).then(function(){
+                mapActions.send('viewer.fitView');
+            });
+
+        });
+
+    },
+
+
+    expert_group_details: function(e, expert_id) {
+        e.preventDefault();
+        $.ajax({
+            url: '/kmh/expert_view_modal_json',
+            data: {
+                represented_id: '',
+                expert_id: expert_id
+            },
+            dataType: "json",
+            cache: false,
+            success: function(response) {
+                if( App.ajax.has_errors(response) ){
+                    App.dialog.error(response['errors'].join('<br>'));
+                }
+                else {
+                    var expert_details_dialog = App.dialog.show(
+                        response['data']['html'],
+                        {
+                            title: 'Eksperdi andmed',
+                            size: BootstrapDialog.SIZE_WIDE,
+                            autoOpen: false,
+                            buttons: [{
+                                label: App.TLS('tls_js_dialog_close'),
+                                cssClass: 'btn-default btn-sm pull-left',
+                                action: function(dialog){
+                                    dialog.close();
+                                }
+                            }]
+                        }
+                    );
+                    expert_details_dialog.open();
+                }
+            }
+        });
+    },
+
+    save_activity_area_drawn: function() {
+        $.ajax({
+            url: '/registry_kmh/save_activity_area_json',
+            type: 'POST',
+            data: {'kmh_id': 478, 'registry_kmh__activity_area_geom': $('#activity_area_drawn').val() },
+            dataType: "json",
+            cache: false,
+            success: function(response) {
+                if( App.ajax.has_errors(response) ){
+                    App.dialog.error(response['errors'].join('<br>'));
+                }
+                else {
+                    window.location.href = response.data.redirect_url;
+                }
+            }
+        });
+
+    },
+
+
+    init: function(){
+
+        $("input[name='activity_area_drawn']").on("change", function(){
+            RegistryKMH.save_activity_area_drawn();
+        });
+
+    }
+}
+
+
+</script>
+
+
+
+        </main>
+
+    <!-- footer area start -->
+    <footer>
+      <div class="px-xxl-0 container-xxl">
+        <div class="footer-wrapper">
+          <div class="row">
+            <div class="col-lg-7">
+              <div class="footer_left_wrapper d-flex justify-content-between">
+                <div class="footer_left">
+                    <div class="footer_left_top">
+    <p>Klienditoe tööaeg: E-R 09.00-16.00</p>
+    <p>
+        Väljaspool tööaega vastab telefonile automaatvastaja.<br>
+        Aastaaruandluse info leiad <a href="https://kotkas.envir.ee/public/service_view?service_id=7&represented_id=" target="_blank">siit</a>.
+    </p>
+</div>
+<div class="footer_left_bottom">
+    <ul>
+        <li>
+        <a href="tel:662 5999"
+            ><img src="/static/web/img/phone.svg" alt="" />662 5999</a
+        >
+        </li>
+        <li>
+        <a href="/cdn-cgi/l/email-protection#89e2e5e0ece7ede0fdfceee0c9e2ecfae2e2e6e7e7e8e8e4ecfda7ecec"><img
+            src="/static/web/img/email.svg"
+            alt=""
+            /><span class="__cf_email__" data-cfemail="abc0c7c2cec5cfc2dfdeccc2ebc0ced8c0c0c4c5c5cacac6cedf85cece">[email&#160;protected]</span></a
+        >
+        </li>
+    </ul>
+</div>
+    
+                </div>
+                <div class="footer_right">
+                        <a href="http://www.keskkonnaamet.ee">Keskkonnaamet</a><br>Roheline 64, 80010 Pärnu<br><a href="http://www.kemit.ee">KEMIT</a><br>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-5">
+              <div  class="footer_logo d-flex align-items-center justify-content-end">
+                <div class="footer_logo_one footer_logo_two">
+                  <img src="/static/web/img/nextgen-logo.svg" alt="NextGenerationEU logo"/>
+                </div>
+                <div class="footer_logo_one footer_logo_two">
+                  <img src="/static/web/img/flag.svg" alt="SF logo" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        <div class="container">
+          <div class="copyright_wrapper text-center">
+            <p>© 2026 Keskkonnaamet</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- footer area end -->
+
+    
+    
+
+    
+    
+
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0457cf3a843e247',t:'MTc4MDIyNTM2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
