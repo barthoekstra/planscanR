@@ -212,11 +212,11 @@ test_that("get_assessments_at honours the jurisdiction filter", {
 })
 
 test_that("get_assessments_at scores topics and adds relevance_score_<slug> columns", {
+  skip_if_not_installed("planscanR.screen")
   withr::with_tempdir({
     cache <- file.path(getwd(), "cache")
     options(planscanR.cache_dir = cache)
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
-    reset_relevance_warnings()
 
     short_index <- list(
       list(az = "02 0515", v2id = 450L, title = "x", year = 2016L, province = "B", type = 23L)

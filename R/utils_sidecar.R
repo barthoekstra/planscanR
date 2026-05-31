@@ -8,6 +8,44 @@
 
 SCHEMA_VERSION <- 2L
 
+#' Assert a sidecar's schema version is one this package understands.
+#'
+#' The sidecar JSON is the load-bearing contract between `planscanR` (writer)
+#' and the downstream `planscanR.screen` / `planscanR.biogain` readers. A
+#' sidecar written by a *newer* planscanR (a higher `schema_version`) may carry
+#' fields or semantics this version doesn't know about, so we fail loudly rather
+#' than silently misread it. Missing field = legacy v1, which reads cleanly.
+#' @noRd
+assert_sidecar_schema <- function(payload, path = NULL) {
+  ver <- payload$schema_version
+  if (is.null(ver)) {
+    return(invisible(1L)) # legacy v1 sidecar: no version field.
+  }
+  ver <- suppressWarnings(as.integer(ver))
+  # cli interpolates {ver}, {SCHEMA_VERSION}, and {.file {path}} from this
+  # frame; build the optional location suffix as cli markup, not via sprintf.
+  where <- if (is.null(path)) "" else " ({.file {path}})"
+  if (is.na(ver)) {
+    cli::cli_abort(
+      paste0("Sidecar has a non-integer {.field schema_version}", where, "."),
+      class = "planscanR_error_sidecar_schema"
+    )
+  }
+  if (ver > SCHEMA_VERSION) {
+    cli::cli_abort(
+      c(
+        paste0(
+          "Sidecar {.field schema_version} {ver} is newer than this ",
+          "planscanR understands ({SCHEMA_VERSION})", where, "."
+        ),
+        i = "Upgrade {.pkg planscanR} to read this cache."
+      ),
+      class = "planscanR_error_sidecar_schema"
+    )
+  }
+  invisible(ver)
+}
+
 #' Path to a record's sidecar JSON file.
 #'
 #' `create = TRUE` (the default) creates the per-record directory as a side
@@ -28,12 +66,20 @@ sidecar_path <- function(country, document_id, root = NULL, create = TRUE) {
 #' renamed over the destination, so a crash mid-write cannot leave a
 #' half-written sidecar in place.
 #'
+#' This is part of the sidecar I/O contract between `planscanR` (the cache
+#' owner) and the downstream family packages: `planscanR.screen` and
+#' `planscanR.biogain` persist their derived columns (relevance / class scores,
+#' review translations) by calling `planscanR::write_record_sidecar()`. The
+#' merge logic that preserves existing `files[]` / `relevance_scores[]` /
+#' `class_*` arrays lives here, so adding a new score family never wipes
+#' existing ones.
+#'
 #' @param record A 1-row tibble in the planscanR result shape.
 #' @param downloads The structured download-status tibble produced by
 #'   `download_attachments()`. May be empty when `download = FALSE`.
 #' @param root Cache root (or `NULL` to use the default).
 #' @return Path to the written sidecar, invisibly.
-#' @noRd
+#' @export
 write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
   stopifnot(is.data.frame(record), nrow(record) == 1L)
   path <- sidecar_path(record$country, record$document_id, root = root)
@@ -343,11 +389,17 @@ record_classification <- function(record) {
 
 #' Read a sidecar JSON back into a 1-row tibble matching the planscanR schema.
 #'
+#' Part of the sidecar I/O contract: downstream family packages read a single
+#' record's persisted columns via `planscanR::read_record_sidecar()` rather than
+#' parsing the JSON themselves. Asserts the schema version on read (see
+#' [cache_dir_default()] for the cache-root contract).
+#'
 #' @param path Path to a `<document_id>.meta.json` file.
-#' @return A 1-row tibble.
-#' @noRd
+#' @return A 1-row tibble in the planscanR schema.
+#' @export
 read_record_sidecar <- function(path) {
   payload <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  assert_sidecar_schema(payload, path)
   files <- payload$files %||% list()
   urls <- vapply(files, function(f) f$url %||% NA_character_, character(1))
   sections <- vapply(files, function(f) f$section %||% NA_character_, character(1))
@@ -537,9 +589,19 @@ index_cache <- function(cache_dir = NULL, country = NULL) {
   bind_results(!!!rows)
 }
 
-#' Default cache directory (with the same resolution as `cache_dir()` but
-#' without auto-creation; for use in read-only paths).
-#' @noRd
+#' Resolve the planscanR cache root.
+#'
+#' The cache root is owned by `planscanR`: it is `getOption("planscanR.cache_dir")`
+#' when set, otherwise [tools::R_user_dir()]`("planscanR", "cache")`. This is the
+#' same resolution as the internal `cache_dir()` but without auto-creating the
+#' directory, so it is safe in read-only paths. Exported so the downstream
+#' family packages (`planscanR.screen`, `planscanR.biogain`) read and write
+#' through the one cache root without reimplementing the resolution chain.
+#'
+#' @return A single path string (the cache root; not guaranteed to exist).
+#' @export
+#' @examples
+#' cache_dir_default()
 cache_dir_default <- function() {
   root <- getOption("planscanR.cache_dir")
   if (is.null(root) || !nzchar(root)) {

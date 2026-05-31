@@ -225,3 +225,23 @@ test_that("write_record_sidecar updates same-URL file rows in place (new wins)",
     expect_identical(dl$status[dl$url == urls[2]], "pending")
   })
 })
+
+test_that("sidecar schema assertion accepts current/legacy and rejects newer", {
+  # v2 (current) and v1 (no version field) read without warning.
+  expect_no_warning(planscanR:::assert_sidecar_schema(list(schema_version = 2L)))
+  expect_no_warning(planscanR:::assert_sidecar_schema(list()))
+  # A newer sidecar than this planscanR understands fails loudly.
+  expect_error(
+    planscanR:::assert_sidecar_schema(list(schema_version = 3L), "/tmp/x.meta.json"),
+    class = "planscanR_error_sidecar_schema"
+  )
+  # read_record_sidecar applies the assertion on a real file.
+  withr::with_tempdir({
+    p <- file.path(getwd(), "rec.meta.json")
+    writeLines(jsonlite::toJSON(list(schema_version = 99L, files = list()), auto_unbox = TRUE), p)
+    expect_error(
+      planscanR:::read_record_sidecar(p),
+      class = "planscanR_error_sidecar_schema"
+    )
+  })
+})

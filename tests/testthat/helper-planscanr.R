@@ -24,7 +24,7 @@ fixture_path <- function(...) {
 # relevance/topics tests. We never touch reticulate / sentence-transformers
 # in the automated suite — those would require a live Python environment.
 make_fake_model <- function(languages = c("nl", "en", "de"), dim = 64L) {
-  embedding_model(
+  planscanR.screen::embedding_model(
     name = "fake-bow",
     languages = languages,
     embed_fn = function(x) {

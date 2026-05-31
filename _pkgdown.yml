@@ -27,57 +27,6 @@ reference:
   - supported_countries
   - bind_results
 
-- title: Relevance scoring & topics
-  desc: >
-    Score records by semantic similarity to one or more topics, and the
-    pluggable embedding-model interface behind it.
-  contents:
-  - biogain_assessment_topics
-  - biogain_keyword_lexicon
-  - score_assessments
-  - score_records
-  - score_keywords
-  - embedding_model
-  - embedding_model_minilm
-  - embed_text
-  - model_name
-  - supported_languages
-  - reset_embedding_cache
-  - reset_relevance_warnings
-
-- title: Classification
-  desc: >
-    Assign canonical assessment classes to records, and the pluggable
-    classifier interface behind it.
-  contents:
-  - classify_assessments
-  - biogain_classification_labels
-  - classifier
-  - classify_model_zeroshot
-  - classify_text
-  - classifier_name
-  - reset_classifier_cache
-
-- title: Selection
-  desc: >
-    Combine the relevance signals (embedding cosine, zero-shot classifier,
-    lexical keywords) into a single selection decision — either the hand-tuned
-    rule or a model learned from human keep/drop labels.
-  contents:
-  - select_assessments
-  - selection_features
-  - selection_feature_names
-  - selection_learner
-  - selection_learners
-  - selection_learners_builtin
-  - train_selection_model
-  - predict_selection
-  - selection_cv_metrics
-  - selection_learning_curve
-  - learning_curve_summary
-  - consensus_reviews
-  - save_selection_model
-
 - title: Attachment discovery (web search)
   desc: >
     Locate and validate document attachments via a pluggable web-search
@@ -98,13 +47,9 @@ reference:
   contents:
   - index_cache
   - clear_cache
-
-- title: Review app
-  desc: >
-    Launch the bundled BIOGAIN Shiny app for inspecting the pipeline funnel and
-    building a human ground-truth selection.
-  contents:
-  - run_biogain_review
+  - cache_dir_default
+  - read_record_sidecar
+  - write_record_sidecar
 
 - title: Package
   contents:

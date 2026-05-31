@@ -56,3 +56,5 @@ tests/manual/
 .positai
 .DS_Store
 .vscode/
+# Local Claude Code state
+.claude/
