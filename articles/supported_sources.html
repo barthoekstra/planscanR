@@ -86,14 +86,14 @@ accepts — call:</p>
 <div class="title">
 <p>Warning</p>
 </div>
-<p>None of these portals expose a contractually stable API. Three of the
-four handlers parse HTML detail pages with <code>rvest</code>; the
-fourth uses an undocumented JSON service. Any of the operators can
-change a CSS class, rename a field, or slip a login wall in front of an
-endpoint without warning, and the corresponding handler will then break
-— sometimes silently. Treat the results with the scepticism that a
-scraping pipeline deserves, and please file an issue when you spot
-differences.</p>
+<p>None of these portals expose a contractually stable API. Some
+handlers parse HTML detail pages with <code>rvest</code> (NL, DE, EE),
+the rest sit on undocumented JSON or REST endpoints (AT, DK, BE). Any of
+the operators can change a CSS class, rename a field, or slip a login
+wall in front of an endpoint without warning, and the corresponding
+handler will then break — sometimes silently. Treat the results with the
+scepticism that a scraping pipeline deserves, and please file an issue
+when you spot differences.</p>
 </div>
 <div class="caution">
 <div class="title">

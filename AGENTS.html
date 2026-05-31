@@ -39,7 +39,7 @@
 
 <div id="agentsmd--planscanr-project-orientation" class="section level1">
 
-<p>Written for AI agents and human contributors landing in the repo cold. The full design rationale lives in the approved plan at <code>~/.claude/plans/i-want-to-set-virtual-scroll.md</code>.</p>
+<p>Written for AI agents and human contributors landing in the repo cold. For the family-level picture (dependency direction, the sidecar-schema contract shared across all three packages), see the parent-folder <code>CLAUDE.md</code>.</p>
 <div class="section level2">
 <h2 id="id_1-what-this-package-is">1. What this package is<a class="anchor" aria-label="anchor" href="#id_1-what-this-package-is"></a></h2>
 <p><code>planscanR</code> is an R package that provides a single, unified R API (<code><a href="reference/get_assessments.html">get_assessments()</a></code>) for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals — modelled on <a href="https://github.com/aloftdata/getRad" class="external-link"><code>aloftdata/getRad</code></a>. It is pure-R: no Python, no Shiny, no project-specific scoring config.</p>
@@ -73,10 +73,13 @@
   ├── normalise_country() / assert_country()
   ├── select_assessments_handler(country)    # switch() returning a function
   │     ├── get_assessments_nl(...)          # commissiemer.nl
-  │     └── get_assessments_de(...)          # uvp-verbund.de
-  │     # get_assessments_dk(...)            # post-v0.1
-  │     # get_assessments_at(...)            # post-v0.1
-  └── validate_result_schema()               # invariant gate before returning</code></pre>
+  │     ├── get_assessments_de(...)          # uvp-verbund.de
+  │     ├── get_assessments_at(...)          # secure.umweltbundesamt.at/uvpdb
+  │     ├── get_assessments_dk(...)          # eahub.miljoeportal.dk
+  │     ├── get_assessments_be(...)          # merregister.omgeving.vlaanderen.be
+  │     └── get_assessments_ee(...)          # kotkas.envir.ee
+  ├── validate_result_schema()               # invariant gate before returning
+  └── discover_attachments()                 # optional, when discover = TRUE</code></pre>
 <p>Every per-country handler is a self-contained file at <code>R/get_assessments_&lt;cc&gt;.R</code> and is selected purely by the <code>switch</code> in <code>R/get_assessments.R</code>. There is no S3 / class hierarchy — explicit functional dispatch only.</p>
 <p>When <code>topic</code> is supplied, <code><a href="reference/get_assessments.html">get_assessments()</a></code> also runs fetch-time relevance scoring through <code>R/utils_relevance.R</code>, which delegates the embedding to planscanR.screen (soft dependency). <strong>Score / classify / select as a pipeline are sibling-package concerns</strong> — the runbook in planscanR.biogain orchestrates them on top of the tibble this package returns; planscanR itself only fetches (and, optionally, scores by topic).</p>
 </div>
@@ -135,7 +138,7 @@
 <p>When a portal’s attachment URLs don’t expose an extension in the path (e.g. Kotkas: <code>?attachment_id=...</code>), the slug carries an 8-char SHA-1 of the full URL for per-attachment uniqueness, and the final <code>&lt;ext&gt;</code> is assigned post-download from the <code>Content-Type</code> header (with a magic-byte fallback for <code>application/octet-stream</code>). There is no separate HTTP cache — the sidecar JSONs ARE the cache, and per-country handlers consult them via <code>sidecar_url_index()</code> before going to the network. [clear_cache()] removes the <code>files/</code> tree (optionally scoped by <code>country</code>); pair with <code>refresh = TRUE</code> on the next call if you want fresh fetches afterwards. The download layer pre-flights every URL with HEAD; files exceeding <code>getOption("planscanR.max_file_size_mb", 50)</code> are skipped and recorded in <code>download_status</code>. Already-on-disk non-empty files become <code>status = "cached"</code> unless <code>overwrite = TRUE</code>.</p>
 </li>
 <li><p><strong>Errors</strong> carry classed conditions (<code>planscanR_error_unsupported_country</code>, <code>planscanR_error_bad_input</code>, <code>planscanR_error_bad_schema</code>, <code>planscanR_warning_partial</code>) so tests can target them cleanly.</p></li>
-<li><p><strong>Tests</strong>: <code>testthat</code> (edition 3) + <code>httptest2</code> mocks; <strong>no live HTTP in CI</strong>. Live tests, if any, live under <code>tests/manual/</code> and are git-ignored.</p></li>
+<li><p><strong>Tests</strong>: <code>testthat</code> (edition 3). HTTP is intercepted with <code><a href="https://testthat.r-lib.org/reference/local_mocked_bindings.html" class="external-link">testthat::local_mocked_bindings()</a></code> against recorded fixtures under <code>tests/testthat/fixtures/&lt;cc&gt;/</code> (each handler exposes an internal <code>perform_*</code> seam — e.g. <code>perform_json</code>, <code>perform_html</code> — that the tests rebind); <strong>no live HTTP in CI</strong>. Live tests, if any, live under <code>tests/manual/</code> and are git-ignored.</p></li>
 <li><p><strong>Secrets</strong>: portal handlers remain anonymous-access in v0.x and don’t need credentials. The discovery backend (<code>R/discover_backend_tavily.R</code>) reads a <code>TAVILY_API_KEY</code> from the environment. Credentialed sync (Yoda / iRODS) is a planscanR.biogain concern, not this package’s.</p></li>
 </ul></div>
 <div class="section level2">
@@ -154,7 +157,7 @@
 <ol style="list-style-type: decimal"><li>Create <code>R/get_assessments_&lt;cc&gt;.R</code> with the same signature surface as <code><a href="reference/get_assessments_nl.html">get_assessments_nl()</a></code>. The handler must return a tibble that passes <code>validate_result_schema()</code>.</li>
 <li>Add one line to the <code>switch</code> in <code>R/get_assessments.R</code>: <code>&lt;cc&gt; = get_assessments_&lt;cc&gt;,</code>.</li>
 <li>Update <code><a href="reference/supported_countries.html">supported_countries()</a></code> in <code>R/utils_dispatch.R</code> and the <code><a href="reference/get_assessments_coverage.html">get_assessments_coverage()</a></code> tibble accordingly.</li>
-<li>Record fixtures with <code><a href="https://enpiar.com/httptest2/reference/capture_requests.html" class="external-link">httptest2::capture_requests()</a></code> into <code>tests/testthat/fixtures/&lt;cc&gt;/</code> and add <code>tests/testthat/test-get_assessments_&lt;cc&gt;.R</code>.</li>
+<li>Save the portal’s responses as fixture files under <code>tests/testthat/fixtures/&lt;cc&gt;/</code> and add <code>tests/testthat/test-get_assessments_&lt;cc&gt;.R</code>, intercepting the network by rebinding the handler’s <code>perform_*</code> seam(s) with <code><a href="https://testthat.r-lib.org/reference/local_mocked_bindings.html" class="external-link">testthat::local_mocked_bindings()</a></code> (see the existing handler tests).</li>
 <li>Document portal-specific search-facet vocabularies (<code>status</code>, <code>native_type</code>, etc.) in the handler’s roxygen.</li>
 </ol><p>That’s the whole recipe — no edits to the core dispatcher are needed.</p>
 </div>
@@ -184,13 +187,10 @@
 <li>Family-level orientation, dependency direction, and the sidecar-schema contract: the parent-folder <code>CLAUDE.md</code>.</li>
 <li>Architectural reference: <a href="https://github.com/aloftdata/getRad" class="external-link uri">https://github.com/aloftdata/getRad</a>
 </li>
-<li>Original design rationale + scope decisions: <code>~/.claude/plans/i-want-to-set-virtual-scroll.md</code>
-</li>
-<li>Implementation handover notes (env snapshot, probe findings): <code>~/.claude/plans/i-want-to-set-virtual-scroll-progress.md</code>
-</li>
+<li>Adding a new country, end to end: <code>ADDING_A_COUNTRY.md</code>.</li>
 <li>Cache contract (exported): <code><a href="reference/cache_dir_default.html">cache_dir_default()</a></code>, <code><a href="reference/read_record_sidecar.html">read_record_sidecar()</a></code>, <code><a href="reference/write_record_sidecar.html">write_record_sidecar()</a></code>; schema + merge logic in <code>R/utils_sidecar.R</code>.</li>
 <li>Attachment discovery: <code>R/discover_attachments.R</code> (+ <code><a href="reference/discover_validate.html">discover_validate()</a></code>, <code>discover_backend*</code>); the AT escape hatch is <code><a href="reference/at_discovery_config.html">at_discovery_config()</a></code>.</li>
-<li>Per-portal vocabulary documentation lives in <code>vignettes/supported-portals.Rmd</code> (when added) — until then, <code>get_assessments_coverage()$facets</code> is the runtime-accessible source.</li>
+<li>Per-portal documentation lives in <code>vignettes/supported_sources.Rmd</code>; the runtime-accessible equivalent (including the valid search-facet vocabularies) is <code><a href="reference/get_assessments_coverage.html">get_assessments_coverage()</a></code>.</li>
 </ul></div>
 </div>
 

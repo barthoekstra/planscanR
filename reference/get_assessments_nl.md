@@ -163,8 +163,7 @@ list-columns:
   **"Documenten waarop het advies is gebaseerd"** section. These are the
   underlying EIA/SEA reports submitted by the proponent and reviewed by
   the Commissie. **These are the substantive documents for downstream
-  analysis** (e.g. for the future `classify_assessments()` LLM
-  pipeline).
+  analysis** (e.g. the classification pipeline in planscanR.screen).
 
 - `attachment_urls_advice` / `local_path_advice` — files in the
   **"Adviezen en persberichten"** section: the Commissie's own advisory

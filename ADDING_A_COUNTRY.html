@@ -172,7 +172,7 @@
 <strong>Live integration test</strong> at the bottom of the file, gated by <code>skip_if_offline_tests()</code> — a single <code>get_assessments("&lt;cc&gt;", limit = 1, download = FALSE)</code> against the real portal, asserting the result validates and the canonical URL prefix is correct. Skipped on CI; runs locally to detect upstream-portal breakage.</li>
 </ol></li>
 <li>
-<code>tests/testthat/fixtures/&lt;cc&gt;/</code> — <strong>required.</strong> Small, anonymised recordings of the API/HTML responses the handler parses. Two to three records is enough; pick at least one with attachments and one without (or one with geometry and one without, for portals that have geometry). Recordings can be captured by hand (<code>curl ... &gt; fixture.json</code>) or via <code><a href="https://enpiar.com/httptest2/reference/capture_requests.html" class="external-link">httptest2::capture_requests()</a></code>.</li>
+<code>tests/testthat/fixtures/&lt;cc&gt;/</code> — <strong>required.</strong> Small, anonymised recordings of the API/HTML responses the handler parses. Two to three records is enough; pick at least one with attachments and one without (or one with geometry and one without, for portals that have geometry). Recordings are captured by hand (<code>curl ... &gt; fixture.json</code>, or saving a detail page’s HTML) and replayed in the tests by rebinding the handler’s <code>perform_*</code> seam with <code><a href="https://testthat.r-lib.org/reference/local_mocked_bindings.html" class="external-link">testthat::local_mocked_bindings()</a></code>.</li>
 <li>
 <code>tests/testthat/test-dispatch.R</code> — widen the <code><a href="reference/supported_countries.html">supported_countries()</a></code> set-equality check and add a <code>select_assessments_handler("&lt;cc&gt;")</code> identity assertion.</li>
 <li>
@@ -195,9 +195,9 @@
 <span><span class="co">#    sequence is complete).</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">document</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 3. Run the test suite. Fast; uses httptest2 fixtures and skips live HTTP,</span></span>
-<span><span class="co">#    so it works offline. The dispatch / coverage tests you just widened</span></span>
-<span><span class="co">#    fail loudly if you forgot to wire something through.</span></span>
+<span><span class="co"># 3. Run the test suite. Fast; replays recorded fixtures via mocked bindings</span></span>
+<span><span class="co">#    and skips live HTTP, so it works offline. The dispatch / coverage tests</span></span>
+<span><span class="co">#    you just widened fail loudly if you forgot to wire something through.</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 4. Full R CMD check. The gold standard — catches roxygen tag typos,</span></span>
