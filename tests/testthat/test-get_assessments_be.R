@@ -293,11 +293,11 @@ test_that("BE -> sidecar round-trip preserves the country-specific extras", {
 })
 
 test_that("get_assessments_be scores topics and adds relevance_score_<slug> columns", {
+  skip_if_not_installed("planscanR.screen")
   withr::with_tempdir({
     cache <- file.path(getwd(), "cache")
     options(planscanR.cache_dir = cache)
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
-    reset_relevance_warnings()
 
     local_mocked_bindings(perform_json = mock_perform_json_search_2())
 

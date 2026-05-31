@@ -277,12 +277,12 @@ test_that("get_assessments_de end-to-end on the fixture (sidecar-first, no downl
 })
 
 test_that("get_assessments_de's relevance threshold gates PDFs only — not the result row", {
+  skip_if_not_installed("planscanR.screen")
   fixture_html_path <- normalizePath(fixture_path("de", "detail-walldurn-windpark.html"))
   withr::with_tempdir({
     cache <- file.path(getwd(), "cache")
     options(planscanR.cache_dir = cache)
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
-    reset_relevance_warnings()
     target_uuid <- "a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
 
     local_mocked_bindings(

@@ -60,10 +60,12 @@
 #'   (e.g. `c(wind = 0.5, solar = 0.4)`): per-topic cutoffs, downloads happen
 #'   if **any** named topic clears its own cutoff. `NULL` (default) is
 #'   score-only; every record's PDFs are downloaded (when `download = TRUE`).
-#' @param relevance_model A `planscanR_embedding_model`. Defaults to
-#'   [embedding_model_minilm()] (sentence-transformers
-#'   `paraphrase-multilingual-MiniLM-L12-v2` via reticulate). Pass a custom
-#'   one built with [embedding_model()] to plug in a different backend.
+#' @param relevance_model A `planscanR_embedding_model` from
+#'   \pkg{planscanR.screen}. Defaults to
+#'   `planscanR.screen::embedding_model_minilm()` (sentence-transformers
+#'   `paraphrase-multilingual-MiniLM-L12-v2` via reticulate). Pass a custom one
+#'   built with `planscanR.screen::embedding_model()` to plug in a different
+#'   backend. Passing `topic` requires \pkg{planscanR.screen} to be installed.
 #' @param discover Logical. If `TRUE`, after the portal handler returns,
 #'   records that came back with no attachments (`length(attachment_urls)
 #'   == 0`) are passed through [discover_attachments()] to find PDFs via a

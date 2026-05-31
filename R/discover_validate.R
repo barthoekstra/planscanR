@@ -170,10 +170,18 @@ discover_validate <- function(
 
   signal_semantic <- FALSE
   semantic_score <- NA_real_
-  if (!signal_az && !signal_title && !signal_extra && !is.null(relevance_model)) {
-    doc_vec <- tryCatch(embed_text(relevance_model, substr(text, 1L, 8000L)), error = function(e) NULL)
+  # The optional semantic signal embeds via planscanR.screen (a soft
+  # dependency): the user constructs a planscanR.screen embedding model and
+  # passes it as `relevance_model`. Skipped cleanly when screen is absent.
+  if (
+    !signal_az && !signal_title && !signal_extra &&
+      !is.null(relevance_model) &&
+      requireNamespace("planscanR.screen", quietly = TRUE)
+  ) {
+    embed <- planscanR.screen::embed_text
+    doc_vec <- tryCatch(embed(relevance_model, substr(text, 1L, 8000L)), error = function(e) NULL)
     ref <- paste(record$title %||% "", record$summary %||% "", sep = "\n")
-    ref_vec <- tryCatch(embed_text(relevance_model, ref), error = function(e) NULL)
+    ref_vec <- tryCatch(embed(relevance_model, ref), error = function(e) NULL)
     if (!is.null(doc_vec) && !is.null(ref_vec)) {
       sim <- as.numeric(cosine_similarity_matrix(doc_vec, ref_vec))
       semantic_score <- sim[1]

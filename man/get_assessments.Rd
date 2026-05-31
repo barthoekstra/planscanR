@@ -81,10 +81,12 @@ PDFs are downloaded if \strong{any} topic clears it. Named numeric vector
 if \strong{any} named topic clears its own cutoff. \code{NULL} (default) is
 score-only; every record's PDFs are downloaded (when \code{download = TRUE}).}
 
-\item{relevance_model}{A \code{planscanR_embedding_model}. Defaults to
-\code{\link[=embedding_model_minilm]{embedding_model_minilm()}} (sentence-transformers
-\code{paraphrase-multilingual-MiniLM-L12-v2} via reticulate). Pass a custom
-one built with \code{\link[=embedding_model]{embedding_model()}} to plug in a different backend.}
+\item{relevance_model}{A \code{planscanR_embedding_model} from
+\pkg{planscanR.screen}. Defaults to
+\code{planscanR.screen::embedding_model_minilm()} (sentence-transformers
+\code{paraphrase-multilingual-MiniLM-L12-v2} via reticulate). Pass a custom one
+built with \code{planscanR.screen::embedding_model()} to plug in a different
+backend. Passing \code{topic} requires \pkg{planscanR.screen} to be installed.}
 
 \item{discover}{Logical. If \code{TRUE}, after the portal handler returns,
 records that came back with no attachments (\code{length(attachment_urls) == 0}) are passed through \code{\link[=discover_attachments]{discover_attachments()}} to find PDFs via a
