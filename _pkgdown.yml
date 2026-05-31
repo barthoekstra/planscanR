@@ -32,8 +32,6 @@ reference:
     Score records by semantic similarity to one or more topics, and the
     pluggable embedding-model interface behind it.
   contents:
-  - biogain_assessment_topics
-  - biogain_keyword_lexicon
   - score_assessments
   - score_records
   - score_keywords
@@ -51,7 +49,6 @@ reference:
     classifier interface behind it.
   contents:
   - classify_assessments
-  - biogain_classification_labels
   - classifier
   - classify_model_zeroshot
   - classify_text
@@ -64,7 +61,6 @@ reference:
     lexical keywords) into a single selection decision — either the hand-tuned
     rule or a model learned from human keep/drop labels.
   contents:
-  - select_assessments
   - selection_features
   - selection_feature_names
   - selection_learner
@@ -98,13 +94,9 @@ reference:
   contents:
   - index_cache
   - clear_cache
-
-- title: Review app
-  desc: >
-    Launch the bundled BIOGAIN Shiny app for inspecting the pipeline funnel and
-    building a human ground-truth selection.
-  contents:
-  - run_biogain_review
+  - cache_dir_default
+  - read_record_sidecar
+  - write_record_sidecar
 
 - title: Package
   contents:

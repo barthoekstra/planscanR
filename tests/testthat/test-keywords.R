@@ -23,14 +23,6 @@ kw_lexicon <- function() {
   )
 }
 
-test_that("biogain_keyword_lexicon has the expected topics", {
-  lex <- biogain_keyword_lexicon()
-  expect_true(all(
-    c("wind", "solar", "power_grid", "other_renewable", "energy_strategy", "renewable_zoning") %in% names(lex)
-  ))
-  expect_true(all(vapply(lex, is.character, logical(1))))
-})
-
 test_that("score_keywords adds kw_<topic> + kw_total counts", {
   recs <- tibble::tibble(
     title = c(
