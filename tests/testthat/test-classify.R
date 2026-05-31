@@ -39,6 +39,25 @@ make_fake_classifier <- function() {
   )
 }
 
+# Local candidate-label fixture so the framework tests carry their own labels
+# (classify_assessments() now requires them; the BIOGAIN set lives in
+# planscanR.biogain). Mirrors the BIOGAIN cardinality and the slugs the mock
+# classifier keys on; `relevant` marks the positive (energy) classes.
+fake_labels <- function() {
+  labs <- c(
+    wind = "wind", solar = "solar", power_grid = "grid",
+    other_renewable = "other renewable", energy_strategy = "strategy",
+    renewable_zoning = "zoning", fossil_power = "fossil",
+    oil_gas_extraction = "oil gas", nuclear = "nuclear", water = "water",
+    land_use = "land use", transport = "transport", other = "other"
+  )
+  attr(labs, "relevant") <- c(
+    "wind", "solar", "power_grid",
+    "other_renewable", "energy_strategy", "renewable_zoning"
+  )
+  labs
+}
+
 test_that("classifier() validates inputs", {
   expect_error(classifier("", function(x, l, m) NULL), "non-empty string")
   expect_error(classifier("x", "not-a-fn"), "must be a function")
@@ -71,7 +90,7 @@ test_that("biogain_classification_labels has positive + negative classes", {
 
 test_that("classify_text returns an [n x labels] matrix with slug column names", {
   clf <- make_fake_classifier()
-  labs <- biogain_classification_labels()
+  labs <- fake_labels()
   out <- classify_text(clf, c("Windpark Test", "Flurneuordnung X"), labs)
   expect_true(is.matrix(out))
   expect_identical(dim(out), c(2L, length(labs)))
@@ -95,9 +114,9 @@ test_that("classify_assessments adds class_* columns and flags relevance", {
       "Wasserwirtschaftliche Vorhaben"
     )
   )
-  out <- classify_assessments(recs, classifier = clf)
+  out <- classify_assessments(recs, classifier = clf, labels = fake_labels())
   expect_true(all(c("class_label", "class_score", "class_relevant", "class_model") %in% names(out)))
-  expect_true(all(paste0("class_score_", names(biogain_classification_labels())) %in% names(out)))
+  expect_true(all(paste0("class_score_", names(fake_labels())) %in% names(out)))
   # Windpark -> wind (relevant); Flurneuordnung -> land_use (not relevant);
   # Grundwasser -> water (not relevant).
   expect_identical(out$class_label[1], "wind")
@@ -122,7 +141,7 @@ test_that("classify_assessments uses title + summary + category as input", {
     summary = "Antrag",
     native_type = "Windkraftanlagen"
   )
-  classify_assessments(recs, classifier = clf)
+  classify_assessments(recs, classifier = clf, labels = fake_labels())
   expect_match(seen, "Vorhaben 123")
   expect_match(seen, "Antrag")
   expect_match(seen, "Windkraftanlagen") # category folded into the text
@@ -131,7 +150,7 @@ test_that("classify_assessments uses title + summary + category as input", {
 test_that("classify_assessments preserves a zero-row tibble", {
   clf <- make_fake_classifier()
   recs <- tibble::tibble(country = character(0), title = character(0), summary = character(0))
-  out <- classify_assessments(recs, classifier = clf)
+  out <- classify_assessments(recs, classifier = clf, labels = fake_labels())
   expect_identical(nrow(out), 0L)
   expect_true("class_label" %in% names(out))
 })
@@ -153,7 +172,7 @@ test_that("classification round-trips through the sidecar", {
       native_type = "Windkraftanlagen",
       download_status = list(planscanR:::empty_download_status())
     )
-    out <- classify_assessments(rec, classifier = make_fake_classifier(), write_sidecar = TRUE)
+    out <- classify_assessments(rec, classifier = make_fake_classifier(), labels = fake_labels(), write_sidecar = TRUE)
     back <- index_cache(country = "de")
     expect_identical(back$class_label, out$class_label)
     # Sidecar JSON rounds numerics (jsonlite default ~4 dp), so compare with
@@ -191,7 +210,7 @@ test_that("classify_assessments writes sidecars incrementally (crash-safe)", {
       matrix(1 / length(labels), nrow = length(x), ncol = length(labels), dimnames = list(NULL, names(labels)))
     })
     expect_error(
-      classify_assessments(recs, classifier = boom, batch_size = 2L, write_sidecar = TRUE),
+      classify_assessments(recs, classifier = boom, labels = fake_labels(), batch_size = 2L, write_sidecar = TRUE),
       "boom"
     )
     written <- list.files(
@@ -232,7 +251,7 @@ test_that("classify_assessments preserves existing attachment URLs on the sideca
     # Classify it (the operation that used to wipe files[]).
     recs <- index_cache(country = "de")
     expect_length(recs$attachment_urls[[1]], 2L) # sanity: present before
-    classify_assessments(recs, classifier = make_fake_classifier(), write_sidecar = TRUE)
+    classify_assessments(recs, classifier = make_fake_classifier(), labels = fake_labels(), write_sidecar = TRUE)
 
     back <- index_cache(country = "de")
     # Attachment URLs survive classification, and the verdict is added.
@@ -259,7 +278,7 @@ test_that("a portal-side sidecar rewrite preserves an existing classification", 
       download_status = list(planscanR:::empty_download_status())
     )
     # First: classify + persist.
-    classify_assessments(base, classifier = make_fake_classifier(), write_sidecar = TRUE)
+    classify_assessments(base, classifier = make_fake_classifier(), labels = fake_labels(), write_sidecar = TRUE)
     # Then: a portal-side rewrite (no class_* columns on the record).
     planscanR:::write_record_sidecar(base)
     back <- index_cache(country = "de")

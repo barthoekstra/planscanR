@@ -7,7 +7,7 @@
 classify_assessments(
   records,
   classifier = NULL,
-  labels = biogain_classification_labels(),
+  labels,
   multi_label = FALSE,
   batch_size = 64L,
   write_sidecar = FALSE
@@ -20,10 +20,12 @@ have at least \code{title} (and ideally \code{summary}, \code{native_type}).}
 \item{classifier}{A \code{planscanR_classifier}. Defaults to
 \code{\link[=classify_model_zeroshot]{classify_model_zeroshot()}}.}
 
-\item{labels}{Named character vector of candidate labels (see
-\code{\link[=biogain_classification_labels]{biogain_classification_labels()}}, the default). A \code{relevant} attribute
-marks which slugs are BIOGAIN-relevant; if absent, every label is treated
-as relevant.}
+\item{labels}{Named character vector of candidate labels (required). Names
+are stable slugs used as column suffixes (\verb{class_score_<slug>}); values are
+the natural-language hypotheses fed to the zero-shot model. A \code{relevant}
+attribute marks which slugs count as relevant; if absent, every label is
+treated as relevant. The BIOGAIN set is \code{biogain_classification_labels()}
+in the \code{planscanR.biogain} package.}
 
 \item{multi_label}{If \code{FALSE} (default) labels are mutually exclusive
 (softmax); the negative classes then compete with the positive ones,

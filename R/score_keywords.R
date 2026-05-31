@@ -8,55 +8,6 @@
 # none. This is deliberately lexical — it needs curated multilingual term
 # lists (NL / DE / EN) rather than generalising semantically.
 
-#' BIOGAIN keyword lexicon (multilingual).
-#'
-#' A named list mapping each BIOGAIN topic to a vector of search terms across
-#' Dutch, German, and English. Terms are matched as **substrings** of text
-#' normalised with the package's diacritic/digraph folding — substring rather
-#' than word-boundary matching because German/Dutch put the key term mid-word
-#' in compounds (`Höchst`**spannung**`sfreileitung`, `wind`-anything). The
-#' folding means the ASCII terms here align with accented source text
-#' (`spannung` matches `Höchstspannung`; `biomas` matches `Biomasse`).
-#'
-#' @return A named list of character vectors, one per topic.
-#' @export
-#' @examples
-#' biogain_keyword_lexicon()$wind
-biogain_keyword_lexicon <- function() {
-  list(
-    wind = c("wind", "repowering"),
-    solar = c("solar", "zonne", "fotovolta", "photovolta"),
-    power_grid = c(
-      "hoogspann",
-      "spannung",
-      "freileitung",
-      "umspann",
-      "stromnetz",
-      "netaansluiting",
-      "transformator",
-      "trafostation"
-    ),
-    other_renewable = c(
-      "biogas",
-      "biomass",
-      "geotherm",
-      "aardwarmte",
-      "waterkracht",
-      "wasserkraft",
-      "vergisting"
-    ),
-    energy_strategy = c(
-      "energiestrategie",
-      "energietransitie",
-      "energieperspectief",
-      "energievisie",
-      "klimaat",
-      "klimaschutz"
-    ),
-    renewable_zoning = c("zoekgebied", "opwek", "vorranggebiet", "vorrangzone")
-  )
-}
-
 #' Score records against the keyword lexicon.
 #'
 #' Adds one `kw_<topic>` integer column per lexicon topic (the number of term
@@ -67,8 +18,9 @@ biogain_keyword_lexicon <- function() {
 #'
 #' @param records A tibble; uses `title`, `summary`, and (if present)
 #'   `native_type`.
-#' @param lexicon Named list of term vectors. Defaults to
-#'   [biogain_keyword_lexicon()].
+#' @param lexicon Named list of term vectors, one per topic (required). The
+#'   BIOGAIN lexicon is `biogain_keyword_lexicon()` in the `planscanR.biogain`
+#'   package.
 #' @param text_fn Optional `function(record) -> character` building the text to
 #'   scan. Default concatenates title + summary + native_type.
 #' @return `records` with `kw_<topic>` and `kw_total` columns added.
@@ -76,12 +28,18 @@ biogain_keyword_lexicon <- function() {
 #' @examples
 #' \dontrun{
 #' recs <- index_cache(country = "nl")
-#' scored <- score_keywords(recs)
+#' scored <- score_keywords(recs, lexicon = biogain_keyword_lexicon())
 #' scored[scored$kw_total == 0, "title"] # likely non-energy
 #' }
-score_keywords <- function(records, lexicon = biogain_keyword_lexicon(), text_fn = NULL) {
+score_keywords <- function(records, lexicon, text_fn = NULL) {
   if (!is.data.frame(records)) {
     cli::cli_abort("{.arg records} must be a data frame.")
+  }
+  if (missing(lexicon) || is.null(lexicon)) {
+    cli::cli_abort(c(
+      "{.arg lexicon} is required.",
+      i = "Pass a named list of term vectors, e.g. {.code planscanR.biogain::biogain_keyword_lexicon()}."
+    ))
   }
   topics <- names(lexicon)
   n <- nrow(records)

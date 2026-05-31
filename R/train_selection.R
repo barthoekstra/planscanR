@@ -24,6 +24,9 @@
 #'   with a keep/drop decision are used for training.
 #' @param reviews The review-decision tibble (the app's `reviews.csv`), with
 #'   `document_id`, `country`, `decision`, `source`, `reviewed_at`.
+#' @param topics,labels The topic and classifier-label vectors naming the
+#'   feature columns (required); see [selection_feature_names()]. Stored on the
+#'   returned model so [predict_selection()] rebuilds the same feature frame.
 #' @param learner A [selection_learner]. Defaults to
 #'   [selection_learner_logistic()].
 #' @param eval_source Restrict labels to this review `source` (default
@@ -47,6 +50,8 @@
 train_selection_model <- function(
   records,
   reviews,
+  topics,
+  labels,
   learner = selection_learner_logistic(),
   eval_source = "random",
   include = character(0),
@@ -58,9 +63,18 @@ train_selection_model <- function(
   if (!inherits(learner, "planscanR_selection_learner")) {
     cli::cli_abort("{.arg learner} must be a planscanR_selection_learner.")
   }
+  if (missing(topics) || missing(labels)) {
+    cli::cli_abort(c(
+      "{.arg topics} and {.arg labels} are required.",
+      i = "Pass the topic and classifier-label vectors, e.g. {.code planscanR.biogain::biogain_assessment_topics()} and {.code planscanR.biogain::biogain_classification_labels()}."
+    ))
+  }
   require_tidymodels(learner$engine_pkg)
 
-  dat <- build_training_frame(records, reviews, eval_source = eval_source, include = include)
+  dat <- build_training_frame(
+    records, reviews, topics, labels,
+    eval_source = eval_source, include = include
+  )
   feature_names <- attr(dat, "feature_names")
 
   if (!is.null(seed) && !is.na(seed)) {
@@ -80,6 +94,8 @@ train_selection_model <- function(
       workflow = fitted,
       learner_name = learner$name,
       features = feature_names,
+      topics = topics,
+      labels = labels,
       include = include,
       n_train = nrow(dat),
       n_keep = sum(dat$decision == "keep"),
@@ -180,7 +196,7 @@ consensus_reviews <- function(reviews, decisions = c("keep", "drop")) {
 # keep, drop — keep is the positive/event level) and a `"feature_names"`
 # attribute.
 #' @noRd
-build_training_frame <- function(records, reviews, eval_source = "random", include = character(0)) {
+build_training_frame <- function(records, reviews, topics, labels, eval_source = "random", include = character(0)) {
   src <- reviews
   if (!is.null(eval_source)) {
     src <- src[src$source %in% eval_source, , drop = FALSE]
@@ -206,7 +222,7 @@ build_training_frame <- function(records, reviews, eval_source = "random", inclu
     )
   }
 
-  feats <- selection_features(records, include = include)
+  feats <- selection_features(records, topics, labels, include = include)
   feature_names <- attr(feats, "feature_names")
   key_f <- paste(feats$country, feats$document_id)
   key_d <- paste(dec$country, dec$document_id)
@@ -360,7 +376,10 @@ predict_selection <- function(model, records, threshold = NULL) {
     records$selected_model <- logical(0)
     return(records)
   }
-  feats <- selection_features(records, include = model$include)
+  feats <- selection_features(
+    records, model$topics, model$labels,
+    include = model$include
+  )
   p <- stats::predict(model$workflow, new_data = feats, type = "prob")
   records$select_prob <- p[[".pred_keep"]]
   records$selected_model <- records$select_prob >= thr

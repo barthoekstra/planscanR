@@ -98,6 +98,8 @@ train_app_model <- function(snap, reviews, learner_key, data_dir, eval_source = 
   model <- planscanR::train_selection_model(
     snap,
     reviews,
+    topics = planscanR::biogain_assessment_topics(),
+    labels = planscanR::biogain_classification_labels(),
     learner = learner,
     eval_source = eval_source
   )
@@ -121,6 +123,8 @@ compute_learning_curve <- function(
   planscanR::selection_learning_curve(
     snap,
     reviews,
+    topics = planscanR::biogain_assessment_topics(),
+    labels = planscanR::biogain_classification_labels(),
     learner = learner,
     eval_source = eval_source,
     by_country = by_country

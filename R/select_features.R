@@ -21,10 +21,11 @@
 #' (`relevance_score_<slug>`), one zero-shot classifier score per candidate
 #' label (`class_score_<slug>`), and the keyword total (`kw_total`).
 #'
-#' @param topics Named topic vector naming the cosine columns. Defaults to
-#'   [biogain_assessment_topics()].
-#' @param labels Named classifier-label vector naming the classifier columns.
-#'   Defaults to [biogain_classification_labels()].
+#' @param topics Named topic vector naming the cosine columns (required). The
+#'   BIOGAIN set is `biogain_assessment_topics()` in `planscanR.biogain`.
+#' @param labels Named classifier-label vector naming the classifier columns
+#'   (required). The BIOGAIN set is `biogain_classification_labels()` in
+#'   `planscanR.biogain`.
 #' @param include Optional extra feature columns to append (off by default).
 #'   Recognised: `"country"`, `"native_type"`. These are country-specific and
 #'   will not transfer to an unseen portal — opt in only when training and
@@ -32,13 +33,21 @@
 #' @return A character vector of feature column names, in a stable order.
 #' @export
 #' @examples
-#' selection_feature_names()
-#' selection_feature_names(include = "country")
+#' \dontrun{
+#' selection_feature_names(topics, labels)
+#' selection_feature_names(topics, labels, include = "country")
+#' }
 selection_feature_names <- function(
-  topics = biogain_assessment_topics(),
-  labels = biogain_classification_labels(),
+  topics,
+  labels,
   include = character(0)
 ) {
+  if (missing(topics) || missing(labels)) {
+    cli::cli_abort(c(
+      "{.arg topics} and {.arg labels} are required.",
+      i = "Pass the topic and classifier-label vectors, e.g. {.code planscanR.biogain::biogain_assessment_topics()} and {.code planscanR.biogain::biogain_classification_labels()}."
+    ))
+  }
   cosine <- paste0("relevance_score_", names(topics))
   clf <- paste0("class_score_", names(labels))
   feats <- c(cosine, clf, "kw_total")
@@ -74,8 +83,8 @@ selection_feature_names <- function(
 #' }
 selection_features <- function(
   records,
-  topics = biogain_assessment_topics(),
-  labels = biogain_classification_labels(),
+  topics,
+  labels,
   include = character(0)
 ) {
   if (!is.data.frame(records)) {
@@ -83,6 +92,12 @@ selection_features <- function(
       "{.arg records} must be a data frame.",
       class = "planscanR_error_bad_input"
     )
+  }
+  if (missing(topics) || missing(labels)) {
+    cli::cli_abort(c(
+      "{.arg topics} and {.arg labels} are required.",
+      i = "Pass the topic and classifier-label vectors, e.g. {.code planscanR.biogain::biogain_assessment_topics()} and {.code planscanR.biogain::biogain_classification_labels()}."
+    ))
   }
   n <- nrow(records)
   feature_names <- selection_feature_names(topics, labels, include)

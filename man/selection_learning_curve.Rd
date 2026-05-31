@@ -7,6 +7,8 @@
 selection_learning_curve(
   records,
   reviews,
+  topics,
+  labels,
   learner = selection_learner_logistic(),
   sizes = NULL,
   test_frac = 0.25,
@@ -24,6 +26,9 @@ selection_learning_curve(
 
 \item{reviews}{The review-decision tibble (the app's \code{reviews.csv}), with
 \code{document_id}, \code{country}, \code{decision}, \code{source}, \code{reviewed_at}.}
+
+\item{topics, labels}{The topic and classifier-label vectors naming the
+feature columns (required); see \code{\link[=selection_feature_names]{selection_feature_names()}}.}
 
 \item{learner}{A \link{selection_learner}. Defaults to
 \code{\link[=selection_learner_logistic]{selection_learner_logistic()}}.}

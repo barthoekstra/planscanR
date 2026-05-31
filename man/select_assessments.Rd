@@ -59,7 +59,10 @@ BIOGAIN.
 }
 \examples{
 \dontrun{
-recs <- classify_assessments(index_cache(country = "nl"))
+recs <- classify_assessments(
+  index_cache(country = "nl"),
+  labels = biogain_classification_labels()
+)
 sel <- select_assessments(recs)
 table(sel$selected)
 }

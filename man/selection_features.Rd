@@ -4,23 +4,19 @@
 \alias{selection_features}
 \title{Build the selection-model feature frame from records.}
 \usage{
-selection_features(
-  records,
-  topics = biogain_assessment_topics(),
-  labels = biogain_classification_labels(),
-  include = character(0)
-)
+selection_features(records, topics, labels, include = character(0))
 }
 \arguments{
 \item{records}{A tibble with \code{document_id}, \code{country}, and the
 \verb{relevance_score_*} / \verb{class_score_*} / \code{kw_total} columns (whatever is
 present; absent columns are treated as \code{0}).}
 
-\item{topics}{Named topic vector naming the cosine columns. Defaults to
-\code{\link[=biogain_assessment_topics]{biogain_assessment_topics()}}.}
+\item{topics}{Named topic vector naming the cosine columns (required). The
+BIOGAIN set is \code{biogain_assessment_topics()} in \code{planscanR.biogain}.}
 
-\item{labels}{Named classifier-label vector naming the classifier columns.
-Defaults to \code{\link[=biogain_classification_labels]{biogain_classification_labels()}}.}
+\item{labels}{Named classifier-label vector naming the classifier columns
+(required). The BIOGAIN set is \code{biogain_classification_labels()} in
+\code{planscanR.biogain}.}
 
 \item{include}{Optional extra feature columns to append (off by default).
 Recognised: \code{"country"}, \code{"native_type"}. These are country-specific and

@@ -7,6 +7,8 @@
 train_selection_model(
   records,
   reviews,
+  topics,
+  labels,
   learner = selection_learner_logistic(),
   eval_source = "random",
   include = character(0),
@@ -24,6 +26,10 @@ with a keep/drop decision are used for training.}
 
 \item{reviews}{The review-decision tibble (the app's \code{reviews.csv}), with
 \code{document_id}, \code{country}, \code{decision}, \code{source}, \code{reviewed_at}.}
+
+\item{topics, labels}{The topic and classifier-label vectors naming the
+feature columns (required); see \code{\link[=selection_feature_names]{selection_feature_names()}}. Stored on the
+returned model so \code{\link[=predict_selection]{predict_selection()}} rebuilds the same feature frame.}
 
 \item{learner}{A \link{selection_learner}. Defaults to
 \code{\link[=selection_learner_logistic]{selection_learner_logistic()}}.}

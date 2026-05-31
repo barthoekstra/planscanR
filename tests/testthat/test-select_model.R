@@ -2,12 +2,29 @@
 # The full train/predict path is gated on the tidymodels glue being installed
 # (Suggests); featurization is pure base R and always runs.
 
+# Local topic/label fixtures so these tests exercise the framework without any
+# project-specific config (the framework is config-agnostic; the BIOGAIN sets
+# live in planscanR.biogain). Cardinality mirrors the BIOGAIN sets (6 topics,
+# 13 labels) and includes a "wind" slug, which synth_records keys on.
+test_topics <- c(
+  wind = "wind", solar = "solar", power_grid = "grid",
+  other_renewable = "other_renewable", energy_strategy = "strategy",
+  renewable_zoning = "zoning"
+)
+test_labels <- c(
+  wind = "wind", solar = "solar", power_grid = "grid",
+  other_renewable = "other_renewable", energy_strategy = "strategy",
+  renewable_zoning = "zoning", fossil_power = "fossil",
+  oil_gas_extraction = "oilgas", nuclear = "nuclear", water = "water",
+  land_use = "land", transport = "transport", other = "other"
+)
+
 # A synthetic scored+classified corpus where "keep" records carry a high wind
 # cosine + classifier score, so any reasonable learner should separate them.
 synth_records <- function(n = 120, seed = 1) {
   set.seed(seed)
-  topics <- names(biogain_assessment_topics())
-  labels <- names(biogain_classification_labels())
+  topics <- names(test_topics)
+  labels <- names(test_labels)
   keep <- rep(c(TRUE, FALSE), length.out = n)
   df <- tibble::tibble(
     document_id = as.character(seq_len(n)),
@@ -44,13 +61,15 @@ synth_reviews <- function(records) {
 }
 
 test_that("selection_feature_names is stable and country-agnostic by default", {
-  fn <- selection_feature_names()
+  fn <- selection_feature_names(test_topics, test_labels)
   expect_true("kw_total" %in% fn)
   expect_true(any(grepl("^relevance_score_", fn)))
   expect_true(any(grepl("^class_score_", fn)))
   expect_false("country" %in% fn)
   expect_false("native_type" %in% fn)
-  expect_true("country" %in% selection_feature_names(include = "country"))
+  expect_true(
+    "country" %in% selection_feature_names(test_topics, test_labels, include = "country")
+  )
 })
 
 test_that("selection_features fills missing/NA numerics with 0 and carries keys", {
@@ -60,11 +79,14 @@ test_that("selection_features fills missing/NA numerics with 0 and carries keys"
     relevance_score_wind = c(0.4, NA_real_)
     # all other feature columns intentionally absent
   )
-  X <- selection_features(recs)
+  X <- selection_features(recs, test_topics, test_labels)
   expect_equal(X$document_id, c("a", "b"))
   expect_equal(X$relevance_score_wind, c(0.4, 0))
   expect_true(all(X$kw_total == 0))
-  expect_setequal(attr(X, "feature_names"), selection_feature_names())
+  expect_setequal(
+    attr(X, "feature_names"),
+    selection_feature_names(test_topics, test_labels)
+  )
 })
 
 test_that("train_selection_model learns, predicts, and round-trips on disk", {
@@ -76,7 +98,7 @@ test_that("train_selection_model learns, predicts, and round-trips on disk", {
   recs <- synth_records()
   rev <- synth_reviews(recs)
 
-  m <- train_selection_model(recs, rev, v = 5L, seed = 42)
+  m <- train_selection_model(recs, rev, test_topics, test_labels, v = 5L, seed = 42)
   expect_s3_class(m, "planscanR_selection_model")
   expect_equal(m$n_train, nrow(recs))
   # Cleanly separable synthetic data -> strong out-of-fold metrics.
@@ -105,7 +127,7 @@ test_that("selection_cv_metrics by_country returns per-country plus an all row",
 
   recs <- synth_records()
   rev <- synth_reviews(recs)
-  m <- train_selection_model(recs, rev, v = 5L, seed = 42)
+  m <- train_selection_model(recs, rev, test_topics, test_labels, v = 5L, seed = 42)
 
   bc <- selection_cv_metrics(m, by_country = TRUE)
   expect_true("country" %in% names(bc))
@@ -160,7 +182,7 @@ test_that("train_selection_model errors without both classes", {
   rev <- synth_reviews(recs)
   rev$decision <- "keep" # single class
   expect_error(
-    train_selection_model(recs, rev),
+    train_selection_model(recs, rev, test_topics, test_labels),
     class = "planscanR_error_bad_input"
   )
 })

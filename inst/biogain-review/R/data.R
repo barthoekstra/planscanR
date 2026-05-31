@@ -63,10 +63,16 @@ enrich_records <- function(df) {
   # Keyword arm: compute kw_total if the package scorer is available and the
   # column is missing. Wrapped because score_keywords needs title/summary.
   if (!"kw_total" %in% names(df)) {
-    df <- tryCatch(planscanR::score_keywords(df), error = function(e) {
-      df$kw_total <- NA_integer_
-      df
-    })
+    df <- tryCatch(
+      planscanR::score_keywords(
+        df,
+        lexicon = planscanR::biogain_keyword_lexicon()
+      ),
+      error = function(e) {
+        df$kw_total <- NA_integer_
+        df
+      }
+    )
   }
 
   # class_relevant may be absent on un-classified slices (e.g. AT scan-only).

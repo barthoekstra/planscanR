@@ -8,6 +8,42 @@
 
 SCHEMA_VERSION <- 2L
 
+#' Assert a sidecar's schema version is one this package understands.
+#'
+#' The sidecar JSON is the load-bearing contract between `planscanR` (writer)
+#' and the downstream `planscanR.screen` / `planscanR.biogain` readers. A
+#' sidecar written by a *newer* planscanR (a higher `schema_version`) may carry
+#' fields or semantics this version doesn't know about, so we fail loudly rather
+#' than silently misread it. Missing field = legacy v1, which reads cleanly.
+#' @noRd
+assert_sidecar_schema <- function(payload, path = NULL) {
+  ver <- payload$schema_version
+  if (is.null(ver)) {
+    return(invisible(1L)) # legacy v1 sidecar: no version field.
+  }
+  ver <- suppressWarnings(as.integer(ver))
+  where <- if (is.null(path)) "" else sprintf(" ({.file {path}})", path = path)
+  if (is.na(ver)) {
+    cli::cli_abort(
+      paste0("Sidecar has a non-integer {.field schema_version}", where, "."),
+      class = "planscanR_error_sidecar_schema"
+    )
+  }
+  if (ver > SCHEMA_VERSION) {
+    cli::cli_abort(
+      c(
+        paste0(
+          "Sidecar {.field schema_version} {ver} is newer than this ",
+          "planscanR understands ({SCHEMA_VERSION})", where, "."
+        ),
+        i = "Upgrade {.pkg planscanR} to read this cache."
+      ),
+      class = "planscanR_error_sidecar_schema"
+    )
+  }
+  invisible(ver)
+}
+
 #' Path to a record's sidecar JSON file.
 #'
 #' `create = TRUE` (the default) creates the per-record directory as a side
@@ -348,6 +384,7 @@ record_classification <- function(record) {
 #' @noRd
 read_record_sidecar <- function(path) {
   payload <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  assert_sidecar_schema(payload, path)
   files <- payload$files %||% list()
   urls <- vapply(files, function(f) f$url %||% NA_character_, character(1))
   sections <- vapply(files, function(f) f$section %||% NA_character_, character(1))

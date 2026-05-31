@@ -2,10 +2,25 @@
 # glue (Suggests). Reuses a minimal synthetic generator (cleanly separable so any
 # learner trains fast and stably).
 
+# Local topic/label fixtures (the framework is config-agnostic; the BIOGAIN
+# sets live in planscanR.biogain). Cardinality mirrors the BIOGAIN sets.
+lc_topics <- c(
+  wind = "wind", solar = "solar", power_grid = "grid",
+  other_renewable = "other_renewable", energy_strategy = "strategy",
+  renewable_zoning = "zoning"
+)
+lc_labels <- c(
+  wind = "wind", solar = "solar", power_grid = "grid",
+  other_renewable = "other_renewable", energy_strategy = "strategy",
+  renewable_zoning = "zoning", fossil_power = "fossil",
+  oil_gas_extraction = "oilgas", nuclear = "nuclear", water = "water",
+  land_use = "land", transport = "transport", other = "other"
+)
+
 lc_synth_records <- function(n = 160, seed = 1) {
   set.seed(seed)
-  topics <- names(biogain_assessment_topics())
-  labels <- names(biogain_classification_labels())
+  topics <- names(lc_topics)
+  labels <- names(lc_labels)
   keep <- rep(c(TRUE, FALSE), length.out = n)
   df <- tibble::tibble(
     document_id = as.character(seq_len(n)),
@@ -50,6 +65,8 @@ test_that("selection_learning_curve returns the expected long shape over sizes",
   curve <- selection_learning_curve(
     recs,
     rev,
+    lc_topics,
+    lc_labels,
     sizes = c(30, 60, 90),
     repeats = 3,
     seed = 42
@@ -96,6 +113,8 @@ test_that("selection_learning_curve(by_country=TRUE) returns per-country + 'all'
   curve <- selection_learning_curve(
     recs,
     rev,
+    lc_topics,
+    lc_labels,
     sizes = c(30, 60, 90),
     repeats = 2,
     seed = 42,
@@ -123,7 +142,7 @@ test_that("selection_learning_curve errors without both classes", {
   rev <- lc_synth_reviews(recs)
   rev$decision <- "keep"
   expect_error(
-    selection_learning_curve(recs, rev, repeats = 2),
+    selection_learning_curve(recs, rev, lc_topics, lc_labels, repeats = 2),
     class = "planscanR_error_bad_input"
   )
 })

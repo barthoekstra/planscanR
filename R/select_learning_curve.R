@@ -22,6 +22,8 @@
 #'   [selection_features()] columns.
 #' @param reviews The review-decision tibble (the app's `reviews.csv`), with
 #'   `document_id`, `country`, `decision`, `source`, `reviewed_at`.
+#' @param topics,labels The topic and classifier-label vectors naming the
+#'   feature columns (required); see [selection_feature_names()].
 #' @param learner A [selection_learner]. Defaults to
 #'   [selection_learner_logistic()].
 #' @param sizes Optional integer vector of training-label counts to evaluate.
@@ -57,6 +59,8 @@
 selection_learning_curve <- function(
   records,
   reviews,
+  topics,
+  labels,
   learner = selection_learner_logistic(),
   sizes = NULL,
   test_frac = 0.25,
@@ -69,6 +73,15 @@ selection_learning_curve <- function(
   if (!inherits(learner, "planscanR_selection_learner")) {
     cli::cli_abort(
       "{.arg learner} must be a planscanR_selection_learner.",
+      class = "planscanR_error_bad_input"
+    )
+  }
+  if (missing(topics) || missing(labels)) {
+    cli::cli_abort(
+      c(
+        "{.arg topics} and {.arg labels} are required.",
+        i = "Pass the topic and classifier-label vectors (see {.fn selection_feature_names})."
+      ),
       class = "planscanR_error_bad_input"
     )
   }
@@ -87,7 +100,7 @@ selection_learning_curve <- function(
   }
   require_tidymodels(learner$engine_pkg)
 
-  dat <- build_training_frame(records, reviews, eval_source = eval_source)
+  dat <- build_training_frame(records, reviews, topics, labels, eval_source = eval_source)
   feature_names <- attr(dat, "feature_names")
 
   if (!is.null(seed) && !is.na(seed)) {
