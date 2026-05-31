@@ -341,15 +341,22 @@ info_popover <- function(title, body) {
     `data-bs-content` = as.character(body),
     style = paste0(
       "display:inline-flex;align-items:center;justify-content:center;",
-      "width:20px;height:20px;border-radius:50%;",
-      "background:rgba(255,255,255,0.25);color:#fff;font-style:normal;",
-      "font-weight:700;font-size:12px;line-height:1;cursor:pointer;",
-      "margin-left:6px;vertical-align:middle;flex:none;"
+      "width:18px;height:18px;border-radius:50%;",
+      # Inherit the surrounding text color so the icon reads cleanly on both
+      # dark backgrounds (white text -> white icon, e.g. inside a value_box)
+      # and light backgrounds (muted grey text -> muted grey icon, e.g. the
+      # comparison-table header). currentColor + transparent fill avoids any
+      # hard-coded white-on-white surprises.
+      "background:transparent;color:currentColor;",
+      "border:1px solid currentColor;opacity:0.65;",
+      "font-style:normal;font-weight:700;font-size:11px;line-height:1;",
+      "cursor:pointer;margin-left:6px;vertical-align:middle;flex:none;"
     )
   )
 }
 
-# Explanation for the Precision / Recall / F1 card.
+# Explanation for the Precision / Recall / F1 column. Phrased to cover both
+# the heuristic and the (cross-validated) model rows in the comparison table.
 prf_help_ui <- function() {
   info_popover(
     "What do these metrics mean?",
@@ -357,17 +364,17 @@ prf_help_ui <- function() {
       style = "font-size:13px;line-height:1.4;max-width:320px;",
       htmltools::p(
         style = "margin:0 0 8px;",
-        "We compare the pipeline's automatic pre-selection against your review, treating the records you marked “keep” as the correct answer."
+        "Each row compares an automated selection (the heuristic rule, or the trained model's out-of-fold prediction) against your review, treating the records you marked “keep” as the correct answer."
       ),
       htmltools::tags$ul(
         style = "margin:0;padding-left:18px;",
         htmltools::tags$li(
           htmltools::tags$b("Precision"),
-          " — of the records the pipeline pre-selected, the share you also kept (how much of what it picked was actually wanted)."
+          " — of the records the system selected, the share you also kept (how much of what it picked was actually wanted)."
         ),
         htmltools::tags$li(
           htmltools::tags$b("Recall"),
-          " — of the records you kept, the share the pipeline also pre-selected (how much of what was wanted it caught)."
+          " — of the records you kept, the share the system also selected (how much of what was wanted it caught)."
         ),
         htmltools::tags$li(
           htmltools::tags$b("F1"),
@@ -378,7 +385,7 @@ prf_help_ui <- function() {
   )
 }
 
-# Explanation for the Confusion (TP/FP/FN/TN) card.
+# Explanation for the Confusion (TP/FP/FN/TN) column.
 confusion_help_ui <- function() {
   info_popover(
     "What is the confusion count?",
@@ -386,64 +393,13 @@ confusion_help_ui <- function() {
       style = "font-size:13px;line-height:1.4;max-width:320px;",
       htmltools::p(
         style = "margin:0 0 6px;",
-        "How the pipeline's pre-selection lines up with your keep/drop decisions:"
+        "How each row's automated selection lines up with your keep/drop decisions:"
       ),
       htmltools::tags$ul(
         style = "margin:0;padding-left:18px;",
-        htmltools::tags$li(htmltools::tags$b("TP"), " — both kept (pipeline pre-selected, you kept)."),
-        htmltools::tags$li(htmltools::tags$b("FP"), " — pipeline kept, but you dropped."),
-        htmltools::tags$li(htmltools::tags$b("FN"), " — pipeline dropped, but you kept."),
-        htmltools::tags$li(htmltools::tags$b("TN"), " — both dropped.")
-      )
-    )
-  )
-}
-
-# Model-row counterpart of prf_help_ui(): same precision/recall/F1 concepts,
-# phrased around the model's out-of-fold prediction rather than the heuristic.
-prf_help_ui_model <- function() {
-  info_popover(
-    "What do these metrics mean?",
-    htmltools::div(
-      style = "font-size:13px;line-height:1.4;max-width:320px;",
-      htmltools::p(
-        style = "margin:0 0 8px;",
-        "We compare the model's cross-validated (out-of-fold) prediction against your review, treating the records you marked “keep” as the correct answer. Out-of-fold means each record is scored by a model that did not see it in training."
-      ),
-      htmltools::tags$ul(
-        style = "margin:0;padding-left:18px;",
-        htmltools::tags$li(
-          htmltools::tags$b("Precision"),
-          " — of the records the model predicted “keep”, the share you also kept (how much of what it picked was actually wanted)."
-        ),
-        htmltools::tags$li(
-          htmltools::tags$b("Recall"),
-          " — of the records you kept, the share the model also predicted “keep” (how much of what was wanted it caught)."
-        ),
-        htmltools::tags$li(
-          htmltools::tags$b("F1"),
-          " — one score balancing precision and recall (their harmonic mean); high only when both are high."
-        )
-      )
-    )
-  )
-}
-
-# Model-row counterpart of confusion_help_ui().
-confusion_help_ui_model <- function() {
-  info_popover(
-    "What is the confusion count?",
-    htmltools::div(
-      style = "font-size:13px;line-height:1.4;max-width:320px;",
-      htmltools::p(
-        style = "margin:0 0 6px;",
-        "How the model's out-of-fold prediction lines up with your keep/drop decisions:"
-      ),
-      htmltools::tags$ul(
-        style = "margin:0;padding-left:18px;",
-        htmltools::tags$li(htmltools::tags$b("TP"), " — both kept (model predicted “keep”, you kept)."),
-        htmltools::tags$li(htmltools::tags$b("FP"), " — model predicted “keep”, but you dropped."),
-        htmltools::tags$li(htmltools::tags$b("FN"), " — model predicted “drop”, but you kept."),
+        htmltools::tags$li(htmltools::tags$b("TP"), " — both kept (system selected, you kept)."),
+        htmltools::tags$li(htmltools::tags$b("FP"), " — system selected, but you dropped."),
+        htmltools::tags$li(htmltools::tags$b("FN"), " — system dropped, but you kept."),
         htmltools::tags$li(htmltools::tags$b("TN"), " — both dropped.")
       )
     )

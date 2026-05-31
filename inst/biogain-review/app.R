@@ -145,13 +145,50 @@ review_assets <- function() {
       # Breathing room between the All reviews / Random sample radio options
       # (Shiny renders inline choices as label.radio-inline).
       "#eval_on .radio-inline{margin-right:1.75rem;}",
-      # White circular info button on metric cards (clear hover affordance).
-      ".metric-info:hover,.metric-info:focus{background:rgba(255,255,255,.4)",
-      "!important;outline:none;}",
+      # Hover affordance for the inline info ⓘ icon. Uses currentColor at low
+      # alpha so it works on both light and dark backgrounds without hard-coding.
+      ".metric-info:hover,.metric-info:focus{opacity:1!important;",
+      "background:rgba(127,127,127,0.12)!important;outline:none;}",
       # Small group label sitting above a value-box metric name. White so it
       # reads cleanly on the coloured (themed) value-box backgrounds.
       ".metric-group{font-size:0.7rem;font-weight:600;letter-spacing:.04em;",
-      "text-transform:uppercase;color:#fff;opacity:.85;margin-bottom:1px;}"
+      "text-transform:uppercase;color:#fff;opacity:.85;margin-bottom:1px;}",
+      # Single horizontal stats strip (replaces the four top value boxes).
+      # One bordered card divided into equal cells; each cell is icon + label
+      # stacked over a large number. Less card-fatigue than four value_boxes.
+      ".stats-strip{display:flex;align-items:stretch;border:1px solid #e6e8ea;",
+      "border-radius:0.6rem;background:#fff;margin-bottom:1rem;overflow:hidden;}",
+      ".stats-strip .stat{flex:1;display:flex;align-items:center;gap:14px;",
+      "padding:14px 18px;border-right:1px solid #e6e8ea;}",
+      ".stats-strip .stat:last-child{border-right:0;}",
+      ".stats-strip .stat-icon{font-size:22px;color:#0e3c62;opacity:0.75;",
+      "width:28px;text-align:center;}",
+      ".stats-strip .stat-label{font-size:0.7rem;font-weight:600;",
+      "letter-spacing:.04em;text-transform:uppercase;color:#666;",
+      "margin-bottom:2px;}",
+      ".stats-strip .stat-value{font-size:1.5rem;font-weight:600;",
+      "color:#0e3c62;font-variant-numeric:tabular-nums;line-height:1.1;}",
+      # Heuristic-vs-model comparison table (replaces the six value boxes in
+      # the agreement panel). Two rows × three metric columns, plain HTML, so
+      # the info popovers in the column headers stay aligned.
+      ".comparison-table{width:100%;border-collapse:collapse;",
+      "margin:8px 0 4px;font-size:14px;}",
+      ".comparison-table th{font-size:0.7rem;font-weight:600;",
+      "text-transform:uppercase;letter-spacing:.04em;color:#666;",
+      "padding:8px 12px;text-align:right;border-bottom:1px solid #e6e8ea;}",
+      ".comparison-table th.row-head{text-align:left;}",
+      ".comparison-table th .hdr{display:inline-flex;align-items:center;gap:4px;",
+      "justify-content:flex-end;}",
+      ".comparison-table td{padding:12px;border-bottom:1px solid #f0f0f0;}",
+      ".comparison-table tr:last-child td{border-bottom:0;}",
+      ".comparison-table td.num{text-align:right;",
+      "font-variant-numeric:tabular-nums;}",
+      ".comparison-table td.num.strong{font-weight:600;font-size:1.02rem;}",
+      ".comparison-table .row-name{font-weight:600;}",
+      ".comparison-table .row-name.heuristic{color:#0e3c62;}",
+      ".comparison-table .row-name.model{color:#3f8a14;}",
+      ".comparison-table .row-sub{font-size:0.75rem;color:#888;margin-top:1px;}",
+      ".comparison-table td.row-empty-msg{color:#888;font-style:italic;}"
     )),
     tags$script(HTML(
       "window.__reviewState = window.__reviewState || {};
@@ -465,12 +502,40 @@ ui <- page_navbar(
   # ---- Funnel tab ----
   nav_panel(
     "Overview",
-    layout_columns(
-      fill = FALSE,
-      value_box("Indexed", textOutput("vb_total"), theme = "secondary"),
-      value_box("Selected (heuristic)", textOutput("vb_selected"), theme = "primary"),
-      value_box("Selected (model)", textOutput("vb_selected_model"), theme = "primary"),
-      value_box("Reviewed", textOutput("vb_reviewed"), theme = "secondary")
+    div(
+      class = "stats-strip",
+      div(
+        class = "stat",
+        div(class = "stat-icon", icon("inbox")),
+        div(
+          div(class = "stat-label", "Indexed"),
+          div(class = "stat-value", textOutput("vb_total", inline = TRUE))
+        )
+      ),
+      div(
+        class = "stat",
+        div(class = "stat-icon", icon("filter")),
+        div(
+          div(class = "stat-label", "Selected (heuristic)"),
+          div(class = "stat-value", textOutput("vb_selected", inline = TRUE))
+        )
+      ),
+      div(
+        class = "stat",
+        div(class = "stat-icon", icon("brain")),
+        div(
+          div(class = "stat-label", "Selected (model)"),
+          div(class = "stat-value", textOutput("vb_selected_model", inline = TRUE))
+        )
+      ),
+      div(
+        class = "stat",
+        div(class = "stat-icon", icon("clipboard-check")),
+        div(
+          div(class = "stat-label", "Reviewed"),
+          div(class = "stat-value", textOutput("vb_reviewed", inline = TRUE))
+        )
+      )
     ),
     layout_columns(
       col_widths = c(7, 5),
@@ -512,7 +577,6 @@ ui <- page_navbar(
         selected = "all"
       ),
       uiOutput("agreement_ui"),
-      uiOutput("model_agreement_ui"),
       # Pin top cards + this stats card; only the middle plot/table row grows.
       fill = FALSE
     )
@@ -659,11 +723,6 @@ ui <- page_navbar(
 # Server
 # -----------------------------------------------------------------------------
 server <- function(input, output, session) {
-  # Value-box title with a small muted group label above the metric name.
-  metric_title <- function(group, label) {
-    htmltools::div(htmltools::div(group, class = "metric-group"), label)
-  }
-
   snap <- reactiveVal(load_or_build_snapshot(CACHE_DIR, COUNTRIES, APP_DATA_DIR))
   reviews <- reactiveVal(load_reviews(APP_DATA_DIR))
   sel_model <- reactiveVal(load_app_model(APP_DATA_DIR))
@@ -890,82 +949,6 @@ server <- function(input, output, session) {
     ))
   })
 
-  # Learned-model metrics row on the Overview dashboard. Always shown for the
-  # out-of-fold (random-sample) CV, recomputed at the chosen threshold without
-  # retraining, with the F1 delta against the heuristic on the same sample.
-  output$model_agreement_ui <- renderUI({
-    m <- sel_model()
-    if (is.null(m)) {
-      return(helpText(
-        "No learned model yet — click \"Train selection model\" in the sidebar."
-      ))
-    }
-    cv <- selection_cv_metrics_safe(m, input$model_threshold)
-    if (is.null(cv)) {
-      return(helpText("Model has no cross-validation data."))
-    }
-    fmtv <- function(x) if (is.na(x)) "—" else sprintf("%.2f", x)
-
-    # Heuristic F1 on the SAME (random) sample, for an apples-to-apples delta.
-    rv_rand <- reviews()
-    rv_rand <- rv_rand[rv_rand$source %in% "random", , drop = FALSE]
-    base <- selection_vs_human(filtered(), rv_rand)
-    delta_ui <- NULL
-    if (!is.null(base) && !is.na(base$f1) && !is.na(cv$f1)) {
-      d <- cv$f1 - base$f1
-      delta_ui <- helpText(sprintf(
-        "F1 vs heuristic (random sample): %+.2f (model %.2f vs %.2f).",
-        d,
-        cv$f1,
-        base$f1
-      ))
-    }
-    tagList(
-      helpText(
-        "Model — the trained selection model, cross-validated (out-of-fold: ",
-        "each record is predicted by a model that did not see it in training) ",
-        "on the unbiased random sample. These numbers are directly comparable ",
-        "to the heuristic row above and aren't inflated by training on the ",
-        "test data."
-      ),
-      layout_columns(
-        fill = FALSE,
-        value_box(
-          metric_title("Model", "CV labels"),
-          cv$n_reviewed,
-          theme = "secondary"
-        ),
-        value_box(
-          metric_title(
-            "Model",
-            div(
-              class = "d-flex align-items-center",
-              style = "gap:4px;",
-              span("Precision · Recall · F1"),
-              prf_help_ui_model()
-            )
-          ),
-          sprintf("%s · %s · %s", fmtv(cv$precision), fmtv(cv$recall), fmtv(cv$f1)),
-          theme = "success"
-        ),
-        value_box(
-          metric_title(
-            "Model",
-            div(
-              class = "d-flex align-items-center",
-              style = "gap:4px;",
-              span("Confusion (TP/FP/FN/TN)"),
-              confusion_help_ui_model()
-            )
-          ),
-          sprintf("%d / %d / %d / %d", cv$tp, cv$fp, cv$fn, cv$tn),
-          theme = "secondary"
-        )
-      ),
-      delta_ui
-    )
-  })
-
   # Per-country precision/recall/F1 — heuristic vs model — on the random sample.
   # Both evaluate on the same (random) consensus labels; the model figures come
   # from its stored out-of-fold predictions, the heuristic from select_assessments.
@@ -1175,8 +1158,8 @@ server <- function(input, output, session) {
     if (identical(input$eval_on, "random")) {
       rv <- rv[rv$source %in% "random", , drop = FALSE]
     }
-    cmp <- selection_vs_human(filtered(), rv)
-    if (is.null(cmp)) {
+    cmp_h <- selection_vs_human(filtered(), rv)
+    if (is.null(cmp_h)) {
       return(tagList(
         irs_ui,
         helpText(
@@ -1188,49 +1171,104 @@ server <- function(input, output, session) {
         )
       ))
     }
+    # Model row uses out-of-fold CV metrics — independent of the All/Random
+    # radio, since CV is always on the random sample.
+    m <- sel_model()
+    cmp_m <- if (is.null(m)) {
+      NULL
+    } else {
+      selection_cv_metrics_safe(m, input$model_threshold)
+    }
+
     fmtv <- function(x) if (is.na(x)) "—" else sprintf("%.2f", x)
+    metric_row <- function(name, sub, m, row_class) {
+      if (is.null(m)) {
+        tags$tr(
+          tags$td(
+            class = "row-label",
+            div(class = paste("row-name", row_class), name),
+            div(class = "row-sub", sub)
+          ),
+          tags$td(
+            colspan = 3,
+            class = "row-empty-msg",
+            "No learned model yet — click \"Train selection model\" in the sidebar."
+          )
+        )
+      } else {
+        tags$tr(
+          tags$td(
+            class = "row-label",
+            div(class = paste("row-name", row_class), name),
+            div(class = "row-sub", sub)
+          ),
+          tags$td(class = "num", format(m$n_reviewed, big.mark = ",")),
+          tags$td(
+            class = "num strong",
+            sprintf("%s · %s · %s", fmtv(m$precision), fmtv(m$recall), fmtv(m$f1))
+          ),
+          tags$td(
+            class = "num",
+            sprintf("%d / %d / %d / %d", m$tp, m$fp, m$fn, m$tn)
+          )
+        )
+      }
+    }
+
+    # F1 delta (model vs heuristic) on the SAME (random) sample. Always evaluated
+    # against the random-sample heuristic so the comparison is apples-to-apples,
+    # regardless of the All/Random radio.
+    delta_ui <- NULL
+    if (!is.null(cmp_m) && !is.na(cmp_m$f1)) {
+      rv_rand <- reviews()
+      rv_rand <- rv_rand[rv_rand$source %in% "random", , drop = FALSE]
+      base <- selection_vs_human(filtered(), rv_rand)
+      if (!is.null(base) && !is.na(base$f1)) {
+        delta_ui <- helpText(sprintf(
+          "F1 vs heuristic (random sample): %+.2f (model %.2f vs %.2f).",
+          cmp_m$f1 - base$f1,
+          cmp_m$f1,
+          base$f1
+        ))
+      }
+    }
+
     tagList(
       irs_ui,
-      helpText(
-        "Heuristic — the fixed select_assessments() rule (cosine OR classifier ",
-        "OR keyword match, minus the confident fossil/nuclear trim) scored ",
-        "against the human keep/drop ground truth. It has no fitted parameters, ",
-        "so evaluating it directly on the labels is fair."
-      ),
-      layout_columns(
-        fill = FALSE,
-        value_box(
-          metric_title("Heuristic", "Reviewed (keep/drop)"),
-          cmp$n_reviewed,
-          theme = "secondary"
-        ),
-        value_box(
-          metric_title(
-            "Heuristic",
-            div(
-              class = "d-flex align-items-center",
-              style = "gap:4px;",
+      tags$table(
+        class = "comparison-table",
+        tags$thead(
+          tags$tr(
+            tags$th(class = "row-head", ""),
+            tags$th("Reviewed"),
+            tags$th(div(
+              class = "hdr",
               span("Precision · Recall · F1"),
               prf_help_ui()
-            )
-          ),
-          sprintf("%s · %s · %s", fmtv(cmp$precision), fmtv(cmp$recall), fmtv(cmp$f1)),
-          theme = "primary"
-        ),
-        value_box(
-          metric_title(
-            "Heuristic",
-            div(
-              class = "d-flex align-items-center",
-              style = "gap:4px;",
+            )),
+            tags$th(div(
+              class = "hdr",
               span("Confusion (TP/FP/FN/TN)"),
               confusion_help_ui()
-            )
+            ))
+          )
+        ),
+        tags$tbody(
+          metric_row(
+            "Heuristic",
+            "fixed rule, evaluated directly on labels",
+            cmp_h,
+            "heuristic"
           ),
-          sprintf("%d / %d / %d / %d", cmp$tp, cmp$fp, cmp$fn, cmp$tn),
-          theme = "secondary"
+          metric_row(
+            "Model",
+            "trained, cross-validated on the random sample",
+            cmp_m,
+            "model"
+          )
         )
-      )
+      ),
+      delta_ui
     )
   })
 
