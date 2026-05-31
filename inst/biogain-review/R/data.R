@@ -221,18 +221,89 @@ build_review_queue <- function(snap, reviews, reviewer, countries, n_per_country
   out
 }
 
+# Per-country progress: how many records are indexed and how many distinct
+# records carry a label, broken down by decision and by the current reviewer.
+# Returns one row per country in `countries` (zero-filled if absent) so the
+# sidebar summary always lists every country in a stable order.
+country_label_counts <- function(snap, reviews, countries, reviewer = NULL) {
+  rec_n <- vapply(
+    countries,
+    function(cc) sum(snap$country %in% cc),
+    integer(1)
+  )
+  rv <- reviews
+  # Distinct labelled records per country (any reviewer, any decision).
+  distinct_per_country <- function(rv, cc) {
+    hit <- rv$country %in% cc
+    if (!any(hit)) {
+      return(0L)
+    }
+    length(unique(rv$document_id[hit]))
+  }
+  # Distinct labelled records per country with a specific decision.
+  per_decision <- function(rv, cc, dec) {
+    hit <- rv$country %in% cc & rv$decision %in% dec
+    if (!any(hit)) {
+      return(0L)
+    }
+    length(unique(rv$document_id[hit]))
+  }
+  labelled <- vapply(countries, function(cc) distinct_per_country(rv, cc), integer(1))
+  keep <- vapply(countries, function(cc) per_decision(rv, cc, "keep"), integer(1))
+  drop <- vapply(countries, function(cc) per_decision(rv, cc, "drop"), integer(1))
+  unsure <- vapply(countries, function(cc) per_decision(rv, cc, "unsure"), integer(1))
+  mine <- if (is.null(reviewer) || !nzchar(reviewer)) {
+    rep(0L, length(countries))
+  } else {
+    rv_mine <- rv[rv$reviewer %in% reviewer, , drop = FALSE]
+    vapply(countries, function(cc) distinct_per_country(rv_mine, cc), integer(1))
+  }
+  tibble::tibble(
+    country = countries,
+    records = rec_n,
+    labelled = labelled,
+    pct = ifelse(rec_n > 0L, 100 * labelled / rec_n, NA_real_),
+    keep = keep,
+    drop = drop,
+    unsure = unsure,
+    yours = mine
+  )
+}
+
 # Recompute the BIOGAIN ensemble selection (and cosine/kw arms) on the snapshot
 # for the given thresholds. Thin wrapper over the package's select_assessments()
 # so the funnel reflects the real selection rule, not a reimplementation.
-apply_selection <- function(snap, relevance_threshold = 0.5, kw_min = 2L) {
+#
+# `use_classifier = FALSE` disables the classifier arm by zeroing `class_relevant`
+# only for the duration of the selection call (the funnel's "Classifier-relevant"
+# diagnostic count, which reads class_relevant directly, stays intact). Passing
+# `nonrenewable = character(0)` disables the non-renewable trim.
+apply_selection <- function(
+  snap,
+  relevance_threshold = 0.5,
+  kw_min = 2L,
+  use_classifier = TRUE,
+  nonrenewable = c("fossil_power", "oil_gas_extraction", "nuclear"),
+  nonrenewable_score = 0.5
+) {
   if (nrow(snap) == 0L) {
     snap$cosine_relevant <- logical(0)
     snap$selected <- logical(0)
     return(snap)
   }
-  planscanR::select_assessments(
+  orig_class_relevant <- snap$class_relevant
+  if (!isTRUE(use_classifier) && "class_relevant" %in% names(snap)) {
+    snap$class_relevant <- FALSE
+  }
+  out <- planscanR::select_assessments(
     snap,
     relevance_threshold = relevance_threshold,
-    kw_min = as.integer(kw_min)
+    kw_min = as.integer(kw_min),
+    nonrenewable = nonrenewable,
+    nonrenewable_score = nonrenewable_score
   )
+  if (!isTRUE(use_classifier) && "class_relevant" %in% names(out)) {
+    out$class_relevant <- orig_class_relevant
+  }
+  out
 }

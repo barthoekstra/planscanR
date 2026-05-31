@@ -13,7 +13,8 @@ selection_learning_curve(
   repeats = 10,
   eval_source = "random",
   threshold = 0.5,
-  seed = NULL
+  seed = NULL,
+  by_country = FALSE
 )
 }
 \arguments{
@@ -43,10 +44,19 @@ the train pool are dropped, but the pool maximum is always kept.}
 \item{threshold}{Probability cutoff for the keep decision when scoring.}
 
 \item{seed}{Optional RNG seed for reproducible splits.}
+
+\item{by_country}{If \code{TRUE}, also slice the held-out test set per country and
+compute one set of metrics per country at every (size, repeat), plus an
+\code{"all"} row that matches the default output. A \code{country} column is
+prepended. The model is still trained corpus-wide — this only varies the
+evaluation slice, so it shows where the shared model performs as the
+training pool grows. Slices smaller than 1 record are dropped silently.}
 }
 \value{
 A long tibble with one row per (size, repeat), columns in order:
-\code{size}, \code{n_train_used}, \code{rep}, \code{n_test}, \code{precision}, \code{recall}, \code{f1}.
+\code{size}, \code{n_train_used}, \code{rep}, \code{n_test}, \code{precision}, \code{recall}, \code{f1}. When
+\code{by_country = TRUE}, a leading \code{country} column is added and there is one
+row per (country, size, repeat) plus an \code{"all"} row per (size, repeat).
 }
 \description{
 Estimates how the model's held-out F1 / precision / recall improve as the

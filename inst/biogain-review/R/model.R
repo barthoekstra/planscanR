@@ -108,19 +108,31 @@ train_app_model <- function(snap, reviews, learner_key, data_dir, eval_source = 
 # Compute a held-out learning curve (F1 vs. number of labels) on the unbiased
 # random sample with the chosen learner. Returns the long per-(size, repeat)
 # tibble from the package; callers summarise it with learning_curve_summary().
-compute_learning_curve <- function(snap, reviews, learner_key, eval_source = "random") {
+# `by_country = TRUE` adds a `country` column and one row per country slice of
+# the held-out test (plus an "all" overall row) at every (size, repeat).
+compute_learning_curve <- function(
+  snap,
+  reviews,
+  learner_key,
+  eval_source = "random",
+  by_country = FALSE
+) {
   learner <- make_selection_learner(learner_key)
   planscanR::selection_learning_curve(
     snap,
     reviews,
     learner = learner,
-    eval_source = eval_source
+    eval_source = eval_source,
+    by_country = by_country
   )
 }
 
 # Learning-curve plot: mean held-out F1 vs. number of training labels with a
 # +/-sd ribbon over the repeats. `summary_df` is a learning_curve_summary()
-# tibble (size, n_train_used, n, f1_mean, f1_sd, ...). Empty -> placeholder.
+# tibble (size, n_train_used, n, f1_mean, f1_sd, ...). When the summary carries
+# a `country` column (per-country slicing of the held-out test), the "all" row
+# is drawn as the thick navy line with the ±sd ribbon and each country is added
+# as a thinner colored line (no ribbon — would clutter). Empty -> placeholder.
 learning_curve_plot <- function(summary_df) {
   if (is.null(summary_df) || nrow(summary_df) == 0L) {
     p <- plotly::plot_ly(type = "scatter", mode = "lines")
@@ -143,61 +155,113 @@ learning_curve_plot <- function(summary_df) {
     return(plotly::config(p, displayModeBar = FALSE))
   }
 
-  d <- summary_df[order(summary_df$n_train_used), , drop = FALSE]
   navy <- "#0e3c62"
-  sd_lo <- pmax(0, d$f1_mean - ifelse(is.na(d$f1_sd), 0, d$f1_sd))
-  sd_hi <- pmin(1, d$f1_mean + ifelse(is.na(d$f1_sd), 0, d$f1_sd))
-  hover <- sprintf(
-    "Labels: %d<br>F1: %.3f ± %.3f<br>repeats: %d",
-    d$n_train_used,
-    d$f1_mean,
-    ifelse(is.na(d$f1_sd), 0, d$f1_sd),
-    d$n
-  )
+  has_country <- "country" %in% names(summary_df)
+
+  order_df <- function(d) d[order(d$n_train_used), , drop = FALSE]
+  hover_for <- function(d, label = NULL) {
+    sprintf(
+      "%sLabels: %d<br>F1: %.3f ± %.3f<br>repeats: %d",
+      if (is.null(label)) "" else paste0(label, "<br>"),
+      d$n_train_used,
+      d$f1_mean,
+      ifelse(is.na(d$f1_sd), 0, d$f1_sd),
+      d$n
+    )
+  }
 
   p <- plotly::plot_ly()
-  # +/-sd ribbon: upper bound then lower bound with fill = "tonexty".
-  p <- plotly::add_trace(
-    p,
-    x = d$n_train_used,
-    y = sd_hi,
-    type = "scatter",
-    mode = "lines",
-    line = list(width = 0),
-    showlegend = FALSE,
-    hoverinfo = "skip"
-  )
-  p <- plotly::add_trace(
-    p,
-    x = d$n_train_used,
-    y = sd_lo,
-    type = "scatter",
-    mode = "lines",
-    line = list(width = 0),
-    fill = "tonexty",
-    fillcolor = "rgba(14, 60, 98, 0.18)",
-    showlegend = FALSE,
-    hoverinfo = "skip"
-  )
-  p <- plotly::add_trace(
-    p,
-    x = d$n_train_used,
-    y = d$f1_mean,
-    type = "scatter",
-    mode = "lines+markers",
-    line = list(color = navy, width = 2),
-    marker = list(color = navy, size = 7),
-    hovertext = hover,
-    hoverinfo = "text",
-    showlegend = FALSE
-  )
+
+  d_all <- if (has_country) {
+    summary_df[summary_df$country == "all", , drop = FALSE]
+  } else {
+    summary_df
+  }
+  d_all <- order_df(d_all)
+
+  if (nrow(d_all) > 0L) {
+    sd_lo <- pmax(0, d_all$f1_mean - ifelse(is.na(d_all$f1_sd), 0, d_all$f1_sd))
+    sd_hi <- pmin(1, d_all$f1_mean + ifelse(is.na(d_all$f1_sd), 0, d_all$f1_sd))
+    p <- plotly::add_trace(
+      p,
+      x = d_all$n_train_used,
+      y = sd_hi,
+      type = "scatter",
+      mode = "lines",
+      line = list(width = 0),
+      showlegend = FALSE,
+      hoverinfo = "skip"
+    )
+    p <- plotly::add_trace(
+      p,
+      x = d_all$n_train_used,
+      y = sd_lo,
+      type = "scatter",
+      mode = "lines",
+      line = list(width = 0),
+      fill = "tonexty",
+      fillcolor = "rgba(14, 60, 98, 0.18)",
+      showlegend = FALSE,
+      hoverinfo = "skip"
+    )
+    p <- plotly::add_trace(
+      p,
+      x = d_all$n_train_used,
+      y = d_all$f1_mean,
+      type = "scatter",
+      mode = "lines+markers",
+      line = list(color = navy, width = 2.5),
+      marker = list(color = navy, size = 7),
+      name = "All",
+      hovertext = hover_for(d_all, "All"),
+      hoverinfo = "text",
+      showlegend = has_country
+    )
+  }
+
+  if (has_country) {
+    countries <- sort(setdiff(unique(summary_df$country), "all"))
+    # Qualitative palette (Plotly's "Set2"/"D3" feel); recycled if >8 countries.
+    palette <- c(
+      "#e15759", "#59a14f", "#f28e2b", "#b07aa1",
+      "#76b7b2", "#edc948", "#ff9da7", "#9c755f"
+    )
+    for (i in seq_along(countries)) {
+      cc <- countries[i]
+      d <- order_df(summary_df[summary_df$country == cc, , drop = FALSE])
+      if (nrow(d) == 0L) next
+      col <- palette[((i - 1L) %% length(palette)) + 1L]
+      p <- plotly::add_trace(
+        p,
+        x = d$n_train_used,
+        y = d$f1_mean,
+        type = "scatter",
+        mode = "lines+markers",
+        line = list(color = col, width = 1.4, dash = "dot"),
+        marker = list(color = col, size = 5),
+        name = toupper(cc),
+        hovertext = hover_for(d, toupper(cc)),
+        hoverinfo = "text",
+        showlegend = TRUE
+      )
+    }
+  }
+
   p <- plotly::layout(
     p,
     paper_bgcolor = "rgba(0,0,0,0)",
     plot_bgcolor = "rgba(0,0,0,0)",
     xaxis = list(title = "Number of training labels", zeroline = FALSE),
     yaxis = list(title = "F1 (held-out)", range = c(0, 1), zeroline = FALSE),
-    margin = list(l = 50, r = 20, t = 10, b = 40)
+    legend = list(
+      orientation = "h",
+      x = 0,
+      xanchor = "left",
+      y = 1.02,
+      yanchor = "bottom",
+      font = list(size = 10)
+    ),
+    margin = list(l = 50, r = 20, t = if (has_country) 40 else 10, b = 40)
   )
   plotly::config(p, displayModeBar = FALSE)
 }

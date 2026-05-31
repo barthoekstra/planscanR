@@ -25,7 +25,7 @@ planscanR::run_biogain_review(cache_dir = "/path/to/plans", port = 7654)
 
 - **Cache** (where the sidecars live): `cache_dir` arg → `PLANSCANR_CACHE` env →
   `getOption("planscanR.cache_dir")` → the package default user cache.
-- **App data** (snapshot + `reviews.csv` + reviewers list): `data_dir` arg →
+- **App data** (snapshot + `reviews.csv`): `data_dir` arg →
   `BIOGAIN_REVIEW_DATA` env → the **cache root** (so the annotations sit with
   the data and travel with a cache sync). Written at the root, not under
   `files/`, so `clear_cache()` leaves them intact.

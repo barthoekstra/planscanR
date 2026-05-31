@@ -40,8 +40,22 @@ if (!nzchar(CACHE_DIR)) {
     tools::R_user_dir("planscanR", "cache")
   )
 }
-COUNTRIES <- c("nl", "de", "at", "dk")
-# Where the app's own artefacts live (snapshot + reviews.csv + reviewers list).
+# Countries are discovered from the on-disk sidecar layout
+# (`<CACHE_DIR>/files/<cc>/...`), so a new country handler that has written
+# sidecars shows up in the app without any code change here. The filter to
+# lowercase 2-letter names keeps stray dotfiles (`.DS_Store`) and partial
+# subtrees out of the list. Sorted alphabetically for a stable UI order.
+COUNTRIES <- {
+  files_root <- file.path(CACHE_DIR, "files")
+  if (dir.exists(files_root)) {
+    cc <- list.dirs(files_root, full.names = FALSE, recursive = FALSE)
+    cc <- cc[grepl("^[a-z]{2}$", cc)]
+    sort(cc)
+  } else {
+    character(0)
+  }
+}
+# Where the app's own artefacts live (snapshot + reviews.csv).
 # Defaults to the cache ROOT so the human annotations sit alongside the data
 # they describe (and travel with any cache sync). They live at the root, not
 # under files/, so clear_cache() — which only wipes files/ — leaves them intact.
@@ -339,32 +353,77 @@ ui <- page_navbar(
         plugins = list("remove_button")
       )
     ),
-    # Countries / thresholds only shape the Funnel view, so they're shown only
-    # there to keep the review pages uncluttered.
+    # Country filter is app-wide — it narrows Review and Random review (where
+    # most labelling effort goes) as well as the Overview funnel. Useful for
+    # focusing on a single country (e.g. DK) while others are saturated.
+    selectInput(
+      "countries",
+      "Countries",
+      choices = COUNTRIES,
+      selected = COUNTRIES,
+      multiple = TRUE
+    ),
+    uiOutput("country_labels_summary"),
+    actionButton(
+      "show_label_counts",
+      "Label counts by country",
+      class = "btn-outline-secondary btn-sm"
+    ),
+    # Thresholds only shape the Funnel view, so keep them on Overview to avoid
+    # cluttering the review pages. Folded behind an accordion (collapsed by
+    # default) so the sidebar stays tidy — open it to tune the heuristic.
     conditionalPanel(
       condition = "input.nav == 'Overview'",
-      selectInput(
-        "countries",
-        "Countries",
-        choices = COUNTRIES,
-        selected = COUNTRIES,
-        multiple = TRUE
-      ),
-      sliderInput(
-        "threshold",
-        "Cosine threshold",
-        min = 0,
-        max = 1,
-        value = 0.5,
-        step = 0.01
-      ),
-      sliderInput(
-        "kw_min",
-        "Min keyword hits",
-        min = 0,
-        max = 6,
-        value = 2,
-        step = 1
+      accordion(
+        open = FALSE,
+        accordion_panel(
+          "Heuristic knobs",
+          sliderInput(
+            "threshold",
+            "Cosine threshold",
+            min = 0,
+            max = 1,
+            value = 0.5,
+            step = 0.01
+          ),
+          sliderInput(
+            "kw_min",
+            "Min keyword hits",
+            min = 0,
+            max = 6,
+            value = 2,
+            step = 1
+          ),
+          checkboxInput(
+            "use_classifier",
+            "Use classifier arm",
+            value = TRUE
+          ),
+          checkboxInput(
+            "use_trim",
+            "Trim confident non-renewables",
+            value = TRUE
+          ),
+          conditionalPanel(
+            condition = "input.use_trim == true",
+            selectizeInput(
+              "nonrenewable",
+              "Non-renewable labels",
+              choices = names(planscanR::biogain_classification_labels()),
+              selected = c("fossil_power", "oil_gas_extraction", "nuclear"),
+              multiple = TRUE,
+              options = list(plugins = list("remove_button"))
+            ),
+            sliderInput(
+              "nonrenewable_score",
+              "Non-renewable confidence",
+              min = 0,
+              max = 1,
+              value = 0.5,
+              step = 0.01
+            )
+          )
+        )
       )
     ),
     hr(),
@@ -389,10 +448,13 @@ ui <- page_navbar(
       step = 0.01
     ),
     actionButton("compute_lc", "Compute learning curve", class = "btn-primary btn-sm"),
-    plotly::plotlyOutput("learning_curve_plot", height = "220px"),
+    plotly::plotlyOutput("learning_curve_plot", height = "260px"),
     helpText(
       "Repeated held-out resampling on the random sample: F1 vs. number of ",
-      "labels. Shows where adding more labels stops helping."
+      "labels. The thick navy line is the all-countries curve; dotted lines ",
+      "slice the held-out test set per country (model is still trained ",
+      "corpus-wide). Shows where adding more labels stops helping overall and ",
+      "which countries are still gaining from a bigger label pool."
     ),
     hr(),
     actionButton("rebuild", "Rebuild snapshot", class = "btn-outline-secondary btn-sm"),
@@ -614,13 +676,10 @@ server <- function(input, output, session) {
       showNotification("Please enter your name to continue.", type = "warning")
       return()
     }
-    if (!who %in% load_reviewers(APP_DATA_DIR)) {
-      add_reviewer(APP_DATA_DIR, who)
-    }
     updateSelectizeInput(
       session,
       "reviewer",
-      choices = load_reviewers(APP_DATA_DIR),
+      choices = union(load_reviewers(APP_DATA_DIR), who),
       selected = who
     )
     removeModal()
@@ -642,18 +701,15 @@ server <- function(input, output, session) {
     }
     who
   }
-  # Persist newly-typed names so they're offered in the dropdown next time, and
-  # mirror the current name to the client so the in-table buttons can refuse to
-  # classify until a name is set.
+  # Mirror the current name to the client so the in-table buttons can refuse to
+  # classify until a name is set. The name itself is persisted via reviews.csv
+  # once the reviewer classifies a record (load_reviewers reads it back from
+  # there), so there's nothing to write here.
   observeEvent(
     input$reviewer,
     {
       who <- trimws(input$reviewer %||% "")
       session$sendCustomMessage("setReviewer", who)
-      if (nzchar(who) && !who %in% load_reviewers(APP_DATA_DIR)) {
-        add_reviewer(APP_DATA_DIR, who)
-        updateSelectizeInput(session, "reviewer", choices = load_reviewers(APP_DATA_DIR), selected = who)
-      }
     },
     ignoreNULL = FALSE
   )
@@ -702,7 +758,7 @@ server <- function(input, output, session) {
   observeEvent(input$compute_lc, {
     res <- tryCatch(
       withProgress(message = "Computing learning curve (repeated held-out resampling)...", value = 0.5, {
-        compute_learning_curve(snap(), reviews(), input$learner)
+        compute_learning_curve(snap(), reviews(), input$learner, by_country = TRUE)
       }),
       error = function(e) e
     )
@@ -723,6 +779,102 @@ server <- function(input, output, session) {
       return(learning_curve_plot(NULL))
     }
     learning_curve_plot(planscanR::learning_curve_summary(curve))
+  })
+
+  # Compact per-country labels-vs-records summary shown under the Countries
+  # picker. Helps reviewers see where labelling is saturated (NL/DE/AT) and where
+  # fresh effort is most useful (currently DK). Recomputes whenever a label is
+  # added/removed or the snapshot is rebuilt.
+  output$country_labels_summary <- renderUI({
+    cl <- country_label_counts(snap(), reviews(), COUNTRIES, current_reviewer())
+    row <- function(r) {
+      tags$tr(
+        tags$td(toupper(r$country), style = "font-weight:600;"),
+        tags$td(
+          format(r$labelled, big.mark = ","),
+          style = "text-align:right;font-variant-numeric:tabular-nums;"
+        ),
+        tags$td(
+          paste0("/ ", format(r$records, big.mark = ",")),
+          style = "text-align:right;color:#888;font-variant-numeric:tabular-nums;"
+        ),
+        tags$td(
+          if (is.na(r$pct)) "—" else sprintf("%.1f%%", r$pct),
+          style = "text-align:right;color:#888;font-variant-numeric:tabular-nums;"
+        )
+      )
+    }
+    rows <- lapply(seq_len(nrow(cl)), function(i) row(cl[i, ]))
+    tagList(
+      tags$div(
+        "Labels by country",
+        style = "font-size:0.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#666;margin:6px 0 2px;"
+      ),
+      tags$table(
+        style = "width:100%;font-size:12px;border-collapse:collapse;margin-bottom:6px;",
+        do.call(tags$tbody, rows)
+      )
+    )
+  })
+
+  # Per-country breakdown modal: full table behind the sidebar's "Label counts
+  # by country" button. Shows records, distinct labels (any reviewer), the
+  # current reviewer's count, and the keep/drop/unsure split.
+  observeEvent(input$show_label_counts, {
+    showModal(modalDialog(
+      title = "Label counts by country",
+      size = "l",
+      easyClose = TRUE,
+      helpText(
+        "Distinct labelled records per country. \"Yours\" is just the current ",
+        "reviewer's labels; the other columns are across all reviewers. Use ",
+        "this to decide where to focus — e.g. DK is fresh, NL/DE/AT are ",
+        "saturated."
+      ),
+      reactable::reactableOutput("label_counts_tbl"),
+      footer = modalButton("Close")
+    ))
+  })
+
+  output$label_counts_tbl <- reactable::renderReactable({
+    cl <- country_label_counts(snap(), reviews(), COUNTRIES, current_reviewer())
+    cl$country <- toupper(cl$country)
+    reactable::reactable(
+      cl,
+      compact = TRUE,
+      pagination = FALSE,
+      columns = list(
+        country = reactable::colDef(name = "Country", width = 90),
+        records = reactable::colDef(
+          name = "Records",
+          format = reactable::colFormat(separators = TRUE)
+        ),
+        labelled = reactable::colDef(
+          name = "Labelled",
+          format = reactable::colFormat(separators = TRUE)
+        ),
+        pct = reactable::colDef(
+          name = "% labelled",
+          format = reactable::colFormat(digits = 1, suffix = "%")
+        ),
+        yours = reactable::colDef(
+          name = "Yours",
+          format = reactable::colFormat(separators = TRUE)
+        ),
+        keep = reactable::colDef(
+          name = "Keep",
+          format = reactable::colFormat(separators = TRUE)
+        ),
+        drop = reactable::colDef(
+          name = "Drop",
+          format = reactable::colFormat(separators = TRUE)
+        ),
+        unsure = reactable::colDef(
+          name = "Unsure",
+          format = reactable::colFormat(separators = TRUE)
+        )
+      )
+    )
   })
 
   output$model_info <- renderUI({
@@ -913,7 +1065,19 @@ server <- function(input, output, session) {
   # the model-scored snapshot so it carries both the heuristic `selected` and the
   # model `selected_model` (the latter derived from the model decision threshold).
   selected_snap <- reactive({
-    s <- apply_selection(model_scored(), input$threshold, as.integer(input$kw_min))
+    nr <- if (isTRUE(input$use_trim)) {
+      input$nonrenewable %||% character(0)
+    } else {
+      character(0)
+    }
+    s <- apply_selection(
+      model_scored(),
+      relevance_threshold = input$threshold,
+      kw_min = as.integer(input$kw_min),
+      use_classifier = isTRUE(input$use_classifier),
+      nonrenewable = nr,
+      nonrenewable_score = input$nonrenewable_score %||% 0.5
+    )
     thr <- input$model_threshold
     if (is.null(thr) || is.na(thr)) {
       thr <- 0.5

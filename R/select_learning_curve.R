@@ -35,8 +35,16 @@
 #'   `"random"` — the unbiased sample). `NULL` uses every keep/drop label.
 #' @param threshold Probability cutoff for the keep decision when scoring.
 #' @param seed Optional RNG seed for reproducible splits.
+#' @param by_country If `TRUE`, also slice the held-out test set per country and
+#'   compute one set of metrics per country at every (size, repeat), plus an
+#'   `"all"` row that matches the default output. A `country` column is
+#'   prepended. The model is still trained corpus-wide — this only varies the
+#'   evaluation slice, so it shows where the shared model performs as the
+#'   training pool grows. Slices smaller than 1 record are dropped silently.
 #' @return A long tibble with one row per (size, repeat), columns in order:
-#'   `size`, `n_train_used`, `rep`, `n_test`, `precision`, `recall`, `f1`.
+#'   `size`, `n_train_used`, `rep`, `n_test`, `precision`, `recall`, `f1`. When
+#'   `by_country = TRUE`, a leading `country` column is added and there is one
+#'   row per (country, size, repeat) plus an `"all"` row per (size, repeat).
 #' @seealso [learning_curve_summary()] to aggregate the curve.
 #' @export
 #' @examples
@@ -55,7 +63,8 @@ selection_learning_curve <- function(
   repeats = 10,
   eval_source = "random",
   threshold = 0.5,
-  seed = NULL
+  seed = NULL,
+  by_country = FALSE
 ) {
   if (!inherits(learner, "planscanR_selection_learner")) {
     cli::cli_abort(
@@ -110,21 +119,46 @@ selection_learning_curve <- function(
       wf <- build_selection_workflow(learner, sub, feature_names)
       fit_i <- parsnip::fit(wf, data = sub)
       preds <- stats::predict(fit_i, new_data = test, type = "prob")[[".pred_keep"]]
-      m <- selection_metrics_from_oof(
-        tibble::tibble(.pred_keep = preds, truth = test$decision),
-        threshold = threshold
+      oof <- tibble::tibble(
+        .pred_keep = preds,
+        truth = test$decision,
+        country = test$country
       )
-      tibble::tibble(
+      base <- tibble::tibble(
         size = as.integer(n),
         n_train_used = nrow(sub),
-        rep = as.integer(r),
-        n_test = nrow(test),
-        precision = m$precision,
-        recall = m$recall,
-        f1 = m$f1
+        rep = as.integer(r)
       )
+      slice_row <- function(slice_oof, cc) {
+        if (nrow(slice_oof) == 0L) {
+          return(NULL)
+        }
+        m <- selection_metrics_from_oof(slice_oof, threshold = threshold)
+        out <- base
+        if (!is.null(cc)) {
+          out$country <- cc
+        }
+        out$n_test <- nrow(slice_oof)
+        out$precision <- m$precision
+        out$recall <- m$recall
+        out$f1 <- m$f1
+        out
+      }
+      if (!by_country) {
+        return(slice_row(oof, NULL))
+      }
+      groups <- split(seq_len(nrow(oof)), oof$country)
+      per_country <- lapply(names(groups), function(cc) {
+        slice_row(oof[groups[[cc]], , drop = FALSE], cc)
+      })
+      all_row <- slice_row(oof, "all")
+      dplyr::bind_rows(c(list(all_row), per_country))
     })
-    dplyr::bind_rows(rows)
+    out <- dplyr::bind_rows(rows)
+    if (by_country && nrow(out) > 0L) {
+      out <- out[, c("country", setdiff(names(out), "country")), drop = FALSE]
+    }
+    out
   })
 
   dplyr::bind_rows(parts)
@@ -133,9 +167,9 @@ selection_learning_curve <- function(
 #' Aggregate a learning curve to mean +/- sd per training size.
 #'
 #' @param curve The long tibble returned by [selection_learning_curve()].
-#' @return A tibble with one row per `size`: `size`, `n_train_used`, `n`
-#'   (number of repeats contributing), and the mean/sd of `f1`, `precision`,
-#'   `recall`.
+#' @return A tibble with one row per `size` (or per (country, size) when the
+#'   `curve` carries a `country` column): `size`, `n_train_used`, `n` (number
+#'   of repeats contributing), and the mean/sd of `f1`, `precision`, `recall`.
 #' @export
 #' @examples
 #' \dontrun{
@@ -148,7 +182,11 @@ learning_curve_summary <- function(curve) {
       class = "planscanR_error_bad_input"
     )
   }
-  grouped <- dplyr::group_by(curve, .data$size)
+  grouped <- if ("country" %in% names(curve)) {
+    dplyr::group_by(curve, .data$country, .data$size)
+  } else {
+    dplyr::group_by(curve, .data$size)
+  }
   out <- dplyr::summarise(
     grouped,
     n_train_used = round(mean(.data$n_train_used)),
@@ -161,7 +199,11 @@ learning_curve_summary <- function(curve) {
     recall_sd = stats::sd(.data$recall, na.rm = TRUE),
     .groups = "drop"
   )
-  dplyr::arrange(out, .data$size)
+  if ("country" %in% names(out)) {
+    dplyr::arrange(out, .data$country, .data$size)
+  } else {
+    dplyr::arrange(out, .data$size)
+  }
 }
 
 # Build a grid of ~10-12 increasing integer sizes from 30 up to `max_train`,

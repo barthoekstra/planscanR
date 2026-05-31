@@ -200,33 +200,12 @@ keys_reviewed_any <- function(reviews) {
   unique(review_key(reviews$country, reviews$document_id))
 }
 
-# Known-reviewer name store: a plain newline-delimited list the app uses to
-# populate a name dropdown.
-reviewers_path <- function(data_dir) file.path(data_dir, "reviewers.txt")
-
-# Sorted, de-duplicated known names: the default, names in reviewers.txt, and
-# any reviewer values already recorded in reviews.csv. Never returns empty.
+# Sorted, de-duplicated reviewer names, sourced from the reviewer values already
+# recorded in reviews.csv. Empty until the first decision is saved; the name
+# dropdown has `create = TRUE`, so a new reviewer types their name (it persists
+# once they classify a record).
 load_reviewers <- function(data_dir) {
-  names <- "Bart Hoekstra"
-  txt <- reviewers_path(data_dir)
-  if (file.exists(txt)) {
-    from_file <- trimws(readLines(txt, warn = FALSE))
-    names <- c(names, from_file[nzchar(from_file)])
-  }
   from_reviews <- tryCatch(load_reviews(data_dir)$reviewer, error = function(e) character(0))
   from_reviews <- from_reviews[!is.na(from_reviews) & nzchar(from_reviews)]
-  sort(unique(c(names, from_reviews)))
-}
-
-# Append a new reviewer name to reviewers.txt (idempotent). Returns the updated
-# vector of known names.
-add_reviewer <- function(data_dir, name) {
-  name <- trimws(name)
-  if (nzchar(name) && !name %in% load_reviewers(data_dir)) {
-    if (!dir.exists(data_dir)) {
-      dir.create(data_dir, recursive = TRUE)
-    }
-    cat(name, "\n", sep = "", file = reviewers_path(data_dir), append = TRUE)
-  }
-  load_reviewers(data_dir)
+  sort(unique(from_reviews))
 }

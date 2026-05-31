@@ -84,6 +84,39 @@ test_that("selection_learning_curve returns the expected long shape over sizes",
   expect_true(all(summ$f1_mean >= 0 & summ$f1_mean <= 1, na.rm = TRUE))
 })
 
+test_that("selection_learning_curve(by_country=TRUE) returns per-country + 'all' rows", {
+  skip_if_not_installed("parsnip")
+  skip_if_not_installed("recipes")
+  skip_if_not_installed("rsample")
+  skip_if_not_installed("workflows")
+
+  recs <- lc_synth_records()
+  rev <- lc_synth_reviews(recs)
+
+  curve <- selection_learning_curve(
+    recs,
+    rev,
+    sizes = c(30, 60, 90),
+    repeats = 2,
+    seed = 42,
+    by_country = TRUE
+  )
+
+  expect_true("country" %in% names(curve))
+  expect_equal(names(curve)[1], "country")
+  expect_true("all" %in% curve$country)
+  expect_true(all(c("nl", "de", "at") %in% curve$country))
+  expect_true(all(curve$f1 >= 0 & curve$f1 <= 1, na.rm = TRUE))
+
+  summ <- learning_curve_summary(curve)
+  expect_true("country" %in% names(summ))
+  # One row per (country, size) that actually had data.
+  expect_equal(
+    nrow(summ),
+    nrow(unique(curve[, c("country", "size")]))
+  )
+})
+
 test_that("selection_learning_curve errors without both classes", {
   skip_if_not_installed("parsnip")
   recs <- lc_synth_records(40)

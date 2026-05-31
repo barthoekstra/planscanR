@@ -10,9 +10,9 @@ learning_curve_summary(curve)
 \item{curve}{The long tibble returned by \code{\link[=selection_learning_curve]{selection_learning_curve()}}.}
 }
 \value{
-A tibble with one row per \code{size}: \code{size}, \code{n_train_used}, \code{n}
-(number of repeats contributing), and the mean/sd of \code{f1}, \code{precision},
-\code{recall}.
+A tibble with one row per \code{size} (or per (country, size) when the
+\code{curve} carries a \code{country} column): \code{size}, \code{n_train_used}, \code{n} (number
+of repeats contributing), and the mean/sd of \code{f1}, \code{precision}, \code{recall}.
 }
 \description{
 Aggregate a learning curve to mean +/- sd per training size.

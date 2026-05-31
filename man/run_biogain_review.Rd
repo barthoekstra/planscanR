@@ -16,8 +16,8 @@ run_biogain_review(
 \code{PLANSCANR_CACHE}, then \code{getOption("planscanR.cache_dir")}, then the
 package default (\code{\link[tools:userdir]{tools::R_user_dir()}} \code{"cache"}).}
 
-\item{data_dir}{Writable directory for the app's snapshot, \code{reviews.csv}, and
-reviewers list. \code{NULL} (default) uses the \strong{cache root} (\code{cache_dir}), so
+\item{data_dir}{Writable directory for the app's snapshot and \code{reviews.csv}.
+\code{NULL} (default) uses the \strong{cache root} (\code{cache_dir}), so
 the human annotations sit alongside the data they describe and travel with
 any cache sync. They are written at the root, not under \verb{files/}, so
 \code{\link[=clear_cache]{clear_cache()}} leaves them intact.}
