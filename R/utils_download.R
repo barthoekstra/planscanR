@@ -110,7 +110,7 @@ slugify_filename <- function(url, country, document_id, max_chars = 200L) {
 #' @param root Cache root (or `NULL` to use default).
 #' @return Absolute path.
 #' @noRd
-cache_path <- function(url, country, document_id, root = NULL) {
+cache_path_internal <- function(url, country, document_id, root = NULL) {
   dir <- cache_dir(file.path("files", country, document_id), create = TRUE, root = root)
   file.path(dir, slugify_filename(url, country, document_id))
 }
@@ -123,7 +123,7 @@ cache_path <- function(url, country, document_id, root = NULL) {
 #' non-empty match exists, the original `dest` if it is already on disk,
 #' or `NA_character_` if nothing has been cached yet.
 #' @noRd
-resolve_cached_path <- function(dest) {
+resolve_cached_path_internal <- function(dest) {
   if (length(dest) != 1L || is.na(dest) || !nzchar(dest)) {
     return(NA_character_)
   }
@@ -367,8 +367,8 @@ download_attachments <- function(urls, country, document_id, overwrite = FALSE, 
   }
   cap <- max_file_size_bytes(max_file_size_mb)
   results <- lapply(urls, function(u) {
-    dest <- cache_path(u, country, document_id, root = root)
-    cached <- resolve_cached_path(dest)
+    dest <- cache_path_internal(u, country, document_id, root = root)
+    cached <- resolve_cached_path_internal(dest)
     if (!is.na(cached) && !overwrite) {
       return(list(
         url = u,

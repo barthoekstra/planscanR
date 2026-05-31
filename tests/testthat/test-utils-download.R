@@ -9,7 +9,7 @@ test_that("cache_dir resolves under user option override", {
 
 test_that("cache_path builds the country/document_id layout with a flatten-safe basename", {
   withr::with_tempdir({
-    p <- planscanR:::cache_path(
+    p <- planscanR:::cache_path_internal(
       "https://pas.commissiemer.nl/files/nl/3619/a3619ts.pdf",
       country = "nl",
       document_id = "3619",
@@ -131,18 +131,18 @@ test_that("finalize_extension renames .x placeholders using Content-Type or magi
 test_that("resolve_cached_path finds the finalized file when only the placeholder is known", {
   withr::with_tempdir({
     writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46)), "ee_kmh-44_kmh_file_download-deadbeef.pdf")
-    out <- planscanR:::resolve_cached_path("ee_kmh-44_kmh_file_download-deadbeef.x")
+    out <- planscanR:::resolve_cached_path_internal("ee_kmh-44_kmh_file_download-deadbeef.x")
     expect_identical(basename(out), "ee_kmh-44_kmh_file_download-deadbeef.pdf")
   })
   withr::with_tempdir({
     # Two finalized files for the same stem is ambiguous — refuse to guess.
     writeBin(as.raw(1L), "stem.pdf")
     writeBin(as.raw(1L), "stem.zip")
-    expect_true(is.na(planscanR:::resolve_cached_path("stem.x")))
+    expect_true(is.na(planscanR:::resolve_cached_path_internal("stem.x")))
   })
   withr::with_tempdir({
     # Nothing yet on disk → NA, so callers know to proceed with the download.
-    expect_true(is.na(planscanR:::resolve_cached_path("missing.x")))
+    expect_true(is.na(planscanR:::resolve_cached_path_internal("missing.x")))
   })
 })
 
@@ -263,6 +263,78 @@ test_that("format_bytes gives a human-readable size", {
   expect_match(planscanR:::format_bytes(0), "^0\\.0 B")
   expect_match(planscanR:::format_bytes(1500), "^1\\.5 KB")
   expect_match(planscanR:::format_bytes(1024^3), "^1\\.0 GB")
+})
+
+test_that("cache_path (public) builds the canonical files/<cc>/<doc>/<slug> layout", {
+  withr::with_tempdir({
+    p <- cache_path(
+      "https://pas.commissiemer.nl/files/nl/3619/a3619ts.pdf",
+      country = "nl",
+      document_id = "3619",
+      cache_dir = getwd()
+    )
+    expect_true(grepl("files/nl/3619/", p))
+    expect_identical(basename(p), "nl_3619_a3619ts.pdf")
+    expect_true(dir.exists(dirname(p)))
+  })
+})
+
+test_that("cache_path (public) defaults to the resolved cache root", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    withr::with_options(list(planscanR.cache_dir = root), {
+      p <- cache_path("https://example.org/x/doc.pdf", "de", "9999")
+      expect_identical(
+        normalizePath(dirname(p), mustWork = FALSE),
+        normalizePath(file.path(root, "files", "de", "9999"), mustWork = FALSE)
+      )
+    })
+  })
+})
+
+test_that("resolve_cached_path (public) finds the finalized file behind a .x placeholder", {
+  withr::with_tempdir({
+    writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46)), "ee_kmh-44_dl-deadbeef.pdf")
+    out <- resolve_cached_path("ee_kmh-44_dl-deadbeef.x")
+    expect_identical(basename(out), "ee_kmh-44_dl-deadbeef.pdf")
+    # Nothing on disk -> NA so a caller knows to download.
+    expect_true(is.na(resolve_cached_path("missing.x")))
+  })
+})
+
+test_that("download_to_cache validates the url argument", {
+  expect_error(
+    download_to_cache(character(0), "nl", "1"),
+    class = "planscanR_error_bad_input"
+  )
+  expect_error(
+    download_to_cache(NA_character_, "nl", "1"),
+    class = "planscanR_error_bad_input"
+  )
+  expect_error(
+    download_to_cache(c("a", "b"), "nl", "1"),
+    class = "planscanR_error_bad_input"
+  )
+})
+
+test_that("download_to_cache returns the cached file without a request when one exists", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/nl/1234/report.pdf"
+    dest <- cache_path(url, "nl", "1234", cache_dir = root)
+    writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46, 0x2D, 0x31)), dest)
+    out <- download_to_cache(url, "nl", "1234", cache_dir = root)
+    expect_s3_class(out, "tbl_df")
+    expect_identical(nrow(out), 1L)
+    expect_identical(out$status, "exists")
+    expect_identical(normalizePath(out$local_path), normalizePath(dest))
+    expect_match(out$sha256, "^[0-9a-f]{64}$")
+    expect_gt(out$size_bytes, 0)
+    expect_setequal(
+      names(out),
+      c("url", "local_path", "size_bytes", "sha256", "status", "reason")
+    )
+  })
 })
 
 test_that("max_file_size_bytes honours the option and arg overrides", {

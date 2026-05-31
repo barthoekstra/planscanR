@@ -48,6 +48,9 @@ reference:
   - index_cache
   - clear_cache
   - cache_dir_default
+  - cache_path
+  - resolve_cached_path
+  - download_to_cache
   - read_record_sidecar
   - write_record_sidecar
 

@@ -1,5 +1,13 @@
 # planscanR 0.0.0.9000
 
+* New public download helpers: `download_to_cache()`, `cache_path()`, and
+  `resolve_cached_path()`. `download_to_cache()` fetches a single attachment URL
+  into the cache the same way the fetcher does internally — same throttled
+  client, same size cap, same `files/<country>/<document_id>/` layout — and
+  returns the local path, size, and SHA-256. `cache_path()` tells you where a
+  URL will land before you fetch it, and `resolve_cached_path()` finds the file
+  once it has, so callers can skip a download when a copy already exists. With
+  these, downstream packages no longer need to call `planscanR:::` internals.
 * Breaking: `download` now defaults to `FALSE` across `get_assessments()` and
   all per-country handlers (`get_assessments_nl()`, `_de()`, `_at()`, `_dk()`,
   `_be()`, `_ee()`). Downloading attachments is computationally intensive, so

@@ -294,9 +294,9 @@ discover_attachments <- function(
         # sidecar `validation_status` field. Cleanup of rejected files is a
         # separate, opt-in operation.
         if (!dry_run) {
-          dest <- cache_path(cand$url, country, rec_row$document_id)
+          dest <- cache_path_internal(cand$url, country, rec_row$document_id)
           dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
-          existing <- resolve_cached_path(dest)
+          existing <- resolve_cached_path_internal(dest)
           if (is.na(existing)) {
             # `scratch` already validated as PDF; we know the real extension.
             if (tools::file_ext(dest) == "x") {
