@@ -32,9 +32,8 @@ Path to the written sidecar, invisibly.
 ## Details
 
 This is part of the sidecar I/O contract between `planscanR` (the cache
-owner) and the downstream family packages: `planscanR.screen` and
-`planscanR.biogain` persist their derived columns (relevance / class
-scores, review translations) by calling
+owner) and the downstream `planscanR.screen` package, which persists its
+derived columns (relevance / class scores) by calling
 `planscanR::write_record_sidecar()`. The merge logic that preserves
 existing `files[]` / `relevance_scores[]` / `class_*` arrays lives here,
 so adding a new score family never wipes existing ones.

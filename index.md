@@ -6,7 +6,7 @@ related advice — from European government portals, and gives you one
 consistent table to work with no matter which country a record came
 from.
 
-It was built for the [BIOGAIN](https://www.biodiversa.eu/) project,
+It was built for the [BIOGAIN](https://www.github.com/BIOGAIN) project,
 which studies how to achieve a net gain in biodiversity when planning
 where energy infrastructure goes. To do that, the project needs to find
 the relevant assessments scattered across national portals — which is
@@ -21,15 +21,11 @@ table. The same columns come back for every country, so you can stack
 results together, cache them on disk, and (optionally) download their
 PDF documents.
 
-`planscanR` is the pure-R **leaf** of a three-package family. It only
-fetches — scoring, classification, and selection live in its siblings:
-
-- **[planscanR.screen](https://github.com/barthoekstra/planscanR.screen)**
-  — score records by topic relevance, classify them, and learn a
-  selection model.
-- **planscanR.biogain** — the BIOGAIN-specific topic/label/keyword
-  config, the ensemble selection rule, the review app, and the
-  acquisition runbook.
+`planscanR` only fetches. Scoring, classification, and selection live in
+its companion package
+**[planscanR.screen](https://github.com/barthoekstra/planscanR.screen)**
+— score records by topic relevance, classify them, and learn a selection
+model.
 
 As a convenience,
 [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
@@ -126,9 +122,6 @@ records <- get_assessments(
 )
 records$relevance_score_wind
 ```
-
-The BIOGAIN project’s canonical topic set ships with
-**planscanR.biogain**.
 
 See
 [`vignette("planscanR")`](https://barthoekstra.github.io/planscanR/articles/planscanR.md)

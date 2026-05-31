@@ -5,9 +5,8 @@ The cache root is owned by `planscanR`: it is
 [`tools::R_user_dir()`](https://rdrr.io/r/tools/userdir.html)`("planscanR", "cache")`.
 This is the same resolution as the internal `cache_dir()` but without
 auto-creating the directory, so it is safe in read-only paths. Exported
-so the downstream family packages (`planscanR.screen`,
-`planscanR.biogain`) read and write through the one cache root without
-reimplementing the resolution chain.
+so the downstream `planscanR.screen` package reads and writes through
+the one cache root without reimplementing the resolution chain.
 
 ## Usage
 

@@ -71,11 +71,9 @@ records — Environmental Impact Assessments (EIA), Strategic
 Environmental Assessments (SEA), and related advice — across European
 government portals. It fetches records into a tidy table, caches them on
 disk, and (optionally) downloads their PDF documents.</p>
-<p>It is the pure-R <strong>leaf</strong> of a three-package family:
-scoring records by topic relevance lives in
-<strong>planscanR.screen</strong>, and the BIOGAIN-specific
-configuration and tooling in <strong>planscanR.biogain</strong>. This
-vignette covers planscanR itself — fetching and the offline cache.</p>
+<p>It is a pure-R fetcher: scoring records by topic relevance lives in
+the companion package <strong>planscanR.screen</strong>. This vignette
+covers planscanR itself — fetching and the offline cache.</p>
 <div class="section level2">
 <h2 id="fetch-records">Fetch records<a class="anchor" aria-label="anchor" href="#fetch-records"></a>
 </h2>
@@ -146,12 +144,9 @@ date and region filters.</li>
 <code><a href="../reference/get_assessments_be.html">?get_assessments_be</a></code>, <code><a href="../reference/get_assessments_ee.html">?get_assessments_ee</a></code> — the
 portal-specific details for each country.</li>
 <li>
-<strong>planscanR.screen</strong> — score records by topic
-relevance, classify them, and learn a selection model.</li>
-<li>
-<strong>planscanR.biogain</strong> — the BIOGAIN topic/label/keyword
-config, the <code>select_assessments()</code> ensemble rule, the review
-app, and the acquisition runbook.</li>
+<a href="https://barthoekstra.github.io/planscanR.screen/"><strong>planscanR.screen</strong></a>
+— score records by topic relevance, classify them, and learn a selection
+model.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

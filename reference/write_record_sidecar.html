@@ -77,12 +77,11 @@ half-written sidecar in place.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This is part of the sidecar I/O contract between <code>planscanR</code> (the cache
-owner) and the downstream family packages: <code>planscanR.screen</code> and
-<code>planscanR.biogain</code> persist their derived columns (relevance / class scores,
-review translations) by calling <code>planscanR::write_record_sidecar()</code>. The
-merge logic that preserves existing <code>files[]</code> / <code>relevance_scores[]</code> /
-<code>class_*</code> arrays lives here, so adding a new score family never wipes
-existing ones.</p>
+owner) and the downstream <code>planscanR.screen</code> package, which persists its
+derived columns (relevance / class scores) by calling
+<code>planscanR::write_record_sidecar()</code>. The merge logic that preserves existing
+<code>files[]</code> / <code>relevance_scores[]</code> / <code>class_*</code> arrays lives here, so adding a
+new score family never wipes existing ones.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

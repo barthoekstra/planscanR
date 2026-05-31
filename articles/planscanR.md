@@ -6,10 +6,9 @@ Assessments (SEA), and related advice — across European government
 portals. It fetches records into a tidy table, caches them on disk, and
 (optionally) downloads their PDF documents.
 
-It is the pure-R **leaf** of a three-package family: scoring records by
-topic relevance lives in **planscanR.screen**, and the BIOGAIN-specific
-configuration and tooling in **planscanR.biogain**. This vignette covers
-planscanR itself — fetching and the offline cache.
+It is a pure-R fetcher: scoring records by topic relevance lives in the
+companion package **planscanR.screen**. This vignette covers planscanR
+itself — fetching and the offline cache.
 
 ## Fetch records
 
@@ -91,8 +90,6 @@ Python required.
   [`?get_assessments_be`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md),
   [`?get_assessments_ee`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.md)
   — the portal-specific details for each country.
-- **planscanR.screen** — score records by topic relevance, classify
-  them, and learn a selection model.
-- **planscanR.biogain** — the BIOGAIN topic/label/keyword config, the
-  `select_assessments()` ensemble rule, the review app, and the
-  acquisition runbook.
+- [**planscanR.screen**](https://barthoekstra.github.io/planscanR.screen/)
+  — score records by topic relevance, classify them, and learn a
+  selection model.

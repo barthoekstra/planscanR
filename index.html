@@ -57,18 +57,12 @@
 <div class="page-header"><h1 id="planscanr">planscanR<a class="anchor" aria-label="anchor" href="#planscanr"></a>
 </h1></div>
 <p><code>planscanR</code> collects environmental-assessment records — Environmental Impact Assessments (EIA), Strategic Environmental Assessments (SEA), and related advice — from European government portals, and gives you one consistent table to work with no matter which country a record came from.</p>
-<p>It was built for the <a href="https://www.biodiversa.eu/" class="external-link">BIOGAIN</a> project, which studies how to achieve a net gain in biodiversity when planning where energy infrastructure goes. To do that, the project needs to find the relevant assessments scattered across national portals — which is what this package automates.</p>
+<p>It was built for the <a href="https://www.github.com/BIOGAIN" class="external-link">BIOGAIN</a> project, which studies how to achieve a net gain in biodiversity when planning where energy infrastructure goes. To do that, the project needs to find the relevant assessments scattered across national portals — which is what this package automates.</p>
 <div class="section level2">
 <h2 id="what-it-does">What it does<a class="anchor" aria-label="anchor" href="#what-it-does"></a>
 </h2>
 <p>One function, <code><a href="reference/get_assessments.html">get_assessments()</a></code>, retrieves records from a national portal and returns them as a tidy table. The same columns come back for every country, so you can stack results together, cache them on disk, and (optionally) download their PDF documents.</p>
-<p><code>planscanR</code> is the pure-R <strong>leaf</strong> of a three-package family. It only fetches — scoring, classification, and selection live in its siblings:</p>
-<ul>
-<li>
-<strong><a href="https://github.com/barthoekstra/planscanR.screen" class="external-link">planscanR.screen</a></strong> — score records by topic relevance, classify them, and learn a selection model.</li>
-<li>
-<strong>planscanR.biogain</strong> — the BIOGAIN-specific topic/label/keyword config, the ensemble selection rule, the review app, and the acquisition runbook.</li>
-</ul>
+<p><code>planscanR</code> only fetches. Scoring, classification, and selection live in its companion package <strong><a href="https://github.com/barthoekstra/planscanR.screen" class="external-link">planscanR.screen</a></strong> — score records by topic relevance, classify them, and learn a selection model.</p>
 <p>As a convenience, <code><a href="reference/get_assessments.html">get_assessments()</a></code> can score records <em>during</em> the fetch (pass a <code>topic</code>) and gate PDF downloads on the score — but the embedding work is delegated to planscanR.screen, which is an optional dependency (see <a href="#scoring-optional">Scoring</a> below). Omit <code>topic</code> and no Python is required.</p>
 <p>Supported portals:</p>
 <table class="table">
@@ -166,7 +160,6 @@
 <span>  download <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">records</span><span class="op">$</span><span class="va">relevance_score_wind</span></span></code></pre></div>
-<p>The BIOGAIN project’s canonical topic set ships with <strong>planscanR.biogain</strong>.</p>
 <p>See <code><a href="articles/planscanR.html">vignette("planscanR")</a></code> for an end-to-end walkthrough, and <code><a href="reference/get_assessments_coverage.html">get_assessments_coverage()</a></code> for the portals and search options available at runtime.</p>
 </div>
 </div>
