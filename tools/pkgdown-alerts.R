@@ -43,16 +43,31 @@ local({
   orig_art <- get("build_rmarkdown_article", envir = ns)
   utils::assignInNamespace(
     "build_rmarkdown_article",
-    function(pkg, input_file, input_path, output_file, output_path,
-             depth, seed = NULL, new_process = TRUE,
-             pandoc_args = character(), quiet = TRUE,
-             call = rlang::caller_env()) {
+    function(
+      pkg,
+      input_file,
+      input_path,
+      output_file,
+      output_path,
+      depth,
+      seed = NULL,
+      new_process = TRUE,
+      pandoc_args = character(),
+      quiet = TRUE,
+      call = rlang::caller_env()
+    ) {
       orig_art(
-        pkg = pkg, input_file = input_file, input_path = input_path,
-        output_file = output_file, output_path = output_path,
-        depth = depth, seed = seed, new_process = new_process,
+        pkg = pkg,
+        input_file = input_file,
+        input_path = input_path,
+        output_file = output_file,
+        output_path = output_path,
+        depth = depth,
+        seed = seed,
+        new_process = new_process,
         pandoc_args = c(pandoc_args, alerts_from),
-        quiet = quiet, call = call
+        quiet = quiet,
+        call = call
       )
     },
     ns = "pkgdown"
