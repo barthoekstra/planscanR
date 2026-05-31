@@ -11,8 +11,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  # Most chunks talk to a government portal or run a Python model, so they are
-  # shown but not executed when the vignette is built.
+  # Most chunks talk to a government portal, so they are shown but not executed
+  # when the vignette is built.
   eval = FALSE
 )
 library(planscanR)
@@ -20,14 +20,15 @@ library(planscanR)
 
 `planscanR` helps you find environmental-assessment records — Environmental
 Impact Assessments (EIA), Strategic Environmental Assessments (SEA), and related
-advice — across European government portals. This vignette walks through the
-three steps you will use most:
+advice — across European government portals. It fetches records into a tidy
+table, caches them on disk, and (optionally) downloads their PDF documents.
 
-1. **Fetch** records from a portal.
-2. **Score** them by how relevant they are to topics you care about.
-3. **Select** the ones worth reading.
+It is the pure-R **leaf** of a three-package family: scoring records by topic
+relevance lives in **planscanR.screen**, and the BIOGAIN-specific configuration
+and tooling in **planscanR.biogain**. This vignette covers planscanR itself —
+fetching and the offline cache.
 
-## 1. Fetch records
+## Fetch records
 
 A single function, `get_assessments()`, retrieves records from a portal. You
 choose the country with a two-letter code:
@@ -61,89 +62,27 @@ To see which countries and search options are available, use:
 get_assessments_coverage()
 ```
 
-## 2. Score records by relevance
-
-Portals return everything; usually you only want records about a particular
-subject. Pass a `topic` and each record's title and summary are compared against
-it, producing a relevance score between -1 and 1 (higher means a closer match).
-
-A topic is just a short phrase. You can pass one phrase, or several named ones:
-
-```{r}
-get_assessments(
-  "nl",
-  topic = c(wind = "wind energy", solar = "solar energy"),
-  limit = 20,
-  download = FALSE
-)
-```
-
-This adds a `relevance_score_wind` and `relevance_score_solar` column to the
-table. Because the comparison is done with a multilingual model, an English
-topic phrase still matches Dutch or German text — you do not need to translate
-your topics for each country.
-
-The BIOGAIN project uses a standard set of six energy topics, returned by
-`biogain_assessment_topics()`:
-
-```{r, eval = TRUE}
-biogain_assessment_topics()
-```
-
-Pass that whole set as the topic, and optionally a `relevance_threshold`. The
-threshold only affects **downloading**: records below it still appear in your
-table (with their scores), but their PDF documents are skipped. That means you
-can re-run later with a different threshold without fetching from the portal
-again.
-
-```{r}
-records <- get_assessments(
-  "nl",
-  topic = biogain_assessment_topics(),
-  relevance_threshold = 0.5,
-  limit = 50,
-  download = FALSE
-)
-```
-
-> **One-time setup.** Relevance scoring runs a small Python model through the
-> reticulate package. Install it once per machine with
-> `reticulate::py_install("sentence-transformers")`. Plain fetching (no `topic`)
-> does not need this.
-
-## 3. Select the records worth reading
-
-Scoring gives you numbers; `select_assessments()` turns them into a single
-keep-or-drop decision. It combines three complementary signals — the relevance
-score above, a topic classifier, and a count of energy-related keywords — and
-marks a record as selected if any signal points to "relevant", unless the record
-is clearly about something off-topic (such as fossil power or nuclear).
-
-```{r}
-selected <- select_assessments(records)
-table(selected$selected)
-```
-
-The result adds a `selected` column you can filter on. Casting a wide net here
-is deliberate: it is better to keep a few borderline records than to miss a
-relevant one, and you can always tighten the decision afterwards.
-
 ## Working offline
 
-Every record you fetch is saved to a small file on disk (a "sidecar"). You can
-read those back later without going to the portal at all:
+Every record you fetch is saved to a small file on disk (a "sidecar") under the
+cache root, which you can read back later without going to the portal at all:
 
 ```{r}
 records <- index_cache(country = "nl")
 ```
 
-This is handy for re-scoring an existing set of records against new topics, or
-for picking up where you left off. To re-score records you already have, use
-`score_assessments()`:
+This is handy for picking up where you left off, or for re-scoring an existing
+set of records against new topics. The cache root resolves through
+`cache_dir_default()`; `clear_cache()` wipes the downloaded files but leaves the
+sidecars (and any derived artefacts) in place.
 
-```{r}
-records <- score_assessments(records, topic = biogain_assessment_topics())
-```
+## Scoring records (optional)
+
+`get_assessments()` accepts an optional `topic` (and `relevance_threshold`) to
+score records during the fetch and gate PDF downloads on the score. The scoring
+itself is delegated to the **planscanR.screen** package: install it to enable
+`topic =`, and see its "Scoring records" vignette for the walkthrough. Without
+it, omit `topic` and planscanR fetches without scoring — no Python required.
 
 ## Where to go next
 
@@ -151,5 +90,8 @@ records <- score_assessments(records, topic = biogain_assessment_topics())
 * `?get_assessments_nl`, `?get_assessments_de`, `?get_assessments_at`,
   `?get_assessments_dk`, `?get_assessments_be`, `?get_assessments_ee` — the
   portal-specific details for each country.
-* `run_biogain_review()` — a point-and-click app for inspecting how records flow
-  through fetch → score → select, and for building a hand-checked benchmark.
+* **planscanR.screen** — score records by topic relevance, classify them, and
+  learn a selection model.
+* **planscanR.biogain** — the BIOGAIN topic/label/keyword config, the
+  `select_assessments()` ensemble rule, the review app, and the acquisition
+  runbook.
