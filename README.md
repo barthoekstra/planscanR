@@ -50,6 +50,16 @@ Supported portals:
 See `vignette("supported_sources")` for per-portal details: how each portal
 is accessed, what filters are honoured, and what data comes back.
 
+## Terminology
+
+* **Record** — one result row (a single environmental-assessment case).
+* **Assessment** — the case type: an EIA, an SEA, or related advice.
+* **Document** / **attachment** — a file belonging to a record (the assessment
+  PDF, the decision, …).
+* **Offline metadata cache** — the on-disk store of fetched record metadata,
+  read back with `index_cache()`; each record's metadata is one JSON file (a
+  *sidecar*).
+
 ## A word of caution
 
 > [!WARNING]

@@ -27,6 +27,21 @@ It is a pure-R fetcher: scoring records by topic relevance lives in the
 companion package **planscanR.screen**. This vignette covers planscanR itself —
 fetching and the offline cache.
 
+## Terminology
+
+A few terms recur throughout planscanR and its documentation:
+
+* **Record** — one result row: a single environmental-assessment case as
+  returned by `get_assessments()`.
+* **Assessment** — the case *type*: an Environmental Impact Assessment (EIA), a
+  Strategic Environmental Assessment (SEA), or related advice.
+* **Document** (or **attachment**) — a file belonging to a record, usually the
+  assessment PDF, the decision, or a non-technical summary.
+* **Offline metadata cache** — the on-disk store of fetched record metadata
+  under the cache root, so records can be re-read without returning to the
+  portal. Each record's metadata is one JSON file (a *sidecar*);
+  `index_cache()` reads them all back.
+
 ## Fetch records
 
 A single function, `get_assessments()`, retrieves records from a portal. You
@@ -63,8 +78,8 @@ get_assessments_coverage()
 
 ## Working offline
 
-Every record you fetch is saved to a small file on disk (a "sidecar") under the
-cache root, which you can read back later without going to the portal at all:
+Every record you fetch is saved to the offline metadata cache under the cache
+root, which you can read back later without going to the portal at all:
 
 ```{r}
 records <- index_cache(country = "nl")
@@ -73,7 +88,7 @@ records <- index_cache(country = "nl")
 This is handy for picking up where you left off, or for re-scoring an existing
 set of records against new topics. The cache root resolves through
 `cache_dir_default()`; `clear_cache()` wipes the downloaded files but leaves the
-sidecars (and any derived artefacts) in place.
+cached record metadata (and any derived artefacts) in place.
 
 ## Scoring records (optional)
 
