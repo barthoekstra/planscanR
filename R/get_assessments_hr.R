@@ -211,10 +211,6 @@ get_assessments_hr <- function(
 #' @noRd
 hr_source_portal <- function() "mzozt.gov.hr"
 
-#' Public base URL for the portal.
-#' @noRd
-hr_portal_base <- function() "https://mzozt.gov.hr"
-
 #' The PUO (EIA) master archive page URL.
 #' @noRd
 hr_puo_url <- function() {

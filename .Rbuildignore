@@ -17,3 +17,7 @@
 ^tests/manual$
 ^\.lintr$
 ^\.positai$
+^Plans\.md$
+^out$
+^pkgdown$
+^planscanR\.Rcheck$

@@ -216,24 +216,6 @@ gr_canonical_url <- function(id) {
 #' @noRd
 gr_geometry_crs <- function() "EPSG:4326"
 
-#' Known decision-type codes exposed by the API's `/license-decision-types`.
-#'
-#' Surfaced as the `type` server-side filter vocabulary; `aepo_*` are the
-#' AEPO-decision variants, `pppa_creation` is the (rarer) PPPA variant.
-#' @noRd
-gr_decision_types <- function() {
-  c(
-    "aepo_creation",
-    "aepo_essential_modification",
-    "aepo_nonessential_modification",
-    "aepo_renewal",
-    "aepo_essential_modification_and_renewal",
-    "aepo_nonessential_modification_and_renewal",
-    "aepo_terms_review_and_revision",
-    "pppa_creation"
-  )
-}
-
 # -----------------------------------------------------------------------------
 # Index enumeration
 # -----------------------------------------------------------------------------
