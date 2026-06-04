@@ -31,14 +31,13 @@
 #' WGS84.
 #'
 #' @section Attachments:
-#' EA-Hub exposes PDFs at public Azure blob URLs reachable via
-#' `GET /assessments/{id}/documents/{docId}/links`, but resolving those
-#' costs an extra HTTP call per document. The current handler is
-#' **scan + classify only**: it returns `attachment_urls = character(0)`
-#' and an empty `download_status` for every record. A future download
-#' phase will fetch the per-document links and populate the per-section
-#' columns. Reflected as `"supported (metadata-only)"` in
-#' `get_assessments_coverage()`.
+#' EA-Hub exposes each document's PDF at a public Azure blob URL. When
+#' `download = TRUE`, the handler fetches the record's document list from
+#' `GET /assessments/{id}`, resolves each document's blob URL via
+#' `GET /assessments/{id}/documents/{docId}/links`, and downloads it into the
+#' cache, tagging each file with its da-DK document type as the sidecar
+#' `section`. A pure scan (`download = FALSE`) stays metadata-only and makes no
+#' per-document calls.
 #'
 #' @section Filter coverage (v0.1):
 #' * `query` — forwarded to the API's server-side `freeText` field.
@@ -50,9 +49,7 @@
 #'   timestamp.
 #'
 #' @param date_range,limit,download,cache_dir,overwrite,max_file_size_mb,write_sidecar,refresh,topic,relevance_threshold,relevance_model
-#'   See [get_assessments()]. `download`, `overwrite`, and
-#'   `max_file_size_mb` are accepted for API symmetry but currently
-#'   ignored — no PDFs are fetched in this version.
+#'   See [get_assessments()].
 #' @param query Free-text query; forwarded to the API's `freeText`.
 #' @param assessment_type One of `"All"`, `"Plans"`, `"Project"`.
 #' @param ... Reserved for future extensions; unused arguments are warned about.
@@ -164,7 +161,19 @@ get_assessments_dk <- function(
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
-    rec <- dk_finalise_record(rec, write_sidecar = write_sidecar)
+    # Resolve documents + links only when we're actually going to download
+    # (keeps the metadata-only scan cheap — no per-document /links calls).
+    should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
+    if (should_download) {
+      rec <- dk_attach_documents(rec, entry$id)
+    }
+    rec <- dk_finalise_record(
+      rec,
+      download = should_download,
+      overwrite = overwrite,
+      max_file_size_mb = max_file_size_mb,
+      write_sidecar = write_sidecar
+    )
     records[[length(records) + 1L]] <- rec
     cli::cli_progress_update()
   }
@@ -554,18 +563,175 @@ wkt_split_rings <- function(s) {
 }
 
 # -----------------------------------------------------------------------------
-# Per-record finalise (no downloads in v0.1 — see Attachments section above)
+# Document enumeration + link resolution (download support)
 # -----------------------------------------------------------------------------
 
-#' Finalise a parsed DK record by writing the sidecar.
+#' Fetch a record's document list from the EA-Hub detail endpoint.
+#'
+#' `GET /assessments/{id}` returns a detail object whose top-level `documents`
+#' array lists the attached files (id, title/filename, documentType, size).
+#' Returns the list of document objects, or `list()` on any failure / when the
+#' record carries no documents.
 #' @noRd
-dk_finalise_record <- function(rec, write_sidecar) {
-  ds <- empty_download_status()
+dk_fetch_documents <- function(assessment_id) {
+  req <- req_planscanr(dk_api_base())
+  req <- httr2::req_url_path_append(req, "assessments", assessment_id)
+  payload <- tryCatch(perform_json(req), error = function(e) NULL)
+  if (is.null(payload) || !is.list(payload)) {
+    return(list())
+  }
+  docs <- payload$documents
+  if (is.null(docs) || !is.list(docs)) list() else docs
+}
+
+#' Resolve one document to its public Azure-blob view URL.
+#'
+#' `GET /assessments/{id}/documents/{docId}/links` returns `{ viewUrl }` — an
+#' anonymous, directly-downloadable blob URL. Returns the URL or `NA_character_`.
+#' @noRd
+dk_resolve_document_link <- function(assessment_id, document_id) {
+  req <- req_planscanr(dk_api_base())
+  req <- httr2::req_url_path_append(
+    req, "assessments", assessment_id, "documents", document_id, "links"
+  )
+  payload <- tryCatch(perform_json(req), error = function(e) NULL)
+  if (is.null(payload) || !is.list(payload)) {
+    return(NA_character_)
+  }
+  v <- payload$viewUrl %||% payload$viewURL %||% NA_character_
+  if (is.null(v) || !is.character(v) || length(v) != 1L || is.na(v) || !nzchar(v)) {
+    return(NA_character_)
+  }
+  v
+}
+
+#' Slug a Danish documentType label to an ASCII column-suffix slug.
+#'
+#' Lowercases, transliterates Danish diacritics (æ→ae, ø→oe, å→aa), and
+#' collapses non-alphanumerics to underscores. Empty input gets `"document"`.
+#' Mirrors [ee_section_slug()] / [be_section_slug()].
+#' @noRd
+dk_section_slug <- function(label) {
+  if (is.null(label) || !is.character(label) || length(label) != 1L ||
+    is.na(label) || !nzchar(label)) {
+    return("document")
+  }
+  s <- label
+  # Danish diacritics in document-type labels.
+  s <- gsub("æ", "ae", s) # æ
+  s <- gsub("ø", "oe", s) # ø
+  s <- gsub("å", "aa", s) # å
+  # Common others that may appear (German-ish loans, accents).
+  s <- gsub("ä", "a", s)
+  s <- gsub("ö", "o", s)
+  s <- gsub("ü", "u", s)
+  s <- tolower(s)
+  s <- gsub("[^a-z0-9]+", "_", s)
+  s <- gsub("(^_+|_+$)", "", s)
+  if (!nzchar(s)) "document" else s
+}
+
+#' Collect a record's attachments as a per-section list of view URLs.
+#'
+#' Fetches the document list, derives a section slug per document from its
+#' da-DK `documentType` name (falling back to en-US, then `otherDocumentType`,
+#' then `"document"`), resolves each document's blob link, and returns a named
+#' list `section_slug -> character(viewUrls)` (the same shape EE/BE produce).
+#' Returns `list()` when there are no documents or no links resolve.
+#'
+#' This is the entry point the BIOGAIN runbook calls (via
+#' `planscanR:::dk_collect_attachments()`) to download PDFs for already-scanned
+#' records without re-crawling the register.
+#' @noRd
+dk_collect_attachments <- function(assessment_id) {
+  docs <- dk_fetch_documents(assessment_id)
+  if (length(docs) == 0L) {
+    return(list())
+  }
+  per_section <- list()
+  for (d in docs) {
+    doc_id <- d$id %||% NA_character_
+    if (is.null(doc_id) || is.na(doc_id) || !nzchar(doc_id)) {
+      next
+    }
+    label <- NULL
+    dt <- d$documentType
+    if (is.list(dt) && is.list(dt$name)) {
+      label <- dt$name[["da-DK"]] %||% dt$name[["en-US"]]
+    }
+    label <- label %||% d$otherDocumentType
+    slug <- dk_section_slug(label)
+    view_url <- dk_resolve_document_link(assessment_id, doc_id)
+    if (is.na(view_url) || !nzchar(view_url)) {
+      next
+    }
+    per_section[[slug]] <- unique(c(per_section[[slug]], view_url))
+  }
+  per_section
+}
+
+#' Graft a record's per-section attachment URL columns onto the tibble.
+#'
+#' Sets `attachment_urls` (deduped union) and one `attachment_urls_<slug>` /
+#' `local_path_<slug>` pair per section. No-op (empty union) when the record has
+#' no resolvable documents.
+#' @noRd
+dk_attach_documents <- function(rec, assessment_id) {
+  per_section <- dk_collect_attachments(assessment_id)
+  union_urls <- unique(unlist(per_section, use.names = FALSE)) %||% character(0)
+  rec$attachment_urls <- list(union_urls)
+  for (slug in names(per_section)) {
+    rec[[paste0("attachment_urls_", slug)]] <- list(per_section[[slug]])
+    rec[[paste0("local_path_", slug)]] <- list(character(0))
+  }
+  rec
+}
+
+# -----------------------------------------------------------------------------
+# Per-record finalise (download + sidecar)
+# -----------------------------------------------------------------------------
+
+#' Finalise a parsed DK record: run downloads (if requested) and write sidecar.
+#'
+#' When `download` is TRUE, fetches every URL in the record's attachment columns
+#' via [download_attachments()] and threads the resulting local paths back into
+#' the per-section `local_path_<slug>` columns; otherwise records the URLs as
+#' `pending`. Always writes the sidecar when `write_sidecar` is TRUE.
+#' @noRd
+dk_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write_sidecar) {
+  get_section <- function(col) {
+    v <- rec[[col]]
+    if (is.null(v)) character(0) else v[[1]]
+  }
+  urls <- get_section("attachment_urls")
+  section_cols <- grep("^attachment_urls_", names(rec), value = TRUE)
+  section_urls <- stats::setNames(
+    lapply(section_cols, function(cn) rec[[cn]][[1]]),
+    sub("^attachment_urls_", "", section_cols)
+  )
+  if (download) {
+    if (length(urls) > 0L) {
+      inform_download(length(urls), cache_dir(file.path("files", "dk"), create = TRUE))
+    }
+    ds <- download_attachments(
+      urls,
+      country = "dk",
+      document_id = rec$document_id,
+      overwrite = overwrite,
+      max_file_size_mb = max_file_size_mb
+    )
+  } else {
+    ds <- pending_download_status(urls)
+  }
   rec$download_status <- list(ds)
-  rec$local_path <- list(character(0))
+  rec$local_path <- list(ds$local_path)
+  for (slug in names(section_urls)) {
+    rec[[paste0("local_path_", slug)]] <- list(ds$local_path[match(section_urls[[slug]], ds$url)])
+  }
+  rec$file_sha256 <- list(ds$sha256)
   if (write_sidecar) {
     tryCatch(
-      write_record_sidecar(rec, downloads = ds),
+      write_record_sidecar(rec, downloads = rec$download_status[[1]]),
       error = function(e) {
         warn_partial(
           "Could not write sidecar for {.val {rec$document_id}}: {conditionMessage(e)}"

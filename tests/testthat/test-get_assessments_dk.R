@@ -227,6 +227,109 @@ test_that("get_assessments_dk scores topics and adds relevance_score_<slug> colu
   })
 })
 
+# -- Download support --------------------------------------------------------
+
+test_that("dk_section_slug folds Danish diacritics and defaults to 'document'", {
+  expect_equal(dk_section_slug("Miljøkonsekvensrapport"), "miljoekonsekvensrapport")
+  expect_equal(dk_section_slug("Afgørelse"), "afgoerelse")
+  expect_equal(dk_section_slug("Små sager"), "smaa_sager")
+  expect_equal(dk_section_slug(NA_character_), "document")
+  expect_equal(dk_section_slug(""), "document")
+  expect_equal(dk_section_slug(NULL), "document")
+})
+
+test_that("dk_collect_attachments groups view URLs by da-DK document type", {
+  testthat::local_mocked_bindings(
+    perform_json = function(req, ...) {
+      url <- req$url
+      if (grepl("/documents/[^/]+/links$", url)) {
+        doc <- sub(".*/documents/([^/]+)/links$", "\\1", url)
+        return(list(viewUrl = paste0("https://blob.example/", doc, "/file.pdf")))
+      }
+      list(documents = list(
+        list(
+          id = "d1", title = "a.pdf",
+          documentType = list(name = list(`da-DK` = "Miljøkonsekvensrapport", `en-US` = "EIA report"))
+        ),
+        list(
+          id = "d2", title = "b.pdf",
+          documentType = list(name = list(`da-DK` = "Afgørelse", `en-US` = "Decision"))
+        )
+      ))
+    }
+  )
+  per <- dk_collect_attachments("assess-1")
+  expect_setequal(names(per), c("miljoekonsekvensrapport", "afgoerelse"))
+  expect_equal(per[["miljoekonsekvensrapport"]], "https://blob.example/d1/file.pdf")
+  expect_equal(per[["afgoerelse"]], "https://blob.example/d2/file.pdf")
+})
+
+test_that("dk_collect_attachments returns list() when there are no documents", {
+  testthat::local_mocked_bindings(
+    perform_json = function(req, ...) list(documents = list())
+  )
+  expect_identical(dk_collect_attachments("assess-empty"), list())
+})
+
+test_that("dk_finalise_record(download=TRUE) tags file sections in the sidecar", {
+  withr::local_options(planscanR.cache_dir = withr::local_tempdir())
+  rec <- tibble::tibble(
+    country = "dk",
+    source_portal = dk_source_portal(),
+    document_id = "assess-1",
+    url = dk_canonical_url("assess-1"),
+    retrieved_at = as.POSIXct(Sys.time(), tz = "UTC"),
+    attachment_urls = list(c("https://blob.example/d1/a.pdf", "https://blob.example/d2/b.pdf")),
+    local_path = list(character(0)),
+    title = "Test", summary = NA_character_,
+    competent_authority = NA_character_, proponent = NA_character_,
+    date_published = as.Date(NA), date_decision = as.Date(NA),
+    native_type = NA_character_, jurisdiction = NA_character_, status = NA_character_,
+    year = NA_integer_, from_year = NA_integer_, to_year = NA_integer_,
+    is_project_assessment = TRUE, is_related_to_plan = FALSE, is_draft = FALSE,
+    has_geometry = FALSE, geometry_path = NA_character_, geometry_crs = NA_character_,
+    annex1 = NA_character_, annex2 = NA_character_,
+    plan_types = NA_character_, plan_categories = NA_character_,
+    download_status = list(empty_download_status())
+  )
+  rec[["attachment_urls_miljoekonsekvensrapport"]] <- list("https://blob.example/d1/a.pdf")
+  rec[["local_path_miljoekonsekvensrapport"]] <- list(character(0))
+  rec[["attachment_urls_afgoerelse"]] <- list("https://blob.example/d2/b.pdf")
+  rec[["local_path_afgoerelse"]] <- list(character(0))
+
+  testthat::local_mocked_bindings(
+    download_attachments = function(urls, country, document_id, overwrite, max_file_size_mb, root = NULL) {
+      tibble::tibble(
+        url = urls,
+        local_path = file.path("files", "dk", document_id, paste0(seq_along(urls), ".pdf")),
+        status = "downloaded",
+        size_bytes = 100,
+        sha256 = paste0("sha", seq_along(urls)),
+        reason = NA_character_
+      )
+    }
+  )
+  out <- dk_finalise_record(rec, download = TRUE, overwrite = FALSE, max_file_size_mb = NULL, write_sidecar = TRUE)
+  expect_length(out$local_path_miljoekonsekvensrapport[[1]], 1L)
+
+  back <- index_cache(country = "dk")
+  expect_true("attachment_urls_miljoekonsekvensrapport" %in% names(back))
+  expect_true("attachment_urls_afgoerelse" %in% names(back))
+
+  # The sidecar tags each file with its da-DK document type as `section`.
+  # (The reader fans these back out into `attachment_urls_<section>` columns
+  # rather than exposing a `section` column, so assert against the JSON.)
+  sidecar <- file.path(
+    getOption("planscanR.cache_dir"), "files", "dk", "assess-1", "assess-1.meta.json"
+  )
+  payload <- jsonlite::fromJSON(sidecar, simplifyVector = FALSE)
+  sec_by_url <- vapply(payload$files, function(f) {
+    paste(f$url, f$section, sep = "\t")
+  }, character(1))
+  expect_true("https://blob.example/d1/a.pdf\tmiljoekonsekvensrapport" %in% sec_by_url)
+  expect_true("https://blob.example/d2/b.pdf\tafgoerelse" %in% sec_by_url)
+})
+
 # -- Live integration test --------------------------------------------------
 
 test_that("get_assessments('dk') fetches a real record end-to-end", {

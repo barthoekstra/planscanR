@@ -22,9 +22,7 @@ get_assessments_dk(
 )
 }
 \arguments{
-\item{date_range, limit, download, cache_dir, overwrite, max_file_size_mb, write_sidecar, refresh, topic, relevance_threshold, relevance_model}{See \code{\link[=get_assessments]{get_assessments()}}. \code{download}, \code{overwrite}, and
-\code{max_file_size_mb} are accepted for API symmetry but currently
-ignored — no PDFs are fetched in this version.}
+\item{date_range, limit, download, cache_dir, overwrite, max_file_size_mb, write_sidecar, refresh, topic, relevance_threshold, relevance_model}{See \code{\link[=get_assessments]{get_assessments()}}.}
 
 \item{query}{Free-text query; forwarded to the API's \code{freeText}.}
 
@@ -72,14 +70,13 @@ WGS84.
 
 \section{Attachments}{
 
-EA-Hub exposes PDFs at public Azure blob URLs reachable via
-\code{GET /assessments/{id}/documents/{docId}/links}, but resolving those
-costs an extra HTTP call per document. The current handler is
-\strong{scan + classify only}: it returns \code{attachment_urls = character(0)}
-and an empty \code{download_status} for every record. A future download
-phase will fetch the per-document links and populate the per-section
-columns. Reflected as \code{"supported (metadata-only)"} in
-\code{get_assessments_coverage()}.
+EA-Hub exposes each document's PDF at a public Azure blob URL. When
+\code{download = TRUE}, the handler fetches the record's document list from
+\code{GET /assessments/{id}}, resolves each document's blob URL via
+\code{GET /assessments/{id}/documents/{docId}/links}, and downloads it into the
+cache, tagging each file with its da-DK document type as the sidecar
+\code{section}. A pure scan (\code{download = FALSE}) stays metadata-only and makes no
+per-document calls.
 }
 
 \section{Filter coverage (v0.1)}{

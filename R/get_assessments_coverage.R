@@ -35,8 +35,8 @@ get_assessments_coverage <- function() {
     status = c(
       "supported",
       "supported",
-      "supported (metadata-only)",
-      "supported (metadata-only)",
+      "supported (metadata-only)", # at
+      "supported",                 # dk
       "supported",
       "supported"
     ),
