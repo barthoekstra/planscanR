@@ -1,0 +1,155 @@
+{
+  "@context": "/api/contexts/EiaProject",
+  "@id": "/api/eia_projects",
+  "@type": "hydra:Collection",
+  "hydra:member": [
+    [
+      {
+        "@id": "/api/eia_projects/program-hospodarskeho-rozvoja-socialneho-rozvoja-obce-novy-tekov-2026-",
+        "@type": "EiaProject",
+        "id": "171237",
+        "seoId": "program-hospodarskeho-rozvoja-socialneho-rozvoja-obce-novy-tekov-2026-",
+        "name": "Program hospodárskeho rozvoja a sociálneho rozvoja obce Nový Tekov 2026 - 2035",
+        "zbierka": "24/2006 novela 350/2024 Z.z. časť SEA",
+        "stav": "Oznámenie",
+        "cinnosti": null,
+        "proces": null,
+        "cezhranicnaSpolupraca": null,
+        "ucel": null,
+        "navrhovatel": null,
+        "prislusnyOrgan": null,
+        "dotknutaObec": null,
+        "povolujuciOrgan": null,
+        "schvalujuciOrgan": null,
+        "dokumenty": null,
+        "blocks": null,
+        "images": null,
+        "breadcrumbs": null,
+        "locality": "NR",
+        "headerTitle": null,
+        "pageTitle": "Program hospodárskeho rozvoja a sociálneho rozvoja obce Nový Tekov 2026 - 2035",
+        "kraj": "Nitriansky",
+        "okres": "Levice",
+        "obec": "Nový Tekov",
+        "datumPoslednejZmeny": "2026-06-04 13:51:58",
+        "dotknuteStrany": [],
+        "suvisiace": []
+      },
+      {
+        "@id": "/api/eia_projects/novostavba-skladovej-haly-partizanske-cast-male-bielice",
+        "@type": "EiaProject",
+        "id": "171236",
+        "seoId": "novostavba-skladovej-haly-partizanske-cast-male-bielice",
+        "name": "NOVOSTAVBA SKLADOVEJ HALY PARTIZÁNSKE – ČASŤ MALÉ BIELICE",
+        "zbierka": "24/2006 novela 269/2025 Z.z. časť EIA",
+        "stav": "Zámer",
+        "cinnosti": null,
+        "proces": null,
+        "cezhranicnaSpolupraca": null,
+        "ucel": null,
+        "navrhovatel": null,
+        "prislusnyOrgan": null,
+        "dotknutaObec": null,
+        "povolujuciOrgan": null,
+        "schvalujuciOrgan": null,
+        "dokumenty": null,
+        "blocks": null,
+        "images": null,
+        "breadcrumbs": null,
+        "locality": "TN",
+        "headerTitle": null,
+        "pageTitle": "NOVOSTAVBA SKLADOVEJ HALY PARTIZÁNSKE – ČASŤ MALÉ BIELICE",
+        "kraj": "Trenčiansky",
+        "okres": "Partizánske",
+        "obec": "Partizánske",
+        "datumPoslednejZmeny": "2026-06-04 12:51:19",
+        "dotknuteStrany": [],
+        "suvisiace": []
+      },
+      {
+        "@id": "/api/eia_projects/eset-campus",
+        "@type": "EiaProject",
+        "id": "168166",
+        "seoId": "eset-campus",
+        "name": "ESET Campus",
+        "zbierka": "24/2006 novela 372/2021 Z.z. časť EIA",
+        "stav": "Záverečné stanovisko",
+        "cinnosti": null,
+        "proces": null,
+        "cezhranicnaSpolupraca": null,
+        "ucel": null,
+        "navrhovatel": null,
+        "prislusnyOrgan": null,
+        "dotknutaObec": null,
+        "povolujuciOrgan": null,
+        "schvalujuciOrgan": null,
+        "dokumenty": null,
+        "blocks": null,
+        "images": null,
+        "breadcrumbs": null,
+        "locality": "BA",
+        "headerTitle": null,
+        "pageTitle": "ESET Campus",
+        "kraj": "Bratislavský",
+        "okres": "Bratislava IV",
+        "obec": "Bratislava - Karlova Ves",
+        "datumPoslednejZmeny": "2026-06-04 12:23:00",
+        "dotknuteStrany": [],
+        "suvisiace": []
+      }
+    ],
+    {
+      "current_page": 1,
+      "from": 0,
+      "to": 20,
+      "per_page": 20,
+      "last_page": 936,
+      "total": "18717"
+    },
+    []
+  ],
+  "hydra:totalItems": 3,
+  "hydra:search": {
+    "@type": "hydra:IriTemplate",
+    "hydra:template": "/api/eia_projects{?seoId,seoId[],zbierka,zbierka[],stav,stav[]}",
+    "hydra:variableRepresentation": "BasicRepresentation",
+    "hydra:mapping": [
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "seoId",
+        "property": "seoId",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "seoId[]",
+        "property": "seoId",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "zbierka",
+        "property": "zbierka",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "zbierka[]",
+        "property": "zbierka",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "stav",
+        "property": "stav",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "stav[]",
+        "property": "stav",
+        "required": false
+      }
+    ]
+  }
+}

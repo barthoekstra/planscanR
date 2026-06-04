@@ -25,7 +25,30 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie"),
+    country = c(
+      "nl",
+      "de",
+      "fr",
+      "at",
+      "dk",
+      "be",
+      "ee",
+      "fi",
+      "bg",
+      "cz",
+      "hr",
+      "gr",
+      "is",
+      "ie",
+      "si",
+      "pt",
+      "gb",
+      "it",
+      "sk",
+      "no",
+      "lv",
+      "es"
+    ),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -40,7 +63,15 @@ get_assessments_coverage <- function() {
       "mzozt.gov.hr",
       "eprm.ypen.gr",
       "skipulagsgatt.is",
-      "services.arcgis.com (gov.ie EIA Portal)"
+      "services.arcgis.com (gov.ie EIA Portal)",
+      "gov.si",
+      "siaia.apambiente.pt",
+      "planninginspectorate.gov.uk",
+      "va.mite.gov.it",
+      "enviroportal.sk",
+      "nve.no",
+      "eva.gov.lv",
+      "sede.miteco.gob.es"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -56,9 +87,25 @@ get_assessments_coverage <- function() {
       "https://mzozt.gov.hr",
       "https://eprm.ypen.gr",
       "https://www.skipulagsgatt.is",
-      "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0"
+      "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0",
+      "https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje",
+      "https://siaia.apambiente.pt",
+      "https://national-infrastructure-consenting.planninginspectorate.gov.uk",
+      "https://va.mite.gov.it",
+      "https://www.enviroportal.sk/eia-sea/informacny-system",
+      "https://www.nve.no/konsesjon/konsesjonssaker",
+      "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti",
+      "https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido"
     ),
     requires_auth = c(
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -88,7 +135,15 @@ get_assessments_coverage <- function() {
       "supported", # hr
       "supported (decisions-only; studies/SEA login-gated)", # gr
       "supported (GraphQL; cases from ~June 2023 onward)", # is
-      "supported (EIA only; portal = notice PDFs, full EIAR off-portal)" # ie
+      "supported (EIA only; portal = notice PDFs, full EIAR off-portal)", # ie
+      "supported", # si
+      "supported (EIA/AIA only; SEA/AAE in a separate APA register)", # pt
+      "supported (NSIP only; every NSIP carries an Environmental Statement)", # gb
+      "supported (VIA/VAS dual register; HTML scrape; no geometry)", # it
+      "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)", # sk
+      "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)", # no
+      "supported (metadata-only EIA register \u2014 documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
+      "supported (requires optional headless browser; TLS-fingerprinted portal)" # es
     ),
     facets = list(
       commissiemer_facets(),
@@ -104,7 +159,199 @@ get_assessments_coverage <- function() {
       mzozt_hr_facets(),
       eprm_gr_facets(),
       skipulagsgatt_is_facets(),
-      eia_portal_ie_facets()
+      eia_portal_ie_facets(),
+      gov_si_facets(),
+      siaia_pt_facets(),
+      planning_inspectorate_gb_facets(),
+      va_mite_it_facets(),
+      enviroportal_sk_facets(),
+      nve_no_facets(),
+      eva_lv_facets(),
+      sabia_es_facets()
+    )
+  )
+}
+
+#' Static lookup of the MITECO/SABIA (Spain) facet vocabularies.
+#'
+#' Spain's national-competence environmental assessments live on the SABIA
+#' portal of the MITECO electronic headquarters, reached only through the
+#' optional headless-browser transport (the portal TLS-fingerprints and rejects
+#' libcurl). The first-class discriminator is the `assessment_type` selector
+#' (which register(s) to crawl — proyectos for EIA, planes for SEA, or both);
+#' the raw register labels are surfaced for reference (they land in the
+#' `register` output column). The portal's own search form exposes
+#' `EstadoTramitacion` / `Tipo` / `OrganoSustantivo` / `Comunidad` filter fields
+#' (plus free-text `Titulo` and exact `Codigo`); only `assessment_type`, `query`
+#' (→ `Titulo`), and `codigo` (→ `Codigo`) are first-class in v0.1, so the other
+#' `xml` *Buscador* filter fields are surfaced here as reference only.
+#' @noRd
+sabia_es_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c(EIA = "proyectos", SEA = "planes"),
+    buscador_filters = c(
+      "EstadoTramitacion",
+      "Tipo",
+      "OrganoSustantivo",
+      "Comunidad"
+    )
+  )
+}
+
+#' Static lookup of the eva.gov.lv (Latvia) facet vocabularies.
+#'
+#' Latvia's Environmental State Bureau (*Vides pārraudzības valsts birojs*)
+#' publishes two structurally different halves: a project-level EIA Drupal
+#' Views listing (metadata-only — documents come via discovery) and three flat
+#' SEA sub-pages with direct PDFs. The `assessment_type` selector (`"All"` /
+#' `"EIA"` / `"SEA"`) chooses which half to crawl; `register` names the
+#' sub-register. The portal's own exposed-form filters are POST/AJAX, so all
+#' filtering (`query`, `date_range`) is applied **client-side** here.
+#' @noRd
+eva_lv_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c("ivn-projekti", "atzinumi", "lemumi", "monitorings"),
+    note = "filters are client-side (portal filters are POST/AJAX)"
+  )
+}
+
+#' Static lookup of the NVE nve.no (Norway) facet vocabularies.
+#'
+#' NVE publishes a single concession-case register (`konsesjonssaker`) of
+#' energy/water concession cases that carry the EIA (*konsekvensutredning*)
+#' documents — there is no EIA/SEA split, so there is no `assessment_type`
+#' selector. The getall list API accepts server-side `caseType` / `county` /
+#' `municipality` / `filterText` filters; the corresponding vocabularies
+#' (`CaseTypes`, `Counties`, `Municipalities`, and `LicenseStatuses`) are
+#' returned **inline** by the API on every call. Only `filterText` is
+#' first-class in v0.1 — it is forwarded server-side as the `query` argument;
+#' `date_range` is matched client-side against `date_published`. The case-type
+#' and status vocabularies are reference-only here (they land in the
+#' `case_type` / `status` output columns).
+#' @noRd
+nve_no_facets <- function() {
+  list(
+    list_filters = c("caseType", "county", "municipality", "filterText")
+  )
+}
+
+#' Static lookup of the enviroportal.sk (Slovakia) facet vocabularies.
+#'
+#' Slovakia publishes a single `eia_projects` API Platform JSON collection that
+#' mixes project-level EIA and plan/programme SEA records, discriminated by the
+#' `zbierka` (law collection) string (`"časť EIA"` vs `"časť SEA"`). The only
+#' first-class discriminator is the `assessment_type` selector (`"All"` /
+#' `"EIA"` / `"SEA"`), applied client-side after tagging each record from
+#' `zbierka` (the API itself serves one unfiltered list). The portal's own
+#' `kraj` (region) / `okres` (district) / `stav` (status) / year filters are
+#' reference-only here and are matched client-side — `query` (title substring)
+#' and `date_range` (against `date_published`) are applied in R after the list
+#' is fetched.
+#' @noRd
+enviroportal_sk_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA")
+  )
+}
+
+#' Static lookup of the MASE va.mite.gov.it (Italy) facet vocabularies.
+#'
+#' Italy publishes two server-rendered HTML registers — VIA (project EIA) and
+#' VAS (plan SEA). The only first-class discriminator is the `assessment_type`
+#' selector (which register(s) to crawl — VIA for EIA, VAS for SEA, or both);
+#' the raw register labels are surfaced for reference (they land in the
+#' `register` output column). The portal's Procedura / free-text search is
+#' server-side, but the handler applies `query` (title substring) and
+#' `date_range` (against `date_published`) client-side after the listing is
+#' fetched.
+#' @noRd
+va_mite_it_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c(EIA = "VIA", SEA = "VAS")
+  )
+}
+
+#' Static lookup of the Planning Inspectorate (UK) facet vocabularies.
+#'
+#' The UK National Infrastructure Consenting register is **NSIP only** (every
+#' NSIP application carries a statutory Environmental Statement, so the register
+#' is an EIA-equivalent source; local-authority Town-and-Country-Planning EIAs
+#' are out of scope). It is published as a single unfiltered bulk CSV export, so
+#' there are no server-side search filters — `query`, `date_range`, and `status`
+#' are all matched client-side after the CSV is fetched. The reference
+#' vocabularies surfaced here are the project *Stage* enum (which lands in the
+#' `status` output column) and the *Application type* sector prefixes
+#' (`EN` energy, `TR` transport, `WA` water, `WW` waste water, `WS` waste,
+#' `BC` business / commercial), which prefix the `document_id` (Project
+#' reference) and land in `native_type`.
+#' @noRd
+planning_inspectorate_gb_facets <- function() {
+  list(
+    status = c(
+      "Pre-application",
+      "Acceptance",
+      "Pre-examination",
+      "Examination",
+      "Recommendation",
+      "Decision",
+      "Post-decision",
+      "Withdrawn"
+    ),
+    application_type_prefix = c(
+      EN = "Energy",
+      TR = "Transport",
+      WA = "Water",
+      WW = "Waste Water",
+      WS = "Waste",
+      BC = "Business and Commercial"
+    )
+  )
+}
+
+#' Static lookup of the SIAIA (Portugal) facet vocabularies.
+#'
+#' SIAIA covers the **AIA** register only (project-level EIA); the SEA/AAE
+#' register lives in a separate APA application and is out of scope, so there
+#' is no `assessment_type` selector. The portal offers server-side
+#' authority/year filters, but the handler applies every honoured filter
+#' client-side (`query` as a substring match on the title, `date_range`
+#' against `date_decision` / `decision_year`). The only first-class reference
+#' vocabulary worth surfacing is the *Sentido de Decisão* enum — the decision
+#' sense that lands in the `decision_sense` output column (also the
+#' `native_type`). Pass any other value through unchanged.
+#' @noRd
+siaia_pt_facets <- function() {
+  list(
+    decision_sense = c(
+      "Favor\u00e1vel",
+      "Favor\u00e1vel condicionado",
+      "Desfavor\u00e1vel",
+      "Desconformidade do EIA",
+      "Encerrado"
+    )
+  )
+}
+
+#' Static lookup of the gov.si (Slovenia) facet vocabularies.
+#'
+#' Slovenia publishes its environmental-assessment registers as unfiltered
+#' bulk JSON exports, so there are no server-side search filters. The only
+#' first-class discriminator is the `assessment_type` selector (which
+#' register(s) to crawl — the screening register for EIA, the two CPVO
+#' registers for SEA, or all three). The three raw register codes are surfaced
+#' here for reference (they land in the `register` output column); `date_range`
+#' is matched client-side after the bulk export is fetched.
+#' @noRd
+gov_si_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c(
+      EIA = "predhodni-postopek",
+      SEA_state = "cpvo-drzavni",
+      SEA_municipal = "cpvo-obcinski"
     )
   )
 }

@@ -31,6 +31,14 @@ reference:
   - get_assessments_gr
   - get_assessments_is
   - get_assessments_ie
+  - get_assessments_si
+  - get_assessments_pt
+  - get_assessments_gb
+  - get_assessments_it
+  - get_assessments_sk
+  - get_assessments_no
+  - get_assessments_lv
+  - get_assessments_es
   - get_assessments_coverage
   - supported_countries
   - bind_results

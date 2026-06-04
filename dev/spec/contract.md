@@ -187,3 +187,38 @@ under v3 (back-compat is part of the contract).
 - A `SCHEMA_VERSION` bump must be matched by reads in `planscanR.screen`,
   `planscanR.biogain`, and `planscanR.RAG`, committed in dependency order
   (Task 2.3).
+
+---
+
+## 4. Final-batch conventions (2026-06-04)
+
+Conventions over the **existing v3 shape** introduced with the final batch of
+handlers (IT, PT, SI, UK, SK, NO, ES, LV). **No `SCHEMA_VERSION` change** — these
+fix recurring patterns so they are not mistaken for out-of-pattern hacks.
+
+1. **Bulk-export enumeration is a first-class enumeration pattern.** A handler
+   may enumerate records from a single downloaded bulk file — UK Planning
+   Inspectorate `/api/applications-download` (CSV), Slovenia gov.si
+   `…/export/json/` (JSON) — instead of crawling paginated detail pages. The
+   result tibble and the sidecar are unchanged; only the enumeration step
+   differs. Per-record attachment/detail enrichment may still require a
+   per-record detail fetch (sidecar-first as usual).
+
+2. **`assessment_type` / `register` is the cross-country dual-register
+   convention** (not EE-specific). When one portal (or one portal family)
+   publishes both project-level EIA and plan/programme-level SEA:
+   - `assessment_type` tags each row `"EIA"` or `"SEA"`;
+   - `register` carries the raw portal register label;
+   - `document_id` is **prefixed per register** so the two never collide on disk.
+   An `assessment_type` argument (`"All"` default / `"EIA"` / `"SEA"`) selects
+   which register(s) to crawl. Reused by EE (KMH/KSH), IT (VIA/VAS),
+   SK (`isEia`), SI (screening vs CPVO), LV (EIA register vs SEA hub),
+   ES (proyectos vs planes).
+
+3. **Metadata-only status drives discovery — no new machinery.** Portals that
+   expose records but no directly-downloadable PDFs (LV's EIA half; any portal
+   whose PDFs prove tokened/auth-gated) set the coverage row
+   `status = "supported (metadata-only…)"`. `get_assessments()` already reads
+   that prefix (`metadata_only_countries()`) to nudge `discover = TRUE` (Tavily).
+   Such handlers return empty `attachment_urls` for the affected records;
+   downstream discovery fills them.

@@ -18,6 +18,7 @@
 ^\.lintr$
 ^\.positai$
 ^Plans\.md$
+^Countries-to-add\.md$
 ^out$
 ^pkgdown$
 ^planscanR\.Rcheck$

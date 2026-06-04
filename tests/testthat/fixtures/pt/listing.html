@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M49CEBM7ZR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-M49CEBM7ZR');
+    </script>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Processos AIA - SIAIA</title>
+
+    <!-- Bootstrap 5 (CSS + JS Bundle) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="/images/icon.svg" type="image/svg+xml" />
+
+    <!-- CSS do projeto -->
+    <link rel="stylesheet" href="/css/siaia.css" />
+
+    <style>
+        .user-icon {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Botão Toggle Sidebar -->
+    <button b-au7mh53mku class="toggle-sidebar" onclick="toggleSidebar()">&#9776;</button>
+
+
+
+    <!-- Sidebar -->
+    <div b-au7mh53mku class="sidebar">
+        <a b-au7mh53mku href="/" class="logo">
+            <img b-au7mh53mku src="/images/siaia.svg" alt="Logotipo do SIAIA" class="img-fluid" />
+        </a>
+        <a href="/"></a>
+
+
+        <div b-au7mh53mku class="menu-item">
+            <a b-au7mh53mku href="#">  <i b-au7mh53mku class="bi bi-folder2-open me-2"></i>Listagens</a>
+            <div b-au7mh53mku class="submenu">
+                <a title="Definição de Avaliação de Impacte Ambiental" href="/DeclaracaoAmbito"><strong b-au7mh53mku>D</strong>efinição de Âmbito</a>
+                <a title="Processo de Avaliação de Impacte Ambiental" href="/ProcessoAIA"><strong b-au7mh53mku>A</strong>valiação Ambiental</a>
+                <a title="Conformidade Ambiental do Projeto de Execução" href="/Conformidade"><strong b-au7mh53mku>C</strong>onformidade Ambiental</a>
+                <a title="Pós-Avaliação" href="/PosAvaliacao"><strong b-au7mh53mku>P</strong>ós-Avaliação</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div b-au7mh53mku class="main-content">
+        
+        
+
+<div class="container-fluid">
+
+    <!-- Cabeçalho + Botão Filtros -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="page-title m-0">Lista de Processos de Avaliação de Impacte Ambiental</h2>
+
+        <button id="btnToggleFiltrosAIA"
+                class="btn btn-primary"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#areaFiltrosAIA"
+                aria-expanded="false"
+                aria-controls="areaFiltrosAIA">
+            <i class="bi bi-funnel"></i> <span class="label">Mostrar filtros</span>
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div id="areaFiltrosAIA" class="collapse  mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="get" class="mb-0" action="/ProcessoAIA">
+
+                    <div class="row g-3 filter-row">
+
+                        <div class="col-md-3">
+                            <input type="text" placeholder="NºAIA"
+                                   name="searchProId"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <input type="text" placeholder="Designação do Projeto"
+                                   name="searchDesignacaoProjeto"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <input type="text" placeholder="Proponente"
+                                   name="searchProponente"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <input type="text" placeholder="Licenciador"
+                                   name="searchLicenciador"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <select name="searchAutoridade" class="form-select">
+                                <option value="">--Autoridade de AIA--</option>
+
+                                    <option value="Ag&#xEA;ncia Portuguesa do Ambiente">
+                                        Ag&#xEA;ncia Portuguesa do Ambiente
+                                    </option>
+                                    <option value="Ag&#xEA;ncia Portuguesa do Ambiente, I.P.">
+                                        Ag&#xEA;ncia Portuguesa do Ambiente, I.P.
+                                    </option>
+                                    <option value="Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional de Lisboa e Vale do Tejo">
+                                        Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional de Lisboa e Vale do Tejo
+                                    </option>
+                                    <option value="Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Alentejo">
+                                        Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Alentejo
+                                    </option>
+                                    <option value="Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Algarve">
+                                        Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Algarve
+                                    </option>
+                                    <option value="Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Centro">
+                                        Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Centro
+                                    </option>
+                                    <option value="Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Norte">
+                                        Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Norte
+                                    </option>
+                                    <option value="Direc&#xE7;&#xE3;o Geral do Ambiente">
+                                        Direc&#xE7;&#xE3;o Geral do Ambiente
+                                    </option>
+                                    <option value="Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio de Lisboa e Vale do Tejo">
+                                        Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio de Lisboa e Vale do Tejo
+                                    </option>
+                                    <option value="Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Alentejo">
+                                        Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Alentejo
+                                    </option>
+                                    <option value="Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Algarve">
+                                        Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Algarve
+                                    </option>
+                                    <option value="Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Centro">
+                                        Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Centro
+                                    </option>
+                                    <option value="Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Norte">
+                                        Direc&#xE7;&#xE3;o Regional do Ambiente e Ordenamento do Territ&#xF3;rio do Norte
+                                    </option>
+                                    <option value="Estado Espanhol">
+                                        Estado Espanhol
+                                    </option>
+                                    <option value="Instituto do Ambiente">
+                                        Instituto do Ambiente
+                                    </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <select name="searchAnoDecisao" class="form-select">
+                                <option value="">--Ano de Decisão Final--</option>
+                                    <option value="2026">
+                                        2026
+                                    </option>
+                                    <option value="2025">
+                                        2025
+                                    </option>
+                                    <option value="2024">
+                                        2024
+                                    </option>
+                                    <option value="2023">
+                                        2023
+                                    </option>
+                                    <option value="2022">
+                                        2022
+                                    </option>
+                                    <option value="2021">
+                                        2021
+                                    </option>
+                                    <option value="2020">
+                                        2020
+                                    </option>
+                                    <option value="2019">
+                                        2019
+                                    </option>
+                                    <option value="2018">
+                                        2018
+                                    </option>
+                                    <option value="2017">
+                                        2017
+                                    </option>
+                                    <option value="2016">
+                                        2016
+                                    </option>
+                                    <option value="2015">
+                                        2015
+                                    </option>
+                                    <option value="2014">
+                                        2014
+                                    </option>
+                                    <option value="2013">
+                                        2013
+                                    </option>
+                                    <option value="2012">
+                                        2012
+                                    </option>
+                                    <option value="2011">
+                                        2011
+                                    </option>
+                                    <option value="2010">
+                                        2010
+                                    </option>
+                                    <option value="2009">
+                                        2009
+                                    </option>
+                                    <option value="2008">
+                                        2008
+                                    </option>
+                                    <option value="2007">
+                                        2007
+                                    </option>
+                                    <option value="2006">
+                                        2006
+                                    </option>
+                                    <option value="2005">
+                                        2005
+                                    </option>
+                                    <option value="2004">
+                                        2004
+                                    </option>
+                                    <option value="2003">
+                                        2003
+                                    </option>
+                                    <option value="2002">
+                                        2002
+                                    </option>
+                                    <option value="2001">
+                                        2001
+                                    </option>
+                                    <option value="2000">
+                                        2000
+                                    </option>
+                                    <option value="1999">
+                                        1999
+                                    </option>
+                                    <option value="1998">
+                                        1998
+                                    </option>
+                                    <option value="1997">
+                                        1997
+                                    </option>
+                                    <option value="1996">
+                                        1996
+                                    </option>
+                                    <option value="1995">
+                                        1995
+                                    </option>
+                                    <option value="1994">
+                                        1994
+                                    </option>
+                                    <option value="1993">
+                                        1993
+                                    </option>
+                                    <option value="1992">
+                                        1992
+                                    </option>
+                                    <option value="1991">
+                                        1991
+                                    </option>
+                                    <option value="1990">
+                                        1990
+                                    </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <select name="searchSentidoDecisao" class="form-select">
+                                <option value="">--Sentido de Decisão--</option>
+                                    <option value="Favor&#xE1;vel">
+                                        Favor&#xE1;vel
+                                    </option>
+                                    <option value="Favor&#xE1;vel condicionado">
+                                        Favor&#xE1;vel condicionado
+                                    </option>
+                                    <option value="Desfavor&#xE1;vel">
+                                        Desfavor&#xE1;vel
+                                    </option>
+                                    <option value="Desconformidade do EIA">
+                                        Desconformidade do EIA
+                                    </option>
+                                    <option value="Encerrado">
+                                        Encerrado
+                                    </option>
+                            </select>
+                        </div>
+
+                        <!-- BOTÕES -->
+                        <div class="col-md-3">
+                            <div class="d-flex gap-2 w-100">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                                <a class="btn btn-outline-secondary w-100" href="/ProcessoAIA">
+                                    <i class="fas fa-times"></i> Limpar
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>
+                        <a href="/ProcessoAIA?sortOrder=pro_id_desc">
+                            NºAIA
+                        </a>
+                    </th>
+
+                    <th>
+                        <a href="/ProcessoAIA?sortOrder=designacao_projecto">
+                            Designação do Projeto
+                        </a>
+                    </th>
+
+                    <th>Documentos</th>
+
+                    <th>
+                        <a href="/ProcessoAIA?sortOrder=proponente">
+                            Proponente
+                        </a>
+                    </th>
+
+                    <th>Localização (Concelhos)</th>
+
+                    <th>
+                        <a href="/ProcessoAIA?sortOrder=licenciador">
+                            Licenciador
+                        </a>
+                    </th>
+
+                    <th>
+                        <a href="/ProcessoAIA?sortOrder=autoridade">
+                            Autoridade
+                        </a>
+                    </th>
+
+                    <th>
+                        <a href="/ProcessoAIA">
+                            Ano Decisão
+                        </a>
+                    </th>
+
+                    <th>
+                        <a href="/ProcessoAIA?sortOrder=sentido_decisao">
+                            Sentido Decisão
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+<tr>
+                        <td>3954</td>
+
+                        <td>
+                                <a title="Detalhes do registo" href="/ProcessoAIA/Detalhes/3954">
+                                    Central Solar do Pinhal Interior Ii
+                                </a>
+                        </td>
+
+                       
+
+
+                        <td class="text-center align-middle">
+                            <a class="btn btn-outline-secondary btn-sm px-2 py-1" data-bs-toggle="tooltip" title="Lista de documentos do registo" href="/ListaDocumentos?pro_id=3954">
+                                <i class="fas fa-file-pdf"></i>
+                                <span class="ms-1">(0)</span>
+                            </a>
+                        </td>
+
+                        <td>TotalEnergies Renewables Portugal Hibridiza&#xE7;&#xE3;o, S.A.</td>
+
+                        <td>
+Castelo Branco, Proen&#xE7;a-a-nova                        </td>
+
+                        <td>DGEG - Direc&#xE7;&#xE3;o-Geral de Energia e Geologia</td>
+                        <td>Ag&#xEA;ncia Portuguesa do Ambiente, I.P.</td>
+                        <td>--</td>
+                        <td>--</td>
+                    </tr>
+<tr>
+                        <td>3930</td>
+
+                        <td>
+                                <a title="Detalhes do registo" href="/ProcessoAIA/Detalhes/3930">
+                                    Altera&#xE7;&#xF5;es da Monteiro Ribas &#x2013; Embalagens Flex&#xED;veis, S.A. (2019-2026)
+                                </a>
+                        </td>
+
+                       
+
+
+                        <td class="text-center align-middle">
+                            <a class="btn btn-outline-secondary btn-sm px-2 py-1" data-bs-toggle="tooltip" title="Lista de documentos do registo" href="/ListaDocumentos?pro_id=3930">
+                                <i class="fas fa-file-pdf"></i>
+                                <span class="ms-1">(10)</span>
+                            </a>
+                        </td>
+
+                        <td>Monteiro, Ribas - Embalagens Flex&#xED;veis, S.A.</td>
+
+                        <td>
+Matosinhos, Porto                        </td>
+
+                        <td>Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Norte</td>
+                        <td>Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Norte</td>
+                        <td>2025</td>
+                        <td>Favor&#xE1;vel condicionado</td>
+                    </tr>
+<tr>
+                        <td>3892</td>
+
+                        <td>
+                                <a title="Detalhes do registo" href="/ProcessoAIA/Detalhes/3892">
+                                    Pedreira N.&#xBA; 6823 &#x201C;Travesseiras&#x201D;
+                                </a>
+                        </td>
+
+                       
+
+
+                        <td class="text-center align-middle">
+                            <a class="btn btn-outline-secondary btn-sm px-2 py-1" data-bs-toggle="tooltip" title="Lista de documentos do registo" href="/ListaDocumentos?pro_id=3892">
+                                <i class="fas fa-file-pdf"></i>
+                                <span class="ms-1">(20)</span>
+                            </a>
+                        </td>
+
+                        <td>Prego &amp; Fernandes, Extrac&#xE7;&#xE3;o de Pedra Lda</td>
+
+                        <td>
+Mondim De Basto                        </td>
+
+                        <td>Ag&#xEA;ncia Portuguesa do Ambiente, I.P.</td>
+                        <td>Comiss&#xE3;o de Coordena&#xE7;&#xE3;o e Desenvolvimento Regional do Norte</td>
+                        <td>2023</td>
+                        <td>Favor&#xE1;vel condicionado</td>
+                    </tr>
+</tbody>
+        </table>
+    </div>
+
+    <!-- Paginação -->
+    <div>
+        
+
+<nav aria-label="Paginação">
+    <ul class="pagination">
+        <!-- Primeira Página -->
+        <li class="page-item disabled">
+            <a class="page-link" aria-label="Primeira" href="/ProcessoAIA?pagina=1">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+
+        <!-- Página Anterior -->
+        <li class="page-item disabled">
+            <a class="page-link" aria-label="Anterior" href="/ProcessoAIA?pagina=0">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+
+        <!-- Mostrar páginas dinâmicas ao redor da página atual -->
+            <li class="page-item active">
+                <a class="page-link" href="/ProcessoAIA?pagina=1">1</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=2">2</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=3">3</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=4">4</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=5">5</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=6">6</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=7">7</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=8">8</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=9">9</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=10">10</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=11">11</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=12">12</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=13">13</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=14">14</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=15">15</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=16">16</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=17">17</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=18">18</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=19">19</a>
+            </li>
+            <li class="page-item ">
+                <a class="page-link" href="/ProcessoAIA?pagina=20">20</a>
+            </li>
+
+        <!-- Próxima Página -->
+        <li class="page-item ">
+            <a class="page-link" aria-label="Próxima" href="/ProcessoAIA?pagina=2">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+
+        <!-- Última Página -->
+        <li class="page-item ">
+            <a class="page-link" aria-label="Última" href="/ProcessoAIA?pagina=38">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+
+    </div>
+</div>
+
+
+    </div>
+
+    <!-- Rodapé -->
+    <footer b-au7mh53mku>
+        <img src="/images/logoapa.png" alt="Logo da APA" />
+        <p b-au7mh53mku>&copy; 2026 - APA - Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle (JS) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <!-- JS do projeto -->
+    <script src="/js/siaia.js"></script>
+
+    <!-- Scripts específicos da página -->
+    
+    <script>
+        (function(){
+          var KEY = 'processoaia_filtros_open';
+          var el = document.getElementById('areaFiltrosAIA');
+          var btn = document.getElementById('btnToggleFiltrosAIA');
+          var label = btn ? btn.querySelector('.label') : null;
+
+          // aberto pelo servidor se existirem filtros ativos
+          var serverOpened = false;
+
+          if (!serverOpened && el) {
+            var saved = localStorage.getItem(KEY);
+            if (saved === 'true') {
+              var c = bootstrap.Collapse.getOrCreateInstance(el, { toggle:false });
+              c.show();
+            }
+          }
+
+          function update() {
+            if (!el || !btn) return;
+            var opened = el.classList.contains('show');
+            if (label) { label.textContent = opened ? 'Esconder filtros' : 'Mostrar filtros'; }
+            btn.setAttribute('aria-expanded', opened ? 'true' : 'false');
+            localStorage.setItem(KEY, opened ? 'true' : 'false');
+          }
+
+          if (el) {
+            el.addEventListener('shown.bs.collapse', update);
+            el.addEventListener('hidden.bs.collapse', update);
+          }
+          update();
+        })();
+    </script>
+
+
+    <!-- Botão "Voltar ao topo" -->
+    <div b-au7mh53mku id="back-to-top" class="back-to-top" onclick="scrollToTop()" title="Voltar para o top">&#8679;</div>
+</body>
+</html>

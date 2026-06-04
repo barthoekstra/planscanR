@@ -199,6 +199,145 @@ test_that("IE coverage row signals EIA-only / notice-PDF status and exposes the 
   expect_true("An Bord Pleanála" %in% f$competent_authority)
 })
 
+test_that("SI coverage row exposes the assessment_type / register vocabulary", {
+  c <- get_assessments_coverage()
+  si <- c[c$country == "si", ]
+  expect_identical(si$source_portal, "gov.si")
+  expect_false(si$requires_auth)
+  expect_identical(si$status, "supported")
+  f <- si$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  expect_true("predhodni-postopek" %in% f$register)
+  expect_true("cpvo-drzavni" %in% f$register)
+  expect_true("cpvo-obcinski" %in% f$register)
+})
+
+test_that("PT coverage row signals AIA-only status and exposes the decision_sense vocabulary", {
+  c <- get_assessments_coverage()
+  pt <- c[c$country == "pt", ]
+  expect_identical(pt$source_portal, "siaia.apambiente.pt")
+  expect_false(pt$requires_auth)
+  expect_identical(pt$status, "supported (EIA/AIA only; SEA/AAE in a separate APA register)")
+  f <- pt$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "decision_sense")
+  expect_true("Favorável" %in% f$decision_sense)
+  expect_true("Favorável condicionado" %in% f$decision_sense)
+  expect_true("Desfavorável" %in% f$decision_sense)
+  expect_true("Desconformidade do EIA" %in% f$decision_sense)
+  expect_true("Encerrado" %in% f$decision_sense)
+})
+
+test_that("GB coverage row signals NSIP-only status and exposes the stage / application-type vocabulary", {
+  c <- get_assessments_coverage()
+  gb <- c[c$country == "gb", ]
+  expect_identical(gb$source_portal, "planninginspectorate.gov.uk")
+  expect_false(gb$requires_auth)
+  expect_identical(
+    gb$status,
+    "supported (NSIP only; every NSIP carries an Environmental Statement)"
+  )
+  f <- gb$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("status", "application_type_prefix"))
+  expect_true("Examination" %in% f$status)
+  expect_true("Withdrawn" %in% f$status)
+  expect_identical(unname(f$application_type_prefix[["EN"]]), "Energy")
+  expect_true("Transport" %in% f$application_type_prefix)
+})
+
+test_that("IT coverage row signals the VIA/VAS dual register and exposes the assessment_type / register vocabulary", {
+  c <- get_assessments_coverage()
+  it <- c[c$country == "it", ]
+  expect_identical(it$source_portal, "va.mite.gov.it")
+  expect_false(it$requires_auth)
+  expect_identical(
+    it$status,
+    "supported (VIA/VAS dual register; HTML scrape; no geometry)"
+  )
+  f <- it$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register"))
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+  expect_identical(unname(f$register[["EIA"]]), "VIA")
+  expect_identical(unname(f$register[["SEA"]]), "VAS")
+})
+
+test_that("SK coverage row signals the API Platform JSON register and exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  sk <- c[c$country == "sk", ]
+  expect_identical(sk$source_portal, "enviroportal.sk")
+  expect_false(sk$requires_auth)
+  expect_identical(
+    sk$status,
+    "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)"
+  )
+  f <- sk$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "assessment_type")
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+})
+
+test_that("NO coverage row signals the NVE concession register and exposes the getall list filters", {
+  c <- get_assessments_coverage()
+  no <- c[c$country == "no", ]
+  expect_identical(no$source_portal, "nve.no")
+  expect_false(no$requires_auth)
+  expect_identical(
+    no$status,
+    "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)"
+  )
+  f <- no$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "list_filters")
+  expect_setequal(f$list_filters, c("caseType", "county", "municipality", "filterText"))
+})
+
+test_that("LV coverage row signals the asymmetric dual register and metadata-only EIA half", {
+  c <- get_assessments_coverage()
+  lv <- c[c$country == "lv", ]
+  expect_identical(lv$source_portal, "eva.gov.lv")
+  expect_false(lv$requires_auth)
+  expect_identical(
+    lv$status,
+    "supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)"
+  )
+  # The status starts with the metadata-only marker, so discovery is nudged.
+  expect_match(lv$status, "^supported \\(metadata-only")
+  expect_true("lv" %in% planscanR:::metadata_only_countries())
+  f <- lv$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register", "note"))
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+  expect_setequal(
+    f$register,
+    c("ivn-projekti", "atzinumi", "lemumi", "monitorings")
+  )
+})
+
+test_that("ES coverage row signals the headless-browser requirement and exposes the assessment_type / register vocabulary", {
+  c <- get_assessments_coverage()
+  es <- c[c$country == "es", ]
+  expect_identical(es$source_portal, "sede.miteco.gob.es")
+  expect_false(es$requires_auth)
+  expect_identical(
+    es$status,
+    "supported (requires optional headless browser; TLS-fingerprinted portal)"
+  )
+  f <- es$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register", "buscador_filters"))
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+  expect_identical(unname(f$register[["EIA"]]), "proyectos")
+  expect_identical(unname(f$register[["SEA"]]), "planes")
+  expect_true("EstadoTramitacion" %in% f$buscador_filters)
+  expect_true("Comunidad" %in% f$buscador_filters)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

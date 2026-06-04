@@ -1,5 +1,5 @@
 # Output column contract (dev/spec/contract.md §1). Locks the guaranteed core
-# columns across ALL 14 country handlers BEFORE Phase 3.2 renames portal-native
+# columns across ALL 22 country handlers BEFORE Phase 3.2 renames portal-native
 # keys, so that work cannot silently drop or retype a core column. Each handler
 # is driven to one representative record through its parse seam + existing
 # fixtures (no live HTTP); at/de/nl mock the network binding.
@@ -169,6 +169,110 @@ make_record <- list(
       single$data$singleIssue
     )$record
   },
+  si = function() {
+    arr <- jsonlite::fromJSON(fixture_path("si", "screening.json"), simplifyVector = FALSE)
+    raw <- arr[[1]]
+    entry <- list(
+      register = "predhodni-postopek",
+      url_segment = raw$URLSegment,
+      url = planscanR:::si_canonical_url("predhodni-postopek", raw$URLSegment),
+      raw = raw
+    )
+    planscanR:::si_build_record(entry, character(0))
+  },
+  pt = function() {
+    url <- planscanR:::pt_canonical_url("3892")
+    entry <- list(
+      pro_id = "3892",
+      aia_number = "3892",
+      title = "Pedreira",
+      proponent = "x",
+      localizacao = "Mondim De Basto",
+      licenciador = "y",
+      autoridade = "z",
+      ano_decisao = "2023",
+      sentido_decisao = "Favorável condicionado"
+    )
+    detail <- rvest::read_html(fixture_path("pt", "detail.html"))
+    documents <- rvest::read_html(fixture_path("pt", "documentos.html"))
+    planscanR:::pt_parse_detail(url, entry, detail, documents)
+  },
+  gb = function() {
+    df <- planscanR:::gb_parse_csv(
+      paste(readLines(fixture_path("gb", "applications.csv")), collapse = "\n")
+    )
+    entry <- planscanR:::gb_map_rows(df)[[1]]
+    url <- planscanR:::gb_canonical_url(entry$reference)
+    planscanR:::gb_build_record(url, entry, character(0))$record
+  },
+  it = function() {
+    info <- rvest::read_html(fixture_path("it", "info_detail.html"))
+    documents <- planscanR:::it_parse_documents(
+      rvest::read_html(fixture_path("it", "documentazione.html"))
+    )
+    entry <- list(
+      register = "VIA",
+      id = "7917",
+      title = "Autostrada A22",
+      proponent = "Autostrada del Brennero S.p.A.",
+      procedura = "Verifica di Ottemperanza",
+      doc_url = "https://va.mite.gov.it/it-IT/Oggetti/Documentazione/7917/19017",
+      grp = "19017"
+    )
+    url <- planscanR:::it_canonical_url(entry$id)
+    planscanR:::it_parse_detail(url, entry, info, documents)$record
+  },
+  sk = function() {
+    detail <- jsonlite::fromJSON(
+      fixture_path("sk", "detail_with_docs.json"),
+      simplifyVector = FALSE
+    )
+    url <- planscanR:::sk_canonical_url(detail$seoId)
+    planscanR:::sk_build_record(url, detail)
+  },
+  no = function() {
+    payload <- jsonlite::fromJSON(
+      fixture_path("no", "getall_p1.json"),
+      simplifyVector = FALSE
+    )
+    raw <- payload$Licenses[[1]]
+    url <- planscanR:::no_canonical_url(raw$SoknadId, raw$Type)
+    per_section <- planscanR:::no_parse_documents(
+      rvest::read_html(fixture_path("no", "detail.html"))
+    )
+    planscanR:::no_build_record(url, raw, per_section)
+  },
+  lv = function() {
+    entry <- list(
+      register = "ivn-projekti",
+      assessment_type = "EIA",
+      url = "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti/example",
+      title = NULL,
+      status = NULL,
+      proponent = NULL,
+      decision_text = NULL
+    )
+    planscanR:::lv_parse_eia_detail(
+      entry$url,
+      entry,
+      rvest::read_html(fixture_path("lv", "eia_detail.html"))
+    )
+  },
+  es = function() {
+    entry <- list(
+      register = "proyectos",
+      code = "20210330",
+      title = "PROYECTO DE EJEMPLO",
+      status = "PUBLICADO BOE",
+      url = planscanR:::es_canonical_url("proyectos", "20210330")
+    )
+    docs <- planscanR:::es_parse_documents(
+      paste(readLines(fixture_path("es", "ficha.html"), warn = FALSE), collapse = "\n"),
+      "proyectos",
+      "20210330"
+    )
+    planscanR:::es_build_record(entry, docs)
+  },
   nl = function() {
     with_mocked_bindings(
       planscanR:::nl_parse_detail(
@@ -228,10 +332,10 @@ test_that("empty_result_tibble() carries the required columns with correct types
   expect_true(is.list(e$local_path))
 })
 
-test_that("bind_results() across all 14 countries is type-stable", {
+test_that("bind_results() across all 22 countries is type-stable", {
   recs <- lapply(names(make_record), function(cc) make_record[[cc]]())
   bound <- expect_no_error(planscanR::bind_results(!!!recs))
-  expect_identical(nrow(bound), 14L)
+  expect_identical(nrow(bound), 22L)
   expect_setequal(bound$country, names(make_record))
   # Core columns survive the bind, types intact.
   expect_true(all(planscanR:::required_columns() %in% names(bound)))
