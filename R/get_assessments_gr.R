@@ -382,7 +382,7 @@ gr_parse_record <- function(url, entry) {
     status = status,
     decision_type = gr_text(entry$type) %||% NA_character_,
     project_category = gr_text(entry$project_category) %||% NA_character_,
-    environmental_id = gr_text(entry$project_pet) %||% NA_character_,
+    project_pet = gr_text(entry$project_pet) %||% NA_character_,
     project_natura2000 = gr_lgl(entry$project_natura2000),
     proponent_tax_id = gr_text(entry$project_carrier_afm) %||% NA_character_,
     transparency_id = gr_text(entry$doc_ada) %||% NA_character_,

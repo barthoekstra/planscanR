@@ -71,7 +71,7 @@ test_that("gr_parse_record extracts every conventional column (record with geome
   # Country-specific extras.
   expect_identical(rec$decision_type, "aepo_nonessential_modification")
   expect_identical(rec$project_category, "A1")
-  expect_identical(rec$environmental_id, "2306963121")
+  expect_identical(rec$project_pet, "2306963121")
   expect_true(rec$project_natura2000)
   expect_match(rec$transparency_id, "ΨΥΑ") # ΨΥΑ...
 
