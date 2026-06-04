@@ -86,6 +86,33 @@
   (`getOption("planscanR.gr_throttle_rate")`). Record language is Greek
   (`el`). Reflected in `get_assessments_coverage()$status` as
   `"supported (decisions-only; studies/SEA login-gated)"`.
+* Iceland handler `get_assessments_is()` — the package's **first GraphQL
+  backend** — fetches from **Skipulagsgátt** (`skipulagsgatt.is`),
+  Skipulagsstofnun's planning/EA portal (a Vue SPA over an anonymous GraphQL
+  API at `POST .../graphql`). **Coverage horizon: cases from roughly June 2023
+  onward only** (the older `skipulag.is` database is dead and not crawled).
+  Environmental assessment lives in three `Issue` processes selected
+  server-side by `processId`, merged into one tibble and tagged via
+  `assessment_type`: `15` (matsskylda screening, EIA) + `16` (full EIA) ->
+  `"EIA"`, `501` (umhverfismat áætlana) -> `"SEA"`. The `assessment_type`
+  argument (`"All"`/`"EIA"`/`"SEA"`) picks the process loop; `document_id` is
+  prefixed `IS-<processId>-<id>` to avoid collisions on the shared Issue id
+  space. The listing is the `issueConnection` cursor connection (paginated via
+  `after: endCursor`); detail is `singleIssue(issueId)`, sidecar-first. Status
+  comes from the plain `lifecycle` field — the `issueStatus` enum is
+  deliberately not requested (a server-side serialization bug 500s the whole
+  query on some records). Server-side filters: `query` (the GraphQL `search`
+  field) and `date_range` (`fromDate` / `toDate`, re-checked client-side).
+  Attachments come from `phases[].files[]` (published only), grouped by
+  semantic role into `attachment_urls_almennt` (general; incl. matsskýrsla /
+  matsáætlun), `_vidbrogd` (developer responses), and `_afgreidsla` (decision /
+  álit); download URLs are `https://www.skipulagsgatt.is/files/<uuid>`. Records
+  with `hasGeography` get a sibling `.geometry.geojson` in WGS84 (`geometry_crs
+  = "EPSG:4326"`, *not* projected ISN93) — the geometry arrives as a GeoJSON
+  *string* needing a second parse. Throttled to 5 req/s by default
+  (`getOption("planscanR.is_throttle_rate")`). Record language is Icelandic
+  (`is`). Reflected in `get_assessments_coverage()$status` as
+  `"supported (GraphQL; cases from ~June 2023 onward)"`.
 * **`relevance_threshold` is now a download-gate only.** Records that score
   below the threshold still get a sidecar JSON on disk and still appear in
   the returned tibble — only their PDF attachments are skipped. This makes

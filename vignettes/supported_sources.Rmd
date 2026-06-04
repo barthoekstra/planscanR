@@ -22,7 +22,8 @@ library(planscanR)
 
 `planscanR` is a thin layer over a handful of national environmental-assessment
 portals (currently Netherlands, Germany, France, Austria, Denmark, Belgium
-(Flanders), Estonia, Bulgaria, the Czech Republic, Croatia, and Greece).
+(Flanders), Estonia, Bulgaria, the Czech Republic, Croatia, Greece, and
+Iceland).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
@@ -607,6 +608,86 @@ get_assessments_gr(limit = 5, download = FALSE)
 
 # New AEPO approvals only
 get_assessments_gr(type = "aepo_creation", limit = 5, download = FALSE)
+```
+
+## Iceland — `"is"`
+
+* **Portal:** **Skipulagsgátt** (Skipulagsstofnun / National Planning Agency),
+  served by an anonymous **GraphQL** API at
+  [www.skipulagsgatt.is/graphql](https://www.skipulagsgatt.is/graphql). The
+  human-facing Vue SPA lives at
+  [www.skipulagsgatt.is](https://www.skipulagsgatt.is/); the canonical `url`
+  for a record is `https://www.skipulagsgatt.is/issues/<id>`. This is the
+  package's **first GraphQL-backed handler** — the transport is a single HTTP
+  `POST .../graphql` with a JSON body `{"query": ..., "variables": ...}`.
+* **Status:** supported, **with an important coverage caveat (recent cases
+  only)** — see below. Reflected in `get_assessments_coverage()$status` as
+  `"supported (GraphQL; cases from ~June 2023 onward)"`.
+* **Authentication:** none (anonymous GraphQL).
+* **Coverage horizon (read this first).** Skipulagsgátt only carries cases from
+  **roughly June 2023 onward** (when the portal went live). The older
+  `skipulag.is` / `island.is` "gagnagrunnur umhverfismats" is dead (it now
+  redirects to static info) and is **not** crawled. So this handler yields a
+  recent-cases-only corpus (~235 environmental-assessment issues at the time of
+  writing).
+* **Three processes merged.** The portal models every dossier as a unified
+  `Issue`; environmental assessment lives in three of its `process`es, selected
+  server-side by `processId` and merged into one tibble with an
+  `assessment_type` tag: `15` (*matsskylda* screening, EIA-track) and `16`
+  (full *Mat á umhverfisáhrifum*, EIA) → `"EIA"`; `501` (*Umhverfismat
+  áætlana*, SEA) → `"SEA"`. The `assessment_type` argument
+  (`"All"`/`"EIA"`/`"SEA"`) picks the process loop. Because the three share the
+  same `Issue.id` space, `document_id` is prefixed `IS-<processId>-<id>` (e.g.
+  `IS-16-137`) so they never collide on disk; the finer distinction is kept in
+  `process_type` / `native_type`.
+* **Enumeration.** The listing is the GraphQL `issueConnection(input, first,
+  after)` cursor connection, paginated with `after: endCursor`. `processId` is
+  single-valued per query, so the handler loops the selected processes. Detail
+  is one `singleIssue(issueId)` call per record, sidecar-first.
+* **Status field gotcha.** Record status is read from the plain-string
+  `lifecycle` field (e.g. `"done"`, `"process_initialized"`). The handler
+  deliberately does **not** request the `issueStatus` enum — it has a
+  server-side serialization bug that returns HTTP 500 for the whole query on
+  some records.
+* **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.is_throttle_rate")`).
+* **Language:** record content is Icelandic (ISO-639-1 `is`).
+
+**Geometry.** `Issue.hasGeography` flags whether a record has a footprint;
+`Issue.geographies` returns a GraphQL `FeatureCollection` whose per-feature
+`geometry` arrives as a GeoJSON **string** that needs a *second*
+`jsonlite::fromJSON` parse. Point / LineString / Polygon are all observed.
+Coordinates are already geographic **WGS84 (EPSG:4326 lon/lat)** — *not* the
+projected ISN93 grid — so no reprojection happens. When present, the geometry
+is written next to the sidecar as `<document_id>.geometry.geojson` (family
+FeatureCollection layout, `urn:ogc:def:crs:EPSG::4326`); `geometry_crs` is
+`"EPSG:4326"`. Records with `hasGeography = false` / an empty collection leave
+the geometry columns `NA`.
+
+**Filter coverage.** Server-side: `query` -> the GraphQL `search` field
+(full-text), and `date_range` -> `fromDate` / `toDate` (matched on the
+`publishedDate`, re-checked client-side as a guard). `assessment_type` selects
+which process(es) to crawl (applied in R, by choosing the process loop).
+`date_published` is the `publishedDate`; `date_decision` is the `closedDate`.
+
+**Documents.** Documents live under `phases[].files[]`, each an
+`IssuePhaseFile` with a semantic-role `type` and a nested `data` `File`. Only
+files with `published == true` are emitted. They are grouped by their role into
+lowercase slugs — `almennt` (general; incl. the matsskýrsla / EIA report and
+matsáætlun), `vidbrogd` (developer responses), `afgreidsla` (the decision /
+álit) — one `attachment_urls_<slug>` / `local_path_<slug>` list-column each,
+with the deduplicated union at `attachment_urls` / `local_path`. The download
+URL is `https://www.skipulagsgatt.is/<File.path>` (path of the form
+`files/<uuid>`), anonymous. PDFs are large (often 10-16 MB) — set
+`max_file_size_mb` accordingly. The top-level `Issue.files` collection is
+usually empty and is ignored.
+
+```{r}
+# Recent EIA cases (screening + full), first few records
+get_assessments_is(assessment_type = "EIA", limit = 5, download = FALSE)
+
+# SEA only (umhverfismat áætlana)
+get_assessments_is(assessment_type = "SEA", limit = 5, download = FALSE)
 ```
 
 ## Adding a new source

@@ -132,6 +132,28 @@ Python, no Shiny, no project-specific scoring config.
   (`getOption("planscanR.gr_throttle_rate")`). Reflected in
   `get_assessments_coverage()$status` as
   `"supported (decisions-only; studies/SEA login-gated)"`.
+- Iceland (`get_assessments_is()`) — **Skipulagsgátt** (Skipulagsstofnun) at
+  `skipulagsgatt.is`; the package's **first GraphQL backend** (anonymous
+  `POST .../graphql`, body `{"query", "variables"}`, parsed via `perform_json`;
+  single network seam `is_graphql()`). **Coverage horizon: cases from ~June
+  2023 onward only** (the dead `skipulag.is` DB is not crawled). Three `Issue`
+  processes selected by `processId`, merged + tagged via `assessment_type`:
+  `15` (matsskylda screening) + `16` (full EIA) → `"EIA"`, `501` (umhverfismat
+  áætlana) → `"SEA"`; `assessment_type` arg picks the loop; `document_id`
+  prefixed `IS-<processId>-<id>`. Listing = `issueConnection` cursor connection
+  (`after: endCursor`); detail = `singleIssue(issueId)`, sidecar-first. Status
+  from the plain `lifecycle` field — the `issueStatus` enum is **not** requested
+  (server-side serialization bug 500s the whole query on some records).
+  Server-side filters: `query` (GraphQL `search`), `date_range`
+  (`fromDate`/`toDate`). Attachments from `phases[].files[]` (published only),
+  grouped by role into `attachment_urls_almennt` / `_vidbrogd` / `_afgreidsla`;
+  URLs `https://www.skipulagsgatt.is/files/<uuid>`. `hasGeography` records get a
+  sibling `.geometry.geojson` in **EPSG:4326** (WGS84 lon/lat — *not* projected
+  ISN93); the per-feature geometry is a GeoJSON **string** needing a second
+  parse. Record language Icelandic (`is`). Throttled to 5 req/s by default
+  (`getOption("planscanR.is_throttle_rate")`). Reflected in
+  `get_assessments_coverage()$status` as
+  `"supported (GraphQL; cases from ~June 2023 onward)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -217,7 +239,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_bg(...)          # registers.moew.government.bg
   │     ├── get_assessments_cz(...)          # portal.cenia.cz/eiasea
   │     ├── get_assessments_hr(...)          # mzozt.gov.hr
-  │     └── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
+  │     ├── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
+  │     └── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

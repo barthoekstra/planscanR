@@ -148,6 +148,26 @@ test_that("GR coverage row signals decisions-only status and exposes the type vo
   expect_true("pppa_creation" %in% f$type)
 })
 
+test_that("IS coverage row signals the GraphQL backend + coverage horizon and exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  is <- c[c$country == "is", ]
+  expect_identical(is$source_portal, "skipulagsgatt.is")
+  expect_false(is$requires_auth)
+  expect_identical(
+    is$status,
+    "supported (GraphQL; cases from ~June 2023 onward)"
+  )
+  f <- is$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "process_type"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  # The three environmental-assessment process types are documented.
+  expect_true("MAT_A_UMHVERFISAHRIFUM" %in% f$process_type)
+  expect_true("UMHVERFISMAT_AETLANA" %in% f$process_type)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

@@ -14,7 +14,8 @@
 #'
 #' @param country Character scalar, ISO-3166-1 alpha-2 country code (any case).
 #'   v0.1 supports `"nl"`, `"de"`, `"fr"`, `"at"`, `"dk"`, `"be"` (Flanders),
-#'   `"ee"`, `"bg"`, `"cz"`, `"hr"`, and `"gr"`. See [supported_countries()].
+#'   `"ee"`, `"bg"`, `"cz"`, `"hr"`, `"gr"`, and `"is"`. See
+#'   [supported_countries()].
 #' @param date_range Optional length-2 vector `c(from, to)` of `Date`,
 #'   `POSIXct`, or character. Filters by `date_published` / `date_decision`
 #'   semantics decided per handler.
@@ -194,6 +195,7 @@ select_assessments_handler <- function(country) {
     cz = get_assessments_cz,
     hr = get_assessments_hr,
     gr = get_assessments_gr,
+    is = get_assessments_is,
     abort_unsupported_country(country)
   )
 }

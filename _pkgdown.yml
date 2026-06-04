@@ -28,6 +28,7 @@ reference:
   - get_assessments_cz
   - get_assessments_hr
   - get_assessments_gr
+  - get_assessments_is
   - get_assessments_coverage
   - supported_countries
   - bind_results

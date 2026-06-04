@@ -14,7 +14,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr", "gr"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr", "gr", "is"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -26,7 +26,8 @@ get_assessments_coverage <- function() {
       "registers.moew.government.bg",
       "portal.cenia.cz",
       "mzozt.gov.hr",
-      "eprm.ypen.gr"
+      "eprm.ypen.gr",
+      "skipulagsgatt.is"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -39,9 +40,11 @@ get_assessments_coverage <- function() {
       "https://registers.moew.government.bg",
       "https://portal.cenia.cz/eiasea",
       "https://mzozt.gov.hr",
-      "https://eprm.ypen.gr"
+      "https://eprm.ypen.gr",
+      "https://www.skipulagsgatt.is"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -65,7 +68,8 @@ get_assessments_coverage <- function() {
       "supported", # bg
       "supported", # cz
       "supported", # hr
-      "supported (decisions-only; studies/SEA login-gated)" # gr
+      "supported (decisions-only; studies/SEA login-gated)", # gr
+      "supported (GraphQL; cases from ~June 2023 onward)" # is
     ),
     facets = list(
       commissiemer_facets(),
@@ -78,7 +82,31 @@ get_assessments_coverage <- function() {
       moew_bg_facets(),
       cenia_cz_facets(),
       mzozt_hr_facets(),
-      eprm_gr_facets()
+      eprm_gr_facets(),
+      skipulagsgatt_is_facets()
+    )
+  )
+}
+
+#' Static lookup of the Skipulagsgátt (Iceland) facet vocabularies.
+#'
+#' Skipulagsgátt's GraphQL `Issue` model carries environmental assessment in
+#' three `process`es, selected server-side by `processId`. The first-class
+#' discriminator surfaced here is the `assessment_type` selector (which
+#' process(es) to crawl — `{15, 16}` for EIA, `501` for SEA, or all three),
+#' plus the three environmental-assessment `process_type` codes for reference
+#' (screening, full EIA, SEA). The portal also honours free-text (the `query`
+#' argument, forwarded as the GraphQL `search` field) and a published-date
+#' window (`fromDate` / `toDate`, the `date_range` argument). Note the coverage
+#' horizon: only cases from roughly June 2023 onward are in the register.
+#' @noRd
+skipulagsgatt_is_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    process_type = c(
+      `15` = "TILKYNNING_TIL_AKVORDUNAR_UM_MATSSKYLDU",
+      `16` = "MAT_A_UMHVERFISAHRIFUM",
+      `501` = "UMHVERFISMAT_AETLANA"
     )
   )
 }
