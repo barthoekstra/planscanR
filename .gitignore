@@ -39,8 +39,10 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# pkgdown site (built output ignored; hand-written docs/spec + docs/dev tracked)
+docs/*
+!docs/spec/
+!docs/dev/
 
 # translation temp files
 po/*~
