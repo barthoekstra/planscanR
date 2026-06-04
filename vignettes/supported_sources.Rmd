@@ -22,8 +22,8 @@ library(planscanR)
 
 `planscanR` is a thin layer over a handful of national environmental-assessment
 portals (currently Netherlands, Germany, France, Austria, Denmark, Belgium
-(Flanders), Estonia, Bulgaria, the Czech Republic, Croatia, Greece, and
-Iceland).
+(Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia, Greece,
+and Iceland).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
@@ -345,6 +345,61 @@ get_assessments_ee(query = "tuulepark", limit = 20, download = FALSE)
 
 # SEA only
 get_assessments_ee(assessment_type = "SEA", limit = 20, download = FALSE)
+```
+
+## Finland — `"fi"`
+
+* **Portal:** ymparisto.fi, the national environmental-administration site
+  ([ymparisto.fi](https://www.ymparisto.fi/))
+* **Status:** supported — **EIA/YVA only**. The ymparisto.fi search index has
+  no SOVA/SEA (strategic assessment) content type; `yva_project` is the only
+  project type, so this handler delivers project-level EIA (*YVA*,
+  *ympäristövaikutusten arviointi*) records only. There is no SEA path.
+* **Authentication:** none.
+* **Coverage:** ~1,334 YVA records at the time of writing.
+* **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.fi_throttle_rate")`) — the ~1,334 per-record HTML
+  landing-page GETs (needed to harvest attachment URLs) dominate a cold crawl.
+
+This handler is a **hybrid**. ymparisto.fi is a Drupal + React site whose
+site-search is backed by an Elasticsearch index exposed through a same-origin
+proxy that passes raw ES Query DSL: `POST
+https://www.ymparisto.fi/fi/app/search/query` with a JSON body. The handler
+filters to `{"query":{"term":{"type":"yva_project"}}}` and paginates with ES
+`from`/`size` against a stable id sort; the whole register sits under the
+10,000 `max_result_window`. All record **metadata** (title, description,
+publish time, project phase, the responsible ELY-keskus, municipality,
+province, subject area) comes from the index. A Swedish `/sv/` index exists
+but is ignored in v0.1.
+
+**Geometry.** None — neither the index nor the landing page exposes
+coordinates, so no geometry columns are emitted.
+
+**Filter coverage.** `query` is forwarded server-side as an ES `match` over the
+`content` + `title` fields. `assessment_type` accepts only `"All"` / `"EIA"`
+(both crawl the single `yva_project` register; there is no `"SEA"`).
+`date_range` is matched client-side against `date_published` (the `publishTime`
+unix-seconds epoch); `date_decision` is always `NA` (no structured decision
+timestamp in the index).
+
+**Documents.** Attachment URLs are **not** in the Elasticsearch index — they
+live only on the HTML landing page. For each kept record the handler GETs the
+record's landing page and scrapes every `<a href>` under
+`/sites/default/files/`, resolving them to absolute, anonymous
+`https://www.ymparisto.fi/sites/default/files/documents/<file>.{pdf,doc,docx}`
+URLs. Because the URLs come from the HTML, this detail fetch runs even when
+`download = FALSE` (to populate `attachment_urls`); it is skipped only when a
+sidecar already exists for the URL (sidecar-first). Documents are typed by
+their **anchor text** (the page has no structured section markup) via a curated
+keyword map with an auto-slug fallback: `arviointiohjelma` → `programme`,
+`arviointiselostus` → `report`, `lausunto` → `statement`, `kuulutus` →
+`notice`, `tiivistelmä` → `summary`. Each type becomes its own
+`attachment_urls_<slug>` / `local_path_<slug>` column; the deduplicated union
+is at `attachment_urls` / `local_path` as the schema requires.
+
+```{r}
+# Wind-themed slice (server-side full-text)
+get_assessments_fi(query = "tuulivoima", limit = 20, download = FALSE)
 ```
 
 ## Bulgaria — `"bg"`

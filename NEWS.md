@@ -161,6 +161,27 @@
   client-side against `date_published` (the portal's *Algatamise kpv* /
   initiation date; `date_decision` is `NA` because the portal exposes no
   dossier-level decision timestamp).
+* Finland handler `get_assessments_fi()` fetches from the national
+  environmental-administration site `ymparisto.fi`. **EIA/YVA only:** the
+  ymparisto.fi Elasticsearch index has no SOVA/SEA content type — `yva_project`
+  is the only project type — so the handler delivers project-level EIA (*YVA*,
+  *ympäristövaikutusten arviointi*) records only; the `assessment_type` argument
+  accepts only `"All"` / `"EIA"`, there is no SEA path. It is a **hybrid**: a
+  JSON Elasticsearch-proxy listing call (`POST .../fi/app/search/query`, raw ES
+  Query DSL, from/size paging filtered to `type=yva_project`) supplies all
+  record metadata, then a per-record HTML landing-page fetch harvests the
+  attachment URLs (which are absent from the index) by scraping `<a href>` under
+  `/sites/default/files/`. Attachments are anonymous PDFs (no auth), typed from
+  anchor text via a curated keyword map with auto-slug fallback
+  (`arviointiohjelma` → `programme`, `arviointiselostus` → `report`, `lausunto`
+  → `statement`, `kuulutus` → `notice`, `tiivistelmä` → `summary`), each
+  emitting an `attachment_urls_<slug>` column. The detail fetch runs even when
+  `download = FALSE` (to populate `attachment_urls`) but is skipped sidecar-first
+  when a record is already cached. Filter surface: `query` (server-side ES
+  `match` on `content` + `title`) and `date_range` (client-side against
+  `date_published`, the `publishTime` epoch; `date_decision` is `NA`). No
+  geometry (coordinates are absent from both the index and the page). Throttled
+  to 5 req/s by default (`planscanR.fi_throttle_rate`).
 * Czech Republic handler `get_assessments_cz()` fetches from CENIA's
   *Informační systém EIA/SEA* (`portal.cenia.cz/eiasea`), a server-rendered
   JSP application. **Domestic CZ only:** it crawls just the two in-scope

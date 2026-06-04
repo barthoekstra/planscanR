@@ -1,7 +1,7 @@
 test_that("supported_countries() returns the shipped set", {
   expect_setequal(
     supported_countries(),
-    c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr", "gr", "is")
+    c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is")
   )
 })
 
@@ -44,6 +44,7 @@ test_that("select_assessments_handler returns the per-country function", {
   expect_identical(planscanR:::select_assessments_handler("dk"), get_assessments_dk)
   expect_identical(planscanR:::select_assessments_handler("be"), get_assessments_be)
   expect_identical(planscanR:::select_assessments_handler("ee"), get_assessments_ee)
+  expect_identical(planscanR:::select_assessments_handler("fi"), get_assessments_fi)
   expect_identical(planscanR:::select_assessments_handler("bg"), get_assessments_bg)
   expect_identical(planscanR:::select_assessments_handler("cz"), get_assessments_cz)
   expect_identical(planscanR:::select_assessments_handler("hr"), get_assessments_hr)

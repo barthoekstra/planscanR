@@ -14,7 +14,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr", "gr", "is"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -23,6 +23,7 @@ get_assessments_coverage <- function() {
       "miljoeportal.dk/eahub",
       "omgeving.vlaanderen.be/merregister",
       "kotkas.envir.ee",
+      "ymparisto.fi",
       "registers.moew.government.bg",
       "portal.cenia.cz",
       "mzozt.gov.hr",
@@ -37,6 +38,7 @@ get_assessments_coverage <- function() {
       "https://eahub.miljoeportal.dk",
       "https://merregister.omgeving.vlaanderen.be",
       "https://kotkas.envir.ee",
+      "https://www.ymparisto.fi",
       "https://registers.moew.government.bg",
       "https://portal.cenia.cz/eiasea",
       "https://mzozt.gov.hr",
@@ -44,6 +46,7 @@ get_assessments_coverage <- function() {
       "https://www.skipulagsgatt.is"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -65,6 +68,7 @@ get_assessments_coverage <- function() {
       "supported", # dk
       "supported",
       "supported",
+      "supported (EIA/YVA only; no SEA in register)", # fi
       "supported", # bg
       "supported", # cz
       "supported", # hr
@@ -79,6 +83,7 @@ get_assessments_coverage <- function() {
       eahub_dk_facets(),
       merregister_be_facets(),
       kotkas_ee_facets(),
+      ymparisto_fi_facets(),
       moew_bg_facets(),
       cenia_cz_facets(),
       mzozt_hr_facets(),
@@ -181,6 +186,24 @@ projets_environnement_fr_facets <- function() {
       "Autorisation au titre du code de l'environnement",
       "Permis de construire"
     )
+  )
+}
+
+#' Static lookup of the ymparisto.fi (Finland) facet vocabularies.
+#'
+#' The Finnish register is **EIA/YVA-only** — the ymparisto.fi Elasticsearch
+#' index has no SOVA/SEA content type, only `yva_project`. The single
+#' first-class discriminator is therefore the `assessment_type` selector, which
+#' accepts only `"All"` / `"EIA"` (both crawl the one `yva_project` register);
+#' there is no `"SEA"` value. The portal also honours free-text (the `query`
+#' argument, sent as an ES `match` on the `content` + `title` fields) and a
+#' published-date window (`date_range`, matched against `publishTime`). The
+#' `yva_project` content type is surfaced below for reference.
+#' @noRd
+ymparisto_fi_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA"),
+    type = c(EIA = "yva_project")
   )
 }
 

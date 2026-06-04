@@ -9,7 +9,8 @@ Description: A unified R interface for fetching environmental-assessment
     ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund),
     France (Projets-Environnement),
     Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders;
-    MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Bulgaria
+    MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Finland
+    (ymparisto.fi; EIA/YVA only), Bulgaria
     (МОСВ registers; ОВОС + ЕО), the Czech Republic (CENIA EIA/SEA;
     domestic registers only), Croatia (Ministry of Environment CMS
     pages; PUO + SPUO), Greece (ΗΠΜ / EPRM; AEPO permit decisions

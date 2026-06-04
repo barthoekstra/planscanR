@@ -39,6 +39,7 @@ Supported portals:
 | Denmark (`"dk"`) | Danmarks Miljøportal EA-Hub | record metadata + polygon geometry (document downloads deferred) |
 | Belgium (Flanders) (`"be"`) | Departement Omgeving MER-register | full records + polygon geometry + document downloads |
 | Estonia (`"ee"`) | Keskkonnaamet KOTKAS (KMH + KSH) | EIA + SEA in one handler, full records + polygon geometry + document downloads |
+| Finland (`"fi"`) | ymparisto.fi (Elasticsearch proxy + HTML attachment scrape) | **EIA/YVA only** (no SEA in register), full records + document downloads (no geometry) |
 | Bulgaria (`"bg"`) | МОСВ registers (ОВОС + ЕО) | EIA + SEA in one handler, full records + document downloads (no geometry) |
 | Czech Republic (`"cz"`) | CENIA EIA/SEA (eia100_cr + SEA100_koncepce) | EIA + SEA in one handler, domestic CZ only, full records + document downloads (no geometry) |
 | Croatia (`"hr"`) | mzozt.gov.hr CMS pages (PUO + SPUO) | EIA + SEA in one handler, scraped CMS pages (no API), full records + document downloads (no geometry) |

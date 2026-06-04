@@ -83,6 +83,22 @@ test_that("EE coverage row exposes the KOTKAS facet vocabularies", {
   expect_true("Detailplaneering" %in% f$ksh_type)
 })
 
+test_that("FI coverage row signals EIA/YVA-only status and exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  fi <- c[c$country == "fi", ]
+  expect_identical(fi$source_portal, "ymparisto.fi")
+  expect_false(fi$requires_auth)
+  expect_identical(fi$status, "supported (EIA/YVA only; no SEA in register)")
+  f <- fi$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "type"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  # No SEA in the Finnish register.
+  expect_false("SEA" %in% f$assessment_type)
+  expect_identical(unname(f$type[["EIA"]]), "yva_project")
+})
+
 test_that("BG coverage row exposes the assessment_type vocabulary", {
   c <- get_assessments_coverage()
   bg <- c[c$country == "bg", ]

@@ -54,6 +54,19 @@ Python, no Shiny, no project-specific scoring config.
   next to the sidecar in the same layout as DK / BE. Direct anonymous
   document downloads, grouped per `Liik` (document type) into
   `attachment_urls_<slug>` columns dynamically.
+- Finland (`get_assessments_fi()`) — the national environmental-administration
+  site `ymparisto.fi`. **EIA/YVA only** (no SOVA/SEA content type in the
+  register; `yva_project` is the only project type, so `assessment_type`
+  accepts only `"All"` / `"EIA"`). **Hybrid** handler: a JSON
+  Elasticsearch-proxy listing call (`POST .../fi/app/search/query`, raw ES
+  Query DSL, from/size paging filtered to `type=yva_project`) supplies all
+  metadata, then a per-record HTML landing-page fetch scrapes the attachment
+  URLs (absent from the index) from `<a href>` under `/sites/default/files/`,
+  typed from anchor text via a curated keyword map + auto-slug fallback. The
+  detail fetch runs even when `download = FALSE` (to populate
+  `attachment_urls`), skipped sidecar-first. Anonymous PDF downloads. **No
+  geometry.** Throttled to 5 req/s by default. Two network seams
+  (`fi_es_search`, `fi_fetch_detail`) mocked independently in tests.
 - Bulgaria (`get_assessments_bg()`) — Ministry of Environment and Water
   (МОСВ) registers at `registers.moew.government.bg`. Merges both
   registers — **ОВОС** (EIA) and **ЕО** (SEA) — into one result tibble;
