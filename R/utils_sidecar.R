@@ -647,6 +647,51 @@ index_cache <- function(cache_dir = NULL, country = NULL) {
   bind_results(!!!rows)
 }
 
+#' Upgrade every sidecar in a cache to the current schema (v3) in place.
+#'
+#' Walks `<cache>/files/.../<id>.meta.json`, reads each record, and rewrites it
+#' through [write_record_sidecar()] so on-disk paths become cache-relative,
+#' `schema_version` is bumped to 3, and the v2 `relevance_score_*` `extras`
+#' duplication is dropped. The merging writer already upgrades a sidecar lazily
+#' on the next write, so this is only needed to upgrade a whole cache eagerly in
+#' one pass. Idempotent — re-running on a v3 cache just rewrites it unchanged.
+#'
+#' @param cache_dir Optional cache root. Defaults to [cache_dir_default()].
+#' @return The number of sidecars rewritten, invisibly.
+#' @export
+#' @examples
+#' \dontrun{
+#' migrate_sidecars_v3()
+#' }
+migrate_sidecars_v3 <- function(cache_dir = NULL) {
+  root <- if (is.null(cache_dir)) cache_dir_default() else cache_dir
+  files_root <- file.path(root, "files")
+  if (!dir.exists(files_root)) {
+    return(invisible(0L))
+  }
+  sidecars <- list.files(
+    files_root,
+    pattern = "\\.meta\\.json$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  n <- 0L
+  for (p in sidecars) {
+    rec <- tryCatch(read_record_sidecar(p), error = function(e) {
+      warn_partial("Could not read sidecar {.file {p}}: {conditionMessage(e)}")
+      NULL
+    })
+    if (is.null(rec)) {
+      next
+    }
+    dl <- rec[["download_status"]]
+    downloads <- if (is.list(dl) && length(dl) >= 1L) dl[[1]] else NULL
+    write_record_sidecar(rec, downloads = downloads, root = root)
+    n <- n + 1L
+  }
+  invisible(n)
+}
+
 #' Resolve the planscanR cache root.
 #'
 #' The cache root is owned by `planscanR`: it is `getOption("planscanR.cache_dir")`

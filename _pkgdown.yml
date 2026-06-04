@@ -61,6 +61,7 @@ reference:
   - download_to_cache
   - read_record_sidecar
   - write_record_sidecar
+  - migrate_sidecars_v3
 
 - title: Package
   contents:
