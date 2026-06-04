@@ -134,66 +134,53 @@ get_assessments_fi <- function(
     stats::setNames(character(0), character(0))
   }
 
-  index <- tryCatch(
-    fi_fetch_search(query = query, limit = limit),
-    error = function(e) {
-      warn_partial(
-        "Failed to enumerate ymparisto.fi YVA index: {conditionMessage(e)}"
-      )
-      list()
-    }
-  )
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling FI  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: build the canonical URL, sidecar-first detail fetch,
+  # client-side date filter, relevance scoring, optional download, and the
+  # sidecar write. Returns the 1-row record or NULL to drop the entry. Called
+  # once per listing row by stream_crawl().
+  process_entry <- function(entry) {
     u <- fi_canonical_url(entry$link)
     if (is.na(u) || !nzchar(u)) {
-      next
+      return(NULL)
     }
     rec <- tryCatch(
       fi_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!fi_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- fi_finalise_record(
+    fi_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
   }
+
+  # Stream the single YVA register page-by-page, persisting records as they are
+  # parsed instead of enumerating the whole index first.
+  gen <- tryCatch(
+    fi_fetch_search(query = query, limit = limit),
+    error = function(e) {
+      warn_partial(
+        "Failed to enumerate ymparisto.fi YVA index: {conditionMessage(e)}"
+      )
+      function() NULL
+    }
+  )
+  records <- stream_crawl(gen, process_entry, limit = limit, label = "fi")
 
   if (length(records) == 0L) {
     return(empty_result_tibble())
@@ -273,47 +260,63 @@ fi_canonical_url <- function(link) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Page the Elasticsearch proxy filtered to `type=yva_project`.
+#' Build a page generator for the Elasticsearch index (`type=yva_project`).
 #'
-#' Returns a list of `_source` objects (each a named list with `id`, `link`,
-#' `title`, `description`, `publishTime`, `projectPhase`, `organization`,
-#' `municipality`, `province`, `subjectArea`, `typeLabel`, ...). Pagination is
-#' ES from/size against a stable id sort. We early-exit once at least `limit`
-#' raw rows are in hand (the caller may filter some out, so this is a soft
-#' ceiling, overshooting a little).
+#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' call POSTs the next ES from/size page (stable id sort) and returns that
+#' page's `_source` objects, or `NULL` once the index is exhausted. Each
+#' `_source` is a named list with `id`, `link`, `title`, `description`,
+#' `publishTime`, `projectPhase`, `organization`, `municipality`, `province`,
+#' `subjectArea`, `typeLabel`, .... Pagination state (the `from` offset, the
+#' running emitted count, and the exhausted flag) lives in the closure, so the
+#' streaming driver pulls only as many pages as the limit needs and records are
+#' persisted page-by-page.
+#'
+#' The single network seam is still `fi_es_search()` (the test mock boundary),
+#' invoked once per generator call. Termination mirrors the original from-paging
+#' loop: empty hits, reaching `hits.total.value`, or a short server page each
+#' end the register. `limit` is retained for call-site compatibility (and the
+#' soft `limit * 3` page ceiling), but stream_crawl already stops pulling pages
+#' once enough records are kept.
 #' @noRd
 fi_fetch_search <- function(query = NULL, limit = Inf) {
-  out <- list()
   from <- 0L
   size <- fi_page_size()
-  repeat {
+  emitted <- 0L
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     body <- fi_search_body(query = query, from = from, size = size)
     payload <- fi_es_search(body)
     hits <- fi_es_hits(payload)
     if (length(hits) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
+    page <- list()
     for (h in hits) {
       src <- h$`_source`
       if (is.list(src)) {
-        out[[length(out) + 1L]] <- src
+        page[[length(page) + 1L]] <- src
       }
     }
+    emitted <<- emitted + length(page)
     total <- fi_es_total(payload)
-    if (!is.null(total) && length(out) >= total) {
-      break
+    if (!is.null(total) && emitted >= total) {
+      done <<- TRUE
+    } else if (is.finite(limit) && emitted >= as.integer(limit) * 3L) {
+      # Soft stop: stop paging once we've enumerated at least `limit * 3` rows.
+      done <<- TRUE
+    } else if (length(hits) < size) {
+      # Server short page → end of register.
+      done <<- TRUE
+    } else {
+      from <<- from + size
     }
-    # Soft stop: stop paging once we've enumerated at least `limit * 3` rows.
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 3L) {
-      break
-    }
-    # Server short page → end of register.
-    if (length(hits) < size) {
-      break
-    }
-    from <- from + size
+    page
   }
-  out
 }
 
 #' Build the Elasticsearch Query DSL body for one listing page.

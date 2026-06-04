@@ -193,10 +193,18 @@ test_that("get_assessments_bg end-to-end on fixtures (sidecar-first)", {
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
       bg_fetch_search = function(register, ...) {
-        if (register == "OVOS") {
-          list(.bg_entry_ovos_21617)
-        } else {
-          list(.bg_entry_eo_44841)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "OVOS") {
+            list(.bg_entry_ovos_21617)
+          } else {
+            list(.bg_entry_eo_44841)
+          }
         }
       }
     )
@@ -237,10 +245,18 @@ test_that("get_assessments_bg honours the assessment_type filter", {
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
       bg_fetch_search = function(register, ...) {
-        if (register == "OVOS") {
-          list(.bg_entry_ovos_21617)
-        } else {
-          list(.bg_entry_eo_44841)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "OVOS") {
+            list(.bg_entry_ovos_21617)
+          } else {
+            list(.bg_entry_eo_44841)
+          }
         }
       }
     )
@@ -266,10 +282,18 @@ test_that("get_assessments_bg respects date_range filter", {
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
       bg_fetch_search = function(register, ...) {
-        if (register == "OVOS") {
-          list(.bg_entry_ovos_21617)
-        } else {
-          list(.bg_entry_eo_44841)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "OVOS") {
+            list(.bg_entry_ovos_21617)
+          } else {
+            list(.bg_entry_eo_44841)
+          }
         }
       }
     )
@@ -294,10 +318,18 @@ test_that("BG -> sidecar round-trip preserves the country-specific extras", {
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
       bg_fetch_search = function(register, ...) {
-        if (register == "OVOS") {
-          list(.bg_entry_ovos_21617)
-        } else {
-          list(.bg_entry_eo_44841)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "OVOS") {
+            list(.bg_entry_ovos_21617)
+          } else {
+            list(.bg_entry_eo_44841)
+          }
         }
       }
     )
@@ -328,10 +360,18 @@ test_that("get_assessments_bg scores topics and adds relevance_score_<slug> colu
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
       bg_fetch_search = function(register, ...) {
-        if (register == "OVOS") {
-          list(.bg_entry_ovos_21617)
-        } else {
-          list(.bg_entry_eo_44841)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "OVOS") {
+            list(.bg_entry_ovos_21617)
+          } else {
+            list(.bg_entry_eo_44841)
+          }
         }
       }
     )

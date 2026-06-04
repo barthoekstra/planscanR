@@ -135,7 +135,17 @@ test_that("get_assessments_at end-to-end on fixtures (sidecar-first, no download
 
     local_mocked_bindings(
       perform_json = mock_perform_json(),
-      at_fetch_mapsdata = function() short_index
+      at_fetch_mapsdata = function() {
+        # One-shot page generator: yield the full index once, then exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          short_index
+        }
+      }
     )
 
     res <- get_assessments_at(limit = 5, download = FALSE)
@@ -179,7 +189,17 @@ test_that("get_assessments_at honours the query filter (substring on title + sum
 
     local_mocked_bindings(
       perform_json = mock_perform_json(),
-      at_fetch_mapsdata = function() short_index
+      at_fetch_mapsdata = function() {
+        # One-shot page generator: yield the full index once, then exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          short_index
+        }
+      }
     )
 
     # Only the Windpark Parndorf record matches.
@@ -202,7 +222,17 @@ test_that("get_assessments_at honours the jurisdiction filter", {
 
     local_mocked_bindings(
       perform_json = mock_perform_json(),
-      at_fetch_mapsdata = function() short_index
+      at_fetch_mapsdata = function() {
+        # One-shot page generator: yield the full index once, then exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          short_index
+        }
+      }
     )
 
     res <- get_assessments_at(jurisdiction = "Burgenland", limit = 5, download = FALSE)
@@ -224,7 +254,17 @@ test_that("get_assessments_at scores topics and adds relevance_score_<slug> colu
 
     local_mocked_bindings(
       perform_json = mock_perform_json(),
-      at_fetch_mapsdata = function() short_index
+      at_fetch_mapsdata = function() {
+        # One-shot page generator: yield the full index once, then exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          short_index
+        }
+      }
     )
 
     res <- get_assessments_at(

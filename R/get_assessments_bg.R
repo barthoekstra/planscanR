@@ -129,66 +129,58 @@ get_assessments_bg <- function(
     SEA = "EO"
   )
 
-  index <- list()
-  for (reg in registers) {
-    block <- tryCatch(
-      bg_fetch_search(register = reg, query = query, limit = limit),
-      error = function(e) {
-        warn_partial(
-          "Failed to enumerate MOEW {.val {reg}} index: {conditionMessage(e)}"
-        )
-        list()
-      }
-    )
-    index <- c(index, block)
-  }
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling BG  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first detail fetch, client-side date filter,
+  # relevance scoring, optional download, and the sidecar write. Returns the
+  # 1-row record or NULL to drop the entry. Shared across both registers'
+  # streams and called once per listing row by stream_crawl().
+  process_entry <- function(entry) {
     u <- bg_canonical_url(entry$register, entry$id)
     rec <- tryCatch(
       bg_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!bg_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- bg_finalise_record(
+    bg_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
+  }
+
+  # Stream each register page-by-page, persisting records as they are parsed
+  # instead of enumerating the whole register first. `limit` is global across
+  # both registers, so a full OVOS crawl can consume all of it before EO.
+  records <- list()
+  for (reg in registers) {
+    remaining <- if (is.finite(limit)) limit - length(records) else Inf
+    if (remaining <= 0L) {
+      break
+    }
+    gen <- tryCatch(
+      bg_fetch_search(register = reg, query = query),
+      error = function(e) {
+        warn_partial(
+          "Failed to enumerate MOEW {.val {reg}} index: {conditionMessage(e)}"
+        )
+        function() NULL
+      }
+    )
+    block <- stream_crawl(gen, process_entry, limit = remaining, label = "bg")
+    records <- c(records, block)
   }
 
   if (length(records) == 0L) {
@@ -250,20 +242,32 @@ bg_normalise_assessment_type <- function(x) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Paginate one register's index and return a list of search-row entries.
+#' Build a page generator for one register's index.
+#'
+#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' call fetches the next listing page (by `offset`) and returns its listing-row
+#' entries, or `NULL` once the register is exhausted. Pagination state (offset)
+#' lives in the closure, so the streaming driver pulls only as many pages as the
+#' limit needs and records are persisted page-by-page.
 #'
 #' Each entry is a small named list:
 #' `list(register = "OVOS"|"EO", id = "<n>", dossier_number = ...,
 #'  title = ..., proponent = ..., native_type = ..., status = ...)`.
 #' The detail-page parser is sidecar-first, so this is deliberately the
-#' minimum needed to build the canonical URL and decide whether to keep going.
+#' minimum needed to build the canonical URL.
+#'
+#' Termination mirrors the original: the generator ends on a failed fetch, an
+#' empty page, or a short page (`length(rows) < size`, the last page).
 #' @noRd
-bg_fetch_search <- function(register, query = NULL, limit = Inf) {
-  out <- list()
-  offset <- 0L
+bg_fetch_search <- function(register, query = NULL) {
   size <- bg_page_size()
   path <- bg_register_path(register)
-  repeat {
+  offset <- 0L
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     req <- req_planscanr(bg_portal_base())
     req <- httr2::req_url_path_append(req, path)
     req <- httr2::req_url_query(req, offset = offset, limit = size)
@@ -272,25 +276,21 @@ bg_fetch_search <- function(register, query = NULL, limit = Inf) {
     }
     html <- tryCatch(perform_html(req), error = function(e) NULL)
     if (is.null(html)) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     rows <- bg_parse_index_rows(html, register)
     if (length(rows) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
-    out <- c(out, rows)
-    # Soft stop: stop paginating once we've enumerated at least `limit * 5` raw
-    # rows. Filters / sidecar misses may still drop rows, so we overshoot a bit.
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 5L) {
-      break
-    }
-    # Server short-page → we've reached the end.
+    # Server short-page -> this is the last page; emit it, then stop.
     if (length(rows) < size) {
-      break
+      done <<- TRUE
     }
-    offset <- offset + size
+    offset <<- offset + size
+    rows
   }
-  out
 }
 
 #' Parse the rows of one index page.

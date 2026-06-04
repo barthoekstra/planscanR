@@ -20,12 +20,33 @@ fr_fixture_array <- function(name) {
 .fr_rec_nogeo <- fr_fixture_results("record-nogeo.json")[[1]]
 .fr_export <- fr_fixture_array("export.json")
 
+# `fr_fetch_records` is now a PAGE-GENERATOR FACTORY: it takes `where` and
+# returns a zero-arg closure that yields the record list once, then NULL. The
+# mock factories mirror that contract -- each returns such a generator factory.
 mock_fetch_both <- function() {
-  # The export seam ignores the `where` here and returns both records.
-  function(where = NULL) .fr_export
+  # The export seam ignores the `where` here and returns both records once.
+  function(where = NULL) {
+    emitted <- FALSE
+    function() {
+      if (emitted) {
+        return(NULL)
+      }
+      emitted <<- TRUE
+      .fr_export
+    }
+  }
 }
 mock_fetch_geo_only <- function() {
-  function(where = NULL) list(.fr_rec_geo)
+  function(where = NULL) {
+    emitted <- FALSE
+    function() {
+      if (emitted) {
+        return(NULL)
+      }
+      emitted <<- TRUE
+      list(.fr_rec_geo)
+    }
+  }
 }
 
 # -- Parse unit tests -------------------------------------------------------
@@ -231,7 +252,14 @@ test_that("get_assessments_fr forwards query into the ODSQL where seam", {
     local_mocked_bindings(
       fr_fetch_records = function(where = NULL) {
         seen_where <<- where
-        list(.fr_rec_geo)
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          list(.fr_rec_geo)
+        }
       }
     )
     res <- get_assessments_fr(query = "éolien", limit = 5, download = FALSE)

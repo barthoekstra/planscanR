@@ -149,66 +149,58 @@ get_assessments_cz <- function(
     SEA = "SEA"
   )
 
-  index <- list()
-  for (reg in registers) {
-    block <- tryCatch(
-      cz_fetch_search(register = reg, limit = limit),
-      error = function(e) {
-        warn_partial(
-          "Failed to enumerate CENIA {.val {reg}} index: {conditionMessage(e)}"
-        )
-        list()
-      }
-    )
-    index <- c(index, block)
-  }
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling CZ  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first detail fetch, client-side date filter,
+  # relevance scoring, optional download, and the sidecar write. Returns the
+  # 1-row record or NULL to drop the entry. Shared across both registers'
+  # streams and called once per listing row by stream_crawl().
+  process_entry <- function(entry) {
     u <- cz_canonical_url(entry$register, entry$code)
     rec <- tryCatch(
       cz_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!cz_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- cz_finalise_record(
+    cz_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
+  }
+
+  # Stream each register page-by-page, persisting records as they are parsed
+  # instead of enumerating the whole register first. `limit` is global across
+  # both registers, so a full EIA crawl can consume all of it before SEA.
+  records <- list()
+  for (reg in registers) {
+    remaining <- if (is.finite(limit)) limit - length(records) else Inf
+    if (remaining <= 0L) {
+      break
+    }
+    gen <- tryCatch(
+      cz_fetch_search(register = reg),
+      error = function(e) {
+        warn_partial(
+          "Failed to enumerate CENIA {.val {reg}} index: {conditionMessage(e)}"
+        )
+        function() NULL
+      }
+    )
+    block <- stream_crawl(gen, process_entry, limit = remaining, label = "cz")
+    records <- c(records, block)
   }
 
   if (length(records) == 0L) {
@@ -281,51 +273,56 @@ cz_normalise_assessment_type <- function(x) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Paginate one register's index and return a list of listing-row entries.
+#' Build a page generator for one register's index.
+#'
+#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' call fetches the next listing page and returns its not-yet-seen listing-row
+#' entries, or `NULL` once the register is exhausted. Pagination state (page
+#' index + seen codes) lives in the closure, so the streaming driver pulls only
+#' as many pages as the limit needs and records are persisted page-by-page.
 #'
 #' Each entry is a small named list:
 #' `list(register = "EIA"|"SEA", code = "<CODE>", title = ...,
 #'  competent_authority = ..., native_type = ..., status = ...,
 #'  last_modified = <Date>)`. The detail-page parser is sidecar-first, so this
-#' is deliberately the minimum needed to build the canonical URL and decide
-#' whether to keep going (limit / pre-filter).
+#' is deliberately the minimum needed to build the canonical URL.
 #'
-#' Out-of-range pages are clamped to the last page by the server, so we stop
-#' when a page contributes no new detail codes.
+#' Out-of-range pages are clamped to the last page by the server, so the
+#' generator ends when a page contributes no new detail codes.
 #' @noRd
-cz_fetch_search <- function(register, limit = Inf) {
-  out <- list()
-  seen <- character(0)
-  page <- 1L
+cz_fetch_search <- function(register) {
   view <- cz_register_view(register)
-  repeat {
+  page <- 1L
+  seen <- character(0)
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     req <- req_planscanr(cz_portal_base())
     req <- httr2::req_url_path_append(req, "view", view)
     req <- httr2::req_url_query(req, p = page, lang = "cs")
     html <- tryCatch(perform_html(req), error = function(e) NULL)
+    page <<- page + 1L
     if (is.null(html)) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     rows <- cz_parse_index_rows(html, register)
     if (length(rows) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     codes <- vapply(rows, function(r) r$code, character(1))
     fresh <- !(codes %in% seen)
     if (!any(fresh)) {
-      # Clamped last page (all codes already seen) -> we've reached the end.
-      break
+      # Clamped last page (all codes already seen) -> end of register.
+      done <<- TRUE
+      return(NULL)
     }
-    out <- c(out, rows[fresh])
-    seen <- c(seen, codes[fresh])
-    # Soft stop: stop paginating once we've enumerated at least `limit * 5` raw
-    # rows. Filters / sidecar misses may still drop rows, so we overshoot a bit.
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 5L) {
-      break
-    }
-    page <- page + 1L
+    seen <<- c(seen, codes[fresh])
+    rows[fresh]
   }
-  out
 }
 
 #' Parse the rows of one index page.

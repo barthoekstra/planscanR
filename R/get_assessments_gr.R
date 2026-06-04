@@ -130,65 +130,52 @@ get_assessments_gr <- function(
     stats::setNames(character(0), character(0))
   }
 
-  index <- tryCatch(
-    gr_fetch_records(query = query, type = type, date_range = date_range, limit = limit),
-    error = function(e) {
-      warn_partial("Failed to enumerate the EPRM registry: {conditionMessage(e)}")
-      list()
-    }
-  )
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling GR  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first detail parse, client-side date filter,
+  # relevance scoring, optional download, and the sidecar write. Returns the
+  # 1-row record or NULL to drop the entry. Called once per listing row by
+  # stream_crawl().
+  process_entry <- function(entry) {
     id <- gr_record_id(entry)
     if (is.null(id)) {
-      next
+      return(NULL)
     }
     u <- gr_canonical_url(id)
     rec <- tryCatch(
       gr_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!gr_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- gr_finalise_record(
+    gr_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
   }
+
+  # Stream the register page-by-page, persisting records as they are parsed
+  # instead of enumerating the whole register first.
+  gen <- tryCatch(
+    gr_fetch_records(query = query, type = type, date_range = date_range),
+    error = function(e) {
+      warn_partial("Failed to enumerate the EPRM registry: {conditionMessage(e)}")
+      function() NULL
+    }
+  )
+  records <- stream_crawl(gen, process_entry, limit = limit, label = "gr")
 
   if (length(records) == 0L) {
     return(empty_result_tibble())
@@ -251,20 +238,29 @@ gr_decision_types <- function() {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Paginate `GET /v1/license-decisions` and return the full list of records.
+#' Build a page generator for `GET /v1/license-decisions`.
 #'
-#' Each row is already the full record. Pagination is JSON:API style
-#' (`page[number]` 1-based, `page[size]`); `meta.total` bounds the walk and a
-#' missing / empty `data` page stops it. Server-side filters (`text_search`,
-#' `type`, `issued_after` / `issued_before`) are forwarded as `filter[...]`.
-#' We early-exit once we have comfortably more than `limit` rows (the caller may
-#' still filter some out).
+#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' call fetches the next JSON:API listing page and returns its rows (a list),
+#' or `NULL` once the register is exhausted. Each row is already the full
+#' record. Pagination state (page number + running count) lives in the closure,
+#' so the streaming driver pulls only as many pages as the limit needs and
+#' records are persisted page-by-page.
+#'
+#' Pagination is JSON:API style (`page[number]` 1-based, `page[size]`);
+#' `meta.total` bounds the walk and a missing / empty `data` page stops it.
+#' Server-side filters (`text_search`, `type`, `issued_after` /
+#' `issued_before`) are forwarded as `filter[...]`.
 #' @noRd
-gr_fetch_records <- function(query = NULL, type = NULL, date_range = NULL, limit = Inf) {
-  out <- list()
+gr_fetch_records <- function(query = NULL, type = NULL, date_range = NULL) {
   page <- 1L
   size <- gr_page_size()
-  repeat {
+  count <- 0L
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     req <- req_planscanr(gr_api_base())
     req <- httr2::req_url_path_append(req, "license-decisions")
     req <- httr2::req_headers(req, Accept = "application/json")
@@ -284,25 +280,22 @@ gr_fetch_records <- function(query = NULL, type = NULL, date_range = NULL, limit
     }
     payload <- perform_json(req)
     if (!is.list(payload)) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     data <- payload$data %||% list()
     if (length(data) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
-    out <- c(out, data)
-    total <- as.integer((payload$meta %||% list())$total %||% length(out))
-    if (length(out) >= total) {
-      break
+    count <<- count + length(data)
+    total <- as.integer((payload$meta %||% list())$total %||% count)
+    if (count >= total) {
+      done <<- TRUE
     }
-    # Soft stop: stop paginating once we've enumerated comfortably more than
-    # `limit` raw rows (the caller may still filter the list).
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 2L + size) {
-      break
-    }
-    page <- page + 1L
+    page <<- page + 1L
+    data
   }
-  out
 }
 
 # -----------------------------------------------------------------------------

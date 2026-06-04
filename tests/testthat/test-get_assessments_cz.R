@@ -206,10 +206,18 @@ test_that("get_assessments_cz end-to-end on fixtures (sidecar-first)", {
     local_mocked_bindings(
       perform_html = cz_mock_perform_html_two_records(),
       cz_fetch_search = function(register, ...) {
-        if (register == "EIA") {
-          list(.cz_entry_eia_jhc1237)
-        } else {
-          list(.cz_entry_sea_hkk015k)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "EIA") {
+            list(.cz_entry_eia_jhc1237)
+          } else {
+            list(.cz_entry_sea_hkk015k)
+          }
         }
       }
     )
@@ -250,10 +258,18 @@ test_that("get_assessments_cz honours the assessment_type filter", {
     local_mocked_bindings(
       perform_html = cz_mock_perform_html_two_records(),
       cz_fetch_search = function(register, ...) {
-        if (register == "EIA") {
-          list(.cz_entry_eia_jhc1237)
-        } else {
-          list(.cz_entry_sea_hkk015k)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "EIA") {
+            list(.cz_entry_eia_jhc1237)
+          } else {
+            list(.cz_entry_sea_hkk015k)
+          }
         }
       }
     )
@@ -279,10 +295,18 @@ test_that("get_assessments_cz respects date_range filter", {
     local_mocked_bindings(
       perform_html = cz_mock_perform_html_two_records(),
       cz_fetch_search = function(register, ...) {
-        if (register == "EIA") {
-          list(.cz_entry_eia_jhc1237)
-        } else {
-          list(.cz_entry_sea_hkk015k)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "EIA") {
+            list(.cz_entry_eia_jhc1237)
+          } else {
+            list(.cz_entry_sea_hkk015k)
+          }
         }
       }
     )
@@ -307,10 +331,18 @@ test_that("CZ -> sidecar round-trip preserves the country-specific extras", {
     local_mocked_bindings(
       perform_html = cz_mock_perform_html_two_records(),
       cz_fetch_search = function(register, ...) {
-        if (register == "EIA") {
-          list(.cz_entry_eia_jhc1237)
-        } else {
-          list(.cz_entry_sea_hkk015k)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "EIA") {
+            list(.cz_entry_eia_jhc1237)
+          } else {
+            list(.cz_entry_sea_hkk015k)
+          }
         }
       }
     )
@@ -341,10 +373,18 @@ test_that("get_assessments_cz scores topics and adds relevance_score_<slug> colu
     local_mocked_bindings(
       perform_html = cz_mock_perform_html_two_records(),
       cz_fetch_search = function(register, ...) {
-        if (register == "EIA") {
-          list(.cz_entry_eia_jhc1237)
-        } else {
-          list(.cz_entry_sea_hkk015k)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "EIA") {
+            list(.cz_entry_eia_jhc1237)
+          } else {
+            list(.cz_entry_sea_hkk015k)
+          }
         }
       }
     )

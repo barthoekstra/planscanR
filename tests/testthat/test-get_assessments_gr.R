@@ -18,11 +18,32 @@ gr_fixture_page <- function(name) {
 .gr_rec_geo <- .gr_records[[1]] # 19895, geometry + doc
 .gr_rec_nogeo <- .gr_records[[3]] # 44030, no geometry, no doc
 
+# `gr_fetch_records` is now a page-generator factory: it returns a zero-arg
+# closure that yields one page of entries then NULL. These mocks mirror that —
+# the returned generator emits the canned list once, then signals exhausted.
 mock_fetch_all <- function() {
-  function(query = NULL, type = NULL, date_range = NULL, limit = Inf) .gr_records
+  function(query = NULL, type = NULL, date_range = NULL) {
+    emitted <- FALSE
+    function() {
+      if (emitted) {
+        return(NULL)
+      }
+      emitted <<- TRUE
+      .gr_records
+    }
+  }
 }
 mock_fetch_geo_only <- function() {
-  function(query = NULL, type = NULL, date_range = NULL, limit = Inf) list(.gr_rec_geo)
+  function(query = NULL, type = NULL, date_range = NULL) {
+    emitted <- FALSE
+    function() {
+      if (emitted) {
+        return(NULL)
+      }
+      emitted <<- TRUE
+      list(.gr_rec_geo)
+    }
+  }
 }
 
 # -- Parse unit tests -------------------------------------------------------
@@ -178,9 +199,17 @@ test_that("get_assessments_gr forwards query + type into the fetch seam", {
 
     seen <- list()
     local_mocked_bindings(
-      gr_fetch_records = function(query = NULL, type = NULL, date_range = NULL, limit = Inf) {
+      gr_fetch_records = function(query = NULL, type = NULL, date_range = NULL) {
         seen <<- list(query = query, type = type)
-        list(.gr_rec_geo)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          list(.gr_rec_geo)
+        }
       }
     )
     res <- get_assessments_gr(

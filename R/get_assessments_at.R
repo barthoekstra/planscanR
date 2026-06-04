@@ -112,57 +112,41 @@ get_assessments_at <- function(
     stats::setNames(character(0), character(0))
   }
 
-  index <- tryCatch(at_fetch_mapsdata(), error = function(e) {
-    warn_partial("Failed to fetch UVP-DB index: {conditionMessage(e)}")
-    list()
-  })
-
-  # Cheap pre-filter: when a date_range is set, drop entries whose `year`
-  # cannot overlap the window before paying for any vorhabenInfo call. The
-  # post-fetch filter still runs on the parsed record (which carries the
-  # authoritative year copied through from this entry).
-  if (!is.null(date_range)) {
-    index <- Filter(
-      function(e) at_year_in_range(e$year, date_range),
-      index
-    )
-  }
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling AT  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first detail fetch, client-side filters,
+  # relevance scoring, and the sidecar write (AT has no portal downloads).
+  # Returns the 1-row record or NULL to drop the entry. Called once per index
+  # entry by stream_crawl().
+  process_entry <- function(entry) {
     u <- at_canonical_url(entry$v2id)
     rec <- tryCatch(at_load_or_fetch(u, entry, sidecar_index), error = function(e) {
       warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
       NULL
     })
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!at_record_matches(rec, query = query, date_range = date_range, jurisdiction = jurisdiction)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
-    rec <- at_finalise_record(rec, write_sidecar = write_sidecar)
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
+    at_finalise_record(rec, write_sidecar = write_sidecar)
   }
+
+  # Build the page generator. AT is a single-request source (one mapsdata
+  # call yields the entire index), so the factory returns a one-shot generator
+  # that emits the whole index on its first call and NULL thereafter. A failed
+  # fetch degrades to an empty (always-NULL) generator.
+  gen <- tryCatch(
+    at_fetch_mapsdata(),
+    error = function(e) {
+      warn_partial("Failed to fetch UVP-DB index: {conditionMessage(e)}")
+      function() NULL
+    }
+  )
+
+  records <- stream_crawl(gen, process_entry, limit = limit, label = "at")
 
   if (length(records) == 0L) {
     return(empty_result_tibble())
@@ -288,34 +272,47 @@ at_type_group <- function(type) {
 # URL enumeration
 # -----------------------------------------------------------------------------
 
-#' Fetch and parse the UVP-DB index ("mapsdata" service handler).
+#' Build a page generator for the UVP-DB index ("mapsdata" service handler).
 #'
-#' Returns a list of entries; each entry is `list(az, v2id, title, year,
-#' province, type)`. The mapsdata response is an object keyed by Aktenzahl
-#' (AZ); we lift the key into the entry so the streaming loop carries it
-#' through without going back to the index.
+#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract). AT is
+#' a single-request source: one `mapsdata` call returns the entire register, so
+#' the generator yields the full index list on its FIRST call and `NULL` on
+#' every subsequent call (a one-shot generator). The actual fetch happens on
+#' that first call, keeping the I/O inside the streaming driver.
 #'
-#' @return List of entries (possibly empty on failure — the caller logs).
+#' Each entry is `list(az, v2id, title, year, province, type)`. The mapsdata
+#' response is an object keyed by Aktenzahl (AZ); we lift the key into the entry
+#' so the streaming loop carries it through without going back to the index.
+#'
+#' @return A zero-arg page generator. The first call yields the index list
+#'   (possibly empty on a malformed payload), later calls yield `NULL`.
 #' @noRd
 at_fetch_mapsdata <- function() {
-  req <- req_planscanr(at_base_url())
-  req <- httr2::req_url_query(req, servicehandler = "mapsdata")
-  payload <- perform_json(req)
-  if (!is.list(payload) || length(payload) == 0L) {
-    return(list())
+  emitted <- FALSE
+  function() {
+    if (emitted) {
+      return(NULL)
+    }
+    emitted <<- TRUE
+    req <- req_planscanr(at_base_url())
+    req <- httr2::req_url_query(req, servicehandler = "mapsdata")
+    payload <- perform_json(req)
+    if (!is.list(payload) || length(payload) == 0L) {
+      return(list())
+    }
+    azs <- names(payload)
+    lapply(seq_along(payload), function(i) {
+      e <- payload[[i]]
+      list(
+        az = azs[i],
+        v2id = e$v2id,
+        title = e$title %||% NA_character_,
+        year = e$year,
+        province = e$province %||% NA_character_,
+        type = e$type
+      )
+    })
   }
-  azs <- names(payload)
-  lapply(seq_along(payload), function(i) {
-    e <- payload[[i]]
-    list(
-      az = azs[i],
-      v2id = e$v2id,
-      title = e$title %||% NA_character_,
-      year = e$year,
-      province = e$province %||% NA_character_,
-      type = e$type
-    )
-  })
 }
 
 # -----------------------------------------------------------------------------
