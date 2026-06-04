@@ -5,10 +5,21 @@
 #' This is the canonical place to discover what values can be passed to
 #' search parameters like `theme`, `advice_type`, `province`, `status`.
 #'
+#' Each country's `facets` list mixes two kinds of vocabulary, distinguished in
+#' that handler's facet documentation:
+#'   * **filter facets** — valid values for a search argument the handler
+#'     actually honours (e.g. `assessment_type`, `theme`, `province`).
+#'   * **reference facets** — portal classifications surfaced for documentation
+#'     only. They are NOT accepted as search arguments; they typically appear
+#'     instead as output columns (e.g. DK `annex`, EE `assessment_subtype`,
+#'     AT `type` / `type_group`, DE `procedure`).
+#' Vocabularies are point-in-time snapshots (capture dates noted per country);
+#' the facet/argument mapping was last reconciled on 2026-06-04.
+#'
 #' @return A tibble with one row per supported country, columns:
 #'   `country`, `source_portal`, `base_url`, `requires_auth`, `status`,
-#'   plus a list-column `facets` of named lists giving the valid values for
-#'   each search parameter the handler accepts.
+#'   plus a list-column `facets` of named lists (filter and reference
+#'   vocabularies; see Details).
 #' @export
 #' @examples
 #' get_assessments_coverage()
@@ -247,7 +258,9 @@ ymparisto_fi_facets <- function() {
 #' activity-sector codes that the portal accepts as `s__activity`. The
 #' detailed `initiation_activity` (Annex-I-style) sub-vocabulary is
 #' available on the portal but is not enumerated here — pass the code
-#' directly via `...` if needed.
+#' directly via `...` if needed. The `assessment_subtype` entries are a
+#' **reference** vocabulary for the SEA planning-document type that lands in the
+#' `assessment_subtype` output column; it is not a search argument.
 #' @noRd
 kotkas_ee_facets <- function() {
   list(
@@ -291,7 +304,7 @@ kotkas_ee_facets <- function() {
       `2500` = "Veekasutus",
       `2600` = "Muud tegevusvaldkonnad ja muud juhud"
     ),
-    ksh_type = c(
+    assessment_subtype = c(
       `1000` = "\u00dcleriigiline planeering",
       `1100` = "Riigi eriplaneering",
       `1200` = "Maakonnaplaneering",
@@ -364,8 +377,8 @@ mzozt_hr_facets <- function() {
 #' EA-Hub's master-data endpoints (`/api/master-data/...`) are the
 #' authoritative source for these vocabularies; this static snapshot
 #' captures only the search-time discriminators we currently honour
-#' (`assessment_type`), plus the EIA-Directive Annex I/II numeric labels
-#' so users have an at-a-glance reference. Anything richer (plan types,
+#' (`assessment_type`), plus the EIA-Directive Annex I/II numeric labels as a
+#' **reference** vocabulary (`annex` is not a search argument). Anything richer (plan types,
 #' plan categories, statuses, etc.) is best fetched live from the API.
 #' @noRd
 eahub_dk_facets <- function() {

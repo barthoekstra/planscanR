@@ -9,14 +9,28 @@ get_assessments_coverage()
 \value{
 A tibble with one row per supported country, columns:
 \code{country}, \code{source_portal}, \code{base_url}, \code{requires_auth}, \code{status},
-plus a list-column \code{facets} of named lists giving the valid values for
-each search parameter the handler accepts.
+plus a list-column \code{facets} of named lists (filter and reference
+vocabularies; see Details).
 }
 \description{
 Returns a tibble describing every country handler currently shipped, the
 portal it targets, and the vocabularies of the search facets it accepts.
 This is the canonical place to discover what values can be passed to
 search parameters like \code{theme}, \code{advice_type}, \code{province}, \code{status}.
+}
+\details{
+Each country's \code{facets} list mixes two kinds of vocabulary, distinguished in
+that handler's facet documentation:
+\itemize{
+\item \strong{filter facets} — valid values for a search argument the handler
+actually honours (e.g. \code{assessment_type}, \code{theme}, \code{province}).
+\item \strong{reference facets} — portal classifications surfaced for documentation
+only. They are NOT accepted as search arguments; they typically appear
+instead as output columns (e.g. DK \code{annex}, EE \code{assessment_subtype},
+AT \code{type} / \code{type_group}, DE \code{procedure}).
+Vocabularies are point-in-time snapshots (capture dates noted per country);
+the facet/argument mapping was last reconciled on 2026-06-04.
+}
 }
 \examples{
 get_assessments_coverage()

@@ -73,14 +73,14 @@ test_that("EE coverage row exposes the KOTKAS facet vocabularies", {
   expect_true(is.list(f))
   expect_setequal(
     names(f),
-    c("assessment_type", "proceeding_status", "activity_area", "activity", "ksh_type")
+    c("assessment_type", "proceeding_status", "activity_area", "activity", "assessment_subtype")
   )
   expect_true("EIA" %in% f$assessment_type)
   expect_true("SEA" %in% f$assessment_type)
   expect_true("ONGOING" %in% f$proceeding_status)
   expect_true("Harju maakond" %in% f$activity_area)
   expect_true("Energeetika ja energiakandjate tootmine" %in% f$activity)
-  expect_true("Detailplaneering" %in% f$ksh_type)
+  expect_true("Detailplaneering" %in% f$assessment_subtype)
 })
 
 test_that("FI coverage row signals EIA/YVA-only status and exposes the assessment_type vocabulary", {
