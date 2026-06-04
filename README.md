@@ -1,5 +1,10 @@
 # planscanR
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/barthoekstra/planscanR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/barthoekstra/planscanR/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/barthoekstra/planscanR/graph/badge.svg)](https://app.codecov.io/gh/barthoekstra/planscanR)
+<!-- badges: end -->
+
 `planscanR` collects environmental-assessment records — Environmental Impact
 Assessments (EIA), Strategic Environmental Assessments (SEA), and related
 advice — from European government portals, and gives you one consistent table
