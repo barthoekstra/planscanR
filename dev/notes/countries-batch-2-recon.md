@@ -82,3 +82,21 @@ Tiers (analogues: "HTML-scrape" = NL/DE pattern; "JSON-behind-SPA" = BE/DK/EE).
 
 ### Romania — ANPM→ANMAP — HARD (no national register)
 - `raportare.anpm.ro` is a login-gated SIM submission portal (wrong target). Real EIA/SEA content fragmented across **~42 county sites mid-migration**: legacy Liferay `apm*.anpm.ro` (`?p_p_id=…&…_cur=N&…_delta=100`) + new WordPress `djm*.anmap.gov.ro` (per HG 311/2025; likely WP REST `/wp-json/wp/v2/posts`). High churn, possible **geo-blocking** (ECONNREFUSED from non-EU egress). PDFs downloadable; no geometry; RO-only. Forward bet = multi-site WP scraper, but needs per-county inventory + geo-block resolution first.
+
+## Captured endpoints (2026-06-04, via Playwright; handlers stay pure-httr2)
+
+### Slovakia (DONE) — `enviroportal.sk` API Platform
+- List: `GET /api/eia_projects?page=N` (`Accept: application/ld+json`). `hydra:member` is an **array-of-arrays** (flatten one level); `hydra:totalItems`/`hydra:view` unreliable → paginate until empty (last page ≈ 937). Detail `GET /api/eia_projects/{seoId}`. Docs in `dokumenty.data[].items` (nested) → `/eia/dokument/{id}`, grouped by `step`. `zbierka` carries "časť EIA"/"časť SEA".
+
+### Norway (DONE) — `nve.no` NVE
+- List: `GET /umbraco/api/license/getall?caseType=00&county=00&filterText=&municipality=00&pageNumber=N` → `{Licenses[], Counties, Municipalities, CaseTypes, LicenseStatuses, TotalCount}`; paginate until `Licenses` empty (~7344 total). `filterText` = server-side query. Detail HTML `…/konsesjonssak?id={SoknadId}&type={Type}`; PDFs `webfileservice.nve.no/API/PublishedFiles/Download/{uuid}/{saksnummer}/{fileId}` grouped by `div.n-filelist` headings.
+
+### Spain (NOT YET IMPLEMENTED — request shape captured)
+MITECO SABIA, Liferay. Stateful multi-step **POST** to `https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido` (project EIA) and `…/navSabiaPlanes` (plan SEA).
+- The search form (`<form name="formulario" method="POST">`) is JS-submitted (`btnForm` → builds `xml` + sets `accion`).
+- **Captured results POST body** (empty filters = all):
+  ```
+  datosFirmados=&datosSolicitante=&datosPropios=com.marm.procedimientosgenerico.entidad.xml.DatosPropios@<hash>&xml=<DatosFirmados><DatosProcedimiento><Buscador><Codigo></Codigo><Titulo></Titulo><EstadoTramitacion></EstadoTramitacion><OrganoSustantivo></OrganoSustantivo><Tipo></Tipo><Promotor></Promotor><Comunidad></Comunidad></Buscador></DatosProcedimiento></DatosFirmados>&accion=proy_resultados&...
+  ```
+- Response: server-rendered `<table id="tablaResultados">` (DataTables-decorated) with project rows. Row → detail is another POST `accion=proy_ficha` (JS `enviar()`); the ficha exposes DIA/EsIA PDFs.
+- **Implementation caveats for next session**: (1) `datosPropios` is a per-session Java object ref — harvest it from the GET form page and echo it back; (2) needs the Liferay **session cookie** carried GET→POST → verify the package http layer can persist cookies across requests (or build a small cookie-jar req chain); (3) pagination + per-ficha detail are extra POSTs (`enviar('proy_resultados', page)` / `proy_ficha`); (4) dual-source: `navServicioContenido` (EIA) + `navSabiaPlanes` (SEA) → `assessment_type`. National-competence procedures only. No public per-record geometry.
