@@ -131,6 +131,23 @@ test_that("HR coverage row exposes the assessment_type vocabulary", {
   expect_true("SPUO" %in% f$register)
 })
 
+test_that("GR coverage row signals decisions-only status and exposes the type vocabulary", {
+  c <- get_assessments_coverage()
+  gr <- c[c$country == "gr", ]
+  expect_identical(gr$source_portal, "eprm.ypen.gr")
+  expect_false(gr$requires_auth)
+  expect_identical(
+    gr$status,
+    "supported (decisions-only; studies/SEA login-gated)"
+  )
+  f <- gr$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("type"))
+  expect_true("aepo_creation" %in% f$type)
+  expect_true("aepo_renewal" %in% f$type)
+  expect_true("pppa_creation" %in% f$type)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

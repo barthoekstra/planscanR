@@ -68,6 +68,24 @@
   real SICODEI document URLs (external préfecture HTML pages are kept only as
   extras). Records with a `localisation` Feature get a sibling
   `.geometry.geojson` in WGS84 (`geometry_crs = "EPSG:4326"`).
+* Greece handler `get_assessments_gr()` fetches from the ΗΠΜ / EPRM JSON:API
+  (`api.eprm.ypen.gr`). **AEPO decisions only** — the public registry exposes
+  *Αποφάσεις Έγκρισης Περιβαλλοντικών Όρων* (the regulatory output of the EIA
+  process); the underlying ΜΠΕ (EIA study) files and all ΣΜΠΕ / SEA records are
+  behind the gov.gr login and are **not** fetchable, so each record is a
+  decision (metadata + at most one decision PDF), and SEA is out of scope. The
+  listing (`GET /v1/license-decisions`) paginates JSON:API-style
+  (`page[number]` / `page[size]`) and each row is already the full record (no
+  detail call). Server-side filters: `query` (`filter[text_search]`), `type`
+  (`filter[type]`, the decision-type enum), and `date_range`
+  (`filter[issued_after]` / `filter[issued_before]`). One attachment per
+  decision — the AEPO decision PDF from `diavgeia_doc_url` (hosted on Διαύγεια /
+  Diavgeia) — under `attachment_urls_aepo`. Records with a `project_location`
+  get a sibling `.geometry.geojson` **point** in WGS84 (`geometry_crs =
+  "EPSG:4326"`, *not* the Greek Grid EPSG:2100). Throttled to 5 req/s by default
+  (`getOption("planscanR.gr_throttle_rate")`). Record language is Greek
+  (`el`). Reflected in `get_assessments_coverage()$status` as
+  `"supported (decisions-only; studies/SEA login-gated)"`.
 * **`relevance_threshold` is now a download-gate only.** Records that score
   below the threshold still get a sidecar JSON on disk and still appear in
   the returned tibble — only their PDF attachments are skipped. This makes

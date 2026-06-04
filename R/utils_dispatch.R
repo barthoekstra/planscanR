@@ -7,7 +7,7 @@
 #' @examples
 #' supported_countries()
 supported_countries <- function() {
-  c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr")
+  c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr", "gr")
 }
 
 #' Normalise a country code to lowercase ISO-2.

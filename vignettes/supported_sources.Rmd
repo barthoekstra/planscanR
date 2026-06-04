@@ -21,8 +21,8 @@ library(planscanR)
 ```
 
 `planscanR` is a thin layer over a handful of national environmental-assessment
-portals (currently Netherlands, Germany, Austria, Denmark, Belgium (Flanders),
-Estonia, Bulgaria, the Czech Republic, and Croatia).
+portals (currently Netherlands, Germany, France, Austria, Denmark, Belgium
+(Flanders), Estonia, Bulgaria, the Czech Republic, Croatia, and Greece).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
@@ -541,6 +541,72 @@ get_assessments_hr(limit = 5, download = FALSE)
 
 # SEA only
 get_assessments_hr(assessment_type = "SEA", download = FALSE)
+```
+
+## Greece — `"gr"`
+
+* **Portal:** ΗΠΜ / EPRM (*Ηλεκτρονικό Περιβαλλοντικό Μητρώο* — Electronic
+  Environmental Registry) of the Ministry of Environment & Energy (ΥΠΕΝ),
+  served by a public JSON:API at
+  [api.eprm.ypen.gr](https://api.eprm.ypen.gr/v1/license-decisions). The
+  human-facing SPA lives at [eprm.ypen.gr](https://eprm.ypen.gr/) (its
+  `robots.txt` disallows crawling the HTML, so the handler harvests only from
+  the JSON:API and uses the SPA route purely as the canonical `url`).
+* **Status:** supported, **with an important coverage caveat (decisions only)** —
+  see below. Reflected in `get_assessments_coverage()$status` as
+  `"supported (decisions-only; studies/SEA login-gated)"`.
+* **Authentication:** none for the public registry (each request sends
+  `Accept: application/json`; no cookie / CSRF).
+* **AEPO decisions only (read this first).** The public registry exposes only
+  **AEPO decisions** — *Αποφάσεις Έγκρισης Περιβαλλοντικών Όρων*, the
+  regulatory **output** of the EIA (ΜΠΕ) process. The underlying **ΜΠΕ study
+  files and all ΣΜΠΕ / SEA records sit behind the gov.gr login** on
+  `platform.eprm.ypen.gr` and are **not** fetchable here. So each record is a
+  decision (metadata + at most one decision PDF) — never the EIA study itself,
+  and the SEA register is entirely out of scope. Plan for a decisions-only
+  corpus.
+* **Coverage:** ≈19,800 AEPO decisions. The listing endpoint
+  (`GET /v1/license-decisions`) paginates JSON:API-style via `page[number]`
+  (1-based) and `page[size]` (default 100); each list row is **already the full
+  record**, so there is no separate detail call. `document_id` is the registry
+  `id` (e.g. `"19895"`, globally unique in the register).
+* **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.gr_throttle_rate")`) — enumeration is ≈200 list calls
+  plus one download per attachment.
+* **Language:** record content is Greek (ISO-639-1 `el`; note the country code
+  `gr` differs from the language code `el`).
+
+**Geometry.** A record's `project_location` is an array of `{lat, lon}` pairs.
+When present, the first pair is written as a **Point** geometry next to the
+sidecar as `<document_id>.geometry.geojson` (the family FeatureCollection
+layout, GeoJSON-2008 `crs` member naming `urn:ogc:def:crs:EPSG::4326`). The
+coordinates are already geographic **WGS84 (EPSG:4326)** — *not* the Greek Grid
+(EPSG:2100) — so no reprojection happens; `geometry_crs` is `"EPSG:4326"`.
+Records with no location leave the geometry columns `NA`.
+
+**Filter coverage.** All server-side JSON:API `filter[...]` parameters:
+`query` -> `filter[text_search]` (free-text), `type` -> `filter[type]`
+(decision-type enum — see `get_assessments_coverage()`, e.g. `"aepo_creation"`),
+and `date_range` -> `filter[issued_after]` / `filter[issued_before]` (matched on
+the decision issue date, re-checked client-side as a guard). `date_published` is
+the registry publication timestamp; `date_decision` is the issue date.
+
+**Documents.** At most one document per decision — the AEPO decision PDF — taken
+verbatim from `diavgeia_doc_url`. These are hosted on **Διαύγεια / Diavgeia**
+(the Greek government transparency portal) at
+`https://diavgeia.gov.gr/luminapi/api/decisions/{ADA}/document.pdf`; the ADA in
+the path contains Greek characters, left for the HTTP client to percent-encode
+at request time. It lands under the single slug `attachment_urls_aepo` /
+`local_path_aepo`, with the deduplicated union at `attachment_urls` /
+`local_path`. Records whose `diavgeia_doc_url` is `null` yield zero attachments
+(still schema-valid).
+
+```{r}
+# AEPO decisions, first few records
+get_assessments_gr(limit = 5, download = FALSE)
+
+# New AEPO approvals only
+get_assessments_gr(type = "aepo_creation", limit = 5, download = FALSE)
 ```
 
 ## Adding a new source

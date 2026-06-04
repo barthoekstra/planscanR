@@ -42,6 +42,7 @@ Supported portals:
 | Bulgaria (`"bg"`) | МОСВ registers (ОВОС + ЕО) | EIA + SEA in one handler, full records + document downloads (no geometry) |
 | Czech Republic (`"cz"`) | CENIA EIA/SEA (eia100_cr + SEA100_koncepce) | EIA + SEA in one handler, domestic CZ only, full records + document downloads (no geometry) |
 | Croatia (`"hr"`) | mzozt.gov.hr CMS pages (PUO + SPUO) | EIA + SEA in one handler, scraped CMS pages (no API), full records + document downloads (no geometry) |
+| Greece (`"gr"`) | ΗΠΜ / EPRM JSON:API (`eprm.ypen.gr`) | **AEPO decisions only** (EIA studies + SEA are login-gated), full records + WGS84 point geometry + one Diavgeia decision PDF |
 
 See `vignette("supported_sources")` for per-portal details: how each portal
 is accessed, what filters are honoured, and what data comes back.

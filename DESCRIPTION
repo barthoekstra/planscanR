@@ -11,8 +11,9 @@ Description: A unified R interface for fetching environmental-assessment
     Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders;
     MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Bulgaria
     (МОСВ registers; ОВОС + ЕО), the Czech Republic (CENIA EIA/SEA;
-    domestic registers only), and Croatia (Ministry of Environment CMS
-    pages; PUO + SPUO). Optional
+    domestic registers only), Croatia (Ministry of Environment CMS
+    pages; PUO + SPUO), and Greece (ΗΠΜ / EPRM; AEPO permit decisions
+    only). Optional
     fetch-time scoring of records by topic relevance is delegated to the
     companion 'planscanR.screen' package. Developed for the BIOGAIN project
     to support Net Biodiversity Gain in spatial energy planning.

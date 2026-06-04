@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Ten country handlers ship:
+**v0.1 scope.** Eleven country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -110,6 +110,28 @@ Python, no Shiny, no project-specific scoring config.
   download time. Filters: `assessment_type`, a client-side `query` title
   substring, and client-side `date_range`. Throttled to 5 req/s by default
   (`getOption("planscanR.hr_throttle_rate")`).
+- Greece (`get_assessments_gr()`) — ΗΠΜ / EPRM JSON:API at `api.eprm.ypen.gr`
+  (SPA landing at `eprm.ypen.gr`, robots-disallowed for crawling, used only as
+  the human `url`). **AEPO decisions only**: the public registry exposes
+  *Αποφάσεις Έγκρισης Περιβαλλοντικών Όρων* (the regulatory output of the EIA /
+  ΜΠΕ process); the underlying ΜΠΕ study files and **all ΣΜΠΕ / SEA records are
+  behind the gov.gr login** and are not fetchable, so each record is a decision
+  (metadata + at most one decision PDF) and SEA is out of scope. Public,
+  no-auth JSON:API (`Accept: application/json`): listing
+  `GET /v1/license-decisions` paginates JSON:API-style (`page[number]` 1-based,
+  `page[size]`) and **each row is already the full record** (no detail call).
+  `document_id` is the registry `id`. Server-side filters: `query`
+  (`filter[text_search]`), `type` (`filter[type]`, decision-type enum), and
+  `date_range` (`filter[issued_after]` / `filter[issued_before]`, on the issue
+  date). One attachment per decision — the AEPO PDF from `diavgeia_doc_url`
+  (hosted on Διαύγεια / Diavgeia) — under `attachment_urls_aepo`; a null
+  `diavgeia_doc_url` yields zero attachments. Records with a `project_location`
+  get a sibling `.geometry.geojson` **Point** in **EPSG:4326** (WGS84 lat/lon —
+  *not* the Greek Grid EPSG:2100). Record language is Greek (`el`; country code
+  `gr` differs). Throttled to 5 req/s by default
+  (`getOption("planscanR.gr_throttle_rate")`). Reflected in
+  `get_assessments_coverage()$status` as
+  `"supported (decisions-only; studies/SEA login-gated)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -193,7 +215,9 @@ get_assessments(country, ...)
   │     ├── get_assessments_be(...)          # merregister.omgeving.vlaanderen.be
   │     ├── get_assessments_ee(...)          # kotkas.envir.ee
   │     ├── get_assessments_bg(...)          # registers.moew.government.bg
-  │     └── get_assessments_cz(...)          # portal.cenia.cz/eiasea
+  │     ├── get_assessments_cz(...)          # portal.cenia.cz/eiasea
+  │     ├── get_assessments_hr(...)          # mzozt.gov.hr
+  │     └── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

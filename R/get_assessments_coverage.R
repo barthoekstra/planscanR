@@ -14,7 +14,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr", "gr"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -25,7 +25,8 @@ get_assessments_coverage <- function() {
       "kotkas.envir.ee",
       "registers.moew.government.bg",
       "portal.cenia.cz",
-      "mzozt.gov.hr"
+      "mzozt.gov.hr",
+      "eprm.ypen.gr"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -37,9 +38,22 @@ get_assessments_coverage <- function() {
       "https://kotkas.envir.ee",
       "https://registers.moew.government.bg",
       "https://portal.cenia.cz/eiasea",
-      "https://mzozt.gov.hr"
+      "https://mzozt.gov.hr",
+      "https://eprm.ypen.gr"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
+    requires_auth = c(
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE,
+      FALSE
+    ),
     status = c(
       "supported",
       "supported",
@@ -50,7 +64,8 @@ get_assessments_coverage <- function() {
       "supported",
       "supported", # bg
       "supported", # cz
-      "supported" # hr
+      "supported", # hr
+      "supported (decisions-only; studies/SEA login-gated)" # gr
     ),
     facets = list(
       commissiemer_facets(),
@@ -62,7 +77,34 @@ get_assessments_coverage <- function() {
       kotkas_ee_facets(),
       moew_bg_facets(),
       cenia_cz_facets(),
-      mzozt_hr_facets()
+      mzozt_hr_facets(),
+      eprm_gr_facets()
+    )
+  )
+}
+
+#' Static lookup of the EPRM (Greece) facet vocabularies.
+#'
+#' The public EPRM JSON:API exposes **AEPO decisions only** — the underlying
+#' ΜΠΕ (EIA study) files and all ΣΜΠΕ / SEA records sit behind the gov.gr login
+#' and are not fetchable here. The first-class server-side discriminator is the
+#' decision `type` enum (`filter[type]`), surfaced below. The portal also
+#' honours free-text (`filter[text_search]`, the `query` argument) and an issue
+#' date window (`filter[issued_after]` / `filter[issued_before]`, the
+#' `date_range` argument); other JSON:API filters (region, Natura 2000, ...) are
+#' not first-class in v0.1.
+#' @noRd
+eprm_gr_facets <- function() {
+  list(
+    type = c(
+      "aepo_creation",
+      "aepo_essential_modification",
+      "aepo_nonessential_modification",
+      "aepo_renewal",
+      "aepo_essential_modification_and_renewal",
+      "aepo_nonessential_modification_and_renewal",
+      "aepo_terms_review_and_revision",
+      "pppa_creation"
     )
   )
 }
