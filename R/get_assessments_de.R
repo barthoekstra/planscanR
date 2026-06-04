@@ -289,10 +289,7 @@ de_section_slug <- function(title) {
   s <- gsub("\u00c4", "ae", s)
   s <- gsub("\u00d6", "oe", s)
   s <- gsub("\u00dc", "ue", s)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "section" else s
+  ascii_slug(s, "section")
 }
 
 #' One-shot warning that an unconstrained full crawl will be slow.
@@ -393,7 +390,7 @@ de_parse_detail <- function(url) {
     title <- gsub("\\s+", " ", title)
   }
 
-  date_decision <- de_parse_german_date(
+  date_decision <- parse_german_date(
     de_strip_label(
       rvest::html_text(
         rvest::html_element(html, "div.helper.text.date span"),
@@ -582,27 +579,6 @@ de_extract_competent_authority <- function(html) {
   parts <- trimws(parts)
   parts <- parts[nzchar(parts)]
   paste(parts, collapse = ", ")
-}
-
-#' Parse a German-formatted date like "24.02.2026" into a Date.
-#' @noRd
-de_parse_german_date <- function(s) {
-  if (is.null(s) || is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  s <- trimws(s)
-  m <- regmatches(s, regexpr("^([0-9]{1,2})\\.([0-9]{1,2})\\.([0-9]{4})", s))
-  if (length(m) == 0L) {
-    return(as.Date(NA))
-  }
-  parts <- strsplit(m, "\\.")[[1]]
-  day <- suppressWarnings(as.integer(parts[1]))
-  mon <- suppressWarnings(as.integer(parts[2]))
-  yr <- suppressWarnings(as.integer(parts[3]))
-  if (is.na(day) || is.na(mon) || is.na(yr)) {
-    return(as.Date(NA))
-  }
-  as.Date(sprintf("%04d-%02d-%02d", yr, mon, day))
 }
 
 # -----------------------------------------------------------------------------

@@ -489,10 +489,7 @@ be_section_slug <- function(type) {
   s <- gsub("\u00f4|\u00f6", "o", s)
   s <- gsub("\u00fb|\u00fc", "u", s)
   s <- gsub("\u00e7", "c", s)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Earliest `aanmaakdatum` / `ontvangstdatum` across a record's documents.
@@ -509,8 +506,8 @@ be_record_earliest_date <- function(documenten) {
   dates <- unlist(
     lapply(documenten, function(d) {
       candidates <- c(
-        be_parse_iso_date(d$ontvangstdatum),
-        be_parse_iso_date(d$aanmaakdatum)
+        parse_iso_date(d$ontvangstdatum),
+        parse_iso_date(d$aanmaakdatum)
       )
       candidates[!is.na(candidates)]
     }),
@@ -720,18 +717,4 @@ be_collect_chr <- function(items, field) {
   )
   out <- trimws(out[!is.na(out)])
   out[nzchar(out)]
-}
-
-#' Parse an ISO-8601 timestamp / date string into a Date.
-#' @noRd
-be_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

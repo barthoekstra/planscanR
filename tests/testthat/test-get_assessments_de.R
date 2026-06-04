@@ -191,11 +191,11 @@ test_that("de_docuuid_from_url extracts the uuid from a canonical URL", {
 })
 
 test_that("de_parse_german_date handles DD.MM.YYYY and rejects junk", {
-  expect_identical(planscanR:::de_parse_german_date("24.02.2026"), as.Date("2026-02-24"))
-  expect_identical(planscanR:::de_parse_german_date("1.1.2024"), as.Date("2024-01-01"))
-  expect_true(is.na(planscanR:::de_parse_german_date(NA)))
-  expect_true(is.na(planscanR:::de_parse_german_date("")))
-  expect_true(is.na(planscanR:::de_parse_german_date("not a date")))
+  expect_identical(planscanR:::parse_german_date("24.02.2026"), as.Date("2026-02-24"))
+  expect_identical(planscanR:::parse_german_date("1.1.2024"), as.Date("2024-01-01"))
+  expect_true(is.na(planscanR:::parse_german_date(NA)))
+  expect_true(is.na(planscanR:::parse_german_date("")))
+  expect_true(is.na(planscanR:::parse_german_date("not a date")))
 })
 
 test_that("de_absolutise prefixes the portal host onto root-relative URLs", {

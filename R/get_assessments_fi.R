@@ -496,9 +496,8 @@ fi_section_slug <- function(text) {
       }
     }
   }
-  s <- gsub("[^a-z0-9]+", "_", folded)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) {
+  s <- ascii_slug(folded, "document")
+  if (identical(s, "document")) {
     return("document")
   }
   # Cap the auto-slug so a verbose anchor doesn't produce an unwieldy column.

@@ -351,8 +351,8 @@ gr_parse_record <- function(url, entry) {
   jurisdiction <- gr_jurisdiction(entry$project_municipal_units) %||% NA_character_
   status <- gr_text(entry$outcome) %||% NA_character_
 
-  date_published <- gr_parse_iso_date(entry$published_at)
-  date_decision <- gr_parse_iso_date(entry$issued_at)
+  date_published <- parse_iso_date(entry$published_at)
+  date_decision <- parse_iso_date(entry$issued_at)
 
   doc_url <- gr_attachment_url(entry)
   per_section <- list()
@@ -659,18 +659,4 @@ gr_lgl <- function(x) {
     return(NA)
   }
   as.logical(x)
-}
-
-#' Parse an ISO-8601 / "YYYY-MM-DD HH:MM:SS" timestamp into a Date.
-#' @noRd
-gr_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

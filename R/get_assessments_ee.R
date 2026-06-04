@@ -398,7 +398,7 @@ ee_parse_index_rows <- function(html, register) {
     }
     title <- ee_text(rvest::html_text2(a))
     region_cell <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Piirkond']")))
-    init_date <- ee_parse_dmy(ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise kpv']"))))
+    init_date <- parse_dmy(ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise kpv']"))))
     init_reason <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise p\u00f5hjus']")))
     status_cell <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Menetluse seis']")))
     # KMH uses "Arendaja" (developer); KSH uses "Korraldaja" (organiser).
@@ -497,7 +497,7 @@ ee_parse_detail <- function(url, entry, html) {
   activity_sector <- ee_label_value(html, "activity") %||% entry$activity %||% NA_character_
   region <- ee_label_value(html, "activity_area") %||% entry$region %||% NA_character_
   kov <- ee_label_value(html, "kov_ehaks")
-  init_date <- ee_parse_dmy(ee_label_value(html, "initiation_date")) %||% entry$initiation_date
+  init_date <- parse_dmy(ee_label_value(html, "initiation_date")) %||% entry$initiation_date
   if (length(init_date) == 0L || is.null(init_date)) {
     init_date <- as.Date(NA)
   }
@@ -684,10 +684,7 @@ ee_section_slug <- function(liik) {
   s <- gsub("\u00fc", "u", s)
   s <- gsub("\u0161", "s", s)
   s <- gsub("\u017e", "z", s)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Pull the inline GeoJSON geometry from the hidden form input.
@@ -883,21 +880,4 @@ ee_join_labels <- function(labels) {
     return(NA_character_)
   }
   paste(unique(labels), collapse = " | ")
-}
-
-#' Parse a Estonian DD.MM.YYYY date string into a Date.
-#' @noRd
-ee_parse_dmy <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  # The portal uses DD.MM.YYYY consistently; the value cell can wrap text so
-  # take only the first 10 characters.
-  s <- substr(trimws(s), 1L, 10L)
-  d <- suppressWarnings(as.Date(s, format = "%d.%m.%Y"))
-  if (length(d) == 0L) as.Date(NA) else d
 }

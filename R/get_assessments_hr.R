@@ -614,9 +614,7 @@ hr_stage_slug <- function(heading) {
   if (norm %in% names(curated)) {
     return(unname(curated[[norm]]))
   }
-  s <- gsub("[^a-z0-9]+", "_", norm)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(norm, "document")
 }
 
 #' Normalise a heading: strip `&nbsp;`/zero-width, transliterate diacritics,

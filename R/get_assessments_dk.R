@@ -319,7 +319,7 @@ dk_parse_entry <- function(url, entry) {
   to_year <- dk_int(entry$toYear)
   year_val <- if (is.na(from_year)) to_year else from_year
 
-  date_published <- dk_parse_iso_date(entry$created)
+  date_published <- parse_iso_date(entry$created)
 
   tibble::tibble(
     country = "dk",
@@ -627,10 +627,7 @@ dk_section_slug <- function(label) {
   s <- gsub("\u00e4", "a", s)
   s <- gsub("\u00f6", "o", s)
   s <- gsub("\u00fc", "u", s)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Collect a record's attachments as a per-section list of view URLs.
@@ -872,18 +869,4 @@ dk_paste_labels <- function(labels) {
     return(NA_character_)
   }
   paste(unique(labels), collapse = "; ")
-}
-
-#' Parse an ISO-8601 created/lastUpdated timestamp into a Date.
-#' @noRd
-dk_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

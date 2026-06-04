@@ -105,14 +105,14 @@ test_that("bg_normalise_assessment_type accepts the vocabulary case-insensitivel
 })
 
 test_that("bg_parse_dmy extracts DD.MM.YYYY dates", {
-  expect_identical(planscanR:::bg_parse_dmy("15.02.2017"), as.Date("2017-02-15"))
+  expect_identical(planscanR:::parse_dmy("15.02.2017"), as.Date("2017-02-15"))
   expect_identical(
-    planscanR:::bg_parse_dmy("дата: 11.07.2017 г."),
+    planscanR:::parse_dmy("дата: 11.07.2017 г."),
     as.Date("2017-07-11")
   )
-  expect_true(is.na(planscanR:::bg_parse_dmy("")))
-  expect_true(is.na(planscanR:::bg_parse_dmy(NULL)))
-  expect_true(is.na(planscanR:::bg_parse_dmy("no date")))
+  expect_true(is.na(planscanR:::parse_dmy("")))
+  expect_true(is.na(planscanR:::parse_dmy(NULL)))
+  expect_true(is.na(planscanR:::parse_dmy("no date")))
 })
 
 test_that("bg_parse_detail extracts expected OVOS (EIA) fields and attachments", {

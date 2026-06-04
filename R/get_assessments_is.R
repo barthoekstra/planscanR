@@ -512,8 +512,8 @@ is_parse_issue <- function(url, entry, issue) {
   process_type <- is_text((issue$process %||% list())$type) %||% entry$process_type
   native_type <- process_title %||% process_type %||% NA_character_
 
-  date_published <- is_parse_iso_date(issue$publishedDate %||% entry$published_date)
-  date_decision <- is_parse_iso_date(issue$closedDate %||% entry$closed_date)
+  date_published <- parse_iso_date(issue$publishedDate %||% entry$published_date)
+  date_decision <- parse_iso_date(issue$closedDate %||% entry$closed_date)
 
   jurisdiction <- is_jurisdiction(issue$communities, issue$postalCodes)
 
@@ -638,9 +638,7 @@ is_section_slug <- function(type) {
   s <- gsub("\u00fe", "th", s)
   s <- gsub("\u00e6", "ae", s)
   s <- gsub("\u00f6", "o", s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Pull a GeoJSON geometry from the `geographies` FeatureCollection.
@@ -824,18 +822,4 @@ is_text <- function(x) {
   }
   s <- trimws(as.character(x))
   if (!nzchar(s)) NULL else s
-}
-
-#' Parse an ISO-8601 timestamp (e.g. "2023-06-01T09:31:55.254Z") into a Date.
-#' @noRd
-is_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

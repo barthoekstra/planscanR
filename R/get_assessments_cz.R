@@ -674,10 +674,7 @@ cz_section_slug <- function(label) {
     return("document")
   }
   s <- cz_transliterate(label)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Transliterate Czech diacritics to ASCII (best-effort).

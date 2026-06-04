@@ -422,11 +422,11 @@ fr_parse_record <- function(url, entry) {
   competent_authority <- fr_text(entry$diffuseur) %||% NA_character_
   status <- fr_text(entry$vp_status) %||% NA_character_
 
-  date_published <- fr_parse_iso_date(entry$dc_date)
+  date_published <- parse_iso_date(entry$dc_date)
   # Candidate decision dates: préfecture date, then commissaire report date.
-  date_decision <- fr_parse_iso_date(entry$date_de_la_prefecture)
+  date_decision <- parse_iso_date(entry$date_de_la_prefecture)
   if (is.na(date_decision)) {
-    date_decision <- fr_parse_iso_date(entry$dc_date_rapportcommissaire)
+    date_decision <- parse_iso_date(entry$dc_date_rapportcommissaire)
   }
 
   per_section <- fr_collect_attachments(entry)
@@ -719,18 +719,4 @@ fr_join_present <- function(parts) {
     return(NULL)
   }
   paste(unique(parts), collapse = "; ")
-}
-
-#' Parse an ISO-8601 timestamp / date string into a Date.
-#' @noRd
-fr_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

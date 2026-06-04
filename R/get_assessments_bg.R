@@ -426,12 +426,12 @@ bg_parse_detail <- function(url, entry, html) {
     NA_character_
 
   # date_published: the submission date (under the proposal/plan section).
-  date_published <- bg_parse_dmy(pick("\u0414\u0430\u0442\u0430")) %||% as.Date(NA)
+  date_published <- parse_dmy(pick("\u0414\u0430\u0442\u0430")) %||% as.Date(NA)
   if (length(date_published) == 0L || is.null(date_published)) {
     date_published <- as.Date(NA)
   }
   # date_decision: the termination-decision date, when present.
-  date_decision <- bg_parse_dmy(pick(
+  date_decision <- parse_dmy(pick(
     "\u0414\u0430\u0442\u0430 \u043d\u0430 \u0440\u0435\u0448\u0435\u043d\u0438\u0435\u0442\u043e \u0437\u0430 \u043f\u0440\u0435\u043a\u0440\u0430\u0442\u044f\u0432\u0430\u043d\u0435"
   )) %||%
     as.Date(NA)
@@ -802,22 +802,4 @@ bg_join_path <- function(parts) {
     return(NA_character_)
   }
   paste(unlist(parts), collapse = " / ")
-}
-
-#' Parse a Bulgarian DD.MM.YYYY date string into a Date.
-#' @noRd
-bg_parse_dmy <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  m <- regmatches(s, regexpr("[0-9]{2}\\.[0-9]{2}\\.[0-9]{4}", s))
-  if (length(m) == 0L || !nzchar(m)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(m, format = "%d.%m.%Y"))
-  if (length(d) == 0L) as.Date(NA) else d
 }

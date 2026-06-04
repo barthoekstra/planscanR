@@ -66,10 +66,7 @@ normalise_topics <- function(topic) {
 #' Slugify a topic phrase into a column-safe suffix.
 #' @noRd
 slugify_topic <- function(s) {
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "topic" else s
+  ascii_slug(s, "topic")
 }
 
 #' Cosine similarity between every row of `m` and every row of `topics`.
