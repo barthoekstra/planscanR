@@ -23,7 +23,7 @@ library(planscanR)
 `planscanR` is a thin layer over a handful of national environmental-assessment
 portals (currently Netherlands, Germany, France, Austria, Denmark, Belgium
 (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia, Greece,
-and Iceland).
+Iceland, and Ireland).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
