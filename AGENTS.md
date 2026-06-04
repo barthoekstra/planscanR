@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Twenty country handlers ship:
+**v0.1 scope.** Twenty-one country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -334,6 +334,34 @@ Python, no Shiny, no project-specific scoring config.
   `Crawl-delay: 20`; `getOption("planscanR.no_throttle_rate")`). Reflected in
   `get_assessments_coverage()$status` as `"supported (NVE energy/water
   concession cases; EIA docs by filename; no geometry)"`.
+- Latvia (`get_assessments_lv()`) — Environmental State Bureau
+  (*Vides pārraudzības valsts birojs*) Drupal portal at `eva.gov.lv`.
+  Server-rendered HTML, reached with pure `httr2`. **Asymmetric dual
+  register** via `assessment_type` (`"All"`/`"EIA"`/`"SEA"`). **EIA** =
+  the Drupal Views listing
+  `https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti?page=N`
+  (**0-indexed** `page`; seam `lv_fetch_eia()`; full crawl until an empty
+  page, ~20 rows/page); each `.views-row .node-catalog-item` links to a
+  per-project detail page that is **metadata-only** — it carries
+  IVN Statuss / proponent / decision-year + location/summary prose but
+  **no document attachments**, so EIA records leave `attachment_urls`
+  empty and documents are filled in downstream by `discover_attachments()`.
+  **SEA** = three flat sub-pages `/lv/atzinumi` (opinions), `/lv/lemumi`
+  (decisions), `/lv/monitorings` (monitoring) (seam `lv_fetch_sea()`),
+  each listing documents as **direct
+  `/lv/media/{id}/download?attachment` PDF links** (one attachment per
+  record). `assessment_type` column `"EIA"`/`"SEA"`; `register` column
+  (`"ivn-projekti"` / `"atzinumi"` / `"lemumi"` / `"monitorings"`);
+  `document_id` prefixed per register (`IVN-` / `ATZ-` / `LEM-` / `MON-`)
+  so they never collide. `competent_authority` is the constant
+  `"Vides pārraudzības valsts birojs"`; extras `location` (EIA cadastral /
+  parish prose) and `decision` (EIA decision text / SEA document number).
+  No geometry. `query` (title substring) and `date_range` are matched
+  **client-side** (the portal's exposed-form filters are POST/AJAX).
+  Latvian. Throttled to 5 req/s (`getOption("planscanR.lv_throttle_rate")`).
+  Reflected in `get_assessments_coverage()$status` as `"supported
+  (metadata-only EIA register — documents via discovery; SEA
+  opinions/decisions carry direct PDFs)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -427,7 +455,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_gb(...)          # planninginspectorate.gov.uk (bulk CSV; NSIP/EIA)
   │     ├── get_assessments_it(...)          # va.mite.gov.it (HTML scrape; VIA/EIA + VAS/SEA)
   │     ├── get_assessments_sk(...)          # enviroportal.sk (API Platform JSON; EIA + SEA)
-  │     └── get_assessments_no(...)          # nve.no (JSON list + HTML detail; concession EIA)
+  │     ├── get_assessments_no(...)          # nve.no (JSON list + HTML detail; concession EIA)
+  │     └── get_assessments_lv(...)          # eva.gov.lv (Drupal HTML; metadata-only EIA + SEA PDFs)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

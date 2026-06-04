@@ -37,6 +37,7 @@ reference:
   - get_assessments_it
   - get_assessments_sk
   - get_assessments_no
+  - get_assessments_lv
   - get_assessments_coverage
   - supported_countries
   - bind_results

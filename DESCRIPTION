@@ -24,9 +24,12 @@ Description: A unified R interface for fetching environmental-assessment
     NSIP only, each with a statutory Environmental Statement),
     Italy (MASE va.mite.gov.it; HTML register; VIA project EIA + VAS
     plan SEA), Slovakia (enviroportal.sk; API Platform JSON;
-    EIA + SEA in one register, tagged by the zbierka law string), and
+    EIA + SEA in one register, tagged by the zbierka law string),
     Norway (NVE nve.no; JSON list + HTML detail; energy/water
-    concession cases carrying the konsekvensutredning EIA documents).
+    concession cases carrying the konsekvensutredning EIA documents), and
+    Latvia (Environmental State Bureau eva.gov.lv; Drupal HTML;
+    asymmetric dual register: metadata-only project EIA listing plus
+    strategic SEA sub-pages with direct PDFs).
     Optional
     fetch-time scoring of records by topic relevance is delegated to the
     companion 'planscanR.screen' package. Developed for the BIOGAIN project

@@ -297,6 +297,28 @@ test_that("NO coverage row signals the NVE concession register and exposes the g
   expect_setequal(f$list_filters, c("caseType", "county", "municipality", "filterText"))
 })
 
+test_that("LV coverage row signals the asymmetric dual register and metadata-only EIA half", {
+  c <- get_assessments_coverage()
+  lv <- c[c$country == "lv", ]
+  expect_identical(lv$source_portal, "eva.gov.lv")
+  expect_false(lv$requires_auth)
+  expect_identical(
+    lv$status,
+    "supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)"
+  )
+  # The status starts with the metadata-only marker, so discovery is nudged.
+  expect_match(lv$status, "^supported \\(metadata-only")
+  expect_true("lv" %in% planscanR:::metadata_only_countries())
+  f <- lv$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register", "note"))
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+  expect_setequal(
+    f$register,
+    c("ivn-projekti", "atzinumi", "lemumi", "monitorings")
+  )
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

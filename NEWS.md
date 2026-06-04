@@ -11,10 +11,10 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 20 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 21 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
   Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy,
-  Slovakia, and Norway.
+  Slovakia, Norway, and Latvia.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.
@@ -76,6 +76,23 @@ and related advice) from European government portals.
   Conservatively throttled to ~20 s between requests, honouring NVE's
   `robots.txt` crawl-delay (overridable via
   `getOption("planscanR.no_throttle_rate")`).
+* Latvia (`get_assessments_lv()`): fetches from the Environmental State Bureau
+  (*Vides pārraudzības valsts birojs*) Drupal portal at **eva.gov.lv** — an
+  **asymmetric dual register** reached with pure `httr2`. The EIA half
+  (*Ietekmes uz vidi novērtējums*) is a Drupal Views listing
+  (`/lv/ietekmes-uz-vidi-novertejumu-projekti?page=N`, **0-indexed**, full
+  crawl until an empty page) whose per-project detail pages are
+  **metadata-only** — they carry no document attachments, so EIA records leave
+  `attachment_urls` empty and documents are filled in downstream by
+  `discover_attachments()`. The SEA half (*Stratēģiskais IVN*) is three flat
+  sub-pages — `/lv/atzinumi` (opinions), `/lv/lemumi` (decisions),
+  `/lv/monitorings` (monitoring) — each listing documents as **direct
+  `/lv/media/{id}/download?attachment` PDF links** that become the record's
+  attachment. The `assessment_type` argument (`"All"` / `"EIA"` / `"SEA"`)
+  selects which half to crawl; `document_id` is prefixed per register
+  (`IVN-` / `ATZ-` / `LEM-` / `MON-`). No geometry; `query` and `date_range`
+  are matched client-side (the portal's own filters are POST/AJAX). Latvian.
+  Throttled to 5 req/s by default (`getOption("planscanR.lv_throttle_rate")`).
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English

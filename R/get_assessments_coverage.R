@@ -45,7 +45,8 @@ get_assessments_coverage <- function() {
       "gb",
       "it",
       "sk",
-      "no"
+      "no",
+      "lv"
     ),
     source_portal = c(
       "commissiemer.nl",
@@ -67,7 +68,8 @@ get_assessments_coverage <- function() {
       "planninginspectorate.gov.uk",
       "va.mite.gov.it",
       "enviroportal.sk",
-      "nve.no"
+      "nve.no",
+      "eva.gov.lv"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -89,9 +91,11 @@ get_assessments_coverage <- function() {
       "https://national-infrastructure-consenting.planninginspectorate.gov.uk",
       "https://va.mite.gov.it",
       "https://www.enviroportal.sk/eia-sea/informacny-system",
-      "https://www.nve.no/konsesjon/konsesjonssaker"
+      "https://www.nve.no/konsesjon/konsesjonssaker",
+      "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -133,7 +137,8 @@ get_assessments_coverage <- function() {
       "supported (NSIP only; every NSIP carries an Environmental Statement)", # gb
       "supported (VIA/VAS dual register; HTML scrape; no geometry)", # it
       "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)", # sk
-      "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)" # no
+      "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)", # no
+      "supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)" # lv
     ),
     facets = list(
       commissiemer_facets(),
@@ -155,8 +160,27 @@ get_assessments_coverage <- function() {
       planning_inspectorate_gb_facets(),
       va_mite_it_facets(),
       enviroportal_sk_facets(),
-      nve_no_facets()
+      nve_no_facets(),
+      eva_lv_facets()
     )
+  )
+}
+
+#' Static lookup of the eva.gov.lv (Latvia) facet vocabularies.
+#'
+#' Latvia's Environmental State Bureau (*Vides pārraudzības valsts birojs*)
+#' publishes two structurally different halves: a project-level EIA Drupal
+#' Views listing (metadata-only — documents come via discovery) and three flat
+#' SEA sub-pages with direct PDFs. The `assessment_type` selector (`"All"` /
+#' `"EIA"` / `"SEA"`) chooses which half to crawl; `register` names the
+#' sub-register. The portal's own exposed-form filters are POST/AJAX, so all
+#' filtering (`query`, `date_range`) is applied **client-side** here.
+#' @noRd
+eva_lv_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c("ivn-projekti", "atzinumi", "lemumi", "monitorings"),
+    note = "filters are client-side (portal filters are POST/AJAX)"
   )
 }
 
