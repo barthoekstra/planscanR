@@ -17,3 +17,10 @@ backend_name(backend)
 ## Value
 
 Character scalar.
+
+## Examples
+
+``` r
+backend_name(search_backend_mock())
+#> [1] "mock"
+```

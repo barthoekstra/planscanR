@@ -101,7 +101,7 @@ about.</p></dd>
 <code>https://portal.cenia.cz/eiasea/view/SEA100_koncepce</code>.</p></li>
 </ul><p>Both registers are merged into a single result tibble; an
 <code>assessment_type</code> column (<code>"EIA"</code> for <em>Záměry na území ČR</em>, <code>"SEA"</code> for
-<em>Posuzování koncepcí</em>) tags each row and is round-tripped to the sidecar so
+<em>Posuzování koncepcí</em>) tags each row and is preserved in the offline metadata cache so
 downstream tooling can tell them apart without re-fetching anything.
 <code>document_id</code> is the portal's register-namespaced detail code, e.g.
 <code>"EIA_JHC1237"</code> / <code>"SEA_HKK015K"</code>, so the two registers never collide on

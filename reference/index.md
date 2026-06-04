@@ -86,6 +86,9 @@ Read previously-downloaded slices offline and manage the file cache.
   schema.
 - [`write_record_sidecar()`](https://barthoekstra.github.io/planscanR/reference/write_record_sidecar.md)
   : Write a sidecar JSON for a single record.
+- [`migrate_sidecars_v3()`](https://barthoekstra.github.io/planscanR/reference/migrate_sidecars_v3.md)
+  : Upgrade every sidecar in a cache to the current schema (v3) in
+  place.
 
 ## Package
 

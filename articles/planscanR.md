@@ -10,6 +10,24 @@ It is a pure-R fetcher: scoring records by topic relevance lives in the
 companion package **planscanR.screen**. This vignette covers planscanR
 itself — fetching and the offline cache.
 
+## Terminology
+
+A few terms recur throughout planscanR and its documentation:
+
+- **Record** — one result row: a single environmental-assessment case as
+  returned by
+  [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md).
+- **Assessment** — the case *type*: an Environmental Impact Assessment
+  (EIA), a Strategic Environmental Assessment (SEA), or related advice.
+- **Document** (or **attachment**) — a file belonging to a record,
+  usually the assessment PDF, the decision, or a non-technical summary.
+- **Offline metadata cache** — the on-disk store of fetched record
+  metadata under the cache root, so records can be re-read without
+  returning to the portal. Each record’s metadata is one JSON file (a
+  *sidecar*);
+  [`index_cache()`](https://barthoekstra.github.io/planscanR/reference/index_cache.md)
+  reads them all back.
+
 ## Fetch records
 
 A single function,
@@ -52,9 +70,9 @@ get_assessments_coverage()
 
 ## Working offline
 
-Every record you fetch is saved to a small file on disk (a “sidecar”)
-under the cache root, which you can read back later without going to the
-portal at all:
+Every record you fetch is saved to the offline metadata cache under the
+cache root, which you can read back later without going to the portal at
+all:
 
 ``` r
 
@@ -66,18 +84,35 @@ existing set of records against new topics. The cache root resolves
 through
 [`cache_dir_default()`](https://barthoekstra.github.io/planscanR/reference/cache_dir_default.md);
 [`clear_cache()`](https://barthoekstra.github.io/planscanR/reference/clear_cache.md)
-wipes the downloaded files but leaves the sidecars (and any derived
-artefacts) in place.
+wipes the downloaded files but leaves the cached record metadata (and
+any derived artefacts) in place.
 
 ## Scoring records (optional)
 
 [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
 accepts an optional `topic` (and `relevance_threshold`) to score records
-during the fetch and gate PDF downloads on the score. The scoring itself
-is delegated to the **planscanR.screen** package: install it to enable
-`topic =`, and see its “Scoring records” vignette for the walkthrough.
-Without it, omit `topic` and planscanR fetches without scoring — no
-Python required.
+during the fetch and gate PDF downloads on the score:
+
+``` r
+
+records <- get_assessments(
+  "nl",
+  topic = c(wind = "wind energy", solar = "solar energy"),
+  relevance_threshold = 0.5,
+  limit = 20,
+  download = FALSE
+)
+# One score column per topic, plus the model that produced them.
+records[c("title", "relevance_score_wind", "relevance_score_solar", "relevance_model")]
+```
+
+Each topic adds a `relevance_score_<name>` column. `relevance_threshold`
+only *gates downloads* — it never drops records, so every record still
+appears in the table and the offline metadata cache, and re-running with
+a different threshold needs no network. The scoring itself is delegated
+to the **planscanR.screen** package: install it to enable `topic =`, and
+see its “Scoring records” vignette for the walkthrough. Without it, omit
+`topic` and planscanR fetches without scoring — no Python required.
 
 ## Where to go next
 

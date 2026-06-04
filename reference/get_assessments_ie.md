@@ -89,7 +89,11 @@ looping while `exceededTransferLimit` is true. A stable
 `orderByFields=OBJECTID_1 ASC` fixes the page ordering. Each feature
 carries all its metadata inline in `attributes` (there is no separate
 detail endpoint), plus an Esri point `geometry` requested in
-`outSR=2157`.
+`outSR=2157`. Enumeration is **streaming**: a page generator yields one
+`resultOffset` page at a time (and resolves that page's notice
+attachments in a single batched `queryAttachments` call) so records are
+parsed and persisted page-by-page rather than after a full register
+scan.
 
 The portal has **no per-record permalink**, so a unique, deterministic
 `url` is synthesised per record: the record-specific query URL
@@ -126,7 +130,7 @@ Portal-hosted attachments are ArcGIS feature attachments — the statutory
 newspaper / public-notice PDF. Because the download URL needs both the
 `OBJECTID_1` and the per-attachment id
 (`<layer>/<OBJECTID_1>/attachments/<id>`), attachment metadata is
-resolved in a batched **phase-2** `queryAttachments` call (keyed by
+resolved in a batched **per-page** `queryAttachments` call (keyed by
 `OBJECTID_1`) — even when `download = FALSE`, this is needed to populate
 `attachment_urls`. The single slug is `notice` (`attachment_urls_notice`
 / `local_path_notice`); the deduplicated union goes to `attachment_urls`
@@ -150,11 +154,11 @@ attachments (still schema-valid).
 
 ## Performance
 
-Enumeration is ≈6 paginated `query` calls (page size 1000) plus batched
-`queryAttachments` lookups (many `OBJECTID_1`s per call). IE requests
-are throttled to 5 requests per second by default; override via
-`getOption("planscanR.ie_throttle_rate")` (requests/sec; falsy
-disables).
+Enumeration is ≈6 paginated `query` calls (page size 1000) plus one
+batched `queryAttachments` lookup per page (many `OBJECTID_1`s per
+call). IE requests are throttled to 5 requests per second by default;
+override via `getOption("planscanR.ie_throttle_rate")` (requests/sec;
+falsy disables).
 
 ## See also
 

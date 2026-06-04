@@ -111,7 +111,7 @@ about.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Two "registers" are merged into a single result tibble; an
 <code>assessment_type</code> column (<code>"EIA"</code> for PUO, <code>"SEA"</code> for SPUO) tags each row
-and is round-tripped to the sidecar so downstream tooling can tell them
+and is preserved in the offline metadata cache so downstream tooling can tell them
 apart without re-fetching anything. <code>document_id</code> is prefixed with
 <code>"HR-PUO-"</code> / <code>"HR-SPUO-"</code> so the two registers never collide on disk.</p><ul><li><p><strong>PUO</strong> — <em>Procjena utjecaja zahvata na okoliš</em> (project-level EIA). One
 master archive page lists every procedure (years 2012–present) inline.</p></li>

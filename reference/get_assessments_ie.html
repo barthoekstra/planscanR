@@ -142,7 +142,10 @@ attachment lookups and the internal id fallback key off <code>OBJECTID_1</code>.
 while <code>exceededTransferLimit</code> is true. A stable <code>orderByFields=OBJECTID_1 ASC</code>
 fixes the page ordering. Each feature carries all its metadata inline in
 <code>attributes</code> (there is no separate detail endpoint), plus an Esri point
-<code>geometry</code> requested in <code>outSR=2157</code>.</p>
+<code>geometry</code> requested in <code>outSR=2157</code>. Enumeration is <strong>streaming</strong>: a page
+generator yields one <code>resultOffset</code> page at a time (and resolves that page's
+notice attachments in a single batched <code>queryAttachments</code> call) so records
+are parsed and persisted page-by-page rather than after a full register scan.</p>
 <p>The portal has <strong>no per-record permalink</strong>, so a unique, deterministic <code>url</code>
 is synthesised per record: the record-specific query URL
 <code>&lt;layer&gt;/query?where=Portal_Ref='&lt;ref&gt;'&amp;outFields=*&amp;f=json</code> (stable and
@@ -175,7 +178,7 @@ geometry leave the geometry columns <code>NA</code>.</p>
 <p>Portal-hosted attachments are ArcGIS feature attachments — the statutory
 newspaper / public-notice PDF. Because the download URL needs both the
 <code>OBJECTID_1</code> and the per-attachment id (<code>&lt;layer&gt;/&lt;OBJECTID_1&gt;/attachments/&lt;id&gt;</code>),
-attachment metadata is resolved in a batched <strong>phase-2</strong> <code>queryAttachments</code>
+attachment metadata is resolved in a batched <strong>per-page</strong> <code>queryAttachments</code>
 call (keyed by <code>OBJECTID_1</code>) — even when <code>download = FALSE</code>, this is needed
 to populate <code>attachment_urls</code>. The single slug is <code>notice</code>
 (<code>attachment_urls_notice</code> / <code>local_path_notice</code>); the deduplicated union goes
@@ -199,9 +202,9 @@ decision-date field).</p></li>
     <h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a></h2>
 
 
-<p>Enumeration is ≈6 paginated <code>query</code> calls (page size 1000) plus batched
-<code>queryAttachments</code> lookups (many <code>OBJECTID_1</code>s per call). IE requests are
-throttled to 5 requests per second by default; override via
+<p>Enumeration is ≈6 paginated <code>query</code> calls (page size 1000) plus one batched
+<code>queryAttachments</code> lookup per page (many <code>OBJECTID_1</code>s per call). IE requests
+are throttled to 5 requests per second by default; override via
 <code>getOption("planscanR.ie_throttle_rate")</code> (requests/sec; falsy disables).</p>
     </div>
     <div class="section level2">

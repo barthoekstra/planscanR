@@ -60,9 +60,21 @@ search parameters like <code>theme</code>, <code>advice_type</code>, <code>provi
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A tibble with one row per supported country, columns:
 <code>country</code>, <code>source_portal</code>, <code>base_url</code>, <code>requires_auth</code>, <code>status</code>,
-plus a list-column <code>facets</code> of named lists giving the valid values for
-each search parameter the handler accepts.</p>
+plus a list-column <code>facets</code> of named lists (filter and reference
+vocabularies; see Details).</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Each country's <code>facets</code> list mixes two kinds of vocabulary, distinguished in
+that handler's facet documentation:</p><ul><li><p><strong>filter facets</strong> — valid values for a search argument the handler
+actually honours (e.g. <code>assessment_type</code>, <code>theme</code>, <code>province</code>).</p></li>
+<li><p><strong>reference facets</strong> — portal classifications surfaced for documentation
+only. They are NOT accepted as search arguments; they typically appear
+instead as output columns (e.g. DK <code>annex</code>, EE <code>assessment_subtype</code>,
+AT <code>type</code> / <code>type_group</code>, DE <code>procedure</code>).
+Vocabularies are point-in-time snapshots (capture dates noted per country);
+the facet/argument mapping was last reconciled on 2026-06-04.</p></li>
+</ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

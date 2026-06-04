@@ -37,3 +37,12 @@ derived columns (relevance / class scores) by calling
 `planscanR::write_record_sidecar()`. The merge logic that preserves
 existing `files[]` / `relevance_scores[]` / `class_*` arrays lives here,
 so adding a new score family never wipes existing ones.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Persist a single fetched record to the offline metadata cache.
+write_record_sidecar(record)
+} # }
+```

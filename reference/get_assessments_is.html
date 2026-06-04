@@ -127,7 +127,7 @@ tagged <code>assessment_type = "EIA"</code>.</p></li>
 <code>assessment_type = "EIA"</code>.</p></li>
 <li><p><code>501</code> — <em>Umhverfismat áætlana</em> (SEA), tagged <code>assessment_type = "SEA"</code>.</p></li>
 </ul><p>The three are merged into one result tibble. <code>assessment_type</code>
-(<code>"EIA"</code>/<code>"SEA"</code>) tags each row and round-trips to the sidecar; the finer
+(<code>"EIA"</code>/<code>"SEA"</code>) tags each row and is preserved in the offline metadata cache; the finer
 distinction is kept in <code>process_type</code> / <code>native_type</code>. Because the three
 processes share the same <code>Issue.id</code> space, <code>document_id</code> is prefixed with
 the process id (<code>IS-15-&lt;id&gt;</code>, <code>IS-16-&lt;id&gt;</code>, <code>IS-501-&lt;id&gt;</code>) so they never

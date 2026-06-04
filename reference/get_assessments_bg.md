@@ -65,10 +65,10 @@ for the required schema.
 
 Both registers are merged into a single result tibble; an
 `assessment_type` column (`"EIA"` for ОВОС, `"SEA"` for ЕО) tags each
-row and is round-tripped to the sidecar so downstream tooling can tell
-them apart without re-fetching anything. `document_id` is prefixed with
-`"OVOS-"` / `"EO-"` (e.g. `"OVOS-21617"`, `"EO-44841"`) so the two
-registers never collide on disk.
+row and is preserved in the offline metadata cache so downstream tooling
+can tell them apart without re-fetching anything. `document_id` is
+prefixed with `"OVOS-"` / `"EO-"` (e.g. `"OVOS-21617"`, `"EO-44841"`) so
+the two registers never collide on disk.
 
 ## URL enumeration
 

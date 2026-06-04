@@ -203,3 +203,12 @@ for the exact parameter surface and the vocabulary of valid values.
 [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md),
 [`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md),
 [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md).
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Fetch a small slice from the Netherlands (no PDFs downloaded yet).
+get_assessments("nl", limit = 5, download = FALSE)
+} # }
+```

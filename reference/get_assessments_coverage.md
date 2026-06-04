@@ -15,8 +15,24 @@ get_assessments_coverage()
 
 A tibble with one row per supported country, columns: `country`,
 `source_portal`, `base_url`, `requires_auth`, `status`, plus a
-list-column `facets` of named lists giving the valid values for each
-search parameter the handler accepts.
+list-column `facets` of named lists (filter and reference vocabularies;
+see Details).
+
+## Details
+
+Each country's `facets` list mixes two kinds of vocabulary,
+distinguished in that handler's facet documentation:
+
+- **filter facets** — valid values for a search argument the handler
+  actually honours (e.g. `assessment_type`, `theme`, `province`).
+
+- **reference facets** — portal classifications surfaced for
+  documentation only. They are NOT accepted as search arguments; they
+  typically appear instead as output columns (e.g. DK `annex`, EE
+  `assessment_subtype`, AT `type` / `type_group`, DE `procedure`).
+  Vocabularies are point-in-time snapshots (capture dates noted per
+  country); the facet/argument mapping was last reconciled on
+  2026-06-04.
 
 ## Examples
 

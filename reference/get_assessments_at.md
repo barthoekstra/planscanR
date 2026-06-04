@@ -88,11 +88,12 @@ Three JSON service handlers, however, are open:
     https://secure.umweltbundesamt.at/uvpdb/?servicehandler=vorhabenInfo&v2id=<id>
 
 Enumeration is a single `mapsdata` call that returns ~500 records keyed
-by Aktenzahl (AZ), each carrying `v2id`, `province`, `year`, `title`,
-and `type`. Per-record detail comes from one `vorhabenInfo` call per
-`v2id`. There is no pagination, CSRF, or session requirement; the
-typology mapping (`type` integer → German legend) is captured as a
-static constant in this file because the portal rarely changes it.
+by Aktenzahl (AZ — the Austrian case/file number, surfaced as
+`file_number`), each carrying `v2id`, `province`, `year`, `title`, and
+`type`. Per-record detail comes from one `vorhabenInfo` call per `v2id`.
+There is no pagination, CSRF, or session requirement; the typology
+mapping (`type` integer → German legend) is captured as a static
+constant in this file because the portal rarely changes it.
 
 ## Filter coverage (v0.1)
 

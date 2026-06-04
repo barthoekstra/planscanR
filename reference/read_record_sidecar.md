@@ -22,3 +22,12 @@ read_record_sidecar(path)
 ## Value
 
 A 1-row tibble in the planscanR schema.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Read one record's cached metadata back into a 1-row tibble.
+read_record_sidecar("path/to/<document_id>.meta.json")
+} # }
+```

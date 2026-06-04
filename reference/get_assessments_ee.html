@@ -119,7 +119,7 @@ about.</p></dd>
 <code>https://kotkas.envir.ee/kmh/ksh_index?tab=KSH</code>.</p></li>
 </ul><p>Both registers are merged into a single result tibble; an
 <code>assessment_type</code> column (<code>"EIA"</code> for KMH, <code>"SEA"</code> for KSH) tags each row
-and is round-tripped to the sidecar so downstream tooling can tell them
+and is preserved in the offline metadata cache so downstream tooling can tell them
 apart without re-fetching anything. <code>document_id</code> is prefixed with
 <code>"KMH-"</code> / <code>"KSH-"</code> (e.g. <code>"KMH-478"</code>, <code>"KSH-319"</code>) so the two registers
 never collide on disk.</p>

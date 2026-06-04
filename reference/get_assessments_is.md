@@ -83,13 +83,13 @@ assessment lives in three of its `process`es, selected server-side by
   `assessment_type = "SEA"`.
 
 The three are merged into one result tibble. `assessment_type`
-(`"EIA"`/`"SEA"`) tags each row and round-trips to the sidecar; the
-finer distinction is kept in `process_type` / `native_type`. Because the
-three processes share the same `Issue.id` space, `document_id` is
-prefixed with the process id (`IS-15-<id>`, `IS-16-<id>`, `IS-501-<id>`)
-so they never collide on disk. The `assessment_type` argument
-(`"All"`/`"EIA"`/`"SEA"`) selects which processes to crawl: `"EIA"` -\>
-`{15, 16}`, `"SEA"` -\> `{501}`.
+(`"EIA"`/`"SEA"`) tags each row and is preserved in the offline metadata
+cache; the finer distinction is kept in `process_type` / `native_type`.
+Because the three processes share the same `Issue.id` space,
+`document_id` is prefixed with the process id (`IS-15-<id>`,
+`IS-16-<id>`, `IS-501-<id>`) so they never collide on disk. The
+`assessment_type` argument (`"All"`/`"EIA"`/`"SEA"`) selects which
+processes to crawl: `"EIA"` -\> `{15, 16}`, `"SEA"` -\> `{501}`.
 
 ## URL enumeration
 

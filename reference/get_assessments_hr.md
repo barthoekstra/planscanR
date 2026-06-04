@@ -62,9 +62,10 @@ for the required schema.
 
 Two "registers" are merged into a single result tibble; an
 `assessment_type` column (`"EIA"` for PUO, `"SEA"` for SPUO) tags each
-row and is round-tripped to the sidecar so downstream tooling can tell
-them apart without re-fetching anything. `document_id` is prefixed with
-`"HR-PUO-"` / `"HR-SPUO-"` so the two registers never collide on disk.
+row and is preserved in the offline metadata cache so downstream tooling
+can tell them apart without re-fetching anything. `document_id` is
+prefixed with `"HR-PUO-"` / `"HR-SPUO-"` so the two registers never
+collide on disk.
 
 - **PUO** — *Procjena utjecaja zahvata na okoliš* (project-level EIA).
   One master archive page lists every procedure (years 2012–present)

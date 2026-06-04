@@ -104,7 +104,7 @@ EIA), <code>https://registers.moew.government.bg/ovos/</code>.</p></li>
 <code>https://registers.moew.government.bg/eo/</code>.</p></li>
 </ul><p>Both registers are merged into a single result tibble; an
 <code>assessment_type</code> column (<code>"EIA"</code> for ОВОС, <code>"SEA"</code> for ЕО) tags each row
-and is round-tripped to the sidecar so downstream tooling can tell them
+and is preserved in the offline metadata cache so downstream tooling can tell them
 apart without re-fetching anything. <code>document_id</code> is prefixed with
 <code>"OVOS-"</code> / <code>"EO-"</code> (e.g. <code>"OVOS-21617"</code>, <code>"EO-44841"</code>) so the two
 registers never collide on disk.</p>

@@ -132,7 +132,8 @@ Three JSON service handlers, however, are open:</p>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>https<span class="sc">:</span><span class="er">//</span>secure.umweltbundesamt.at<span class="sc">/</span>uvpdb<span class="sc">/</span>?servicehandler<span class="ot">=</span>mapsgeom</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>https<span class="sc">:</span><span class="er">//</span>secure.umweltbundesamt.at<span class="sc">/</span>uvpdb<span class="sc">/</span>?servicehandler<span class="ot">=</span>vorhabenInfo<span class="sc">&amp;</span>v2id<span class="ot">=</span><span class="er">&lt;</span>id<span class="sc">&gt;</span></span></code></pre><p></p></div>
 <p>Enumeration is a single <code>mapsdata</code> call that returns ~500 records keyed
-by Aktenzahl (AZ), each carrying <code>v2id</code>, <code>province</code>, <code>year</code>, <code>title</code>,
+by Aktenzahl (AZ — the Austrian case/file number, surfaced as <code>file_number</code>),
+each carrying <code>v2id</code>, <code>province</code>, <code>year</code>, <code>title</code>,
 and <code>type</code>. Per-record detail comes from one <code>vorhabenInfo</code> call per
 <code>v2id</code>. There is no pagination, CSRF, or session requirement; the
 typology mapping (<code>type</code> integer → German legend) is captured as a

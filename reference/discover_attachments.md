@@ -122,3 +122,12 @@ discovery config.
 [`search_backend_tavily()`](https://barthoekstra.github.io/planscanR/reference/search_backend_tavily.md),
 [`discover_validate()`](https://barthoekstra.github.io/planscanR/reference/discover_validate.md),
 [`at_discovery_config()`](https://barthoekstra.github.io/planscanR/reference/at_discovery_config.md).
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+recs <- get_assessments("nl", limit = 3, download = FALSE)
+discover_attachments(recs)
+} # }
+```

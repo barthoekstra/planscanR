@@ -56,6 +56,8 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="planscanr">planscanR<a class="anchor" aria-label="anchor" href="#planscanr"></a>
 </h1></div>
+<!-- badges: start -->
+
 <p><code>planscanR</code> collects environmental-assessment records — Environmental Impact Assessments (EIA), Strategic Environmental Assessments (SEA), and related advice — from European government portals, and gives you one consistent table to work with no matter which country a record came from.</p>
 <p>It was built for the <a href="https://www.github.com/BIOGAIN" class="external-link">BIOGAIN</a> project, which studies how to achieve a net gain in biodiversity when planning where energy infrastructure goes. To do that, the project needs to find the relevant assessments scattered across national portals — which is what this package automates.</p>
 <div class="section level2">
@@ -155,6 +157,20 @@
 <p>See <code><a href="articles/supported_sources.html">vignette("supported_sources")</a></code> for per-portal details: how each portal is accessed, what filters are honoured, and what data comes back.</p>
 </div>
 <div class="section level2">
+<h2 id="terminology">Terminology<a class="anchor" aria-label="anchor" href="#terminology"></a>
+</h2>
+<ul>
+<li>
+<strong>Record</strong> — one result row (a single environmental-assessment case).</li>
+<li>
+<strong>Assessment</strong> — the case type: an EIA, an SEA, or related advice.</li>
+<li>
+<strong>Document</strong> / <strong>attachment</strong> — a file belonging to a record (the assessment PDF, the decision, …).</li>
+<li>
+<strong>Offline metadata cache</strong> — the on-disk store of fetched record metadata, read back with <code><a href="reference/index_cache.html">index_cache()</a></code>; each record’s metadata is one JSON file (a <em>sidecar</em>).</li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="a-word-of-caution">A word of caution<a class="anchor" aria-label="anchor" href="#a-word-of-caution"></a>
 </h2>
 <div class="warning">
@@ -193,7 +209,7 @@
 <div class="section level3">
 <h3 id="scoring-optional">Scoring (optional)<a class="anchor" aria-label="anchor" href="#scoring-optional"></a>
 </h3>
-<p>With <strong>planscanR.screen</strong> installed, pass a <code>topic</code> to score each record as it is fetched, and use <code>relevance_threshold</code> to gate which records’ PDFs are downloaded:</p>
+<p>Scoring is <strong>not</strong> part of planscanR itself — it lives in the companion package <strong><a href="https://github.com/barthoekstra/planscanR.screen" class="external-link">planscanR.screen</a></strong>, which planscanR calls only when you opt in. With it installed, pass a <code>topic</code> to <code><a href="reference/get_assessments.html">get_assessments()</a></code> to score each record as it is fetched, and use <code>relevance_threshold</code> to gate which records’ PDFs are downloaded (it gates downloads only — every record still comes back):</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_assessments.html">get_assessments</a></span><span class="op">(</span></span>
 <span>  <span class="st">"nl"</span>,</span>
@@ -242,7 +258,13 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/barthoekstra/planscanR/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/barthoekstra/planscanR/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://app.codecov.io/gh/barthoekstra/planscanR" class="external-link"><img src="https://codecov.io/gh/barthoekstra/planscanR/graph/badge.svg" alt="Codecov test coverage"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>

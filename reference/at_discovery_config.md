@@ -22,7 +22,7 @@ A list with the following named elements:
 - `state_domains` — named list `bundesland -> character vector` of
   authority domains to scope queries to.
 
-- `aktenzahl_regex` — regex that detects the country's primary
+- `file_number_regex` — regex that detects the country's primary
   identifier in PDF text. For AT it matches the UBA-internal AZ
   `02 NNNN` plus a couple of dash/no-space variants.
 

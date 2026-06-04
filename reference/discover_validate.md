@@ -73,3 +73,12 @@ when the candidate is promoted to the sidecar).
 Any single signal passing is sufficient. The result reports which
 signal(s) fired so calling code can apply stricter precision policies if
 it wants.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Validate a candidate PDF against a record's identifiers + topic signals.
+discover_validate(record, pdf_path, cfg = at_discovery_config())
+} # }
+```
