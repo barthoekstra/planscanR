@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Six country handlers ship:
+**v0.1 scope.** Seven country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -41,6 +41,20 @@ Python, no Shiny, no project-specific scoring config.
   next to the sidecar in the same layout as DK / BE. Direct anonymous
   document downloads, grouped per `Liik` (document type) into
   `attachment_urls_<slug>` columns dynamically.
+- Bulgaria (`get_assessments_bg()`) — Ministry of Environment and Water
+  (МОСВ) registers at `registers.moew.government.bg`. Merges both
+  registers — **ОВОС** (EIA) and **ЕО** (SEA) — into one result tibble;
+  each row carries an `assessment_type` column (`"EIA"` / `"SEA"`) and
+  `document_id` is prefixed `"OVOS-"` / `"EO-"` so the two registers never
+  collide on disk. Server-rendered (ASP.NET MVC) portal: listings paginate
+  via `?offset=<n>&limit=<k>`, detail pages (`/ovos/lot/<id>`,
+  `/eo/lot/<id>`) are scraped with `rvest` from a nested row-group
+  `table.table-lot`. **No geometry** (location is administrative text only).
+  Direct anonymous document downloads (`/ovos/file?fileKey=...&fileName=...`;
+  the `fileName` param is required, so the full href is kept verbatim),
+  grouped per row label into `attachment_urls_<slug>` columns dynamically
+  (Bulgarian labels transliterated to ASCII). Throttled to 2 req/s by
+  default (`getOption("planscanR.bg_throttle_rate")`).
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -121,7 +135,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_at(...)          # secure.umweltbundesamt.at/uvpdb
   │     ├── get_assessments_dk(...)          # eahub.miljoeportal.dk
   │     ├── get_assessments_be(...)          # merregister.omgeving.vlaanderen.be
-  │     └── get_assessments_ee(...)          # kotkas.envir.ee
+  │     ├── get_assessments_ee(...)          # kotkas.envir.ee
+  │     └── get_assessments_bg(...)          # registers.moew.government.bg
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

@@ -101,6 +101,30 @@
   client-side against `date_published` (the portal's *Algatamise kpv* /
   initiation date; `date_decision` is `NA` because the portal exposes no
   dossier-level decision timestamp).
+* Bulgaria handler `get_assessments_bg()` fetches from the Ministry of
+  Environment and Water (МОСВ) public registers
+  (`registers.moew.government.bg`), merging both registers — ОВОС
+  (project-level EIA, *Оценка на въздействието върху околната среда*) and ЕО
+  (plan/programme SEA, *Екологична оценка*) — into one result tibble. Each
+  row is tagged via the `assessment_type` column (`"EIA"` for ОВОС, `"SEA"`
+  for ЕО) and round-tripped to the sidecar; `document_id` is prefixed
+  `"OVOS-"` / `"EO-"` so the two registers never collide on disk. The
+  registers are server-rendered ASP.NET MVC pages: listings paginate via
+  `?offset=<n>&limit=<k>` and detail pages (`/ovos/lot/<id>`, `/eo/lot/<id>`)
+  are scraped with `rvest` from a nested row-group `table.table-lot`.
+  Documents are exposed as direct anonymous download URLs
+  (`/ovos/file?fileKey=<uuid>&fileName=<name>`), so the handler downloads
+  PDFs from day one; the `fileName` parameter is required by the server, so
+  the full href is captured verbatim. Per-row-label attachment splits emit
+  `attachment_urls_<slug>` columns dynamically (the Bulgarian label is
+  transliterated to ASCII, e.g. `uvedomlenie`, `opisanie`, `pismo`). No
+  geometry is exposed by the portal — location is administrative text only
+  (`jurisdiction` = Област / Община / Населено място). Filter surface:
+  `query` (server-side `projectName`), `assessment_type` (`"All"` / `"EIA"` /
+  `"SEA"`), and `date_range` (matched client-side against `date_published`,
+  the dossier submission date; `date_decision` is the termination-decision
+  date when present, else `NA`). Throttled to 2 req/s by default
+  (`getOption("planscanR.bg_throttle_rate")`).
 * Belgium (Flanders) handler `get_assessments_be()` fetches from the
   Departement Omgeving's MER-register
   (`merregister.omgeving.vlaanderen.be`). Enumeration paginates a public

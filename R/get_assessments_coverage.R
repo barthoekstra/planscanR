@@ -14,14 +14,15 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "at", "dk", "be", "ee"),
+    country = c("nl", "de", "at", "dk", "be", "ee", "bg"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
       "umweltbundesamt.at/uvpdb",
       "miljoeportal.dk/eahub",
       "omgeving.vlaanderen.be/merregister",
-      "kotkas.envir.ee"
+      "kotkas.envir.ee",
+      "registers.moew.government.bg"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -29,16 +30,18 @@ get_assessments_coverage <- function() {
       "https://secure.umweltbundesamt.at/uvpdb/public",
       "https://eahub.miljoeportal.dk",
       "https://merregister.omgeving.vlaanderen.be",
-      "https://kotkas.envir.ee"
+      "https://kotkas.envir.ee",
+      "https://registers.moew.government.bg"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
+    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
     status = c(
       "supported",
       "supported",
       "supported (metadata-only)", # at
-      "supported",                 # dk
+      "supported", # dk
       "supported",
-      "supported"
+      "supported",
+      "supported" # bg
     ),
     facets = list(
       commissiemer_facets(),
@@ -46,7 +49,8 @@ get_assessments_coverage <- function() {
       uvpdb_at_facets(),
       eahub_dk_facets(),
       merregister_be_facets(),
-      kotkas_ee_facets()
+      kotkas_ee_facets(),
+      moew_bg_facets()
     )
   )
 }
@@ -131,6 +135,24 @@ kotkas_ee_facets <- function() {
       `1800` = "Programm",
       `1900` = "Muu"
     )
+  )
+}
+
+#' Static lookup of the МОСВ registers (Bulgaria) facet vocabularies.
+#'
+#' The МОСВ registers (ОВОС / ЕО) expose a small set of server-side GET
+#' filters. The first-class discriminator surfaced here is the
+#' `assessment_type` selector (which register to crawl — ОВОС for EIA, ЕО for
+#' SEA, or both). The portal also honours `projectName` (the free-text
+#' `query` argument, matched against the project/plan name) and
+#' `contractorNames` (proponent), plus region / authority / procedure / date
+#' filters; only `assessment_type` and `query` are first-class in v0.1. Pass
+#' any other server filter directly via `...` if needed (currently warned
+#' about as an unknown argument).
+#' @noRd
+moew_bg_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA")
   )
 }
 

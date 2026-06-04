@@ -22,7 +22,7 @@ library(planscanR)
 
 `planscanR` is a thin layer over a handful of national environmental-assessment
 portals (currently Netherlands, Germany, Austria, Denmark, Belgium (Flanders),
-and Estonia).
+Estonia, and Bulgaria).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
@@ -300,6 +300,66 @@ get_assessments_ee(query = "tuulepark", limit = 20, download = FALSE)
 
 # SEA only
 get_assessments_ee(assessment_type = "SEA", limit = 20, download = FALSE)
+```
+
+## Bulgaria — `"bg"`
+
+* **Portal:** Ministry of Environment and Water (МОСВ) public registers —
+  ОВОС-register (EIA) and ЕО-register (SEA)
+  ([registers.moew.government.bg](https://registers.moew.government.bg/))
+* **Status:** supported — full metadata and anonymous document downloads,
+  across **both** registers. No geometry.
+* **Authentication:** none.
+* **Coverage:** ~35,000 EIA records (ОВОС, *Оценка на въздействието върху
+  околната среда*) and ~10,000 SEA records (ЕО, *Екологична оценка*) at the
+  time of writing. The handler merges both registers into one result tibble
+  and tags each row via the `assessment_type` column (`"EIA"` for ОВОС,
+  `"SEA"` for ЕО). `document_id` is prefixed `"OVOS-"` / `"EO-"` so the two
+  registers never collide on disk. Because the registers are large, pass
+  `limit` and/or `query` while exploring.
+* **Throttle:** 2 requests/second by default
+  (`getOption("planscanR.bg_throttle_rate")`) — detail fetches are slow
+  (~4 s server-side) and the host is a small government server.
+
+The registers are server-rendered ASP.NET MVC pages (no SPA, no viewstate).
+Each register's listing paginates via a numeric `offset` plus a `limit`
+query parameter (`?offset=<n>&limit=<k>`); the page text *Намерени <N>
+досиета.* ("Found N dossiers") is the authoritative total. Detail pages live
+at `/ovos/lot/<id>` and `/eo/lot/<id>` and are scraped with `rvest` from a
+single nested row-group `table.table-lot` (each row carries a label `<th>`
+and a value `<td>`).
+
+**Geometry.** None. The МОСВ registers expose no coordinates or GeoJSON;
+location is administrative text only and is composed into `jurisdiction`
+(Област / Община / Населено място). No `geometry_path` / `geometry_crs`
+columns are emitted.
+
+**Filter coverage.** `query` is forwarded server-side as `projectName`
+(substring match on the project/plan name). `assessment_type` (`"All"`,
+`"EIA"`, `"SEA"`) decides which register(s) to crawl. `date_range` is matched
+client-side against `date_published` (the dossier submission date);
+`date_decision` is the termination-decision date (*Дата на решението за
+прекратяване*) when present, else `NA`. The portal also accepts
+`contractorNames` and region/authority/procedure/date filters server-side;
+these are not first-class in v0.1.
+
+**Documents.** Detail pages render document links inline inside the lot
+table's value cells, with direct anonymous download URLs of the form
+`/ovos/file?fileKey=<uuid>&fileName=<name>` (and `/eo/file?...`). The
+`fileName` query parameter is required by the server (it 500s without it), so
+the handler captures the full href verbatim rather than reconstructing it.
+Documents are typed only by the table-row label they sit under (Уведомление,
+Описание, Писмо, …); each label becomes its own `attachment_urls_<slug>` /
+`local_path_<slug>` column (the Bulgarian label is transliterated to ASCII).
+The deduplicated union is at `attachment_urls` / `local_path` as the schema
+requires.
+
+```{r}
+# Both registers, wind-themed slice
+get_assessments_bg(query = "вятър", limit = 20, download = FALSE)
+
+# SEA only
+get_assessments_bg(assessment_type = "SEA", limit = 20, download = FALSE)
 ```
 
 ## Adding a new source

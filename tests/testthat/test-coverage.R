@@ -67,6 +67,20 @@ test_that("EE coverage row exposes the KOTKAS facet vocabularies", {
   expect_true("Detailplaneering" %in% f$ksh_type)
 })
 
+test_that("BG coverage row exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  bg <- c[c$country == "bg", ]
+  expect_identical(bg$source_portal, "registers.moew.government.bg")
+  expect_false(bg$requires_auth)
+  expect_identical(bg$status, "supported")
+  f <- bg$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]
