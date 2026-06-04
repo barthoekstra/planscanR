@@ -25,6 +25,7 @@ reference:
   - get_assessments_ee
   - get_assessments_bg
   - get_assessments_cz
+  - get_assessments_hr
   - get_assessments_coverage
   - supported_countries
   - bind_results

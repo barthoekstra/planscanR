@@ -77,6 +77,26 @@ Python, no Shiny, no project-specific scoring config.
   (Czech labels transliterated to ASCII); some attachments are very large ZIPs,
   bounded by `max_file_size_mb`. Throttled to 2 req/s by default
   (`getOption("planscanR.cz_throttle_rate")`).
+- Croatia (`get_assessments_hr()`) — Ministry of Environment and Green
+  Transition CMS pages at `mzozt.gov.hr`. **No API / no machine-readable
+  register**: the register is a small set of server-rendered ASP.NET CMS pages
+  where each procedure is an inlined `<li><strong>TITLE</strong> <ul>...document
+  links...</ul></li>` block. The handler fetches the master page(s) once and
+  parses each block as one record — no pagination, no per-record detail
+  endpoint. Merges both registers — **PUO** (EIA) and **SPUO** (SEA) — into one
+  result tibble; each row carries an `assessment_type` column (`"EIA"` /
+  `"SEA"`). No native id: `document_id` is a stable SHA-1 hash of the title
+  (`HR-PUO-<hash>` / `HR-SPUO-<hash>`, year folded in) and `url` is the
+  master-page URL plus `#<document_id>` for a unique landing URL. **No
+  geometry** (spatial info is inside the PDFs; a county/grad is heuristically
+  pulled from the title into `jurisdiction`). Direct anonymous `.pdf` / `.zip`
+  downloads grouped by stage sub-heading into `attachment_urls_<slug>` columns
+  via a DE-style curated-map + auto-slug fallback (Croatian diacritics
+  transliterated to ASCII; flat SPUO docs fall under `document`); the original
+  href (with spaces / diacritics) is kept verbatim and percent-encoded only at
+  download time. Filters: `assessment_type`, a client-side `query` title
+  substring, and client-side `date_range`. Throttled to 5 req/s by default
+  (`getOption("planscanR.hr_throttle_rate")`).
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only

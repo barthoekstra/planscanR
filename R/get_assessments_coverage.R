@@ -14,7 +14,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "at", "dk", "be", "ee", "bg", "cz"),
+    country = c("nl", "de", "at", "dk", "be", "ee", "bg", "cz", "hr"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -23,7 +23,8 @@ get_assessments_coverage <- function() {
       "omgeving.vlaanderen.be/merregister",
       "kotkas.envir.ee",
       "registers.moew.government.bg",
-      "portal.cenia.cz"
+      "portal.cenia.cz",
+      "mzozt.gov.hr"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -33,9 +34,10 @@ get_assessments_coverage <- function() {
       "https://merregister.omgeving.vlaanderen.be",
       "https://kotkas.envir.ee",
       "https://registers.moew.government.bg",
-      "https://portal.cenia.cz/eiasea"
+      "https://portal.cenia.cz/eiasea",
+      "https://mzozt.gov.hr"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
+    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
     status = c(
       "supported",
       "supported",
@@ -44,7 +46,8 @@ get_assessments_coverage <- function() {
       "supported",
       "supported",
       "supported", # bg
-      "supported" # cz
+      "supported", # cz
+      "supported" # hr
     ),
     facets = list(
       commissiemer_facets(),
@@ -54,7 +57,8 @@ get_assessments_coverage <- function() {
       merregister_be_facets(),
       kotkas_ee_facets(),
       moew_bg_facets(),
-      cenia_cz_facets()
+      cenia_cz_facets(),
+      mzozt_hr_facets()
     )
   )
 }
@@ -175,6 +179,23 @@ cenia_cz_facets <- function() {
   list(
     assessment_type = c("All", "EIA", "SEA"),
     register_view = c(EIA = "eia100_cr", SEA = "SEA100_koncepce")
+  )
+}
+
+#' Static lookup of the mzozt.gov.hr (Croatia) facet vocabularies.
+#'
+#' Croatia has no machine-readable register or API; the handler scrapes a
+#' small set of server-rendered CMS master pages. The only first-class
+#' discriminator is the `assessment_type` selector (which register to crawl —
+#' PUO for EIA, SPUO for SEA, or both). There are no server-side search
+#' filters: `query` and `date_range` are matched client-side after the master
+#' pages are fetched. The PUO / SPUO register codes are surfaced here for
+#' documentation.
+#' @noRd
+mzozt_hr_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c(EIA = "PUO", SEA = "SPUO")
   )
 }
 

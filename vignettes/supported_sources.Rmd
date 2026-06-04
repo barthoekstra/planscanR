@@ -22,7 +22,7 @@ library(planscanR)
 
 `planscanR` is a thin layer over a handful of national environmental-assessment
 portals (currently Netherlands, Germany, Austria, Denmark, Belgium (Flanders),
-Estonia, and Bulgaria).
+Estonia, Bulgaria, the Czech Republic, and Croatia).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
@@ -434,6 +434,69 @@ get_assessments_cz(limit = 5, download = FALSE)
 
 # SEA only
 get_assessments_cz(assessment_type = "SEA", limit = 5, download = FALSE)
+```
+
+## Croatia — `"hr"`
+
+* **Portal:** Ministry of Environment and Green Transition CMS pages —
+  *Procjena utjecaja zahvata na okoliš* (PUO / project-level EIA) and
+  *Strateška procjena utjecaja na okoliš* (SPUO / plan-level SEA)
+  ([mzozt.gov.hr](https://mzozt.gov.hr/)). Pin the domain `mzozt.gov.hr`;
+  it was renamed from `mingor` / `mingo` and the old links 30x-redirect to it.
+* **Status:** supported — full metadata and anonymous document downloads,
+  across **both** registers. No API. No geometry.
+* **Authentication:** none.
+* **No machine-readable register.** Croatia exposes no JSON API and no
+  per-record detail endpoint. The "register" is a small set of
+  server-rendered ASP.NET CMS pages; each procedure is an inlined
+  `<li><strong>PROJECT TITLE</strong> <ul>...document links...</ul></li>`
+  block. The handler fetches the master page(s) once and treats each block as
+  one record — there is **no** pagination. PUO is one large master archive
+  page (~550 procedures / ~2,500 documents); SPUO is two small pages
+  (Ministry-competent and other-competent-body procedures).
+* **Coverage:** both registers merge into one result tibble and tag each row
+  via the `assessment_type` column (`"EIA"` / `"SEA"`). Because there is no
+  native procedure id, `document_id` is a stable deterministic SHA-1 hash of
+  the title (`HR-PUO-<hash>` / `HR-SPUO-<hash>`, with a cleanly-parseable year
+  folded in when present), so the two never collide on disk. `url` is the
+  master-page URL plus `#<document_id>`, giving each record a unique landing
+  URL while still pointing a human at the right page.
+* **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.hr_throttle_rate")`) — only ~3 HTML fetches plus N
+  PDF downloads, so the throttle is politeness for the download phase.
+* **Language:** record content is Croatian (ISO-639-1 `hr`).
+
+**Geometry.** None. The CMS pages expose no coordinates or GeoJSON; spatial
+information, where present, lives inside the PDFs. A county / *grad* is
+heuristically pulled from the title into `jurisdiction` when trivially
+present, else `NA`. No `geometry_path` / `geometry_crs` columns are emitted.
+
+**Filter coverage.** `assessment_type` (`"All"`, `"EIA"`, `"SEA"`) decides
+which register(s) to crawl. `query` is a **client-side** title substring match
+(the CMS pages have no server-side search). `date_range` is matched
+client-side against `date_published` — the earliest document date in the block
+(every document anchor is prefixed `DD.MM.YYYY.`); `date_decision` is the
+*rješenje* / *odluka* (decision) date when present, else `NA`.
+
+**Documents.** Direct anonymous `.pdf` (sometimes `.zip`) download links carry
+stable `data-fileid` attributes. Documents are grouped by the stage
+sub-heading they sit under (PUO *informacija o zahtjevu* / *javni uvid* /
+*nacrt rješenja* / *rješenje*); SPUO procedures often list their documents
+flat under the title with no stage sub-heading, which fall under the
+`document` slug. Known stage labels get a stable curated slug; anything else
+is auto-slugged from the heading (Croatian diacritics transliterated to
+ASCII). Each stage becomes its own `attachment_urls_<slug>` /
+`local_path_<slug>` column; the deduplicated union is at `attachment_urls` /
+`local_path` as the schema requires. The `href` is captured verbatim (with its
+spaces and Croatian diacritics) and percent-encoded only for the network
+request at download time.
+
+```{r}
+# Both registers, first few records
+get_assessments_hr(limit = 5, download = FALSE)
+
+# SEA only
+get_assessments_hr(assessment_type = "SEA", download = FALSE)
 ```
 
 ## Adding a new source

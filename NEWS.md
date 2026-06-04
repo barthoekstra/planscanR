@@ -134,6 +134,31 @@
   parsed from the Java `Date.toString()` form (e.g.
   `Thu Jun 04 07:28:50 CEST 2026`). Throttled to 2 req/s by default
   (`getOption("planscanR.cz_throttle_rate")`).
+* Croatia handler `get_assessments_hr()` fetches from the Ministry of
+  Environment and Green Transition CMS pages (`mzozt.gov.hr`). Croatia has
+  **no** machine-readable register or API: the "register" is a small set of
+  server-rendered ASP.NET CMS pages, where each procedure is an inlined
+  `<li><strong>TITLE</strong> <ul>...document links...</ul></li>` block. The
+  handler fetches the master page(s) once and treats each block as one record
+  — there is no pagination and no per-record detail endpoint. Merges both
+  registers — **PUO** (*Procjena utjecaja zahvata na okoliš*, project-level
+  EIA, tagged `assessment_type = "EIA"`) and **SPUO** (*Strateška procjena
+  utjecaja na okoliš*, plan-level SEA, tagged `"SEA"`) — into one result
+  tibble. Because there is no native procedure id, `document_id` is a stable
+  deterministic SHA-1 hash of the title (`HR-PUO-<hash>` / `HR-SPUO-<hash>`,
+  with a parseable year folded in), and `url` is the master-page URL plus
+  `#<document_id>` so each record has a unique landing URL. Documents are
+  direct anonymous `.pdf` / `.zip` links grouped by stage sub-heading (PUO
+  *informacija o zahtjevu* / *javni uvid* / *nacrt rješenja* / *rješenje*; flat
+  SPUO procedures fall under `document`); known stages get a curated slug,
+  others are auto-slugged (Croatian diacritics transliterated to ASCII),
+  emitting `attachment_urls_<slug>` columns. Per-document `DD.MM.YYYY.` date
+  prefixes feed `date_published` (earliest) and `date_decision` (the
+  *rješenje* / *odluka* date). No geometry. Filter surface: `assessment_type`
+  (`"All"` / `"EIA"` / `"SEA"`), a client-side `query` title substring match,
+  and `date_range` (client-side against `date_published`). Record content is
+  Croatian (`hr`). Throttled to 5 req/s by default
+  (`getOption("planscanR.hr_throttle_rate")`).
 * Bulgaria handler `get_assessments_bg()` fetches from the Ministry of
   Environment and Water (МОСВ) public registers
   (`registers.moew.government.bg`), merging both registers — ОВОС

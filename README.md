@@ -40,6 +40,7 @@ Supported portals:
 | Estonia (`"ee"`) | Keskkonnaamet KOTKAS (KMH + KSH) | EIA + SEA in one handler, full records + polygon geometry + document downloads |
 | Bulgaria (`"bg"`) | МОСВ registers (ОВОС + ЕО) | EIA + SEA in one handler, full records + document downloads (no geometry) |
 | Czech Republic (`"cz"`) | CENIA EIA/SEA (eia100_cr + SEA100_koncepce) | EIA + SEA in one handler, domestic CZ only, full records + document downloads (no geometry) |
+| Croatia (`"hr"`) | mzozt.gov.hr CMS pages (PUO + SPUO) | EIA + SEA in one handler, scraped CMS pages (no API), full records + document downloads (no geometry) |
 
 See `vignette("supported_sources")` for per-portal details: how each portal
 is accessed, what filters are honoured, and what data comes back.

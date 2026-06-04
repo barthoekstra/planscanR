@@ -98,6 +98,23 @@ test_that("CZ coverage row exposes the assessment_type vocabulary", {
   expect_true("SEA100_koncepce" %in% f$register_view)
 })
 
+test_that("HR coverage row exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  hr <- c[c$country == "hr", ]
+  expect_identical(hr$source_portal, "mzozt.gov.hr")
+  expect_false(hr$requires_auth)
+  expect_identical(hr$status, "supported")
+  f <- hr$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  # PUO/SPUO register codes are documented.
+  expect_true("PUO" %in% f$register)
+  expect_true("SPUO" %in% f$register)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]
