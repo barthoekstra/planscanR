@@ -8,8 +8,9 @@ Description: A unified R interface for fetching environmental-assessment
     one consistent table, with an on-disk cache for offline re-use. Handlers
     ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund),
     Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders;
-    MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), and Bulgaria
-    (МОСВ registers; ОВОС + ЕО). Optional
+    MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Bulgaria
+    (МОСВ registers; ОВОС + ЕО), and the Czech Republic (CENIA EIA/SEA;
+    domestic registers only). Optional
     fetch-time scoring of records by topic relevance is delegated to the
     companion 'planscanR.screen' package. Developed for the BIOGAIN project
     to support Net Biodiversity Gain in spatial energy planning.

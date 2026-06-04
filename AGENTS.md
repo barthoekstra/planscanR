@@ -55,6 +55,28 @@ Python, no Shiny, no project-specific scoring config.
   grouped per row label into `attachment_urls_<slug>` columns dynamically
   (Bulgarian labels transliterated to ASCII). Throttled to 2 req/s by
   default (`getOption("planscanR.bg_throttle_rate")`).
+- Czech Republic (`get_assessments_cz()`) — CENIA *Informační systém
+  EIA/SEA* at `portal.cenia.cz/eiasea`. **Domestic CZ only**: merges just the
+  two in-scope registers — `eia100_cr` (*Záměry na území ČR*, EIA) and
+  `SEA100_koncepce` (*Posuzování koncepcí*, SEA) — into one result tibble and
+  **never** crawls the cross-border / foreign (`eia100_mimo_cr`,
+  `sea100_mezistatni`) or special sub-registers (`eia100_podlimitni` / `_pdz`
+  / `_vzvp` / `eia244`, `sea100_pur*` / `zur*` / `up*`); ministry-coded
+  records (`EIA_MZP*` / `SEA_MZP*`) inside the two domestic registers stay in
+  scope. Each row carries an `assessment_type` column (`"EIA"` / `"SEA"`) and
+  `document_id` is the register-namespaced detail code (`"EIA_JHC1237"`,
+  `"SEA_HKK015K"`) so the two never collide on disk. Server-rendered (JSP /
+  Tomcat) portal: listings paginate via a 1-based `?p=<n>` query (out-of-range
+  pages clamp to the last page, so stop when a page adds no new codes), detail
+  pages (`/eiasea/detail/EIA_<CODE>`, `/eiasea/detail/SEA_<CODE>`) are scraped
+  with `rvest` from a `table.detail` of label/value rows interspersed with
+  bold stage headings. **No geometry** (location is administrative text only:
+  Kraj / Okres / Obec / Katastr). Direct anonymous document downloads
+  (`/eiasea/download/<token>/<file>`; token + filename kept verbatim from the
+  href), grouped per process stage into `attachment_urls_<slug>` columns
+  (Czech labels transliterated to ASCII); some attachments are very large ZIPs,
+  bounded by `max_file_size_mb`. Throttled to 2 req/s by default
+  (`getOption("planscanR.cz_throttle_rate")`).
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -136,7 +158,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_dk(...)          # eahub.miljoeportal.dk
   │     ├── get_assessments_be(...)          # merregister.omgeving.vlaanderen.be
   │     ├── get_assessments_ee(...)          # kotkas.envir.ee
-  │     └── get_assessments_bg(...)          # registers.moew.government.bg
+  │     ├── get_assessments_bg(...)          # registers.moew.government.bg
+  │     └── get_assessments_cz(...)          # portal.cenia.cz/eiasea
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

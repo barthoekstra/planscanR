@@ -81,6 +81,23 @@ test_that("BG coverage row exposes the assessment_type vocabulary", {
   expect_true("SEA" %in% f$assessment_type)
 })
 
+test_that("CZ coverage row exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  cz <- c[c$country == "cz", ]
+  expect_identical(cz$source_portal, "portal.cenia.cz")
+  expect_false(cz$requires_auth)
+  expect_identical(cz$status, "supported")
+  f <- cz$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register_view"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  # Domestic-only register codes are documented; the cross-border ones are not.
+  expect_true("eia100_cr" %in% f$register_view)
+  expect_true("SEA100_koncepce" %in% f$register_view)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

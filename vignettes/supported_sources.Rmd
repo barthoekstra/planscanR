@@ -362,6 +362,80 @@ get_assessments_bg(query = "вятър", limit = 20, download = FALSE)
 get_assessments_bg(assessment_type = "SEA", limit = 20, download = FALSE)
 ```
 
+## Czech Republic — `"cz"`
+
+* **Portal:** CENIA *Informační systém EIA/SEA* — the EIA register *Záměry
+  na území ČR* (`eia100_cr`) and the SEA register *Posuzování koncepcí*
+  (`SEA100_koncepce`)
+  ([portal.cenia.cz/eiasea](https://portal.cenia.cz/eiasea/))
+* **Status:** supported — full metadata and anonymous document downloads,
+  across **both** in-scope registers. No geometry.
+* **Authentication:** none.
+* **Scope (domestic CZ only):** the handler crawls **only** the two domestic
+  registers above. The portal also hosts cross-border / foreign registers
+  (`eia100_mimo_cr` — projects outside CZ, `sea100_mezistatni` — cross-border
+  SEA) and several special sub-registers (the sub-limit / priority-transport /
+  large-project EIA registers `eia100_podlimitni` / `_pdz` / `_vzvp` /
+  `eia244`, and the territorial-planning SEA registers `sea100_pur*` /
+  `zur*` / `up*`); these are **never** enumerated. Ministry-coded records
+  (`EIA_MZP*` / `SEA_MZP*`) *inside* the two domestic registers are domestic
+  projects/plans assessed by the Ministry and stay in scope.
+* **Coverage:** ~22,780 EIA záměry and ~640 SEA koncepce at the time of
+  writing. Both registers merge into one result tibble and tag each row via
+  the `assessment_type` column (`"EIA"` / `"SEA"`). `document_id` is the
+  register-namespaced detail code (e.g. `"EIA_JHC1237"`, `"SEA_HKK015K"`), so
+  the two never collide on disk. Because the EIA register is large, pass
+  `limit` while exploring.
+* **Throttle:** 2 requests/second by default
+  (`getOption("planscanR.cz_throttle_rate")`) — the portal is a single Tomcat
+  instance and a full crawl is large.
+* **Language:** record content is Czech (ISO-639-1 `cs`; the country code
+  `cz` differs from the language code). `lang=en` only flips UI chrome, so the
+  handler fetches with `lang=cs`.
+
+The registers are server-rendered JSP pages (Apache Tomcat — not a SPA).
+Each listing paginates via a **1-based** `?p=<n>` query (10 records/page);
+out-of-range pages are clamped to the last page by the server, so the handler
+stops paginating once a page contributes no detail codes it has not already
+seen. Detail pages live at `/eiasea/detail/EIA_<CODE>` and
+`/eiasea/detail/SEA_<CODE>` and are scraped with `rvest` from a single
+`table.detail` of label/value rows interspersed with bold process-stage
+heading rows.
+
+**Geometry.** None. The CENIA detail pages expose no coordinates or GeoJSON;
+location is administrative text only and is composed into `jurisdiction`
+(Kraj / Okres / Obec / Katastr). No `geometry_path` / `geometry_crs` columns
+are emitted.
+
+**Filter coverage.** `assessment_type` (`"All"`, `"EIA"`, `"SEA"`) decides
+which register(s) to crawl. `date_range` is matched client-side against
+`date_published` — the EIA last-modified date (*Datum a čas posledních
+úprav*) or the SEA publication date (*Datum zveřejnění*); `date_decision` is
+always `NA` because the portal exposes no single clean decision-date field.
+Dates are parsed from the Java `Date.toString()` form (e.g.
+`Thu Jun 04 07:28:50 CEST 2026`).
+
+**Documents.** Detail pages render document links inline inside the detail
+table's value cells, with direct anonymous download URLs of the form
+`/eiasea/download/<token>/<file>`. Both the base64-ish token and the trailing
+human filename are captured verbatim from the rendered href. Documents are
+grouped by process-stage heading (OZNÁMENÍ, ZJIŠŤOVACÍ ŘÍZENÍ, DOKUMENTACE,
+POSUDEK, VEŘEJNÉ PROJEDNÁNÍ, STANOVISKO for EIA; the oznámení / vyhodnocení /
+návrh koncepce / stanovisko / schválená koncepce fields for SEA); each stage
+becomes its own `attachment_urls_<slug>` / `local_path_<slug>` column (the
+Czech label is transliterated to ASCII). The deduplicated union is at
+`attachment_urls` / `local_path` as the schema requires. Note that some
+attachments are very large ZIP bundles (e.g. a 79 MB `oznameni.zip`); the
+`max_file_size_mb` cap skips oversized files rather than fetching them.
+
+```{r}
+# Both registers, first few records
+get_assessments_cz(limit = 5, download = FALSE)
+
+# SEA only
+get_assessments_cz(assessment_type = "SEA", limit = 5, download = FALSE)
+```
+
 ## Adding a new source
 
 Adding a handler for another national portal is a matter of writing one

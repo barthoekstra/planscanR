@@ -101,6 +101,39 @@
   client-side against `date_published` (the portal's *Algatamise kpv* /
   initiation date; `date_decision` is `NA` because the portal exposes no
   dossier-level decision timestamp).
+* Czech Republic handler `get_assessments_cz()` fetches from CENIA's
+  *Informační systém EIA/SEA* (`portal.cenia.cz/eiasea`), a server-rendered
+  JSP application. **Domestic CZ only:** it crawls just the two in-scope
+  registers — `eia100_cr` (*Záměry na území ČR*, project-level EIA, tagged
+  `assessment_type = "EIA"`) and `SEA100_koncepce` (*Posuzování koncepcí*,
+  concept/plan SEA, tagged `"SEA"`) — and deliberately never enumerates the
+  cross-border / foreign (`eia100_mimo_cr`, `sea100_mezistatni`), sub-limit,
+  priority-transport, large-project, or territorial-planning sub-registers.
+  Ministry-coded records (`EIA_MZP*` / `SEA_MZP*`) inside the two domestic
+  registers stay in scope. Both registers merge into one result tibble;
+  `document_id` is the register-namespaced detail code (`"EIA_JHC1237"`,
+  `"SEA_HKK015K"`), so they never collide on disk. Listings paginate via a
+  1-based `?p=<n>` query (10 records/page); out-of-range pages are clamped to
+  the last page by the server, so pagination stops when a page adds no new
+  detail codes. Detail pages (`/eiasea/detail/EIA_<CODE>`,
+  `/eiasea/detail/SEA_<CODE>`) are scraped with `rvest` from a
+  `table.detail` of label/value rows interspersed with bold process-stage
+  headings. Documents are exposed as direct anonymous download URLs
+  (`/eiasea/download/<token>/<file>`), so the handler downloads PDFs from day
+  one; both the token and the trailing filename are captured verbatim from the
+  href. Per-stage attachment splits emit `attachment_urls_<slug>` columns
+  (the Czech stage heading / field label is transliterated to ASCII, e.g.
+  `oznameni`, `zjistovaci_rizeni`). Some attachments are very large ZIP
+  bundles (e.g. a 79 MB `oznameni.zip`); the `max_file_size_mb` cap skips
+  oversized files rather than fetching them. No geometry is exposed — location
+  is administrative text only (`jurisdiction` = Kraj / Okres / Obec /
+  Katastr). Filter surface: `assessment_type` (`"All"` / `"EIA"` / `"SEA"`)
+  and `date_range` (matched client-side against `date_published` — the EIA
+  last-modified date or the SEA *Datum zveřejnění* publication date;
+  `date_decision` is always `NA`). Record content is Czech (`cs`); dates are
+  parsed from the Java `Date.toString()` form (e.g.
+  `Thu Jun 04 07:28:50 CEST 2026`). Throttled to 2 req/s by default
+  (`getOption("planscanR.cz_throttle_rate")`).
 * Bulgaria handler `get_assessments_bg()` fetches from the Ministry of
   Environment and Water (МОСВ) public registers
   (`registers.moew.government.bg`), merging both registers — ОВОС

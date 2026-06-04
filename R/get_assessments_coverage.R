@@ -14,7 +14,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "at", "dk", "be", "ee", "bg"),
+    country = c("nl", "de", "at", "dk", "be", "ee", "bg", "cz"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -22,7 +22,8 @@ get_assessments_coverage <- function() {
       "miljoeportal.dk/eahub",
       "omgeving.vlaanderen.be/merregister",
       "kotkas.envir.ee",
-      "registers.moew.government.bg"
+      "registers.moew.government.bg",
+      "portal.cenia.cz"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -31,9 +32,10 @@ get_assessments_coverage <- function() {
       "https://eahub.miljoeportal.dk",
       "https://merregister.omgeving.vlaanderen.be",
       "https://kotkas.envir.ee",
-      "https://registers.moew.government.bg"
+      "https://registers.moew.government.bg",
+      "https://portal.cenia.cz/eiasea"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
+    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
     status = c(
       "supported",
       "supported",
@@ -41,7 +43,8 @@ get_assessments_coverage <- function() {
       "supported", # dk
       "supported",
       "supported",
-      "supported" # bg
+      "supported", # bg
+      "supported" # cz
     ),
     facets = list(
       commissiemer_facets(),
@@ -50,7 +53,8 @@ get_assessments_coverage <- function() {
       eahub_dk_facets(),
       merregister_be_facets(),
       kotkas_ee_facets(),
-      moew_bg_facets()
+      moew_bg_facets(),
+      cenia_cz_facets()
     )
   )
 }
@@ -153,6 +157,24 @@ kotkas_ee_facets <- function() {
 moew_bg_facets <- function() {
   list(
     assessment_type = c("All", "EIA", "SEA")
+  )
+}
+
+#' Static lookup of the CENIA EIA/SEA (Czech Republic) facet vocabularies.
+#'
+#' The handler crawls only the two **domestic** registers and exposes the
+#' `assessment_type` discriminator (which register to crawl — `eia100_cr` for
+#' EIA, `SEA100_koncepce` for SEA, or both). The in-scope register view codes
+#' are surfaced here for documentation; the cross-border / foreign / sub-limit
+#' / territorial-planning sub-registers are deliberately out of scope and never
+#' crawled. The portal honours additional server-side search (free-text name,
+#' code, oznamovatel, Zařazení) via a POST form, but only `assessment_type` is
+#' first-class in v0.1.
+#' @noRd
+cenia_cz_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register_view = c(EIA = "eia100_cr", SEA = "SEA100_koncepce")
   )
 }
 

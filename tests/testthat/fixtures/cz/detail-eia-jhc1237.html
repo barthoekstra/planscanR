@@ -1,0 +1,417 @@
+
+
+
+
+
+
+	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+	<html xmlns="http://www.w3.org/1999/xhtml" lang="cs">
+		<head>
+			<meta http-equiv="pragma" content="no-cache" />
+			<meta http-equiv="cache-control" content="no-cache" />
+			<meta http-equiv="expires" content="-1" />
+			<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+			<meta http-equiv="content-language" content="cs" />
+			<title>Informační systém EIA</title>
+			<link rel="stylesheet" type="text/css" href="/eiasea/resources/eia.css" />
+			<script type="text/javascript" src="/eiasea/resources/jquery-1.6.2.min.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery-ui-1.8.16.datepicker.min.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery.ui.datepicker-cs.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery.cluetip.all.min.js"></script>
+			<link rel="stylesheet" type="text/css" href="/eiasea/resources/jquery-ui/smoothness/jquery-ui-1.8.16.datepicker.css" media="all" />
+            <link rel="stylesheet" type="text/css" href="/eiasea/resources/cookies_lista.css">
+			<script type="text/javascript">
+				function changeLanguage(lang) {
+					document.location = "/eiasea/view/eia100_cr?lang=" + lang;
+					return false;
+				}
+				function cookiesLista() {
+					var cookiesSouhlas = document.cookie.replace(/(?:(?:^|.*;\s*)cookiesEIASouhlas\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+					if (cookiesSouhlas === "" || cookiesSouhlas === "0") {
+						var cookiesListaKontejner = document.createElement("div");
+						cookiesListaKontejner.classList.add("cookies-lista-kontejner");
+						var cookiesLista = document.createElement("div");
+						cookiesLista.classList.add("cookies-lista");
+						cookiesListaKontejner.appendChild(cookiesLista);
+						var cookiesListaText = document.createElement("p");
+						cookiesListaText.classList.add("cookies-lista-text");
+						//TODO odstranit cookiesListaText.innerText = "Tento web využívá pouze soubory cookie nezbytné pro jeho fungování a poskytování služeb.";
+						cookiesListaText.innerText = "Česká informační agentura životního prostředí je provozovatelem tohoto webu. Web využívá pouze soubory cookie SESSIONID nezbytné pro jeho fungování a poskytování služeb a jsou zaznamenány pouze po dobu používání webu.";
+						cookiesLista.appendChild(cookiesListaText);
+						var cookiesListaTlacitkoKontejner = document.createElement("div");
+						cookiesListaTlacitkoKontejner.classList.add("cookies-lista-tlacitko-kontejner");
+						cookiesLista.appendChild(cookiesListaTlacitkoKontejner);
+						var cookiesListaTlacitko = document.createElement("button");
+						cookiesListaTlacitko.classList.add("button", "cookies-lista-tlacitko");
+						cookiesListaTlacitko.innerText = "Zavřít";
+						cookiesListaTlacitkoKontejner.appendChild(cookiesListaTlacitko);
+						cookiesListaTlacitko.addEventListener("click", function() {
+							document.cookie = "cookiesEIASouhlas=1;path=/eiasea";
+							cookiesListaKontejner.outerHTML = "";
+						});
+						document.body.appendChild(cookiesListaKontejner)
+					}
+
+				};
+			</script>
+			
+		</head>
+		<body>
+			
+			<table id="pageContainer">
+				<tr>
+					<td id="pageHeader" colspan="2"><img src="/eiasea/resources/eia.gif" /> Informační systém EIA
+						<div style="float: right; margin-right: 5px;">
+							
+								
+								
+									<span class="lang">CZ</span> | <a class="lang" href="#" onclick="return changeLanguage('en')">EN</a>
+								
+							
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td id="pageMenu">
+						
+							
+								<div class="menuItem"><a href="/eiasea/view/eia100_cr?lang=cs">Záměry na území ČR</a></div>
+								
+								<div class="menuItem"><a href="/eiasea/view/eia100_mimo_cr?lang=cs">Záměry mimo území ČR</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia100_podlimitni?lang=cs">Podlimitní záměry</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia100_pdz?lang=cs">Prioritní dopravní záměry dle §23a</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia100_vzvp?lang=cs">Vyhodnocení změn velkých projektů</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia244?lang=cs">Záměry dle zákona 244/1992 Sb.</a></div>
+								<div class="menuItem"><a href="/eiasea/dokumenty/eia_legislativa?lang=cs">Legislativa</a></div>
+								<div class="menuItem"><a href="/eiasea/dokumenty/eia_pokyny?lang=cs">Autorizace - pokyny a sdělení</a></div>
+								<div class="menuItem"><a href="/eiasea/dokumenty/eia_metodicka_doporuceni?lang=cs">Metodické výklady a pokyny</a></div>
+								<div class="menuItem"><a href="/eiasea/osoby/osoby?lang=cs">Autorizované osoby pro zpracování dokumentace, posudku a vyhodnocení</a></div>
+								<div class="menuItem"><a href="/eiasea/osoby/osoby_natura?lang=cs">Autorizované osoby pro hodnocení vlivů na soustavu Natura 2000</a></div>
+								<div class="menuItem"><a href="/eiasea/urednici?lang=cs">Seznam pracovníků příslušných úřadů</a></div>
+								<div class="menuItem"><a href="/eiasea/vyznamne_lokality?lang=cs">Dotčené evropsky významné lokality</a></div>
+								<div class="menuItem"><a href="/eiasea/ptaci_oblasti?lang=cs">Dotčené ptačí oblasti</a></div>
+								<div class="menuItem"><a href="/eiasea/static/eia_posudky">Přehled zpracovatelů posudků</a></div>
+								
+								<div class="menuItem">
+									
+										
+										
+											<a href="/eiasea/login_eia?url=%2Feiasea%2Fview%2Feia100_cr&lang=cs">Přihlásit</a>
+										
+									
+								</div>
+								
+							
+							
+						
+					</td>
+					<td id="content">
+		<div style="font-weight: bold; font-size: 16px; padding-bottom: 5px; text-align: center;">Záměry na území ČR</div>
+		<table class="detail">
+			<tr>
+				<td class="label">Kód záměru:</td>
+				<td class="value" style="font-weight: bold;">JHC1237</td>
+			</tr>
+			<tr>
+				<td class="label">Název záměru:</td>
+				<td class="value" style="font-weight: bold;">Županovice – novostavba hal pro výkrm brojlerů</td>
+			</tr>
+			<tr>
+				<td class="label">Znění novely zákona:</td>
+				<td class="value" style="font-weight: bold;">č. 284/2021 Sb.</td>
+			</tr>
+			<tr>
+				<td class="label">Stav:</td>
+				<td class="value">Závěry zjišťovacího řízení</td>
+			</tr>
+			<tr>
+				<td class="label">Podlimitní:</td>
+				<td class="value">Ne</td>
+			</tr>
+			
+			<tr>
+				<td class="label">Zařazení:</td>
+				<td class="value">I/68</td>
+			</tr>
+			<tr>
+				<td class="label">Umístění:</td>
+				<td class="value">
+					<table class="umisteni"><tr><th>Kraj</th><th>Okres</th><th>Obec</th><th>Katastr</th></tr><tr><td>Jihočeský kraj</td><td>Jindřichův Hradec</td><td>Županovice</td><td>Županovice u Dešné</td></tr></table>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="label">Příslušný úřad:</td>
+				<td class="value">Krajský úřad Jihočeského kraje</td>
+			</tr>
+			<tr>
+				<td class="label">Oznamovatel:</td>
+				<td class="value">FREDI s.r.o., č.p. 1, 378 72 Písečné</td>
+			</tr>
+			<tr>
+				<td class="label">IČO oznamovatele:</td>
+				<td class="value"><a href="http://wwwinfo.mfcr.cz/cgi-bin/ares/darv_bas.cgi?ico=25174568&xml=2" target="_blank" title="Výpis dat z registrů ARES">25174568</a></td>
+			</tr>
+			<tr>
+				<td class="label">Datum a čas posledních úprav:</td>
+				<td class="value">Thu Jun 04 07:28:50 CEST 2026</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">OZNÁMENÍ</td>
+			</tr>
+			
+			<tr>
+				<td class="label">Vliv na soustavu Natura 2000:</td>
+				<td class="value">Vyloučen vliv na soustavu Natura 2000</td>
+			</tr>
+			<tr>
+				<td class="label">Datum zveřejnění informace o oznámení<br/>na úřední desce dotčeného kraje:</td>
+				<td class="value">Thu Apr 16 00:00:00 CEST 2026</td>
+			</tr>
+			<tr>
+				<td class='label'>Termín pro zaslání vyjádření:</td>
+				<td class='value'>Sat May 16 00:00:00 CEST 2026</td>
+			</tr>
+			<tr>
+				<td class="label">Zpracovatel oznámení:</td>
+				<td class="value">
+					<a href="/eiasea/osoba_detail/osoba/9959?lang=cs" target="_blank" >Bucek Jakub, Mgr.</a>
+					
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="label">Text oznámení záměru:</td>
+				<td class="value"><a class="entity_field" href="/eiasea/download/RUlBX0pIQzEyMzdfb3puYW1lbmlET0NfODY3NjAzODM3MDM2OTM1Njg0My56aXA/JHC1237_oznameni.zip" target="_blank">JHC1237_oznameni.zip</a> (77553 kB) - 16.04.2026 10:50:09</td>
+			</tr>
+			
+			<tr>
+				<td class="label">Informace o oznámení:</td>
+				<td class="value"><a class="entity_field" href="/eiasea/download/RUlBX0pIQzEyMzdfaW5mT3puYW1ET0NfNDA4Nzc4NzE3NzE0NjY1NTc4Mi5wZGY/JHC1237_infOznam.pdf" target="_blank">JHC1237_infOznam.pdf</a> (268 kB) - 04.06.2026 07:28:36</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">ZJIŠŤOVACÍ ŘÍZENÍ</td>
+			</tr>
+			<tr>
+				<td class="label">Datum zveřejnění závěrů zjišťovacího řízení<br/>na úřední desce dotčeného kraje:</td>
+				<td class="value">Wed Jun 03 00:00:00 CEST 2026</td>
+			</tr>
+
+            
+
+			
+			<tr>
+				<td class="label">Závěry zjišťovacího řízení:</td>
+				<td class="value"><a class="entity_field" href="/eiasea/download/RUlBX0pIQzEyMzdfemppc3RvdmFjaURPQ180MTkwMjAxMzUxODEwMTk0MTk2LnppcA/JHC1237_zjistovaci.zip" target="_blank">JHC1237_zjistovaci.zip</a> (4709 kB) - 04.06.2026 07:28:50</td>
+			</tr>
+			<tr>
+				<td class="label">Informace o závěru zjišťovacího řízení:</td>
+				<td class="value"></td>
+			</tr>
+
+			
+
+			<tr>
+				<td class="label">Vliv na soustavu Natura 2000:</td>
+				<td class="value"><!-- "".equals(Utils.getString(r1, "")) ? ("".equals(Utils.getString(r1, "naturaOznameni")) && (r1.getInt("kodStavu") >= 3) ? "Nebylo předloženo" : "") : Utils.htmlString(r1, "posouzeniZ") --></td>
+			</tr>
+			
+			
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">DOKUMENTACE</td>
+			</tr>
+			<tr>
+				<td class="label">Zpracovatel dokumentace:</td>
+				<td class="value">
+					<a href="/eiasea/osoba_detail/osoba/?lang=cs" target="_blank" ></a>
+					
+				</td>
+			</tr>
+			<tr>
+				<td class="label">Zpracovatel - soustava Natura 2000:</td>
+				<td class="value">
+					<a href="/eiasea/osoba_detail/osoba_natura/?lang=cs" target="_blank" ></a>
+					
+				</td>
+			</tr>
+			<tr>
+				<td class="label">Datum zveřejnění informace o dokumentaci<br/>na úřední desce dotčeného kraje:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class='label'>Termín pro zaslání vyjádření:</td>
+				<td class='value'></td>
+			</tr>
+			<tr>
+				<td class="label">Text dokumentace:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Text přepracované/doplněné dokumentace:</td>
+				<td class="value"></td>
+			</tr>
+			
+			<tr>
+				<td class="label">Informace o dokumentaci:</td>
+				<td class="value"></td>
+			</tr>
+			
+			
+			<tr>
+				<td class="label">Vrácení dokumentace:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">POSUDEK</td>
+			</tr>
+			<tr>
+				<td class="label">Zpracovatel posudku:</td>
+				<td class="value">
+					<a href="/eiasea/osoba_detail/osoba/?lang=cs" target="_blank" ></a>
+					
+				</td>
+			</tr>
+			<tr>
+				<td class="label">Posuzovatel - soustava Natura 2000:</td>
+				<td class="value">
+					<a href="/eiasea/osoba_detail/osoba_natura/?lang=cs" target="_blank" ></a>
+					
+				</td>
+			</tr>
+			<tr>
+				<td class="label">Datum zveřejnění informace o posudku<br/>na úřední desce dotčeného kraje:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Termín pro zaslání vyjádření:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Text posudku:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Informace o posudku:</td>
+				<td class="value"></td>
+			</tr>
+			
+			
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">VEŘEJNÉ PROJEDNÁNÍ</td>
+			</tr>
+			<tr>
+				<td class="label">Datum zveřejnění informace o veřejném projednání<br/>na úřední desce dotčeného kraje:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Informace o místě a času konání<br/>1. veřejného projednání:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Zápis z 1. veřejného projednání:</td>
+				<td class="value"></td>
+			</tr>
+			
+			
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">STANOVISKO</td>
+			</tr>
+			<tr>
+				<td class="label">Datum zveřejnění stanoviska<br/>na úřední desce dotčeného kraje:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Stanovisko:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Významný negativní vliv na soustavu Natura 2000:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Text stanoviska:</td>
+				<td class="value"></td>
+			</tr>
+            <!--
+			<tr>
+				<td class="label">Informace o stanovisku:</td>
+				<td class="value">$ {entity.fields['infStanDOC'].fileLinkHtml}</td>
+			</tr>
+            -->
+			<tr>
+				<td class="label">Prodloužení stanoviska:</td>
+				<td class="value"></td>
+			</tr>
+			
+			
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">MEZISTÁTNÍ POSUZOVÁNÍ NA ÚZEMÍ ČR</td>
+			</tr>
+			<tr>
+				<td class="label">Stát dotčený záměrem:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Poznámka:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Oznámení:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Dokumentace:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Mezistátní konzultace:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td class="label">Posudek:</td>
+				<td class="value"></td>
+			</tr>
+			<tr>
+				<td colspan="2" style="font-weight: bold; text-align: center; background-color: #B2D83F;">OSTATNÍ INFORMACE</td>
+			</tr>
+			<tr>
+				<td class="label">Poznámka:</td>
+				<td class="value"></td>
+			</tr>
+		</table>
+	</td>
+				</tr>
+				<tr>
+					<td id="footer" colspan="2">Česká informační agentura životního prostředí</td>
+				</tr>
+			</table>
+			<script type="text/javascript">
+				$(function () { $('.datepicker').datepicker(); });
+				$('img.info').cluetip({splitTitle: '|', showTitle: false, cursor: 'pointer', positionBy: 'fixed', width: 200, leftOffset: -230});
+				cookiesLista("");
+			</script>
+			<script type="text/javascript">
+				var _paq = window._paq = window._paq || [];
+/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+_paq.push(['trackPageView']);
+_paq.push(['enableLinkTracking']);
+(function() {
+  var u="//monit.cenia.cz/";
+  _paq.push(['setTrackerUrl', u+'matomo.php']);
+  _paq.push(['setSiteId', '11']);
+  var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+  g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+})();
+			</script>
+			<!--script type="text/javascript">
+			var _gaq = _gaq || []; 
+			_gaq.push(['_setAccount', 'UA-31504992-1']); 
+			_gaq.push(['_trackPageview']); 
+			(function() { 
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; 
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; 
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); 
+			})();
+			</script-->
+		</body>
+	</html>

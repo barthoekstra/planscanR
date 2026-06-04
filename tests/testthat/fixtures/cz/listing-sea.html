@@ -1,0 +1,320 @@
+
+
+
+
+
+
+	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+	<html xmlns="http://www.w3.org/1999/xhtml" lang="cs">
+		<head>
+			<meta http-equiv="pragma" content="no-cache" />
+			<meta http-equiv="cache-control" content="no-cache" />
+			<meta http-equiv="expires" content="-1" />
+			<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+			<meta http-equiv="content-language" content="cs" />
+			<title>Informační systém SEA</title>
+			<link rel="stylesheet" type="text/css" href="/eiasea/resources/eia.css" />
+			<script type="text/javascript" src="/eiasea/resources/jquery-1.6.2.min.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery-ui-1.8.16.datepicker.min.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery.ui.datepicker-cs.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery.cluetip.all.min.js"></script>
+			<link rel="stylesheet" type="text/css" href="/eiasea/resources/jquery-ui/smoothness/jquery-ui-1.8.16.datepicker.css" media="all" />
+			<link rel="stylesheet" type="text/css" href="/eiasea/resources/cookies_lista.css">
+			<script type="text/javascript">
+				function cookiesLista() {
+					var cookiesSouhlas = document.cookie.replace(/(?:(?:^|.*;\s*)cookiesSEASouhlas\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+					if (cookiesSouhlas === "" || cookiesSouhlas === "0") {
+						var cookiesListaKontejner = document.createElement("div");
+						cookiesListaKontejner.classList.add("cookies-lista-kontejner");
+						var cookiesLista = document.createElement("div");
+						cookiesLista.classList.add("cookies-lista");
+						cookiesListaKontejner.appendChild(cookiesLista);
+						var cookiesListaText = document.createElement("p");
+						cookiesListaText.classList.add("cookies-lista-text");
+						//TODO odstranit cookiesListaText.innerText = "Tento web využívá pouze soubory cookie nezbytné pro jeho fungování a poskytování služeb.";
+						cookiesListaText.innerText = "Česká informační agentura životního prostředí je provozovatelem tohoto webu. Web využívá pouze soubory cookie SESSIONID nezbytné pro jeho fungování a poskytování služeb a jsou zaznamenány pouze po dobu používání webu.";
+						cookiesLista.appendChild(cookiesListaText);
+						var cookiesListaTlacitkoKontejner = document.createElement("div");
+						cookiesListaTlacitkoKontejner.classList.add("cookies-lista-tlacitko-kontejner");
+						cookiesLista.appendChild(cookiesListaTlacitkoKontejner);
+						var cookiesListaTlacitko = document.createElement("button");
+						cookiesListaTlacitko.classList.add("button", "cookies-lista-tlacitko");
+						cookiesListaTlacitko.innerText = "Zavřít";
+						cookiesListaTlacitkoKontejner.appendChild(cookiesListaTlacitko);
+						cookiesListaTlacitko.addEventListener("click", function() {
+							document.cookie = "cookiesSEASouhlas=1";
+							cookiesListaKontejner.outerHTML = "";
+						});
+						document.body.appendChild(cookiesListaKontejner)
+					}
+
+				};
+			</script>
+			
+		<script type="text/javascript">
+		function prepnoutVyhledavani() {
+			if (document.getElementById("typHledani").value == 'rychle') {
+				document.getElementById("typHledani").value = 'rozsirene';
+				document.getElementById("rychle_hledani").style.display = 'none';
+				document.getElementById("rozsirene_hledani").style.display = 'block';
+			}
+			else {
+				document.getElementById("typHledani").value = 'rychle';
+				document.getElementById("rozsirene_hledani").style.display = 'none';
+				document.getElementById("rychle_hledani").style.display = 'block';
+			}
+		}
+		function isValidDate(date) {
+			var matches = /^(\d{1,2})[\.](\d{1,2})[\.](\d{4})$/.exec(date);
+			if (matches == null) return false;
+			var d = matches[1];
+			var m = matches[2] - 1;
+			var y = matches[3];
+			var composedDate = new Date(y, m, d);
+			return ((composedDate.getDate() == d) && (composedDate.getMonth() == m) && (composedDate.getFullYear() == y));
+		}
+		function search() {
+			var d;
+			d = document.getElementById("poslZmenaOd").value;
+			if (d != '') {
+				if (!isValidDate(d)) {
+					alert("Zadejte platný datum poslední změny ve formátu DD.MM.RRRR!");
+					return false;
+				}
+			}
+			d = document.getElementById("poslZmenaDo").value;
+			if (d != '') {
+				if (!isValidDate(d)) {
+					alert("Datum poslední změny musí být ve formátu DD.MM.RRRR!");
+					return false;
+				}
+			}
+			document.forms[0].submit();
+			return false;
+		}
+		</script>
+	
+		</head>
+		<body>
+			
+			<table id="pageContainer">
+				<tr>
+					<td id="pageHeader" colspan="2"><img src="/eiasea/resources/sea.gif" /> Informační systém SEA</td>
+				</tr>
+				<tr>
+					<td id="pageMenu">
+						<div class="menuItem"><a href="/eiasea/view/sea100_koncepce?lang=cs">Posuzování koncepcí</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_pur4?lang=cs">Pořizování PÚR nebo její změny ve smyslu zákona č. 283/2021 Sb.</a></div>
+						
+						<div class="menuItem"><a href="/eiasea/view/sea100_pur?lang=cs">Politika územního rozvoje</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_pur3?lang=cs">Mimořádná aktualizace PÚR<br/>dle §&nbsp;35 stavebního zákona</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_upd2?lang=cs">Pořizování ÚPD nebo jejich změn ve smyslu zákona č. 283/2021 Sb.</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_zur?lang=cs">Zásady územního rozvoje</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_zur2?lang=cs">Zásady územního rozvoje podle zákona č. 350/2012 Sb.</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_zur3?lang=cs">Pořizování ZÚR zkráceným postupem dle § 42a stavebního zákona</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_up?lang=cs">Posuzování územních plánů<br/>dle zákona č. 183/2006 Sb.</a><br/><span style="font-size: 12px; color: #404040;">(do 31.12.2012)</span></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_upsz?lang=cs">Posouzení územních plánů<br/>dle zákona č. 350/2012 Sb.</a><br/><span style="font-size: 12px; color: #404040;">(do 30.6.2019)</span></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_upsz3?lang=cs">Posouzení územních plánů<br/>dle zákona č. 350/2012 Sb.</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_upsz2?lang=cs">Pořizování změn ÚP zkráceným postupem dle § 55a stavebního zákona</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_mezistatni?lang=cs">Mezistátní posuzování dle §14b)</a></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_upd?lang=cs">Posuzování územních plánů</a><br/><span style="font-size: 12px; color: #404040;">(do 31.12.2006)</span></div>
+						<div class="menuItem"><a href="/eiasea/view/sea100_updvuc?lang=cs">Posuzování ÚPD VÚC</a><br/><span style="font-size: 12px; color: #404040;">(do 31.12.2006)</span></div>
+						<div class="menuItem"><a href="/eiasea/osoby/osoby?sea=1&lang=cs">Autorizované osoby<br/>dle z. č. 100/2001 Sb.</a></div>
+						<div class="menuItem"><a href="/eiasea/osoby/osoby_natura?sea=1&lang=cs">Autorizované osoby pro hodnocení<br/>vlivů na soustavu Natura 2000</a></div>
+                        <div class="menuItem"><a href="/eiasea/dokumenty/sea_legislativa?lang=cs">Legislativa</a></div>
+                        <div class="menuItem"><a href="/eiasea/dokumenty/sea_pokyny?lang=cs">Pokyny a sdělení</a></div>
+                        <div class="menuItem"><a href="/eiasea/dokumenty/sea_metodicka_doporuceni?lang=cs">Metodická doporučení a aktuality</a></div>
+						<div class="menuItem"><a href="/eiasea/static/sea_posuzovatele">Přehled posuzovatelů koncepcí</a></div>
+						<div class="menuItem" style="background-color: #B2D83F;"><a href="/eiasea/dokumenty/sea_propagace?lang=cs">Propagace SEA</a></div>
+						
+						<div class="menuItem">
+							
+								
+								
+									<a href="/eiasea/login_sea?url=%2Feiasea%2Fview%2Fsea100_koncepce&lang=cs">Přihlásit</a>
+								
+							
+						</div>
+						
+					</td>
+					<td id="content">
+		<table>
+			<tr>
+				<td style="width: 100%;">
+					<div style="font-weight: bold; font-size: 16px; padding-bottom: 5px; text-align: left;">Posuzování koncepcí</div>
+					
+				</td>
+				<td>
+					<form action="/eiasea/view/sea100_koncepce?lang=cs" method="post" style="margin: 0; padding: 0;">
+					<input name="typHledani" id="typHledani" type="hidden" value="rychle" />
+					<div id="rychle_hledani" style="border: 1px solid #999999; margin: 0px; padding: 0px; display:block;">
+					<div style="padding: 2px; border-bottom: 1px solid #999999; background-color: #B2D83F;"><span style="font-weight: bold;">Rychlé hledání</span></div>
+					<table>
+						<tr>
+							<td style="text-align: right;">Dotaz:</td>
+							<td><input name="quickSearch" type="text" style="width: 250px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Omezit na:</td>
+							<td>
+								<select name="stavRychleHledani">
+									<option value="">Všechny stavy</option>
+									<option value="0">Záznam založen</option>
+									<option value="1">Oznámení</option>
+									<option value="2">Nepodléhá dalšímu posuzování</option>
+									<option value="3">Podléhá dalšímu posuzování</option>
+									<option value="4">Návrh koncepce</option>
+									<option value="5">Veřejné projednání</option>
+									<option value="6">Stanovisko</option>
+									<option value="8">Schválená koncepce</option>
+									<option value="7">Ukončeno z jiných důvodů</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Řadit podle:</td>
+							<td>
+								<select name="razeniRychleHledani">
+									<option value="1" selected="selected">Data poslední změny</option>
+									<option value="2">Kódu záměru</option>
+									<option value="3">Příslušného úřadu</option>
+									<option value="5">Stavu</option>
+								</select>
+							</td>
+						</tr>				
+						<tr>
+							<td></td>
+							<td><input type="submit" onclick="return search();" value="Zobrazit"/></td>
+						</tr>
+					</table>
+					</div>
+					
+					</form>
+				</td>
+			</tr>
+		</table>
+		<hr/>
+		<table cellpadding="0" cellspacing="2" style="width: 100%;"><tr><td style="width: 35%;"><i>Nalezeno záznamů:</i> <b>637</b></td><td style="width: 30%; text-align: center;">Stránka 1/64</td><td style="width: 35%; text-align: right;"><b>1</b>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=2&lang=cs">2</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=3&lang=cs">3</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=4&lang=cs">4</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=5&lang=cs">5</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=6&lang=cs">6</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=7&lang=cs">7</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=8&lang=cs">8</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=9&lang=cs">9</a>&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=10&lang=cs">10</a>&nbsp;&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=2&lang=cs">další&nbsp;&gt;&gt;</a>&nbsp;&nbsp;<a href="/eiasea/view/SEA100_koncepce?p=64&lang=cs">konec</a></td></tr></table>
+		
+		<table class="view">
+			<tr>
+				<td colspan="8" style="text-align: center;">
+					
+					
+					
+					<hr/>
+				</td>
+			</tr>
+		
+			<tr>
+				<td rowspan="3" style="font-weight: bold;">HKK016K</td>
+				<td colspan="6" style="width: 100%; white-space: normal;"><a href="/eiasea/detail/SEA_HKK016K?lang=cs" target="_blank" >Plán udržitelné městské mobility města Trutnova</a></td>
+				<td style="text-align: right;">
+					
+				</td>
+			</tr>
+			<tr>
+				<td><i>Příslušný úřad:</i></td>
+				<td>Krajský úřad Královéhradeckého kraje</td>
+				<td rowspan="2"><div style="width: 20px;"></div></td>
+				<td></td>
+				<td></td>
+				<td style="width: 100%; text-align: right;"><i>Změněno:</i></td>
+				<td style="text-align: right;">Mon May 18 10:54:29 CEST 2026</td>
+			</tr>
+			<tr>
+				<td style="text-align: right;"><i>Stav:</i></td>
+				<td style="font-weight: bold;">Oznámení</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td colspan="8"><hr class="list-div" style="" /></td>
+			</tr>
+		
+			<tr>
+				<td rowspan="3" style="font-weight: bold;">ZLK025K</td>
+				<td colspan="6" style="width: 100%; white-space: normal;"><a href="/eiasea/detail/SEA_ZLK025K?lang=cs" target="_blank" >Aktualizace regionální surovinové politiky Zlínského kraje</a></td>
+				<td style="text-align: right;">
+					
+				</td>
+			</tr>
+			<tr>
+				<td><i>Příslušný úřad:</i></td>
+				<td>Krajský úřad Zlínského kraje</td>
+				<td rowspan="2"><div style="width: 20px;"></div></td>
+				<td></td>
+				<td></td>
+				<td style="width: 100%; text-align: right;"><i>Změněno:</i></td>
+				<td style="text-align: right;">Fri May 15 07:30:55 CEST 2026</td>
+			</tr>
+			<tr>
+				<td style="text-align: right;"><i>Stav:</i></td>
+				<td style="font-weight: bold;">Stanovisko</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td colspan="8"><hr class="list-div" style="" /></td>
+			</tr>
+		
+			<tr>
+				<td rowspan="3" style="font-weight: bold;">HKK015K</td>
+				<td colspan="6" style="width: 100%; white-space: normal;"><a href="/eiasea/detail/SEA_HKK015K?lang=cs" target="_blank" >Strategický plán rozvoje města Trutnova na období 2026-2033</a></td>
+				<td style="text-align: right;">
+					
+				</td>
+			</tr>
+			<tr>
+				<td><i>Příslušný úřad:</i></td>
+				<td>Krajský úřad Královéhradeckého kraje</td>
+				<td rowspan="2"><div style="width: 20px;"></div></td>
+				<td></td>
+				<td></td>
+				<td style="width: 100%; text-align: right;"><i>Změněno:</i></td>
+				<td style="text-align: right;">Wed May 13 09:38:43 CEST 2026</td>
+			</tr>
+			<tr>
+				<td style="text-align: right;"><i>Stav:</i></td>
+				<td style="font-weight: bold;">Oznámení</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td colspan="8"><hr class="list-div" style="" /></td>
+			</tr>
+		
+			<tr>
+				<td rowspan="3" style="font-weight: bold;">MZP300K</td>
+				<td colspan="6" style="width: 100%; white-space: normal;"><a href="/eiasea/detail/SEA_MZP300K?lang=cs" target="_blank" >Koncepce vodní dopravy pro období 2026 - 2035</a></td>
+				<td style="text-align: right;">
+					
+				</td>
+			</tr>
+			<tr>
+				<td><i>Příslušný úřad:</i></td>
+				<td>Ministerstvo životního prostředí</td>
+				<td rowspan="2"><div style="width: 20px;"></div></td>
+				<td></td>
+				<td></td>
+				<td style="width: 100%; text-align: right;"><i>Změněno:</i></td>
+				<td style="text-align: right;">Tue May 12 13:53:04 CEST 2026</td>
+			</tr>
+			<tr>
+				<td style="text-align: right;"><i>Stav:</i></td>
+				<td style="font-weight: bold;">Oznámení</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td colspan="8"><hr class="list-div" style="" /></td></tr>
+		</table>
+	</td></tr></table></body></html>
