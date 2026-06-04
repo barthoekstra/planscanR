@@ -44,7 +44,9 @@ stream_crawl <- function(next_page, process, limit = Inf, label = "") {
   records <- list()
   cli::cli_progress_bar(
     format = paste0(
-      "{cli::pb_spin} crawling ", toupper(label), "  ",
+      "{cli::pb_spin} crawling ",
+      toupper(label),
+      "  ",
       "records {length(records)}",
       if (is.finite(limit)) paste0("/", limit) else "",
       "  |  elapsed {cli::pb_elapsed}"

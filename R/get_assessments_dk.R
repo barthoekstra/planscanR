@@ -115,8 +115,10 @@ get_assessments_dk <- function(
   process_entry <- function(entry) {
     # Cheap pre-filter: drop entries whose year span cannot overlap the
     # window before paying for any geometry call.
-    if (!is.null(date_range) &&
-      !dk_year_in_range(entry$fromYear, entry$toYear, date_range)) {
+    if (
+      !is.null(date_range) &&
+        !dk_year_in_range(entry$fromYear, entry$toYear, date_range)
+    ) {
       return(NULL)
     }
     u <- dk_canonical_url(entry$id)

@@ -174,7 +174,9 @@ discover_validate <- function(
   # dependency): the user constructs a planscanR.screen embedding model and
   # passes it as `relevance_model`. Skipped cleanly when screen is absent.
   if (
-    !signal_az && !signal_title && !signal_extra &&
+    !signal_az &&
+      !signal_title &&
+      !signal_extra &&
       !is.null(relevance_model) &&
       requireNamespace("planscanR.screen", quietly = TRUE)
   ) {
