@@ -87,7 +87,7 @@ test_that("be_parse_detail extracts expected fields from a real dossier payload"
   # No narrative abstract on the API.
   expect_true(is.na(rec$summary))
   # Conventional cross-portal columns
-  expect_identical(rec$dossier_type, "PROJECT_MER")
+  expect_match(rec$native_type, "PROJECT_MER")
   expect_identical(rec$jurisdiction, "Borgloon; Tongeren")
   expect_identical(rec$proponent, "Spark Power")
   # No decision timestamp on the API.
@@ -110,7 +110,7 @@ test_that("be_parse_detail handles a VERZOEK_TOT_ONTHEFFING record with two doc 
   )
   rec <- planscanR:::be_parse_detail(url, entry, .be_fix_pr2574)
 
-  expect_identical(rec$dossier_type, "VERZOEK_TOT_ONTHEFFING")
+  expect_match(rec$native_type, "VERZOEK_TOT_ONTHEFFING")
   # Two documents -> two distinct per-type section columns + a 2-URL union.
   urls <- rec$attachment_urls[[1]]
   expect_length(urls, 2L)
@@ -288,7 +288,7 @@ test_that("BE -> sidecar round-trip preserves the country-specific extras", {
     expect_identical(idx$geometry_crs, "EPSG:31370")
     expect_true(file.exists(idx$geometry_path))
     # Country-specific scalars round-trip through extras{}.
-    expect_identical(idx$dossier_type, "VERZOEK_TOT_ONTHEFFING")
+    expect_match(idx$native_type, "VERZOEK_TOT_ONTHEFFING")
   })
 })
 

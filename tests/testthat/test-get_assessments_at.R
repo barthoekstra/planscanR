@@ -43,9 +43,9 @@ test_that("at_parse_detail extracts expected fields from a real vorhabenInfo res
   expect_match(rec$summary, "Energie AG Ober")
   expect_identical(rec$jurisdiction, "Oberösterreich")
   expect_identical(rec$status, "bewilligt")
-  expect_identical(rec$art, "Neues Vorhaben")
+  expect_identical(rec$procedure_type, "Neues Vorhaben")
   expect_identical(rec$year, 2016L)
-  expect_identical(rec$aktenzahl, "02 0514")
+  expect_identical(rec$file_number, "02 0514")
   # Typology lookup: type 1 -> "Abfallwirtschaft ..." in legend.
   expect_match(rec$native_type, "^Abfallwirtschaft")
   expect_identical(rec$type_group, "Industrie")
@@ -53,7 +53,7 @@ test_that("at_parse_detail extracts expected fields from a real vorhabenInfo res
   expect_identical(rec$attachment_urls[[1]], character(0))
   expect_identical(rec$local_path[[1]], character(0))
   expect_true(is.na(rec$date_decision))
-  expect_match(rec$rechtsgrundlagen, "UVP-G")
+  expect_match(rec$legal_basis, "UVP-G")
 })
 
 test_that("at_parse_detail of a Windkraft record places it in the Energie typegroup", {
@@ -66,7 +66,7 @@ test_that("at_parse_detail of a Windkraft record places it in the Energie typegr
   expect_identical(rec$jurisdiction, "Burgenland")
   expect_identical(rec$native_type, "Windkraftanlagen")
   expect_identical(rec$type_group, "Energie")
-  expect_identical(rec$art, "Änderungsvorhaben")
+  expect_identical(rec$procedure_type, "Änderungsvorhaben")
   expect_identical(rec$year, 2016L)
 })
 
@@ -301,7 +301,7 @@ test_that("AT -> sidecar round-trip preserves the country-specific extras", {
     expect_identical(idx$jurisdiction, "Burgenland")
     expect_identical(idx$native_type, "Windkraftanlagen")
     expect_identical(idx$type_group, "Energie")
-    expect_identical(idx$aktenzahl, "02 0515")
+    expect_identical(idx$file_number, "02 0515")
     # And no attachments survived (because none exist).
     expect_identical(idx$attachment_urls[[1]], character(0))
     expect_identical(nrow(idx$download_status[[1]]), 0L)

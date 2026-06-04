@@ -71,9 +71,9 @@ test_that("gr_parse_record extracts every conventional column (record with geome
   # Country-specific extras.
   expect_identical(rec$decision_type, "aepo_nonessential_modification")
   expect_identical(rec$project_category, "A1")
-  expect_identical(rec$project_pet, "2306963121")
+  expect_identical(rec$environmental_id, "2306963121")
   expect_true(rec$project_natura2000)
-  expect_match(rec$doc_ada, "ΨΥΑ") # ΨΥΑ...
+  expect_match(rec$transparency_id, "ΨΥΑ") # ΨΥΑ...
 
   # Attachment: single AEPO decision PDF.
   urls <- rec$attachment_urls[[1]]
@@ -242,7 +242,7 @@ test_that("GR -> sidecar round-trip preserves country-specific extras + geometry
     # Country-specific extras survive the round-trip.
     expect_identical(idx$decision_type, "aepo_nonessential_modification")
     expect_identical(idx$project_category, "A1")
-    expect_identical(idx$doc_ada, res$doc_ada)
+    expect_identical(idx$transparency_id, res$transparency_id)
     # Geometry sidecar.
     expect_identical(idx$geometry_crs, "EPSG:4326")
     expect_true(file.exists(idx$geometry_path))

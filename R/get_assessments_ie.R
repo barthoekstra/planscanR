@@ -580,7 +580,7 @@ ie_parse_feature <- function(url, feature, attach_index) {
     jurisdiction = jurisdiction,
     # Country-specific extras.
     portal_ref = ref %||% NA_character_,
-    objectid_1 = oid %||% NA_character_,
+    esri_object_id = oid %||% NA_character_,
     linear_development = native_type %||% NA_character_,
     url_link_application = url_link_application,
     url_link_secondary = url_link_secondary,

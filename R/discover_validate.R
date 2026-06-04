@@ -88,8 +88,8 @@ discover_validate <- function(
   norm_title <- normalise_text_for_match(record$title %||% "")
 
   signal_az <- FALSE
-  if (!is.null(cfg$aktenzahl_regex) && nzchar(cfg$aktenzahl_regex)) {
-    az <- (record$aktenzahl %||% NA_character_)
+  if (!is.null(cfg$file_number_regex) && nzchar(cfg$file_number_regex)) {
+    az <- (record$file_number %||% NA_character_)
     if (!is.na(az) && nzchar(az)) {
       # Build a tolerant pattern: AT's "02 0515" matches "02 0515", "02-0515", "020515".
       az_compact <- gsub("\\s+", "", az)

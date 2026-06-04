@@ -525,7 +525,7 @@ cz_parse_detail <- function(url, entry, html) {
     assessment_type = if (register == "EIA") "EIA" else "SEA",
     register = register,
     code = code,
-    ico = ico %||% NA_character_,
+    proponent_company_id = ico %||% NA_character_,
     download_status = list(empty_download_status())
   )
   for (slug in names(per_section)) {

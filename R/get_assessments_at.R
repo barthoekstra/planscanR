@@ -392,11 +392,11 @@ at_parse_detail <- function(url, entry) {
     native_type = native_type,
     jurisdiction = jurisdiction,
     status = status %||% NA_character_,
-    aktenzahl = entry$az %||% NA_character_,
-    art = art %||% NA_character_,
+    file_number = entry$az %||% NA_character_,
+    procedure_type = art %||% NA_character_,
     type_group = type_group,
-    standort_gemeinden = standort_str,
-    rechtsgrundlagen = rechtsgrundlagen_str,
+    municipalities = standort_str,
+    legal_basis = rechtsgrundlagen_str,
     year = year_int,
     download_status = list(empty_download_status())
   )

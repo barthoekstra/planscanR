@@ -449,8 +449,8 @@ fr_parse_record <- function(url, entry) {
     native_type = native_type %||% NA_character_,
     jurisdiction = jurisdiction %||% NA_character_,
     status = status,
-    dc_subject_theme = theme %||% NA_character_,
-    dc_subject_category = category %||% NA_character_,
+    subject_theme = theme %||% NA_character_,
+    subject_category = category %||% NA_character_,
     geometry_path = NA_character_,
     geometry_crs = NA_character_,
     download_status = list(empty_download_status())

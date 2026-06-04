@@ -7,7 +7,7 @@
 make_at_record <- function(
   document_id = "9999",
   title = "Windpark Testdorf",
-  aktenzahl = "02 9999",
+  file_number = "02 9999",
   summary = "Die Energie Testdorf GmbH plant Windkraftanlagen in Testdorf.",
   jurisdiction = "Burgenland",
   year = 2024L,
@@ -30,7 +30,7 @@ make_at_record <- function(
     native_type = "Windkraftanlagen",
     jurisdiction = jurisdiction,
     status = "bewilligt",
-    aktenzahl = aktenzahl,
+    file_number = file_number,
     year = year,
     download_status = list(empty_download_status())
   )
@@ -92,7 +92,7 @@ test_that("search_backend_mock matches by exact key, then substring, then defaul
 
 test_that("at_discovery_config() exposes the documented contract", {
   cfg <- at_discovery_config()
-  expect_true(all(c("query_templates", "state_domains", "aktenzahl_regex", "extra_signals") %in% names(cfg)))
+  expect_true(all(c("query_templates", "state_domains", "file_number_regex", "extra_signals") %in% names(cfg)))
   expect_true(length(cfg$query_templates) >= 3L)
   expect_true("Burgenland" %in% names(cfg$state_domains))
   expect_true("_federal" %in% names(cfg$state_domains))
@@ -133,7 +133,7 @@ test_that("at_domains_for unions multi-state jurisdictions and adds _federal", {
 
 test_that("discover_validate passes on Aktenzahl exact match", {
   skip_if_not(nzchar(Sys.which("pdftotext")), "pdftotext not installed")
-  rec <- make_at_record(aktenzahl = "02 0515")
+  rec <- make_at_record(file_number = "02 0515")
   pdf <- make_text_pdf("Bescheid betreffend GZ: 02 0515 Windpark Parndorf")
   on.exit(unlink(pdf), add = TRUE)
   v <- discover_validate(rec, pdf, at_discovery_config())
@@ -145,7 +145,7 @@ test_that("discover_validate passes on >=2 distinguishing-token occurrences", {
   skip_if_not(nzchar(Sys.which("pdftotext")), "pdftotext not installed")
   rec <- make_at_record(
     title = "Windpark Markgrafneusiedl Repowering",
-    aktenzahl = "02 0482"
+    file_number = "02 0482"
   )
   # Two mentions of the distinguishing token "Markgrafneusiedl" — clears the
   # validator's >=2-occurrence rule that exists to filter 1-mention gazettes.
@@ -162,7 +162,7 @@ test_that("discover_validate rejects a single-hit gazette-style false positive",
   skip_if_not(nzchar(Sys.which("pdftotext")), "pdftotext not installed")
   rec <- make_at_record(
     title = "Windpark Markgrafneusiedl Repowering",
-    aktenzahl = "02 0482"
+    file_number = "02 0482"
   )
   # Single passing mention of the distinguishing token — should NOT pass.
   pdf <- make_text_pdf(
@@ -177,7 +177,7 @@ test_that("discover_validate rejects a long-but-thin document (Dürnkrut-like)",
   skip_if_not(nzchar(Sys.which("pdftotext")), "pdftotext not installed")
   rec <- make_at_record(
     title = "Windpark Spannberg II",
-    aktenzahl = "02 0430"
+    file_number = "02 0430"
   )
   # Two Spannberg mentions in the extracted text BUT we pretend this PDF is
   # 100 pages long so the density is 2/10 = 0.2. Under the old >=2 rule
@@ -198,7 +198,7 @@ test_that("discover_validate keeps a short-but-dense document (Kundmachung-like)
   skip_if_not(nzchar(Sys.which("pdftotext")), "pdftotext not installed")
   rec <- make_at_record(
     title = "Windpark Spannberg II",
-    aktenzahl = "02 0430"
+    file_number = "02 0430"
   )
   # Three Spannberg mentions in a 1-page Kundmachung => density 3/1 = 3.0.
   # Should pass the hybrid rule's density branch even though absolute < 5.
@@ -213,7 +213,7 @@ test_that("discover_validate keeps a short-but-dense document (Kundmachung-like)
 
 test_that("discover_validate rejects an unrelated document", {
   skip_if_not(nzchar(Sys.which("pdftotext")), "pdftotext not installed")
-  rec <- make_at_record(title = "Windpark Parndorf", aktenzahl = "02 0132")
+  rec <- make_at_record(title = "Windpark Parndorf", file_number = "02 0132")
   pdf <- make_text_pdf("Autobahn-Westring S31 Streckenfuehrung Klagenfurt-Velden")
   on.exit(unlink(pdf), add = TRUE)
   v <- discover_validate(rec, pdf, at_discovery_config())

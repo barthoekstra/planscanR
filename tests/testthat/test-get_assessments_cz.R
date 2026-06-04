@@ -143,7 +143,7 @@ test_that("cz_parse_detail extracts expected EIA fields, location, and attachmen
   expect_match(rec$competent_authority, "Jihočeského")
   expect_match(rec$proponent, "FREDI")
   expect_identical(rec$native_type, "I/68")
-  expect_identical(rec$ico, "25174568")
+  expect_identical(rec$proponent_company_id, "25174568")
   expect_match(rec$status, "zjišťovacího")
   # date_published is the EIA last-modified date.
   expect_identical(rec$date_published, as.Date("2026-06-04"))
@@ -176,7 +176,7 @@ test_that("cz_parse_detail extracts expected SEA fields", {
   expect_match(rec$title, "Strategický plán")
   expect_match(rec$competent_authority, "Královéhradeckého")
   expect_match(rec$proponent, "Trutnov")
-  expect_identical(rec$ico, "00278360")
+  expect_identical(rec$proponent_company_id, "00278360")
   # SEA uses the dedicated "Datum zveřejnění" publication date.
   expect_identical(rec$date_published, as.Date("2026-05-12"))
   urls <- rec$attachment_urls[[1]]
@@ -355,7 +355,7 @@ test_that("CZ -> sidecar round-trip preserves the country-specific extras", {
     # Country-specific scalars round-trip through extras{}.
     expect_true("register" %in% names(idx))
     expect_true("assessment_type" %in% names(idx))
-    expect_true("ico" %in% names(idx))
+    expect_true("proponent_company_id" %in% names(idx))
     expect_setequal(idx$register, c("EIA", "SEA"))
     expect_setequal(idx$assessment_type, c("EIA", "SEA"))
     # Per-section attachment URL columns survive too.

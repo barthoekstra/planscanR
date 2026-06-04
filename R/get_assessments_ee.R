@@ -562,7 +562,7 @@ ee_parse_detail <- function(url, entry, html) {
     initiation_activity = init_activity %||% NA_character_,
     municipality = kov %||% NA_character_,
     activity_sector = activity_sector %||% NA_character_,
-    ksh_type = ksh_type %||% NA_character_,
+    assessment_subtype = ksh_type %||% NA_character_,
     decider = decider %||% NA_character_,
     developer = developer %||% NA_character_,
     initiator = initiator %||% NA_character_,

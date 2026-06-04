@@ -427,9 +427,8 @@ be_parse_detail <- function(url, entry, detail) {
     date_decision = as.Date(NA),
     native_type = native_type,
     jurisdiction = jurisdiction,
-    dossier_type = dossier_type,
     coordinator = coordinator %||% NA_character_,
-    coordinator_studiebureau = studiebureau %||% NA_character_,
+    coordinator_firm = studiebureau %||% NA_character_,
     expertise_domains = if (length(domeinen) == 0L) {
       NA_character_
     } else {

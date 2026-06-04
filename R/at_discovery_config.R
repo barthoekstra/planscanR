@@ -17,7 +17,7 @@
 #'     producing one search query (or NULL to skip).
 #'   * `state_domains` — named list `bundesland -> character vector` of
 #'     authority domains to scope queries to.
-#'   * `aktenzahl_regex` — regex that detects the country's primary
+#'   * `file_number_regex` — regex that detects the country's primary
 #'     identifier in PDF text. For AT it matches the UBA-internal AZ
 #'     `02 NNNN` plus a couple of dash/no-space variants.
 #'   * `extra_signals` — character vector of additional patterns the
@@ -144,7 +144,7 @@ at_discovery_config <- function() {
     # UBA AZ `02 NNNN` (with optional dash or no space). Captured as a
     # whole-word match. Used by the validator to confirm a candidate PDF
     # actually references the record's Aktenzahl.
-    aktenzahl_regex = "\\b02[ \\-]?\\d{4}\\b",
+    file_number_regex = "\\b02[ \\-]?\\d{4}\\b",
     # Patterns that, when present, raise the validator's confidence that a
     # PDF is a real UVP document. Loose substring matches.
     extra_signals = c(

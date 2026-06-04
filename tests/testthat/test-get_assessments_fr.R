@@ -67,8 +67,8 @@ test_that("fr_parse_record extracts every conventional column (record with geome
   expect_match(rec$native_type, "Autorisation au titre du code")
   expect_match(rec$jurisdiction, "53 - Mayenne")
   expect_identical(rec$status, "clos")
-  expect_identical(rec$dc_subject_theme, "ÉNERGIE")
-  expect_match(rec$dc_subject_category, "solaire")
+  expect_identical(rec$subject_theme, "ÉNERGIE")
+  expect_match(rec$subject_category, "solaire")
   expect_identical(rec$competent_authority, "_sicodei_eco4_")
   expect_identical(rec$date_published, as.Date("2025-06-18"))
   # No préfecture / commissaire decision date on this record.
@@ -285,7 +285,7 @@ test_that("FR -> sidecar round-trip preserves country-specific extras + geometry
 
     # Country-specific extras survive the round-trip.
     expect_identical(idx$native_type, res$native_type)
-    expect_identical(idx$dc_subject_theme, "ÉNERGIE")
+    expect_identical(idx$subject_theme, "ÉNERGIE")
     expect_identical(idx$status, "clos")
     # Geometry sidecar.
     expect_identical(idx$geometry_crs, "EPSG:4326")

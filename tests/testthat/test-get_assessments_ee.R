@@ -347,7 +347,7 @@ test_that("EE -> sidecar round-trip preserves the country-specific extras", {
     # Country-specific scalars round-trip through extras{}.
     expect_true("register" %in% names(idx))
     expect_true("assessment_type" %in% names(idx))
-    expect_true("ksh_type" %in% names(idx))
+    expect_true("assessment_subtype" %in% names(idx))
     expect_true("activity_sector" %in% names(idx))
     expect_setequal(idx$register, c("KMH", "KSH"))
     expect_setequal(idx$assessment_type, c("EIA", "SEA"))
