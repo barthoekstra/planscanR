@@ -222,7 +222,7 @@ gr_geometry_crs <- function() "EPSG:4326"
 
 #' Build a page generator for `GET /v1/license-decisions`.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call fetches the next JSON:API listing page and returns its rows (a list),
 #' or `NULL` once the register is exhausted. Each row is already the full
 #' record. Pagination state (page number + running count) lives in the closure,

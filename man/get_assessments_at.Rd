@@ -67,7 +67,8 @@ https://secure.umweltbundesamt.at/uvpdb/?servicehandler=vorhabenInfo&v2id=<id>
 }\if{html}{\out{</div>}}
 
 Enumeration is a single \code{mapsdata} call that returns ~500 records keyed
-by Aktenzahl (AZ), each carrying \code{v2id}, \code{province}, \code{year}, \code{title},
+by Aktenzahl (AZ — the Austrian case/file number, surfaced as \code{file_number}),
+each carrying \code{v2id}, \code{province}, \code{year}, \code{title},
 and \code{type}. Per-record detail comes from one \code{vorhabenInfo} call per
 \code{v2id}. There is no pagination, CSRF, or session requirement; the
 typology mapping (\code{type} integer → German legend) is captured as a

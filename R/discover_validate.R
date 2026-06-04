@@ -44,6 +44,11 @@
 #' @return A list with: `passed` (logical), `signals` (named logical),
 #'   `notes` (character), `text` (the extracted first-10-pages text, used
 #'   downstream when the candidate is promoted to the sidecar).
+#' @examples
+#' \dontrun{
+#' # Validate a candidate PDF against a record's identifiers + topic signals.
+#' discover_validate(record, pdf_path, cfg = at_discovery_config())
+#' }
 #' @export
 discover_validate <- function(
   record,

@@ -259,7 +259,7 @@ be_normalise_dossier_type <- function(x) {
 
 #' Build a page generator for the MER-register search index.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call fetches the next 25-row search page (`GET /api/v1/dossier`) and returns
 #' its rows, or `NULL` once the register is exhausted. Pagination state (the
 #' page index and the running row count) lives in the closure, so the streaming

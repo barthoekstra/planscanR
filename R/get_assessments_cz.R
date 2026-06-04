@@ -12,7 +12,7 @@
 #'
 #' Both registers are merged into a single result tibble; an
 #' `assessment_type` column (`"EIA"` for *Záměry na území ČR*, `"SEA"` for
-#' *Posuzování koncepcí*) tags each row and is round-tripped to the sidecar so
+#' *Posuzování koncepcí*) tags each row and is preserved in the offline metadata cache so
 #' downstream tooling can tell them apart without re-fetching anything.
 #' `document_id` is the portal's register-namespaced detail code, e.g.
 #' `"EIA_JHC1237"` / `"SEA_HKK015K"`, so the two registers never collide on
@@ -275,7 +275,7 @@ cz_normalise_assessment_type <- function(x) {
 
 #' Build a page generator for one register's index.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call fetches the next listing page and returns its not-yet-seen listing-row
 #' entries, or `NULL` once the register is exhausted. Pagination state (page
 #' index + seen codes) lives in the closure, so the streaming driver pulls only

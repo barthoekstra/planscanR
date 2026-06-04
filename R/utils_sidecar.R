@@ -10,7 +10,7 @@ SCHEMA_VERSION <- 3L
 
 #' Assert a sidecar's schema version is one this package understands.
 #'
-#' The sidecar JSON is the load-bearing contract between `planscanR` (writer)
+#' The sidecar JSON is the shared contract between `planscanR` (writer)
 #' and the downstream `planscanR.screen` reader. A
 #' sidecar written by a *newer* planscanR (a higher `schema_version`) may carry
 #' fields or semantics this version doesn't know about, so we fail loudly rather
@@ -80,6 +80,11 @@ sidecar_path <- function(country, document_id, root = NULL, create = TRUE) {
 #'   `download_attachments()`. May be empty when `download = FALSE`.
 #' @param root Cache root (or `NULL` to use the default).
 #' @return Path to the written sidecar, invisibly.
+#' @examples
+#' \dontrun{
+#' # Persist a single fetched record to the offline metadata cache.
+#' write_record_sidecar(record)
+#' }
 #' @export
 write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
   stopifnot(is.data.frame(record), nrow(record) == 1L)
@@ -412,6 +417,11 @@ record_classification <- function(record) {
 #'
 #' @param path Path to a `<document_id>.meta.json` file.
 #' @return A 1-row tibble in the planscanR schema.
+#' @examples
+#' \dontrun{
+#' # Read one record's cached metadata back into a 1-row tibble.
+#' read_record_sidecar("path/to/<document_id>.meta.json")
+#' }
 #' @export
 read_record_sidecar <- function(path) {
   payload <- jsonlite::fromJSON(path, simplifyVector = FALSE)

@@ -320,7 +320,7 @@ fr_odsql_quote <- function(x) {
 
 #' Build a page generator for the (optionally filtered) register.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract). The
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract). The
 #' OpenDataSoft EXPORT endpoint (`/exports/json?limit=-1`) has no offset cap and
 #' returns the full filtered result set as a bare JSON array in a single call,
 #' so the register is not actually paginated: the generator performs the export

@@ -11,7 +11,7 @@
 #'
 #' Both registers are merged into a single result tibble; an
 #' `assessment_type` column (`"EIA"` for KMH, `"SEA"` for KSH) tags each row
-#' and is round-tripped to the sidecar so downstream tooling can tell them
+#' and is preserved in the offline metadata cache so downstream tooling can tell them
 #' apart without re-fetching anything. `document_id` is prefixed with
 #' `"KMH-"` / `"KSH-"` (e.g. `"KMH-478"`, `"KSH-319"`) so the two registers
 #' never collide on disk.
@@ -309,7 +309,7 @@ ee_normalise_status <- function(x) {
 
 #' Build a page generator for one register's index.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call fetches the next index page (advancing the `qs=` offset) and returns its
 #' search-row entries, or `NULL` once the register is exhausted. Pagination
 #' state (offset) lives in the closure, so the streaming driver pulls only as

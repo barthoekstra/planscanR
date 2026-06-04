@@ -18,7 +18,8 @@
 #' ```
 #'
 #' Enumeration is a single `mapsdata` call that returns ~500 records keyed
-#' by Aktenzahl (AZ), each carrying `v2id`, `province`, `year`, `title`,
+#' by Aktenzahl (AZ — the Austrian case/file number, surfaced as `file_number`),
+#' each carrying `v2id`, `province`, `year`, `title`,
 #' and `type`. Per-record detail comes from one `vorhabenInfo` call per
 #' `v2id`. There is no pagination, CSRF, or session requirement; the
 #' typology mapping (`type` integer → German legend) is captured as a
@@ -274,7 +275,7 @@ at_type_group <- function(type) {
 
 #' Build a page generator for the UVP-DB index ("mapsdata" service handler).
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract). AT is
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract). AT is
 #' a single-request source: one `mapsdata` call returns the entire register, so
 #' the generator yields the full index list on its FIRST call and `NULL` on
 #' every subsequent call (a one-shot generator). The actual fetch happens on

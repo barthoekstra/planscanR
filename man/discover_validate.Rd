@@ -59,3 +59,9 @@ and the record's title+summary clears \code{semantic_threshold} (default
 Any single signal passing is sufficient. The result reports which signal(s)
 fired so calling code can apply stricter precision policies if it wants.
 }
+\examples{
+\dontrun{
+# Validate a candidate PDF against a record's identifiers + topic signals.
+discover_validate(record, pdf_path, cfg = at_discovery_config())
+}
+}

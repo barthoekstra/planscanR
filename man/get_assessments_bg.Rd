@@ -51,7 +51,7 @@ EIA), \verb{https://registers.moew.government.bg/ovos/}.
 
 Both registers are merged into a single result tibble; an
 \code{assessment_type} column (\code{"EIA"} for ОВОС, \code{"SEA"} for ЕО) tags each row
-and is round-tripped to the sidecar so downstream tooling can tell them
+and is preserved in the offline metadata cache so downstream tooling can tell them
 apart without re-fetching anything. \code{document_id} is prefixed with
 \code{"OVOS-"} / \code{"EO-"} (e.g. \code{"OVOS-21617"}, \code{"EO-44841"}) so the two
 registers never collide on disk.

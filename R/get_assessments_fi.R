@@ -262,7 +262,7 @@ fi_canonical_url <- function(link) {
 
 #' Build a page generator for the Elasticsearch index (`type=yva_project`).
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call POSTs the next ES from/size page (stable id sort) and returns that
 #' page's `_source` objects, or `NULL` once the index is exhausted. Each
 #' `_source` is a named list with `id`, `link`, `title`, `description`,

@@ -85,6 +85,8 @@ web_search.planscanR_search_backend_custom <- function(
 #' Printable name of a search backend.
 #' @param backend A backend object.
 #' @return Character scalar.
+#' @examples
+#' backend_name(search_backend_mock())
 #' @export
 backend_name <- function(backend) {
   UseMethod("backend_name")

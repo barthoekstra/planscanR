@@ -11,7 +11,7 @@
 #'
 #' Both registers are merged into a single result tibble; an
 #' `assessment_type` column (`"EIA"` for ОВОС, `"SEA"` for ЕО) tags each row
-#' and is round-tripped to the sidecar so downstream tooling can tell them
+#' and is preserved in the offline metadata cache so downstream tooling can tell them
 #' apart without re-fetching anything. `document_id` is prefixed with
 #' `"OVOS-"` / `"EO-"` (e.g. `"OVOS-21617"`, `"EO-44841"`) so the two
 #' registers never collide on disk.
@@ -244,7 +244,7 @@ bg_normalise_assessment_type <- function(x) {
 
 #' Build a page generator for one register's index.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call fetches the next listing page (by `offset`) and returns its listing-row
 #' entries, or `NULL` once the register is exhausted. Pagination state (offset)
 #' lives in the closure, so the streaming driver pulls only as many pages as the

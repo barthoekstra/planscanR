@@ -18,3 +18,9 @@ record's persisted columns via \code{planscanR::read_record_sidecar()} rather th
 parsing the JSON themselves. Asserts the schema version on read (see
 \code{\link[=cache_dir_default]{cache_dir_default()}} for the cache-root contract).
 }
+\examples{
+\dontrun{
+# Read one record's cached metadata back into a 1-row tibble.
+read_record_sidecar("path/to/<document_id>.meta.json")
+}
+}

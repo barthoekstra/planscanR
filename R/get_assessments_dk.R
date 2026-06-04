@@ -219,7 +219,7 @@ dk_normalise_assessment_type <- function(x) {
 
 #' Build a page generator over the EA-Hub search index.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract).
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract).
 #' EA-Hub has no pagination: one `POST /assessments/search` returns the entire
 #' filtered register, so the closure performs that single POST on its first call
 #' and yields the full list of search-result rows, then returns `NULL` on every
@@ -612,7 +612,7 @@ dk_resolve_document_link <- function(assessment_id, document_id) {
 #'
 #' Lowercases, transliterates Danish diacritics (æ→ae, ø→oe, å→aa), and
 #' collapses non-alphanumerics to underscores. Empty input gets `"document"`.
-#' Mirrors [ee_section_slug()] / [be_section_slug()].
+#' Mirrors ee_section_slug() / be_section_slug().
 #' @noRd
 dk_section_slug <- function(label) {
   if (is.null(label) || !is.character(label) || length(label) != 1L || is.na(label) || !nzchar(label)) {
@@ -693,7 +693,7 @@ dk_attach_documents <- function(rec, assessment_id) {
 #' Finalise a parsed DK record: run downloads (if requested) and write sidecar.
 #'
 #' When `download` is TRUE, fetches every URL in the record's attachment columns
-#' via [download_attachments()] and threads the resulting local paths back into
+#' via download_attachments() and threads the resulting local paths back into
 #' the per-section `local_path_<slug>` columns; otherwise records the URLs as
 #' `pending`. Always writes the sidecar when `write_sidecar` is TRUE.
 #' @noRd

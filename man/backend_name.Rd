@@ -15,3 +15,6 @@ Character scalar.
 \description{
 Printable name of a search backend.
 }
+\examples{
+backend_name(search_backend_mock())
+}

@@ -367,7 +367,7 @@ ie_date_to_epoch_ms <- function(d) {
 
 #' Build a page generator for the EIA Portal `/query` listing.
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call fetches the next `resultOffset` page (page size = server
 #' `maxRecordCount`), resolves that page's notice attachments in one batched
 #' `queryAttachments` call, and returns the page's listing entries as a list, or

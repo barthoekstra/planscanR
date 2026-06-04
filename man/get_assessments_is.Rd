@@ -66,7 +66,7 @@ tagged \code{assessment_type = "EIA"}.
 }
 
 The three are merged into one result tibble. \code{assessment_type}
-(\code{"EIA"}/\code{"SEA"}) tags each row and round-trips to the sidecar; the finer
+(\code{"EIA"}/\code{"SEA"}) tags each row and is preserved in the offline metadata cache; the finer
 distinction is kept in \code{process_type} / \code{native_type}. Because the three
 processes share the same \code{Issue.id} space, \code{document_id} is prefixed with
 the process id (\verb{IS-15-<id>}, \verb{IS-16-<id>}, \verb{IS-501-<id>}) so they never

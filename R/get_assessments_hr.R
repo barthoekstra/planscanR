@@ -10,7 +10,7 @@
 #'
 #' Two "registers" are merged into a single result tibble; an
 #' `assessment_type` column (`"EIA"` for PUO, `"SEA"` for SPUO) tags each row
-#' and is round-tripped to the sidecar so downstream tooling can tell them
+#' and is preserved in the offline metadata cache so downstream tooling can tell them
 #' apart without re-fetching anything. `document_id` is prefixed with
 #' `"HR-PUO-"` / `"HR-SPUO-"` so the two registers never collide on disk.
 #'
@@ -275,7 +275,7 @@ hr_normalise_assessment_type <- function(x) {
 
 #' Build a page generator for a register's master page(s).
 #'
-#' Returns a zero-arg closure (the [stream_crawl()] `next_page` contract): each
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
 #' call fetches the NEXT master page of the register, light-parses its project
 #' `<li><strong>` blocks into index entries, and returns them; `NULL` once every
 #' master page has been consumed. A register's master pages are fixed (PUO has
