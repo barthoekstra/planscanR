@@ -227,12 +227,13 @@ test_that("write_record_sidecar updates same-URL file rows in place (new wins)",
 })
 
 test_that("sidecar schema assertion accepts current/legacy and rejects newer", {
-  # v2 (current) and v1 (no version field) read without warning.
+  # v3 (current), v2, and v1 (no version field) read without warning.
+  expect_no_warning(planscanR:::assert_sidecar_schema(list(schema_version = 3L)))
   expect_no_warning(planscanR:::assert_sidecar_schema(list(schema_version = 2L)))
   expect_no_warning(planscanR:::assert_sidecar_schema(list()))
   # A newer sidecar than this planscanR understands fails loudly.
   expect_error(
-    planscanR:::assert_sidecar_schema(list(schema_version = 3L), "/tmp/x.meta.json"),
+    planscanR:::assert_sidecar_schema(list(schema_version = 4L), "/tmp/x.meta.json"),
     class = "planscanR_error_sidecar_schema"
   )
   # read_record_sidecar applies the assertion on a real file.

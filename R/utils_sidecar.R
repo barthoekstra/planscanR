@@ -6,7 +6,7 @@
 # per-file download status, so the cache can be re-indexed without
 # re-fetching anything from the portal.
 
-SCHEMA_VERSION <- 2L
+SCHEMA_VERSION <- 3L
 
 #' Assert a sidecar's schema version is one this package understands.
 #'
@@ -84,7 +84,8 @@ sidecar_path <- function(country, document_id, root = NULL, create = TRUE) {
 write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
   stopifnot(is.data.frame(record), nrow(record) == 1L)
   path <- sidecar_path(record$country, record$document_id, root = root)
-  payload <- record_to_sidecar(record, downloads)
+  root_resolved <- if (is.null(root)) cache_dir_default() else root
+  payload <- record_to_sidecar(record, downloads, root = root_resolved)
   # Non-destructive write: a sidecar is the authoritative record, and any one
   # caller (scan / score / classify / download / discover) only knows about a
   # slice of it. So we never blindly overwrite — we MERGE the new payload over
@@ -172,6 +173,12 @@ merge_sidecar_payload <- function(new, old) {
   # 4. extras{}: union by key (new wins).
   if (length(old$extras) > 0L) {
     for (k in names(old$extras)) {
+      # v3: never carry forward a v2 sidecar's stale `relevance_score_*` extras
+      # duplicate — the canonical `relevance_scores[]` array (merged above) owns
+      # those, and a re-scoring write would otherwise resurrect the old value.
+      if (grepl("^relevance_score_", k)) {
+        next
+      }
       if (is.null(new$extras[[k]])) {
         new$extras[[k]] <- old$extras[[k]]
       }
@@ -190,7 +197,7 @@ merge_sidecar_payload <- function(new, old) {
 
 #' Serialise a record + downloads into the sidecar JSON shape.
 #' @noRd
-record_to_sidecar <- function(record, downloads = NULL) {
+record_to_sidecar <- function(record, downloads = NULL, root = NULL) {
   base <- list(
     schema_version = SCHEMA_VERSION,
     country = record$country,
@@ -239,6 +246,9 @@ record_to_sidecar <- function(record, downloads = NULL) {
     "local_path",
     section_cols,
     class_cols,
+    # v3: per-topic relevance columns are serialised once into the canonical
+    # relevance_scores[] array (record_topic_scores), so keep them out of extras.
+    grep("^relevance_score_", names(record), value = TRUE),
     "file_sha256",
     "download_status"
   )
@@ -249,6 +259,10 @@ record_to_sidecar <- function(record, downloads = NULL) {
       if (is.list(v)) v[[1]] else v
     })
     names(base$extras) <- extras
+    # v3: store on-disk geometry path relative to the cache root (portable cache).
+    if (!is.null(base$extras$geometry_path)) {
+      base$extras$geometry_path <- relativise_cache_path(base$extras$geometry_path, root)
+    }
   }
   # Per-file status
   if (is.null(downloads) || nrow(downloads) == 0L) {
@@ -286,7 +300,8 @@ record_to_sidecar <- function(record, downloads = NULL) {
           "portal"
         },
         filename = if (is.na(r$local_path)) NULL else basename(r$local_path),
-        local_path = nullable(r$local_path),
+        # v3: store relative to the cache root; absolutised again on read.
+        local_path = relativise_cache_path(nullable(r$local_path), root),
         status = r$status,
         size_bytes = nullable_numeric(r$size_bytes),
         sha256 = nullable(r$sha256),
@@ -404,7 +419,16 @@ read_record_sidecar <- function(path) {
   files <- payload$files %||% list()
   urls <- vapply(files, function(f) f$url %||% NA_character_, character(1))
   sections <- vapply(files, function(f) f$section %||% NA_character_, character(1))
-  paths <- vapply(files, function(f) f$local_path %||% NA_character_, character(1))
+  # v3: paths are stored relative to the cache root. Recover the root from the
+  # sidecar's own location (<root>/files/<country>/<document_id>/<id>.meta.json)
+  # and absolutise each stored path back to a working path. Already-absolute
+  # legacy (v1/v2) paths pass through unchanged.
+  cache_root <- dirname(dirname(dirname(dirname(path))))
+  paths <- vapply(
+    files,
+    function(f) absolutise_cache_path(f$local_path %||% NA_character_, cache_root),
+    character(1)
+  )
 
   download_status <- tibble::tibble(
     url = urls,
@@ -450,7 +474,7 @@ read_record_sidecar <- function(path) {
     source_portal = payload$source_portal,
     document_id = payload$document_id,
     url = payload$url,
-    retrieved_at = as.POSIXct(payload$retrieved_at, tz = "UTC", format = "%Y-%m-%dT%H:%M:%SZ"),
+    retrieved_at = parse_iso_utc(payload$retrieved_at),
     attachment_urls = list(urls),
     local_path = list(paths),
     title = payload$title %||% NA_character_,
@@ -486,6 +510,12 @@ read_record_sidecar <- function(path) {
   # conventional (e.g. DE's `native_type`, `jurisdiction`); they round-trip
   # straight through without any per-country knowledge here.
   for (nm in names(payload$extras %||% list())) {
+    # v3: the canonical relevance_scores[] loop above already populated the
+    # per-topic columns; a (legacy v2) `relevance_score_*` extras key must not
+    # overwrite them with a possibly-stale value.
+    if (grepl("^relevance_score_", nm)) {
+      next
+    }
     v <- payload$extras[[nm]]
     if (is.null(v)) {
       out[[nm]] <- NA
@@ -512,6 +542,16 @@ read_record_sidecar <- function(path) {
       as.Date(NA)
     } else {
       as.Date(as.character(dp[[1]]))
+    }
+  }
+  # v3: geometry_path round-trips through extras as a cache-relative path;
+  # absolutise it back to a working path (mirrors files[].local_path above).
+  if ("geometry_path" %in% names(out)) {
+    gp <- out[["geometry_path"]]
+    out[["geometry_path"]] <- if (length(gp) != 1L || is.na(gp)) {
+      gp
+    } else {
+      absolutise_cache_path(gp, cache_root)
     }
   }
   # v2: expose the discovery audit trail as a list-column. Empty list when
@@ -670,6 +710,56 @@ sidecar_url_index <- function(country, cache_dir = NULL) {
   )
   keep <- !is.na(urls) & nzchar(urls)
   stats::setNames(paths[keep], urls[keep])
+}
+
+#' Is a path absolute (cross-platform: POSIX `/`, Windows `C:\`/`C:/`, UNC `\\`)?
+#' @noRd
+is_absolute_path <- function(p) {
+  grepl("^(/|[A-Za-z]:[/\\\\]|\\\\\\\\)", p)
+}
+
+#' Store a cache path relative to the cache root (v3).
+#'
+#' Paths under `root` are stored relative so a relocated cache still resolves.
+#' Paths outside the root (legacy absolute paths) and `NULL`/`NA`/empty pass
+#' through unchanged.
+#' @noRd
+relativise_cache_path <- function(p, root) {
+  if (is.null(root) || is.null(p) || length(p) != 1L || is.na(p) || !nzchar(p)) {
+    return(p)
+  }
+  rootn <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  pn <- normalizePath(p, winslash = "/", mustWork = FALSE)
+  prefix <- paste0(rootn, "/")
+  if (startsWith(pn, prefix)) substring(pn, nchar(prefix) + 1L) else p
+}
+
+#' Resolve a stored (relative) cache path back to an absolute working path (v3).
+#'
+#' Relative paths are joined onto `root`; already-absolute (legacy) paths and
+#' `NULL`/`NA`/empty pass through unchanged.
+#' @noRd
+absolutise_cache_path <- function(p, root) {
+  if (is.null(p) || length(p) != 1L || is.na(p) || !nzchar(p)) {
+    return(p)
+  }
+  if (is_absolute_path(p)) p else file.path(root, p)
+}
+
+#' Parse an ISO-8601 UTC timestamp, tolerating a missing trailing `Z` (v3).
+#'
+#' v3 writes always carry `Z`; legacy sidecars may not. Falls back to the
+#' no-`Z` format so older caches still read.
+#' @noRd
+parse_iso_utc <- function(x) {
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return(as.POSIXct(NA_character_, tz = "UTC"))
+  }
+  t <- as.POSIXct(x, tz = "UTC", format = "%Y-%m-%dT%H:%M:%SZ")
+  if (is.na(t)) {
+    t <- as.POSIXct(x, tz = "UTC", format = "%Y-%m-%dT%H:%M:%S")
+  }
+  t
 }
 
 #' Pack a scalar into a JSON-null when missing.

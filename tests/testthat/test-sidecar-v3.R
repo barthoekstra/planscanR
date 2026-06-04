@@ -112,6 +112,50 @@ test_that("extras{} no longer duplicates relevance_score_* (relevance_scores[] i
   })
 })
 
+test_that("re-scoring a v2 sidecar drops its stale extras relevance_score_* duplicate", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = getwd())
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    path <- planscanR:::sidecar_path("nl", "rescore1")
+    # Legacy v2 sidecar carrying the v2 duplication bug: the score lives BOTH in
+    # the canonical array and (stale) in extras.
+    v2 <- list(
+      schema_version = 2L,
+      country = "nl",
+      source_portal = "x",
+      document_id = "rescore1",
+      url = "https://x/rescore1",
+      retrieved_at = "2024-01-01T00:00:00Z",
+      relevance_model = "old",
+      relevance_scores = list(list(
+        topic = "wind", score = 0.5, model = "old", scored_at = "2024-01-01T00:00:00Z"
+      )),
+      extras = list(relevance_score_wind = 0.5),
+      files = list()
+    )
+    writeLines(jsonlite::toJSON(v2, auto_unbox = TRUE, null = "null"), path)
+
+    # Re-score under v3 with a NEW value; merge must not resurrect the stale 0.5.
+    rec <- tibble::tibble(
+      country = "nl",
+      source_portal = "x",
+      document_id = "rescore1",
+      url = "https://x/rescore1",
+      retrieved_at = as.POSIXct("2026-01-01", tz = "UTC"),
+      attachment_urls = list(character(0)),
+      local_path = list(character(0)),
+      relevance_score_wind = 0.8,
+      relevance_model = "new"
+    )
+    planscanR:::write_record_sidecar(rec)
+
+    raw <- read_raw_sidecar(path)
+    expect_null(raw$extras$relevance_score_wind) # stale duplicate gone on disk
+    back <- planscanR:::read_record_sidecar(path)
+    expect_equal(back$relevance_score_wind, 0.8) # canonical value wins
+  })
+})
+
 test_that("datetime fields are written with a trailing Z", {
   withr::with_tempdir({
     options(planscanR.cache_dir = getwd())
