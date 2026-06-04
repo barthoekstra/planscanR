@@ -216,6 +216,22 @@ test_that("SI coverage row exposes the assessment_type / register vocabulary", {
   expect_true("cpvo-obcinski" %in% f$register)
 })
 
+test_that("PT coverage row signals AIA-only status and exposes the decision_sense vocabulary", {
+  c <- get_assessments_coverage()
+  pt <- c[c$country == "pt", ]
+  expect_identical(pt$source_portal, "siaia.apambiente.pt")
+  expect_false(pt$requires_auth)
+  expect_identical(pt$status, "supported (EIA/AIA only; SEA/AAE in a separate APA register)")
+  f <- pt$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "decision_sense")
+  expect_true("Favorável" %in% f$decision_sense)
+  expect_true("Favorável condicionado" %in% f$decision_sense)
+  expect_true("Desfavorável" %in% f$decision_sense)
+  expect_true("Desconformidade do EIA" %in% f$decision_sense)
+  expect_true("Encerrado" %in% f$decision_sense)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

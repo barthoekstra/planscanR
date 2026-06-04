@@ -52,6 +52,7 @@ Supported portals:
 | Iceland (`"is"`) | Skipulagsgátt GraphQL API (`skipulagsgatt.is`) | EIA (screening + full) + SEA in one handler, **cases from ~June 2023 onward**, full records + WGS84 geometry + phase-file document downloads |
 | Ireland (`"ie"`) | gov.ie EIA Portal (Esri ArcGIS REST FeatureServer) | **EIA only** (no SEA register), full records + ITM (EPSG:2157) point geometry; portal hosts only the newspaper-notice PDF — the **full EIAR is off-portal** on the competent-authority sites |
 | Slovenia (`"si"`) | gov.si environmental-assessment registers (bulk JSON exports) | EIA screening (`predhodni-postopek`) + SEA decisions (CPVO state + municipal plans) in one handler, dual-register, attachments scraped from detail pages, no geometry, ~2021 onward |
+| Portugal (`"pt"`) | APA SIAIA register (`siaia.apambiente.pt`; server-rendered HTML) | **AIA / project-level EIA only** (SEA/AAE in a separate APA register), paginated HTML listing + detail pages, direct `AIADOC` PDFs grouped into per-phase attachment columns, no geometry, client-side filters |
 
 See `vignette("supported_sources")` for per-portal details: how each portal
 is accessed, what filters are honoured, and what data comes back.

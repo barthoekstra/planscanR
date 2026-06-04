@@ -16,8 +16,10 @@ Description: A unified R interface for fetching environmental-assessment
     pages; PUO + SPUO), Greece (ΗΠΜ / EPRM; AEPO permit decisions
     only), Iceland (Skipulagsgátt GraphQL; cases from ~June 2023
     onward), Ireland (gov.ie EIA Portal; ArcGIS REST; EIA only,
-    notice PDFs with the full EIAR off-portal), and Slovenia (gov.si
-    registers; bulk JSON exports; EIA screening + SEA/CPVO). Optional
+    notice PDFs with the full EIAR off-portal), Slovenia (gov.si
+    registers; bulk JSON exports; EIA screening + SEA/CPVO), and
+    Portugal (APA SIAIA; HTML register; AIA / project-level EIA only,
+    SEA/AAE in a separate register). Optional
     fetch-time scoring of records by topic relevance is delegated to the
     companion 'planscanR.screen' package. Developed for the BIOGAIN project
     to support Net Biodiversity Gain in spatial energy planning.

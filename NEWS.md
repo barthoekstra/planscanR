@@ -11,16 +11,23 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 15 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 16 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
-  Greece, Iceland, Ireland, and Slovenia. Coverage, honoured filters, geometry,
-  and per-portal quirks differ by country — see `vignette("supported_sources")`
-  and `get_assessments_coverage()`.
+  Greece, Iceland, Ireland, Slovenia, and Portugal. Coverage, honoured filters,
+  geometry, and per-portal quirks differ by country — see
+  `vignette("supported_sources")` and `get_assessments_coverage()`.
 * Slovenia (`get_assessments_si()`): fetches from the gov.si
   environmental-assessment registers via their bulk JSON exports — the EIA
   screening register plus the two SEA (CPVO) registers, merged with an
   `assessment_type` / `register` dual-register tag; attachments are scraped
   from each record's detail page.
+* Portugal (`get_assessments_pt()`): fetches from the APA SIAIA register at
+  `siaia.apambiente.pt` — the **AIA** (project-level EIA) register only (SEA/AAE
+  lives in a separate APA register, so there is no `assessment_type`). Walks the
+  paginated server-rendered HTML listing, reads each detail page, and groups the
+  direct `AIADOC` PDFs/ZIPs into per-phase `attachment_urls_<slug>` columns
+  (DIA / EIA / consulta pública / parecer / outros). No geometry (location is
+  concelho text); `query` and `date_range` are matched client-side.
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English

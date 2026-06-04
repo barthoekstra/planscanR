@@ -25,7 +25,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie", "si"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie", "si", "pt"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -41,7 +41,8 @@ get_assessments_coverage <- function() {
       "eprm.ypen.gr",
       "skipulagsgatt.is",
       "services.arcgis.com (gov.ie EIA Portal)",
-      "gov.si"
+      "gov.si",
+      "siaia.apambiente.pt"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -58,9 +59,11 @@ get_assessments_coverage <- function() {
       "https://eprm.ypen.gr",
       "https://www.skipulagsgatt.is",
       "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0",
-      "https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje"
+      "https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje",
+      "https://siaia.apambiente.pt"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -92,7 +95,8 @@ get_assessments_coverage <- function() {
       "supported (decisions-only; studies/SEA login-gated)", # gr
       "supported (GraphQL; cases from ~June 2023 onward)", # is
       "supported (EIA only; portal = notice PDFs, full EIAR off-portal)", # ie
-      "supported" # si
+      "supported", # si
+      "supported (EIA/AIA only; SEA/AAE in a separate APA register)" # pt
     ),
     facets = list(
       commissiemer_facets(),
@@ -109,7 +113,32 @@ get_assessments_coverage <- function() {
       eprm_gr_facets(),
       skipulagsgatt_is_facets(),
       eia_portal_ie_facets(),
-      gov_si_facets()
+      gov_si_facets(),
+      siaia_pt_facets()
+    )
+  )
+}
+
+#' Static lookup of the SIAIA (Portugal) facet vocabularies.
+#'
+#' SIAIA covers the **AIA** register only (project-level EIA); the SEA/AAE
+#' register lives in a separate APA application and is out of scope, so there
+#' is no `assessment_type` selector. The portal offers server-side
+#' authority/year filters, but the handler applies every honoured filter
+#' client-side (`query` as a substring match on the title, `date_range`
+#' against `date_decision` / `decision_year`). The only first-class reference
+#' vocabulary worth surfacing is the *Sentido de Decisão* enum — the decision
+#' sense that lands in the `decision_sense` output column (also the
+#' `native_type`). Pass any other value through unchanged.
+#' @noRd
+siaia_pt_facets <- function() {
+  list(
+    decision_sense = c(
+      "Favorável",
+      "Favorável condicionado",
+      "Desfavorável",
+      "Desconformidade do EIA",
+      "Encerrado"
     )
   )
 }

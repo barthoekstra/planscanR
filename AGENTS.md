@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Fifteen country handlers ship:
+**v0.1 scope.** Sixteen country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -211,6 +211,27 @@ Python, no Shiny, no project-specific scoring config.
   Slovenian (`sl`). Throttled to 5 req/s
   (`getOption("planscanR.si_throttle_rate")`). Scope ~2021 onward. Reflected in
   `get_assessments_coverage()$status` as `"supported"`.
+- Portugal (`get_assessments_pt()`) — APA **SIAIA** register at
+  `siaia.apambiente.pt` (server-rendered ASP.NET MVC). **HTML-pagination
+  enumeration**: a page generator walks `?pagina=<n>` (~100 rows/page, seam
+  `pt_fetch_search()`, parsed via `perform_html`); an empty `<tbody>` ends the
+  crawl. **Single register** — AIA = project-level EIA only (no
+  `assessment_type`); SEA/AAE lives in a separate APA register and is out of
+  scope. Per record: a sidecar-first detail GET
+  (`/ProcessoAIA/Detalhes/{id}`, `document_id` prefix `AIA-`) parses the
+  *Campo / Conteúdo* table, and a document-list GET
+  (`/ListaDocumentos?pro_id={id}`) yields the attachments. Direct PDFs/ZIPs are
+  `https://siaia.apambiente.pt/AIADOC/AIA{n}/...`; each document's Portuguese
+  type label is classified into a coarse **phase** (`dia` / `eia` /
+  `consulta_publica` / `parecer` / `outros`) and grouped into per-phase
+  `attachment_urls_<slug>` / `local_path_<slug>` columns, with `attachment_urls`
+  the deduplicated union. No geometry (location is concelho text in
+  `municipalities`). `decision_sense` (the *Sentido de Decisão*) is also the
+  `native_type`. `date_decision` parses `"DD/MM/YYYY"`; `query` and `date_range`
+  are matched client-side. Portuguese language. Throttled to 5 req/s
+  (`getOption("planscanR.pt_throttle_rate")`). Reflected in
+  `get_assessments_coverage()$status` as
+  `"supported (EIA/AIA only; SEA/AAE in a separate APA register)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -299,7 +320,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
   │     ├── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
   │     ├── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
-  │     └── get_assessments_si(...)          # gov.si (bulk JSON export; EIA + SEA/CPVO)
+  │     ├── get_assessments_si(...)          # gov.si (bulk JSON export; EIA + SEA/CPVO)
+  │     └── get_assessments_pt(...)          # siaia.apambiente.pt (HTML register; AIA/EIA)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

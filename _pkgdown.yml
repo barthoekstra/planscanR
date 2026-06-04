@@ -32,6 +32,7 @@ reference:
   - get_assessments_is
   - get_assessments_ie
   - get_assessments_si
+  - get_assessments_pt
   - get_assessments_coverage
   - supported_countries
   - bind_results
