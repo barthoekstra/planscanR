@@ -30,3 +30,9 @@ derived columns (relevance / class scores) by calling
 \code{files[]} / \code{relevance_scores[]} / \verb{class_*} arrays lives here, so adding a
 new score family never wipes existing ones.
 }
+\examples{
+\dontrun{
+# Persist a single fetched record to the offline metadata cache.
+write_record_sidecar(record)
+}
+}

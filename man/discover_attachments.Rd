@@ -83,6 +83,12 @@ document URLs to anonymous callers. The Austrian UVP-DB is the canonical
 example — see \code{\link[=get_assessments_at]{get_assessments_at()}} — but the function is portal-agnostic
 once a country supplies a discovery config.
 }
+\examples{
+\dontrun{
+recs <- get_assessments("nl", limit = 3, download = FALSE)
+discover_attachments(recs)
+}
+}
 \seealso{
 \code{\link[=search_backend_tavily]{search_backend_tavily()}}, \code{\link[=discover_validate]{discover_validate()}},
 \code{\link[=at_discovery_config]{at_discovery_config()}}.

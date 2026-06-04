@@ -48,7 +48,7 @@ registers are crawled:
 
 Both registers are merged into a single result tibble; an
 \code{assessment_type} column (\code{"EIA"} for \emph{Záměry na území ČR}, \code{"SEA"} for
-\emph{Posuzování koncepcí}) tags each row and is round-tripped to the sidecar so
+\emph{Posuzování koncepcí}) tags each row and is preserved in the offline metadata cache so
 downstream tooling can tell them apart without re-fetching anything.
 \code{document_id} is the portal's register-namespaced detail code, e.g.
 \code{"EIA_JHC1237"} / \code{"SEA_HKK015K"}, so the two registers never collide on

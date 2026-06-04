@@ -74,7 +74,10 @@ Listing is \verb{GET <layer>/query}, paginated with \code{resultOffset} /
 while \code{exceededTransferLimit} is true. A stable \verb{orderByFields=OBJECTID_1 ASC}
 fixes the page ordering. Each feature carries all its metadata inline in
 \code{attributes} (there is no separate detail endpoint), plus an Esri point
-\code{geometry} requested in \code{outSR=2157}.
+\code{geometry} requested in \code{outSR=2157}. Enumeration is \strong{streaming}: a page
+generator yields one \code{resultOffset} page at a time (and resolves that page's
+notice attachments in a single batched \code{queryAttachments} call) so records
+are parsed and persisted page-by-page rather than after a full register scan.
 
 The portal has \strong{no per-record permalink}, so a unique, deterministic \code{url}
 is synthesised per record: the record-specific query URL
@@ -110,7 +113,7 @@ geometry leave the geometry columns \code{NA}.
 Portal-hosted attachments are ArcGIS feature attachments — the statutory
 newspaper / public-notice PDF. Because the download URL needs both the
 \code{OBJECTID_1} and the per-attachment id (\verb{<layer>/<OBJECTID_1>/attachments/<id>}),
-attachment metadata is resolved in a batched \strong{phase-2} \code{queryAttachments}
+attachment metadata is resolved in a batched \strong{per-page} \code{queryAttachments}
 call (keyed by \code{OBJECTID_1}) — even when \code{download = FALSE}, this is needed
 to populate \code{attachment_urls}. The single slug is \code{notice}
 (\code{attachment_urls_notice} / \code{local_path_notice}); the deduplicated union goes
@@ -134,9 +137,9 @@ decision-date field).
 
 \section{Performance}{
 
-Enumeration is ≈6 paginated \code{query} calls (page size 1000) plus batched
-\code{queryAttachments} lookups (many \code{OBJECTID_1}s per call). IE requests are
-throttled to 5 requests per second by default; override via
+Enumeration is ≈6 paginated \code{query} calls (page size 1000) plus one batched
+\code{queryAttachments} lookup per page (many \code{OBJECTID_1}s per call). IE requests
+are throttled to 5 requests per second by default; override via
 \code{getOption("planscanR.ie_throttle_rate")} (requests/sec; falsy disables).
 }
 

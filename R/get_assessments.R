@@ -95,6 +95,11 @@
 #'
 #' @seealso [get_assessments_coverage()], [get_assessments_nl()],
 #'   [supported_countries()].
+#' @examples
+#' \dontrun{
+#' # Fetch a small slice from the Netherlands (no PDFs downloaded yet).
+#' get_assessments("nl", limit = 5, download = FALSE)
+#' }
 #' @export
 get_assessments <- function(
   country,

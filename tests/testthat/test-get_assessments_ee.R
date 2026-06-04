@@ -238,7 +238,15 @@ test_that("get_assessments_ee end-to-end on fixtures (sidecar-first, geometry pe
     local_mocked_bindings(
       perform_html = mock_perform_html_two_records(),
       ee_fetch_search = function(register, ...) {
-        if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        }
       }
     )
 
@@ -286,7 +294,15 @@ test_that("get_assessments_ee honours the assessment_type filter", {
     local_mocked_bindings(
       perform_html = mock_perform_html_two_records(),
       ee_fetch_search = function(register, ...) {
-        if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        }
       }
     )
 
@@ -311,7 +327,15 @@ test_that("EE -> sidecar round-trip preserves the country-specific extras", {
     local_mocked_bindings(
       perform_html = mock_perform_html_two_records(),
       ee_fetch_search = function(register, ...) {
-        if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        }
       }
     )
 
@@ -323,7 +347,7 @@ test_that("EE -> sidecar round-trip preserves the country-specific extras", {
     # Country-specific scalars round-trip through extras{}.
     expect_true("register" %in% names(idx))
     expect_true("assessment_type" %in% names(idx))
-    expect_true("ksh_type" %in% names(idx))
+    expect_true("assessment_subtype" %in% names(idx))
     expect_true("activity_sector" %in% names(idx))
     expect_setequal(idx$register, c("KMH", "KSH"))
     expect_setequal(idx$assessment_type, c("EIA", "SEA"))
@@ -345,7 +369,15 @@ test_that("get_assessments_ee scores topics and adds relevance_score_<slug> colu
     local_mocked_bindings(
       perform_html = mock_perform_html_two_records(),
       ee_fetch_search = function(register, ...) {
-        if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "KMH") list(.ee_entry_kmh_478) else list(.ee_entry_ksh_319)
+        }
       }
     )
 

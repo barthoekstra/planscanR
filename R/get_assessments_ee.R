@@ -11,7 +11,7 @@
 #'
 #' Both registers are merged into a single result tibble; an
 #' `assessment_type` column (`"EIA"` for KMH, `"SEA"` for KSH) tags each row
-#' and is round-tripped to the sidecar so downstream tooling can tell them
+#' and is preserved in the offline metadata cache so downstream tooling can tell them
 #' apart without re-fetching anything. `document_id` is prefixed with
 #' `"KMH-"` / `"KSH-"` (e.g. `"KMH-478"`, `"KSH-319"`) so the two registers
 #' never collide on disk.
@@ -160,73 +160,64 @@ get_assessments_ee <- function(
     SEA = "KSH"
   )
 
-  index <- list()
-  for (reg in registers) {
-    block <- tryCatch(
-      ee_fetch_search(
-        register = reg,
-        query = query,
-        proceeding_status = proceeding_status,
-        activity_area = activity_area,
-        activity = activity,
-        limit = limit
-      ),
-      error = function(e) {
-        warn_partial(
-          "Failed to enumerate KOTKAS {.val {reg}} index: {conditionMessage(e)}"
-        )
-        list()
-      }
-    )
-    index <- c(index, block)
-  }
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling EE  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first detail fetch, client-side date filter,
+  # relevance scoring, optional download, and the sidecar write. Returns the
+  # 1-row record or NULL to drop the entry. Shared across both registers'
+  # streams and called once per listing row by stream_crawl().
+  process_entry <- function(entry) {
     u <- ee_canonical_url(entry$register, entry$id)
     rec <- tryCatch(
       ee_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!ee_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- ee_finalise_record(
+    ee_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
+  }
+
+  # Stream each register page-by-page, persisting records as they are parsed
+  # instead of enumerating the whole register first. `limit` is global across
+  # both registers, so a full KMH crawl can consume all of it before KSH.
+  records <- list()
+  for (reg in registers) {
+    remaining <- if (is.finite(limit)) limit - length(records) else Inf
+    if (remaining <= 0L) {
+      break
+    }
+    gen <- tryCatch(
+      ee_fetch_search(
+        register = reg,
+        query = query,
+        proceeding_status = proceeding_status,
+        activity_area = activity_area,
+        activity = activity
+      ),
+      error = function(e) {
+        warn_partial(
+          "Failed to enumerate KOTKAS {.val {reg}} index: {conditionMessage(e)}"
+        )
+        function() NULL
+      }
+    )
+    block <- stream_crawl(gen, process_entry, limit = remaining, label = "ee")
+    records <- c(records, block)
   }
 
   if (length(records) == 0L) {
@@ -316,29 +307,39 @@ ee_normalise_status <- function(x) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Paginate one register's index and return a list of search-row entries.
+#' Build a page generator for one register's index.
+#'
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
+#' call fetches the next index page (advancing the `qs=` offset) and returns its
+#' search-row entries, or `NULL` once the register is exhausted. Pagination
+#' state (offset) lives in the closure, so the streaming driver pulls only as
+#' many pages as the limit needs and records are persisted page-by-page.
 #'
 #' Each entry is a small named list:
 #' `list(register = "KMH"|"KSH", id = "<n>", title = ..., region = ...,
 #'  initiation_date = <Date>, initiation_reason = ..., status = ...,
 #'  developer = ...)`. The detail-page parser is sidecar-first, so this is
-#' deliberately the minimum needed to build the canonical URL and decide
-#' whether to keep going (limit / pre-filter).
+#' deliberately the minimum needed to build the canonical URL.
+#'
+#' The generator ends when a page returns no HTML, no rows, or a short page
+#' (fewer than `ee_page_size()` rows — the server's last page).
 #' @noRd
 ee_fetch_search <- function(
   register,
   query = NULL,
   proceeding_status = NULL,
   activity_area = NULL,
-  activity = NULL,
-  limit = Inf
+  activity = NULL
 ) {
-  out <- list()
   offset <- 0L
   size <- ee_page_size()
   index_path <- if (register == "KMH") "kmh/kmh_index" else "kmh/ksh_index"
   tab <- register
-  repeat {
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     req <- req_planscanr(ee_portal_base())
     req <- httr2::req_url_path_append(req, index_path)
     req <- httr2::req_url_query(
@@ -362,25 +363,22 @@ ee_fetch_search <- function(
     }
     html <- tryCatch(perform_html(req), error = function(e) NULL)
     if (is.null(html)) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     rows <- ee_parse_index_rows(html, register)
     if (length(rows) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
-    out <- c(out, rows)
-    # Soft stop: stop paginating once we've enumerated at least `limit * 5` raw
-    # rows. Filters / sidecar misses may still drop rows, so we overshoot a bit.
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 5L) {
-      break
-    }
-    # Server short-page → we've reached the end.
+    # Server short-page → we've reached the end after serving these rows.
     if (length(rows) < size) {
-      break
+      done <<- TRUE
+    } else {
+      offset <<- offset + size
     }
-    offset <- offset + size
+    rows
   }
-  out
 }
 
 #' Parse the rows of one index page.
@@ -400,7 +398,7 @@ ee_parse_index_rows <- function(html, register) {
     }
     title <- ee_text(rvest::html_text2(a))
     region_cell <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Piirkond']")))
-    init_date <- ee_parse_dmy(ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise kpv']"))))
+    init_date <- parse_dmy(ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise kpv']"))))
     init_reason <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Algatamise p\u00f5hjus']")))
     status_cell <- ee_text(rvest::html_text2(rvest::html_element(tr, "td[data-label='Menetluse seis']")))
     # KMH uses "Arendaja" (developer); KSH uses "Korraldaja" (organiser).
@@ -499,7 +497,7 @@ ee_parse_detail <- function(url, entry, html) {
   activity_sector <- ee_label_value(html, "activity") %||% entry$activity %||% NA_character_
   region <- ee_label_value(html, "activity_area") %||% entry$region %||% NA_character_
   kov <- ee_label_value(html, "kov_ehaks")
-  init_date <- ee_parse_dmy(ee_label_value(html, "initiation_date")) %||% entry$initiation_date
+  init_date <- parse_dmy(ee_label_value(html, "initiation_date")) %||% entry$initiation_date
   if (length(init_date) == 0L || is.null(init_date)) {
     init_date <- as.Date(NA)
   }
@@ -564,7 +562,7 @@ ee_parse_detail <- function(url, entry, html) {
     initiation_activity = init_activity %||% NA_character_,
     municipality = kov %||% NA_character_,
     activity_sector = activity_sector %||% NA_character_,
-    ksh_type = ksh_type %||% NA_character_,
+    assessment_subtype = ksh_type %||% NA_character_,
     decider = decider %||% NA_character_,
     developer = developer %||% NA_character_,
     initiator = initiator %||% NA_character_,
@@ -686,10 +684,7 @@ ee_section_slug <- function(liik) {
   s <- gsub("\u00fc", "u", s)
   s <- gsub("\u0161", "s", s)
   s <- gsub("\u017e", "z", s)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Pull the inline GeoJSON geometry from the hidden form input.
@@ -885,21 +880,4 @@ ee_join_labels <- function(labels) {
     return(NA_character_)
   }
   paste(unique(labels), collapse = " | ")
-}
-
-#' Parse a Estonian DD.MM.YYYY date string into a Date.
-#' @noRd
-ee_parse_dmy <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  # The portal uses DD.MM.YYYY consistently; the value cell can wrap text so
-  # take only the first 10 characters.
-  s <- substr(trimws(s), 1L, 10L)
-  d <- suppressWarnings(as.Date(s, format = "%d.%m.%Y"))
-  if (length(d) == 0L) as.Date(NA) else d
 }

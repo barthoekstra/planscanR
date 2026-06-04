@@ -69,11 +69,17 @@ slugify_filename <- function(url, country, document_id, max_chars = 200L) {
     x
   }
   country <- clean(country)
-  if (!nzchar(country)) country <- "x"
+  if (!nzchar(country)) {
+    country <- "x"
+  }
   document_id <- clean(document_id)
-  if (!nzchar(document_id)) document_id <- "x"
+  if (!nzchar(document_id)) {
+    document_id <- "x"
+  }
   stem <- clean(url_stem)
-  if (!nzchar(stem)) stem <- "attachment"
+  if (!nzchar(stem)) {
+    stem <- "attachment"
+  }
   ext <- clean(url_ext)
 
   if (!nzchar(ext)) {
@@ -91,8 +97,15 @@ slugify_filename <- function(url, country, document_id, max_chars = 200L) {
     keep <- max_chars - nchar(country) - nchar(document_id) - nchar(ext) - 12L
     keep <- max(8L, keep)
     base <- paste0(
-      country, "_", document_id, "_",
-      substr(stem, 1L, keep), "-", short_hash, ".", ext
+      country,
+      "_",
+      document_id,
+      "_",
+      substr(stem, 1L, keep),
+      "-",
+      short_hash,
+      ".",
+      ext
     )
   }
   base
@@ -151,12 +164,12 @@ resolve_cached_path_internal <- function(dest) {
 #' file with its placeholder `.x` extension rather than guessing.
 #' @noRd
 content_type_to_ext <- function(content_type) {
-  if (is.null(content_type) || length(content_type) != 1L ||
-      is.na(content_type) || !nzchar(content_type)) {
+  if (is.null(content_type) || length(content_type) != 1L || is.na(content_type) || !nzchar(content_type)) {
     return(NA_character_)
   }
   mime <- tolower(trimws(sub(";.*$", "", content_type)))
-  switch(mime,
+  switch(
+    mime,
     "application/pdf" = "pdf",
     "application/zip" = "zip",
     "application/x-zip-compressed" = "zip",
@@ -200,12 +213,24 @@ sniff_magic_ext <- function(path) {
   on.exit(close(con), add = TRUE)
   b <- readBin(con, what = "raw", n = 8L)
   eq <- function(prefix) length(b) >= length(prefix) && all(b[seq_along(prefix)] == as.raw(prefix))
-  if (eq(c(0x25, 0x50, 0x44, 0x46))) return("pdf")          # %PDF
-  if (eq(c(0x50, 0x4B, 0x03, 0x04))) return("zip")          # PK..  (also docx/xlsx/pptx containers)
-  if (eq(c(0xFF, 0xD8, 0xFF))) return("jpg")
-  if (eq(c(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))) return("png")
-  if (eq(c(0x47, 0x49, 0x46, 0x38))) return("gif")
-  if (eq(c(0x49, 0x49, 0x2A, 0x00)) || eq(c(0x4D, 0x4D, 0x00, 0x2A))) return("tif")
+  if (eq(c(0x25, 0x50, 0x44, 0x46))) {
+    return("pdf")
+  } # %PDF
+  if (eq(c(0x50, 0x4B, 0x03, 0x04))) {
+    return("zip")
+  } # PK..  (also docx/xlsx/pptx containers)
+  if (eq(c(0xFF, 0xD8, 0xFF))) {
+    return("jpg")
+  }
+  if (eq(c(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))) {
+    return("png")
+  }
+  if (eq(c(0x47, 0x49, 0x46, 0x38))) {
+    return("gif")
+  }
+  if (eq(c(0x49, 0x49, 0x2A, 0x00)) || eq(c(0x4D, 0x4D, 0x00, 0x2A))) {
+    return("tif")
+  }
   NA_character_
 }
 
@@ -500,8 +525,11 @@ clear_cache <- function(cache_dir = NULL, country = NULL, confirm = TRUE) {
   }
 
   # Sanity guard: every target must resolve under the cache root.
-  abs_targets <- normalizePath(targets, mustWork = TRUE)
-  root_real <- normalizePath(root, mustWork = TRUE)
+  # winslash = "/" so the prefix check below works on Windows, where
+  # normalizePath() otherwise returns backslash paths that never match the
+  # forward-slash-appended root.
+  abs_targets <- normalizePath(targets, winslash = "/", mustWork = TRUE)
+  root_real <- normalizePath(root, winslash = "/", mustWork = TRUE)
   if (!all(startsWith(paste0(abs_targets, "/"), paste0(root_real, "/")))) {
     cli::cli_abort(
       "Refusing to clear paths outside the cache root {.file {root_real}}.",

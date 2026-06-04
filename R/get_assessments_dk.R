@@ -108,55 +108,32 @@ get_assessments_dk <- function(
     stats::setNames(character(0), character(0))
   }
 
-  index <- tryCatch(
-    dk_fetch_search(assessment_type = assessment_type, free_text = query),
-    error = function(e) {
-      warn_partial("Failed to fetch EA-Hub search index: {conditionMessage(e)}")
-      list()
-    }
-  )
-
-  # Cheap pre-filter: drop entries whose year span cannot overlap the
-  # window before paying for any geometry call.
-  if (!is.null(date_range)) {
-    index <- Filter(
-      function(e) dk_year_in_range(e$fromYear, e$toYear, date_range),
-      index
-    )
-  }
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling DK  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
+  # Per-entry processing: cheap year pre-filter, sidecar-first detail/geometry
+  # build, client-side date filter, relevance scoring, optional download, and
+  # the sidecar write. Returns the 1-row record or NULL to drop the entry.
+  # Called once per listing row by stream_crawl().
+  process_entry <- function(entry) {
+    # Cheap pre-filter: drop entries whose year span cannot overlap the
+    # window before paying for any geometry call.
+    if (
+      !is.null(date_range) &&
+        !dk_year_in_range(entry$fromYear, entry$toYear, date_range)
+    ) {
+      return(NULL)
     }
     u <- dk_canonical_url(entry$id)
     rec <- tryCatch(
       dk_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!dk_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
@@ -167,16 +144,26 @@ get_assessments_dk <- function(
     if (should_download) {
       rec <- dk_attach_documents(rec, entry$id)
     }
-    rec <- dk_finalise_record(
+    dk_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
   }
+
+  # EA-Hub returns the whole register in one POST, so the generator yields that
+  # single block then signals exhaustion; stream_crawl persists records as they
+  # are parsed instead of materialising the full index up front.
+  gen <- tryCatch(
+    dk_fetch_search(assessment_type = assessment_type, free_text = query),
+    error = function(e) {
+      warn_partial("Failed to fetch EA-Hub search index: {conditionMessage(e)}")
+      function() NULL
+    }
+  )
+  records <- stream_crawl(gen, process_entry, limit = limit, label = "dk")
 
   if (length(records) == 0L) {
     return(empty_result_tibble())
@@ -230,11 +217,15 @@ dk_normalise_assessment_type <- function(x) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Fetch the EA-Hub search index in one POST call.
+#' Build a page generator over the EA-Hub search index.
 #'
-#' Returns a list of search-result rows; each carries everything the scan
-#' phase needs (title, year range, status, authorities, annex categories,
-#' hasGeometry). No pagination — the API returns the full filtered set.
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract).
+#' EA-Hub has no pagination: one `POST /assessments/search` returns the entire
+#' filtered register, so the closure performs that single POST on its first call
+#' and yields the full list of search-result rows, then returns `NULL` on every
+#' subsequent call to signal the register is exhausted. Each row carries
+#' everything the scan phase needs (title, year range, status, authorities,
+#' annex categories, hasGeometry).
 #' @noRd
 dk_fetch_search <- function(assessment_type = "All", free_text = NULL) {
   body <- list(
@@ -244,14 +235,21 @@ dk_fetch_search <- function(assessment_type = "All", free_text = NULL) {
   if (!is.null(free_text) && nzchar(free_text)) {
     body$freeText <- as.character(free_text)
   }
-  req <- req_planscanr(dk_api_base())
-  req <- httr2::req_url_path_append(req, "assessments", "search")
-  req <- httr2::req_body_json(req, body)
-  payload <- perform_json(req)
-  if (!is.list(payload)) {
-    return(list())
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
+    done <<- TRUE
+    req <- req_planscanr(dk_api_base())
+    req <- httr2::req_url_path_append(req, "assessments", "search")
+    req <- httr2::req_body_json(req, body)
+    payload <- perform_json(req)
+    if (!is.list(payload)) {
+      return(NULL)
+    }
+    payload
   }
-  payload
 }
 
 # -----------------------------------------------------------------------------
@@ -321,7 +319,7 @@ dk_parse_entry <- function(url, entry) {
   to_year <- dk_int(entry$toYear)
   year_val <- if (is.na(from_year)) to_year else from_year
 
-  date_published <- dk_parse_iso_date(entry$created)
+  date_published <- parse_iso_date(entry$created)
 
   tibble::tibble(
     country = "dk",
@@ -614,7 +612,7 @@ dk_resolve_document_link <- function(assessment_id, document_id) {
 #'
 #' Lowercases, transliterates Danish diacritics (æ→ae, ø→oe, å→aa), and
 #' collapses non-alphanumerics to underscores. Empty input gets `"document"`.
-#' Mirrors [ee_section_slug()] / [be_section_slug()].
+#' Mirrors ee_section_slug() / be_section_slug().
 #' @noRd
 dk_section_slug <- function(label) {
   if (is.null(label) || !is.character(label) || length(label) != 1L || is.na(label) || !nzchar(label)) {
@@ -629,10 +627,7 @@ dk_section_slug <- function(label) {
   s <- gsub("\u00e4", "a", s)
   s <- gsub("\u00f6", "o", s)
   s <- gsub("\u00fc", "u", s)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Collect a record's attachments as a per-section list of view URLs.
@@ -698,7 +693,7 @@ dk_attach_documents <- function(rec, assessment_id) {
 #' Finalise a parsed DK record: run downloads (if requested) and write sidecar.
 #'
 #' When `download` is TRUE, fetches every URL in the record's attachment columns
-#' via [download_attachments()] and threads the resulting local paths back into
+#' via download_attachments() and threads the resulting local paths back into
 #' the per-section `local_path_<slug>` columns; otherwise records the URLs as
 #' `pending`. Always writes the sidecar when `write_sidecar` is TRUE.
 #' @noRd
@@ -874,18 +869,4 @@ dk_paste_labels <- function(labels) {
     return(NA_character_)
   }
   paste(unique(labels), collapse = "; ")
-}
-
-#' Parse an ISO-8601 created/lastUpdated timestamp into a Date.
-#' @noRd
-dk_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

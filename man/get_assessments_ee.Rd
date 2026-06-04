@@ -60,7 +60,7 @@ publishes two adjacent public registers:
 
 Both registers are merged into a single result tibble; an
 \code{assessment_type} column (\code{"EIA"} for KMH, \code{"SEA"} for KSH) tags each row
-and is round-tripped to the sidecar so downstream tooling can tell them
+and is preserved in the offline metadata cache so downstream tooling can tell them
 apart without re-fetching anything. \code{document_id} is prefixed with
 \code{"KMH-"} / \code{"KSH-"} (e.g. \code{"KMH-478"}, \code{"KSH-319"}) so the two registers
 never collide on disk.

@@ -16,3 +16,11 @@ A single tibble.
 Wraps \code{dplyr::bind_rows()}, which already pads missing columns with \code{NA}.
 Validates the result schema before returning.
 }
+\examples{
+a <- tibble::tibble(
+  country = "nl", source_portal = "x", document_id = "1", url = "https://x/1",
+  retrieved_at = as.POSIXct("2024-01-01", tz = "UTC"),
+  attachment_urls = list(character()), local_path = list(character())
+)
+bind_results(a, a)
+}

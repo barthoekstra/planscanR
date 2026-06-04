@@ -45,6 +45,11 @@
 #' @return The input tibble with `attachment_urls` and `local_path`
 #'   augmented for records that got new validated PDFs, plus a
 #'   `discovery_log` list-column with one entry per (record, query) attempt.
+#' @examples
+#' \dontrun{
+#' recs <- get_assessments("nl", limit = 3, download = FALSE)
+#' discover_attachments(recs)
+#' }
 #' @export
 #' @seealso [search_backend_tavily()], [discover_validate()],
 #'   [at_discovery_config()].

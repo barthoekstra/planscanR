@@ -138,70 +138,57 @@ get_assessments_be <- function(
     stats::setNames(character(0), character(0))
   }
 
-  index <- tryCatch(
-    be_fetch_search(nummer = nummer, niscode = niscode, limit = limit),
-    error = function(e) {
-      warn_partial("Failed to enumerate MER-register: {conditionMessage(e)}")
-      list()
-    }
-  )
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling BE  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: cheap pre-filters, sidecar-first detail fetch,
+  # client-side date filter, relevance scoring, optional download, and the
+  # sidecar write. Returns the 1-row record or NULL to drop the entry. Called
+  # once per listing row by stream_crawl().
+  process_entry <- function(entry) {
     # Cheap pre-filters: skip records we know we don't want before the
     # detail-page fetch. `query` matches the search-result title + nummer;
     # `dossier_type` is on the search-result row directly.
     if (!is.null(dossier_type) && !identical(entry$dossierType, dossier_type)) {
-      next
+      return(NULL)
     }
     if (!is.null(query) && !be_text_match(query, entry$titel, entry$nummer)) {
-      next
+      return(NULL)
     }
     u <- be_canonical_url(entry$nummer)
     rec <- tryCatch(
       be_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!be_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- be_finalise_record(
+    be_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
   }
+
+  # Stream the register page-by-page, persisting records as they are parsed
+  # instead of enumerating the whole register first.
+  gen <- tryCatch(
+    be_fetch_search(nummer = nummer, niscode = niscode),
+    error = function(e) {
+      warn_partial("Failed to enumerate MER-register: {conditionMessage(e)}")
+      function() NULL
+    }
+  )
+  records <- stream_crawl(gen, process_entry, limit = limit, label = "be")
 
   if (length(records) == 0L) {
     return(empty_result_tibble())
@@ -270,19 +257,30 @@ be_normalise_dossier_type <- function(x) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Paginate `GET /api/v1/dossier` and return the full list of search rows.
+#' Build a page generator for the MER-register search index.
+#'
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
+#' call fetches the next 25-row search page (`GET /api/v1/dossier`) and returns
+#' its rows, or `NULL` once the register is exhausted. Pagination state (the
+#' page index and the running row count) lives in the closure, so the streaming
+#' driver pulls only as many pages as the limit needs and records are persisted
+#' page-by-page.
 #'
 #' Each row is the small object shown in the search response:
 #' `{nummer, dossierType, titel, initiatiefnemer:{naam,kboNummer}}`. Pagination
-#' is server-side, capped at 25/page. We early-exit as soon as we have
-#' `limit` rows (the caller may filter some out, so we only treat `limit` as
-#' a soft stop here — `be_record_matches()` could still drop rows).
+#' is server-side, capped at 25/page. The generator ends when the payload is not
+#' a list, a page returns no content, or the running row count reaches
+#' `totalElements`.
 #' @noRd
-be_fetch_search <- function(nummer = NULL, niscode = NULL, limit = Inf) {
-  out <- list()
+be_fetch_search <- function(nummer = NULL, niscode = NULL) {
   page <- 0L
   size <- be_page_size()
-  repeat {
+  seen <- 0L
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     req <- req_planscanr(be_api_base())
     req <- httr2::req_url_path_append(req, "api", "v1", "dossier")
     req <- httr2::req_url_query(req, page = page, size = size)
@@ -292,27 +290,25 @@ be_fetch_search <- function(nummer = NULL, niscode = NULL, limit = Inf) {
     if (!is.null(niscode) && nzchar(niscode)) {
       req <- httr2::req_url_query(req, niscode = as.character(niscode))
     }
+    page <<- page + 1L
     payload <- perform_json(req)
     if (!is.list(payload)) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     content <- payload$content %||% list()
     if (length(content) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
-    out <- c(out, content)
-    total <- as.integer(payload$totalElements %||% length(out))
-    if (length(out) >= total) {
-      break
+    seen <<- seen + length(content)
+    total <- as.integer(payload$totalElements %||% seen)
+    if (seen >= total) {
+      # All rows seen -> end of register after this page.
+      done <<- TRUE
     }
-    # Soft stop: stop paginating once we've enumerated at least `limit` raw
-    # rows. The caller may still filter the list, so this is only a ceiling.
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 5L) {
-      break
-    }
-    page <- page + 1L
+    content
   }
-  out
 }
 
 # -----------------------------------------------------------------------------
@@ -431,9 +427,8 @@ be_parse_detail <- function(url, entry, detail) {
     date_decision = as.Date(NA),
     native_type = native_type,
     jurisdiction = jurisdiction,
-    dossier_type = dossier_type,
     coordinator = coordinator %||% NA_character_,
-    coordinator_studiebureau = studiebureau %||% NA_character_,
+    coordinator_firm = studiebureau %||% NA_character_,
     expertise_domains = if (length(domeinen) == 0L) {
       NA_character_
     } else {
@@ -494,10 +489,7 @@ be_section_slug <- function(type) {
   s <- gsub("\u00f4|\u00f6", "o", s)
   s <- gsub("\u00fb|\u00fc", "u", s)
   s <- gsub("\u00e7", "c", s)
-  s <- tolower(s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Earliest `aanmaakdatum` / `ontvangstdatum` across a record's documents.
@@ -514,8 +506,8 @@ be_record_earliest_date <- function(documenten) {
   dates <- unlist(
     lapply(documenten, function(d) {
       candidates <- c(
-        be_parse_iso_date(d$ontvangstdatum),
-        be_parse_iso_date(d$aanmaakdatum)
+        parse_iso_date(d$ontvangstdatum),
+        parse_iso_date(d$aanmaakdatum)
       )
       candidates[!is.na(candidates)]
     }),
@@ -524,7 +516,9 @@ be_record_earliest_date <- function(documenten) {
   if (length(dates) == 0L) {
     return(as.Date(NA))
   }
-  min(as.Date(dates))
+  # `unlist()` above drops the Date class, so `dates` is the numeric day-count;
+  # supply origin so as.Date() works on R <= 4.2 (4.3+ defaults it).
+  min(as.Date(dates, origin = "1970-01-01"))
 }
 
 #' First document creation timestamp, ISO-8601 — for the geometry sidecar.
@@ -725,18 +719,4 @@ be_collect_chr <- function(items, field) {
   )
   out <- trimws(out[!is.na(out)])
   out[nzchar(out)]
-}
-
-#' Parse an ISO-8601 timestamp / date string into a Date.
-#' @noRd
-be_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

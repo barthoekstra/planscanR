@@ -58,3 +58,6 @@ tests/manual/
 .vscode/
 # Local Claude Code state
 .claude/
+# Claude Code harness scaffolding (planning + progress artefacts)
+Plans.md
+out/

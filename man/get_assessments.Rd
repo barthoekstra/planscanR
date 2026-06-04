@@ -131,6 +131,12 @@ implemented by every handler that supports them (e.g. \code{theme},
 handler's documentation (e.g. \code{\link[=get_assessments_nl]{get_assessments_nl()}}) for the exact
 parameter surface and the vocabulary of valid values.
 }
+\examples{
+\dontrun{
+# Fetch a small slice from the Netherlands (no PDFs downloaded yet).
+get_assessments("nl", limit = 5, download = FALSE)
+}
+}
 \seealso{
 \code{\link[=get_assessments_coverage]{get_assessments_coverage()}}, \code{\link[=get_assessments_nl]{get_assessments_nl()}},
 \code{\link[=supported_countries]{supported_countries()}}.

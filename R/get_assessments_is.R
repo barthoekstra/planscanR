@@ -26,7 +26,7 @@
 #' * `501` — *Umhverfismat áætlana* (SEA), tagged `assessment_type = "SEA"`.
 #'
 #' The three are merged into one result tibble. `assessment_type`
-#' (`"EIA"`/`"SEA"`) tags each row and round-trips to the sidecar; the finer
+#' (`"EIA"`/`"SEA"`) tags each row and is preserved in the offline metadata cache; the finer
 #' distinction is kept in `process_type` / `native_type`. Because the three
 #' processes share the same `Issue.id` space, `document_id` is prefixed with
 #' the process id (`IS-15-<id>`, `IS-16-<id>`, `IS-501-<id>`) so they never
@@ -153,71 +153,63 @@ get_assessments_is <- function(
 
   process_ids <- is_processes_for(assessment_type)
 
-  index <- list()
-  for (pid in process_ids) {
-    block <- tryCatch(
-      is_fetch_listing(
-        process_id = pid,
-        query = query,
-        date_range = date_range,
-        limit = limit
-      ),
-      error = function(e) {
-        warn_partial(
-          "Failed to enumerate Skipulagsg\u00e1tt process {.val {pid}}: {conditionMessage(e)}"
-        )
-        list()
-      }
-    )
-    index <- c(index, block)
-  }
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling IS  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first detail fetch, client-side date filter,
+  # relevance scoring, optional download, and the sidecar write. Returns the
+  # 1-row record or NULL to drop the entry. Shared across every process's stream
+  # and called once per listing entry by stream_crawl().
+  process_entry <- function(entry) {
     u <- is_canonical_url(entry$id)
     rec <- tryCatch(
       is_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!is_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- is_finalise_record(
+    is_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
+  }
+
+  # Stream each process's cursor connection page-by-page, persisting records as
+  # they are parsed instead of enumerating every process first. `limit` is
+  # global across processes, so a full process-15 crawl can consume all of it
+  # before 16 / 501.
+  records <- list()
+  for (pid in process_ids) {
+    remaining <- if (is.finite(limit)) limit - length(records) else Inf
+    if (remaining <= 0L) {
+      break
+    }
+    gen <- tryCatch(
+      is_fetch_listing(
+        process_id = pid,
+        query = query,
+        date_range = date_range
+      ),
+      error = function(e) {
+        warn_partial(
+          "Failed to enumerate Skipulagsg\u00e1tt process {.val {pid}}: {conditionMessage(e)}"
+        )
+        function() NULL
+      }
+    )
+    block <- stream_crawl(gen, process_entry, limit = remaining, label = "is")
+    records <- c(records, block)
   }
 
   if (length(records) == 0L) {
@@ -351,18 +343,31 @@ is_listing_query <- function() {
   )
 }
 
-#' Cursor-paginate one process's issueConnection and return a list of entries.
+#' Build a page generator for one process's issueConnection.
 #'
-#' Each entry is a small named list carrying the process id (so we can build
-#' the prefixed `document_id` and the `assessment_type` tag) plus the listing
-#' node fields. The detail parser is sidecar-first, so this is the minimum
-#' needed to build the canonical URL and decide whether to keep going.
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
+#' call fetches the next cursor page and returns its listing entries, or `NULL`
+#' once the connection is exhausted. Cursor pagination state (`after` cursor +
+#' a done flag) lives in the closure, so the streaming driver pulls only as many
+#' pages as the limit needs and records are persisted page-by-page.
+#'
+#' Each entry is a small named list carrying the process id (so we can build the
+#' prefixed `document_id` and the `assessment_type` tag) plus the listing node
+#' fields. The detail parser is sidecar-first, so this is the minimum needed to
+#' build the canonical URL.
+#'
+#' Termination preserves the original logic: stop when the connection is null,
+#' a page has no edges, `pageInfo.hasNextPage` is false, or there is no
+#' `endCursor` to follow.
 #' @noRd
-is_fetch_listing <- function(process_id, query = NULL, date_range = NULL, limit = Inf) {
-  out <- list()
+is_fetch_listing <- function(process_id, query = NULL, date_range = NULL) {
   after <- NULL
   size <- is_page_size()
-  repeat {
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     input <- list(processId = process_id)
     if (!is.null(query) && nzchar(query)) {
       input$search <- as.character(query)
@@ -378,12 +383,15 @@ is_fetch_listing <- function(process_id, query = NULL, date_range = NULL, limit 
     payload <- is_graphql(is_listing_query(), variables)
     conn <- (((payload %||% list())$data %||% list())$issueConnection) %||% NULL
     if (is.null(conn)) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     edges <- conn$edges %||% list()
     if (length(edges) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
+    out <- list()
     for (edge in edges) {
       node <- edge$node %||% NULL
       if (is.null(node) || is.null(node$id)) {
@@ -402,22 +410,16 @@ is_fetch_listing <- function(process_id, query = NULL, date_range = NULL, limit 
         current_phase = is_text((node$currentPhase %||% list())$name)
       )
     }
-    # Soft stop: stop paginating once we've enumerated comfortably more than
-    # `limit` raw rows (filters / sidecar misses may still drop rows).
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 2L + size) {
-      break
-    }
+    # Decide whether a further page exists before handing this one back.
     page_info <- conn$pageInfo %||% list()
-    if (!isTRUE(page_info$hasNextPage)) {
-      break
-    }
     next_cursor <- is_text(page_info$endCursor)
-    if (is.null(next_cursor)) {
-      break
+    if (!isTRUE(page_info$hasNextPage) || is.null(next_cursor)) {
+      done <<- TRUE
+    } else {
+      after <<- next_cursor
     }
-    after <- next_cursor
+    out
   }
-  out
 }
 
 # -----------------------------------------------------------------------------
@@ -510,8 +512,8 @@ is_parse_issue <- function(url, entry, issue) {
   process_type <- is_text((issue$process %||% list())$type) %||% entry$process_type
   native_type <- process_title %||% process_type %||% NA_character_
 
-  date_published <- is_parse_iso_date(issue$publishedDate %||% entry$published_date)
-  date_decision <- is_parse_iso_date(issue$closedDate %||% entry$closed_date)
+  date_published <- parse_iso_date(issue$publishedDate %||% entry$published_date)
+  date_decision <- parse_iso_date(issue$closedDate %||% entry$closed_date)
 
   jurisdiction <- is_jurisdiction(issue$communities, issue$postalCodes)
 
@@ -636,9 +638,7 @@ is_section_slug <- function(type) {
   s <- gsub("\u00fe", "th", s)
   s <- gsub("\u00e6", "ae", s)
   s <- gsub("\u00f6", "o", s)
-  s <- gsub("[^a-z0-9]+", "_", s)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(s, "document")
 }
 
 #' Pull a GeoJSON geometry from the `geographies` FeatureCollection.
@@ -822,18 +822,4 @@ is_text <- function(x) {
   }
   s <- trimws(as.character(x))
   if (!nzchar(s)) NULL else s
-}
-
-#' Parse an ISO-8601 timestamp (e.g. "2023-06-01T09:31:55.254Z") into a Date.
-#' @noRd
-is_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

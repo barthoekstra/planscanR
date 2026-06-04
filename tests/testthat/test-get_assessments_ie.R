@@ -78,7 +78,7 @@ test_that("ie_parse_feature extracts every conventional column (feature with geo
   expect_true(is.na(rec$date_decision))
   # Country-specific extras.
   expect_identical(rec$portal_ref, "2024092")
-  expect_identical(rec$objectid_1, "5427")
+  expect_identical(rec$esri_object_id, "5427")
   expect_identical(rec$linear_development, "Yes")
   expect_match(rec$url_link_application, "pleanala\\.ie")
   expect_match(rec$url_link_secondary, "gov\\.ie")
@@ -111,7 +111,7 @@ test_that("ie_parse_feature handles a feature without geometry and without an at
   rec <- planscanR:::ie_parse_feature(url, .ie_feat_nogeo, .ie_attach_index)
 
   expect_identical(rec$document_id, "2023500")
-  expect_identical(rec$objectid_1, "9001")
+  expect_identical(rec$esri_object_id, "9001")
   # No geometry present.
   expect_null(planscanR:::ie_geometry_of(.ie_feat_nogeo))
   expect_true(is.na(rec$geometry_path))
@@ -282,7 +282,7 @@ test_that("IE -> sidecar round-trip preserves country-specific extras + geometry
     expect_identical(idx$document_id, "2024092")
 
     # Country-specific extras survive the round-trip.
-    expect_identical(idx$objectid_1, "5427")
+    expect_identical(idx$esri_object_id, "5427")
     expect_identical(idx$linear_development, "Yes")
     expect_match(idx$url_link_application, "pleanala\\.ie")
     # Geometry sidecar.

@@ -1,5 +1,10 @@
 # planscanR
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/barthoekstra/planscanR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/barthoekstra/planscanR/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/barthoekstra/planscanR/graph/badge.svg)](https://app.codecov.io/gh/barthoekstra/planscanR)
+<!-- badges: end -->
+
 `planscanR` collects environmental-assessment records — Environmental Impact
 Assessments (EIA), Strategic Environmental Assessments (SEA), and related
 advice — from European government portals, and gives you one consistent table
@@ -49,6 +54,16 @@ Supported portals:
 
 See `vignette("supported_sources")` for per-portal details: how each portal
 is accessed, what filters are honoured, and what data comes back.
+
+## Terminology
+
+* **Record** — one result row (a single environmental-assessment case).
+* **Assessment** — the case type: an EIA, an SEA, or related advice.
+* **Document** / **attachment** — a file belonging to a record (the assessment
+  PDF, the decision, …).
+* **Offline metadata cache** — the on-disk store of fetched record metadata,
+  read back with `index_cache()`; each record's metadata is one JSON file (a
+  *sidecar*).
 
 ## A word of caution
 
@@ -101,9 +116,12 @@ records <- get_assessments("nl", limit = 20, download = FALSE)
 
 ### Scoring (optional)
 
-With **planscanR.screen** installed, pass a `topic` to score each record as it
-is fetched, and use `relevance_threshold` to gate which records' PDFs are
-downloaded:
+Scoring is **not** part of planscanR itself — it lives in the companion package
+**[planscanR.screen](https://github.com/barthoekstra/planscanR.screen)**, which
+planscanR calls only when you opt in. With it installed, pass a `topic` to
+`get_assessments()` to score each record as it is fetched, and use
+`relevance_threshold` to gate which records' PDFs are downloaded (it gates
+downloads only — every record still comes back):
 
 ```r
 records <- get_assessments(

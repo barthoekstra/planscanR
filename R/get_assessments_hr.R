@@ -10,7 +10,7 @@
 #'
 #' Two "registers" are merged into a single result tibble; an
 #' `assessment_type` column (`"EIA"` for PUO, `"SEA"` for SPUO) tags each row
-#' and is round-tripped to the sidecar so downstream tooling can tell them
+#' and is preserved in the offline metadata cache so downstream tooling can tell them
 #' apart without re-fetching anything. `document_id` is prefixed with
 #' `"HR-PUO-"` / `"HR-SPUO-"` so the two registers never collide on disk.
 #'
@@ -137,42 +137,15 @@ get_assessments_hr <- function(
     SEA = "SPUO"
   )
 
-  # Light enumeration: one HTML fetch per master page, then a per-block light
-  # parse that yields (document_id, url, title, assessment_type, block-node).
-  index <- list()
-  for (reg in registers) {
-    block <- tryCatch(
-      hr_enumerate_register(reg),
-      error = function(e) {
-        warn_partial(
-          "Failed to enumerate mzozt.gov.hr {.val {reg}} pages: {conditionMessage(e)}"
-        )
-        list()
-      }
-    )
-    index <- c(index, block)
-  }
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling HR  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: cheap title filter, sidecar-first block parse,
+  # client-side date filter, relevance scoring, optional download, and the
+  # sidecar write. Returns the 1-row record or NULL to drop the entry. Shared
+  # across both registers' streams and called once per listing row by
+  # stream_crawl().
+  process_entry <- function(entry) {
     # Cheap client-side title filter before the (potentially cached) full parse.
     if (!hr_title_matches(entry$title, query)) {
-      next
+      return(NULL)
     }
     rec <- tryCatch(
       hr_load_or_fetch(entry, sidecar_index, write_sidecar = write_sidecar),
@@ -184,24 +157,44 @@ get_assessments_hr <- function(
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!hr_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- hr_finalise_record(
+    hr_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
+  }
+
+  # Stream each register page-by-page, persisting records as they are parsed
+  # instead of enumerating the whole register first. `limit` is global across
+  # both registers, so a full PUO crawl can consume all of it before SPUO.
+  records <- list()
+  for (reg in registers) {
+    remaining <- if (is.finite(limit)) limit - length(records) else Inf
+    if (remaining <= 0L) {
+      break
+    }
+    gen <- tryCatch(
+      hr_enumerate_register(reg),
+      error = function(e) {
+        warn_partial(
+          "Failed to enumerate mzozt.gov.hr {.val {reg}} pages: {conditionMessage(e)}"
+        )
+        function() NULL
+      }
+    )
+    block <- stream_crawl(gen, process_entry, limit = remaining, label = "hr")
+    records <- c(records, block)
   }
 
   if (length(records) == 0L) {
@@ -217,10 +210,6 @@ get_assessments_hr <- function(
 #' Source portal identifier used in `source_portal` and sidecar JSON.
 #' @noRd
 hr_source_portal <- function() "mzozt.gov.hr"
-
-#' Public base URL for the portal.
-#' @noRd
-hr_portal_base <- function() "https://mzozt.gov.hr"
 
 #' The PUO (EIA) master archive page URL.
 #' @noRd
@@ -284,7 +273,16 @@ hr_normalise_assessment_type <- function(x) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Fetch a register's master page(s) and return a list of light index entries.
+#' Build a page generator for a register's master page(s).
+#'
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
+#' call fetches the NEXT master page of the register, light-parses its project
+#' `<li><strong>` blocks into index entries, and returns them; `NULL` once every
+#' master page has been consumed. A register's master pages are fixed (PUO has
+#' one, SPUO has two), so the generator walks them in order — yielding one page's
+#' worth of entries per call — and the within-register de-duplication state
+#' (`seen_ids`, for the same plan appearing across the two SPUO pages) lives in
+#' the closure so it persists across pages.
 #'
 #' Each entry is a small named list:
 #' `list(register = "PUO"|"SPUO", document_id = ..., url = ..., title = ...,
@@ -295,37 +293,51 @@ hr_normalise_assessment_type <- function(x) {
 #' @noRd
 hr_enumerate_register <- function(register) {
   urls <- hr_register_urls(register)
-  out <- list()
+  i <- 0L
   seen_ids <- character(0)
-  for (page_url in urls) {
-    html <- tryCatch(hr_fetch_page(page_url), error = function(e) NULL)
-    if (is.null(html)) {
-      next
-    }
-    blocks <- hr_project_blocks(html)
-    for (block in blocks) {
-      title <- hr_block_title(block)
-      if (is.null(title)) {
+  function() {
+    repeat {
+      i <<- i + 1L
+      if (i > length(urls)) {
+        return(NULL)
+      }
+      page_url <- urls[[i]]
+      html <- tryCatch(hr_fetch_page(page_url), error = function(e) NULL)
+      if (is.null(html)) {
         next
       }
-      document_id <- hr_document_id(register, title)
-      # De-duplicate within a register (the same plan can appear twice across
-      # the two SPUO pages); keep the first occurrence.
-      if (document_id %in% seen_ids) {
+      blocks <- hr_project_blocks(html)
+      out <- list()
+      for (block in blocks) {
+        title <- hr_block_title(block)
+        if (is.null(title)) {
+          next
+        }
+        document_id <- hr_document_id(register, title)
+        # De-duplicate within a register (the same plan can appear twice across
+        # the two SPUO pages); keep the first occurrence.
+        if (document_id %in% seen_ids) {
+          next
+        }
+        seen_ids <<- c(seen_ids, document_id)
+        out[[length(out) + 1L]] <- list(
+          register = register,
+          document_id = document_id,
+          url = hr_canonical_url(page_url, document_id),
+          title = title,
+          assessment_type = if (register == "PUO") "EIA" else "SEA",
+          block = block
+        )
+      }
+      # A master page may contribute no new entries (empty page, or all-dupes
+      # across the two SPUO pages). Don't yield an empty list — stream_crawl
+      # treats that as exhaustion — instead advance to the next master page.
+      if (length(out) == 0L) {
         next
       }
-      seen_ids <- c(seen_ids, document_id)
-      out[[length(out) + 1L]] <- list(
-        register = register,
-        document_id = document_id,
-        url = hr_canonical_url(page_url, document_id),
-        title = title,
-        assessment_type = if (register == "PUO") "EIA" else "SEA",
-        block = block
-      )
+      return(out)
     }
   }
-  out
 }
 
 #' Fetch one master page as parsed HTML.
@@ -598,9 +610,7 @@ hr_stage_slug <- function(heading) {
   if (norm %in% names(curated)) {
     return(unname(curated[[norm]]))
   }
-  s <- gsub("[^a-z0-9]+", "_", norm)
-  s <- gsub("(^_+|_+$)", "", s)
-  if (!nzchar(s)) "document" else s
+  ascii_slug(norm, "document")
 }
 
 #' Normalise a heading: strip `&nbsp;`/zero-width, transliterate diacritics,

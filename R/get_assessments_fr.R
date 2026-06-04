@@ -152,65 +152,54 @@ get_assessments_fr <- function(
     date_range = date_range
   )
 
-  index <- tryCatch(
-    fr_fetch_records(where = where),
-    error = function(e) {
-      warn_partial("Failed to enumerate Projets-Environnement: {conditionMessage(e)}")
-      list()
-    }
-  )
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling FR  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (entry in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first parse, client-side date filter,
+  # relevance scoring, optional download, and the sidecar write. Returns the
+  # 1-row record or NULL to drop the entry. Called once per listing row by
+  # stream_crawl().
+  process_entry <- function(entry) {
     id <- fr_records_id(entry)
     if (is.null(id)) {
-      next
+      return(NULL)
     }
     u <- fr_canonical_url(id)
     rec <- tryCatch(
       fr_load_or_fetch(u, entry, sidecar_index, write_sidecar = write_sidecar),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!fr_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- fr_finalise_record(
+    fr_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
   }
+
+  # The whole register comes back in a single export call, so the generator
+  # yields that one page and is then exhausted. Streaming it page-by-page still
+  # means records are persisted as they are parsed (instead of after the full
+  # in-memory pass), with the limit honoured by the driver.
+  gen <- tryCatch(
+    fr_fetch_records(where = where),
+    error = function(e) {
+      warn_partial("Failed to enumerate Projets-Environnement: {conditionMessage(e)}")
+      function() NULL
+    }
+  )
+  records <- stream_crawl(gen, process_entry, limit = limit, label = "fr")
 
   if (length(records) == 0L) {
     return(empty_result_tibble())
@@ -329,30 +318,40 @@ fr_odsql_quote <- function(x) {
 # Index enumeration
 # -----------------------------------------------------------------------------
 
-#' Fetch the (optionally filtered) register in one export call.
+#' Build a page generator for the (optionally filtered) register.
 #'
-#' Uses the OpenDataSoft EXPORT endpoint (`/exports/json?limit=-1`), which has
-#' no offset cap and returns the full filtered result set as a bare JSON array
-#' of record objects. Returns a list of record objects (each a named list of
-#' the dataset's flat fields), or `list()` on failure.
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract). The
+#' OpenDataSoft EXPORT endpoint (`/exports/json?limit=-1`) has no offset cap and
+#' returns the full filtered result set as a bare JSON array in a single call,
+#' so the register is not actually paginated: the generator performs the export
+#' on first call, yields the whole record list once, and returns `NULL` on every
+#' subsequent call (exhausted). Each record is a named list of the dataset's
+#' flat fields. An empty / non-list payload yields nothing.
 #' @noRd
 fr_fetch_records <- function(where = NULL) {
-  req <- req_planscanr(fr_api_base())
-  req <- httr2::req_url_path_append(req, "exports", "json")
-  req <- httr2::req_url_query(req, limit = -1L)
-  if (!is.null(where) && nzchar(where)) {
-    req <- httr2::req_url_query(req, where = where)
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
+    done <<- TRUE
+    req <- req_planscanr(fr_api_base())
+    req <- httr2::req_url_path_append(req, "exports", "json")
+    req <- httr2::req_url_query(req, limit = -1L)
+    if (!is.null(where) && nzchar(where)) {
+      req <- httr2::req_url_query(req, where = where)
+    }
+    payload <- perform_json(req)
+    if (!is.list(payload)) {
+      return(NULL)
+    }
+    # The export endpoint returns a bare array. Some deployments wrap it in a
+    # `results` object (the /records shape); tolerate both.
+    if (!is.null(payload$results) && is.list(payload$results)) {
+      return(payload$results)
+    }
+    payload
   }
-  payload <- perform_json(req)
-  if (!is.list(payload)) {
-    return(list())
-  }
-  # The export endpoint returns a bare array. Some deployments wrap it in a
-  # `results` object (the /records shape); tolerate both.
-  if (!is.null(payload$results) && is.list(payload$results)) {
-    return(payload$results)
-  }
-  payload
 }
 
 # -----------------------------------------------------------------------------
@@ -423,11 +422,11 @@ fr_parse_record <- function(url, entry) {
   competent_authority <- fr_text(entry$diffuseur) %||% NA_character_
   status <- fr_text(entry$vp_status) %||% NA_character_
 
-  date_published <- fr_parse_iso_date(entry$dc_date)
+  date_published <- parse_iso_date(entry$dc_date)
   # Candidate decision dates: préfecture date, then commissaire report date.
-  date_decision <- fr_parse_iso_date(entry$date_de_la_prefecture)
+  date_decision <- parse_iso_date(entry$date_de_la_prefecture)
   if (is.na(date_decision)) {
-    date_decision <- fr_parse_iso_date(entry$dc_date_rapportcommissaire)
+    date_decision <- parse_iso_date(entry$dc_date_rapportcommissaire)
   }
 
   per_section <- fr_collect_attachments(entry)
@@ -450,8 +449,8 @@ fr_parse_record <- function(url, entry) {
     native_type = native_type %||% NA_character_,
     jurisdiction = jurisdiction %||% NA_character_,
     status = status,
-    dc_subject_theme = theme %||% NA_character_,
-    dc_subject_category = category %||% NA_character_,
+    subject_theme = theme %||% NA_character_,
+    subject_category = category %||% NA_character_,
     geometry_path = NA_character_,
     geometry_crs = NA_character_,
     download_status = list(empty_download_status())
@@ -720,18 +719,4 @@ fr_join_present <- function(parts) {
     return(NULL)
   }
   paste(unique(parts), collapse = "; ")
-}
-
-#' Parse an ISO-8601 timestamp / date string into a Date.
-#' @noRd
-fr_parse_iso_date <- function(x) {
-  if (is.null(x) || length(x) != 1L) {
-    return(as.Date(NA))
-  }
-  s <- as.character(x)
-  if (is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  d <- suppressWarnings(as.Date(substr(s, 1L, 10L)))
-  if (length(d) == 0L) as.Date(NA) else d
 }

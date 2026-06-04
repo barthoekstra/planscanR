@@ -13,7 +13,7 @@ A list with the following named elements:
 producing one search query (or NULL to skip).
 \item \code{state_domains} — named list \verb{bundesland -> character vector} of
 authority domains to scope queries to.
-\item \code{aktenzahl_regex} — regex that detects the country's primary
+\item \code{file_number_regex} — regex that detects the country's primary
 identifier in PDF text. For AT it matches the UBA-internal AZ
 \verb{02 NNNN} plus a couple of dash/no-space variants.
 \item \code{extra_signals} — character vector of additional patterns the

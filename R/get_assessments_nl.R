@@ -360,7 +360,7 @@ nl_parse_detail <- function(url) {
 
   competent_authority <- nl_lookup(sidebar, "Bevoegd gezag")
   proponent <- nl_lookup(sidebar, "Initiatiefnemer")
-  date_decision <- nl_parse_dutch_date(nl_lookup(sidebar, "Laatste advies uitgebracht op"))
+  date_decision <- parse_dutch_date(nl_lookup(sidebar, "Laatste advies uitgebracht op"))
 
   # PDFs are split between two on-page sections:
   #   * "Adviezen en persberichten" — the Commissie's own advice + press releases.
@@ -454,51 +454,6 @@ nl_extract_project_id <- function(pdf_urls, html) {
     return(sub("postid-", "wp-", m2))
   }
   NA_character_
-}
-
-#' Parse a Dutch-formatted date like "26 mei 2026" into a Date.
-#' @noRd
-nl_parse_dutch_date <- function(s) {
-  if (is.null(s) || is.na(s) || !nzchar(s)) {
-    return(as.Date(NA))
-  }
-  months <- c(
-    "januari" = 1,
-    "februari" = 2,
-    "maart" = 3,
-    "april" = 4,
-    "mei" = 5,
-    "juni" = 6,
-    "juli" = 7,
-    "augustus" = 8,
-    "september" = 9,
-    "oktober" = 10,
-    "november" = 11,
-    "december" = 12,
-    "jan" = 1,
-    "feb" = 2,
-    "mrt" = 3,
-    "apr" = 4,
-    "jun" = 6,
-    "jul" = 7,
-    "aug" = 8,
-    "sept" = 9,
-    "sep" = 9,
-    "okt" = 10,
-    "nov" = 11,
-    "dec" = 12
-  )
-  parts <- strsplit(tolower(trimws(s)), "\\s+")[[1]]
-  if (length(parts) != 3L) {
-    return(as.Date(NA))
-  }
-  day <- suppressWarnings(as.integer(parts[1]))
-  mon <- months[parts[2]]
-  yr <- suppressWarnings(as.integer(parts[3]))
-  if (is.na(day) || is.na(mon) || is.na(yr)) {
-    return(as.Date(NA))
-  }
-  as.Date(sprintf("%04d-%02d-%02d", yr, mon, day))
 }
 
 #' Apply client-side filters to a single parsed record.

@@ -33,7 +33,10 @@
 #' while `exceededTransferLimit` is true. A stable `orderByFields=OBJECTID_1 ASC`
 #' fixes the page ordering. Each feature carries all its metadata inline in
 #' `attributes` (there is no separate detail endpoint), plus an Esri point
-#' `geometry` requested in `outSR=2157`.
+#' `geometry` requested in `outSR=2157`. Enumeration is **streaming**: a page
+#' generator yields one `resultOffset` page at a time (and resolves that page's
+#' notice attachments in a single batched `queryAttachments` call) so records
+#' are parsed and persisted page-by-page rather than after a full register scan.
 #'
 #' The portal has **no per-record permalink**, so a unique, deterministic `url`
 #' is synthesised per record: the record-specific query URL
@@ -63,7 +66,7 @@
 #' Portal-hosted attachments are ArcGIS feature attachments — the statutory
 #' newspaper / public-notice PDF. Because the download URL needs both the
 #' `OBJECTID_1` and the per-attachment id (`<layer>/<OBJECTID_1>/attachments/<id>`),
-#' attachment metadata is resolved in a batched **phase-2** `queryAttachments`
+#' attachment metadata is resolved in a batched **per-page** `queryAttachments`
 #' call (keyed by `OBJECTID_1`) — even when `download = FALSE`, this is needed
 #' to populate `attachment_urls`. The single slug is `notice`
 #' (`attachment_urls_notice` / `local_path_notice`); the deduplicated union goes
@@ -81,9 +84,9 @@
 #'   decision-date field).
 #'
 #' @section Performance:
-#' Enumeration is ≈6 paginated `query` calls (page size 1000) plus batched
-#' `queryAttachments` lookups (many `OBJECTID_1`s per call). IE requests are
-#' throttled to 5 requests per second by default; override via
+#' Enumeration is ≈6 paginated `query` calls (page size 1000) plus one batched
+#' `queryAttachments` lookup per page (many `OBJECTID_1`s per call). IE requests
+#' are throttled to 5 requests per second by default; override via
 #' `getOption("planscanR.ie_throttle_rate")` (requests/sec; falsy disables).
 #'
 #' @param date_range,limit,download,cache_dir,overwrite,max_file_size_mb,write_sidecar,refresh,topic,relevance_threshold,relevance_model
@@ -137,8 +140,8 @@ get_assessments_ie <- function(
   if (!is.null(cache_dir)) {
     withr::local_options(list(planscanR.cache_dir = cache_dir))
   }
-  # Politeness throttle. Enumeration is ~6 page calls plus batched attachment
-  # lookups and one download per attachment; cap at 5 req/s by default.
+  # Politeness throttle. Enumeration is ~6 page calls plus a batched attachment
+  # lookup per page and one download per attachment; cap at 5 req/s by default.
   # Override via `planscanR.ie_throttle_rate`.
   rate <- getOption("planscanR.ie_throttle_rate", 5)
   if (!is.null(rate) && is.finite(rate) && rate > 0) {
@@ -159,46 +162,17 @@ get_assessments_ie <- function(
     date_range = date_range
   )
 
-  index <- tryCatch(
-    ie_fetch_features(where = where, limit = limit),
-    error = function(e) {
-      warn_partial("Failed to enumerate the EIA Portal: {conditionMessage(e)}")
-      list()
-    }
-  )
-
-  # Phase 2: resolve attachment metadata for the (capped) candidate set in one
-  # batched queryAttachments call, keyed by OBJECTID_1. Needed even when
-  # download = FALSE so attachment_urls can be populated.
-  oids <- ie_feature_oids(index, limit = limit)
-  attach_index <- tryCatch(
-    ie_fetch_attachments(oids),
-    error = function(e) {
-      warn_partial("Failed to resolve EIA Portal attachments: {conditionMessage(e)}")
-      list()
-    }
-  )
-
-  records <- list()
-  cli::cli_progress_bar(
-    format = paste0(
-      "{cli::pb_spin} crawling IE  ",
-      "records {length(records)}",
-      if (is.finite(limit)) paste0("/", limit) else paste0("/", length(index)),
-      "  |  elapsed {cli::pb_elapsed}  |  ETA {cli::pb_eta}"
-    ),
-    total = if (is.finite(limit)) limit else length(index),
-    clear = FALSE
-  )
-  on.exit(cli::cli_progress_done(), add = TRUE)
-
-  for (feature in index) {
-    if (length(records) >= limit) {
-      break
-    }
+  # Per-entry processing: sidecar-first detail parse, client-side date guard,
+  # relevance scoring, optional download, and the sidecar write. Returns the
+  # 1-row record or NULL to drop the entry. Each entry carries its inline
+  # feature plus the page's resolved OBJECTID_1 -> notice-URL index. Called once
+  # per listing row by stream_crawl().
+  process_entry <- function(entry) {
+    feature <- entry$feature
+    attach_index <- entry$attach_index %||% list()
     ref <- ie_portal_ref(feature)
     if (is.null(ref)) {
-      next
+      return(NULL)
     }
     u <- ie_canonical_url(ref)
     rec <- tryCatch(
@@ -210,32 +184,40 @@ get_assessments_ie <- function(
         write_sidecar = write_sidecar
       ),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {u}}: {conditionMessage(e)}"
-        )
+        warn_partial("Failed to load/parse {.url {u}}: {conditionMessage(e)}")
         NULL
       }
     )
     if (is.null(rec)) {
-      next
+      return(NULL)
     }
     if (!ie_record_matches(rec, date_range = date_range)) {
-      next
+      return(NULL)
     }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
     should_download <- download && passes_download_gate(rec, rel, relevance_threshold)
-    rec <- ie_finalise_record(
+    ie_finalise_record(
       rec,
       download = should_download,
       overwrite = overwrite,
       max_file_size_mb = max_file_size_mb,
       write_sidecar = write_sidecar
     )
-    records[[length(records) + 1L]] <- rec
-    cli::cli_progress_update()
   }
+
+  # Stream the register page-by-page, persisting records as they are parsed
+  # instead of enumerating the whole layer first. The generator owns the
+  # resultOffset pagination state and resolves each page's notice attachments.
+  gen <- tryCatch(
+    ie_fetch_features(where = where),
+    error = function(e) {
+      warn_partial("Failed to enumerate the EIA Portal: {conditionMessage(e)}")
+      function() NULL
+    }
+  )
+  records <- stream_crawl(gen, process_entry, limit = limit, label = "ie")
 
   if (length(records) == 0L) {
     return(empty_result_tibble())
@@ -380,22 +362,32 @@ ie_date_to_epoch_ms <- function(d) {
 }
 
 # -----------------------------------------------------------------------------
-# Index enumeration (paginated /query)
+# Index enumeration (streaming, paginated /query)
 # -----------------------------------------------------------------------------
 
-#' Paginate `GET <layer>/query` and return the full list of features.
+#' Build a page generator for the EIA Portal `/query` listing.
 #'
-#' Pages via `resultOffset` / `resultRecordCount` (page size = server
-#' `maxRecordCount`), requesting geometry in `outSR=2157` and a stable
-#' `orderByFields`. Loops while `exceededTransferLimit` is true or a full page
-#' comes back. Soft-stops once we have comfortably more than `limit` features.
-#' Returns a list of feature objects (each `{attributes, geometry}`).
+#' Returns a zero-arg closure (the stream_crawl() `next_page` contract): each
+#' call fetches the next `resultOffset` page (page size = server
+#' `maxRecordCount`), resolves that page's notice attachments in one batched
+#' `queryAttachments` call, and returns the page's listing entries as a list, or
+#' `NULL` once the layer is exhausted. The `resultOffset` / done state lives in
+#' the closure via `<<-`, so the streaming driver pulls only as many pages as
+#' the limit needs and records are persisted page-by-page.
+#'
+#' Each entry is a small named list `list(feature = <inline feature>,
+#' attach_index = <OBJECTID_1 -> notice URLs>)`. Pagination requests geometry in
+#' `outSR=2157` and a stable `orderByFields`, and ends when `exceededTransferLimit`
+#' is false/absent and a short (sub-page-size) page comes back (or an empty page).
 #' @noRd
-ie_fetch_features <- function(where = "1=1", limit = Inf) {
-  out <- list()
+ie_fetch_features <- function(where = "1=1") {
   offset <- 0L
   size <- ie_page_size()
-  repeat {
+  done <- FALSE
+  function() {
+    if (done) {
+      return(NULL)
+    }
     payload <- ie_arcgis_get(
       "query",
       list(
@@ -409,43 +401,50 @@ ie_fetch_features <- function(where = "1=1", limit = Inf) {
       )
     )
     if (!is.list(payload)) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
     feats <- payload$features %||% list()
     if (length(feats) == 0L) {
-      break
+      done <<- TRUE
+      return(NULL)
     }
-    out <- c(out, feats)
+    # Termination: a short page (fewer than the page size) with no further
+    # transfer-limit overflow is the last page.
     exceeded <- isTRUE(payload$exceededTransferLimit)
     if (!exceeded && length(feats) < size) {
-      break
+      done <<- TRUE
     }
-    # Soft stop: stop paginating once we've enumerated comfortably more than
-    # `limit` features (the caller may still filter some out).
-    if (is.finite(limit) && length(out) >= as.integer(limit) * 2L + size) {
-      break
-    }
-    offset <- offset + length(feats)
+    offset <<- offset + length(feats)
+
+    # Resolve this page's notice attachments in one batched queryAttachments
+    # call so each emitted entry carries its OBJECTID_1 -> notice-URL index.
+    oids <- ie_feature_oids(feats)
+    attach_index <- tryCatch(
+      ie_fetch_attachments(oids),
+      error = function(e) {
+        warn_partial("Failed to resolve EIA Portal attachments: {conditionMessage(e)}")
+        list()
+      }
+    )
+    lapply(feats, function(f) list(feature = f, attach_index = attach_index))
   }
-  out
 }
 
 # -----------------------------------------------------------------------------
 # Phase 2: batched attachment resolution
 # -----------------------------------------------------------------------------
 
-#' Collect the OBJECTID_1 ids of the (capped) candidate feature set.
+#' Collect the distinct OBJECTID_1 ids of a feature set.
 #'
-#' Honours `limit` so we only resolve attachments for features we may emit.
 #' Returns a character vector of distinct OBJECTID_1 values.
 #' @noRd
-ie_feature_oids <- function(features, limit = Inf) {
+ie_feature_oids <- function(features) {
   if (length(features) == 0L) {
     return(character(0))
   }
-  take <- if (is.finite(limit)) min(length(features), as.integer(limit) * 2L + 1L) else length(features)
   oids <- vapply(
-    features[seq_len(take)],
+    features,
     function(f) ie_oid(f) %||% NA_character_,
     character(1)
   )
@@ -581,7 +580,7 @@ ie_parse_feature <- function(url, feature, attach_index) {
     jurisdiction = jurisdiction,
     # Country-specific extras.
     portal_ref = ref %||% NA_character_,
-    objectid_1 = oid %||% NA_character_,
+    esri_object_id = oid %||% NA_character_,
     linear_development = native_type %||% NA_character_,
     url_link_application = url_link_application,
     url_link_secondary = url_link_secondary,

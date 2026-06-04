@@ -27,7 +27,7 @@ BugReports: https://github.com/barthoekstra/planscanR/issues
 Remotes:
     barthoekstra/planscanR.screen
 Depends:
-    R (>= 4.1)
+    R (>= 4.2)
 Imports:
     cli (>= 3.6.0),
     dplyr (>= 1.1.0),

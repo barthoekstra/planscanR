@@ -44,6 +44,11 @@
 #' @return A list with: `passed` (logical), `signals` (named logical),
 #'   `notes` (character), `text` (the extracted first-10-pages text, used
 #'   downstream when the candidate is promoted to the sidecar).
+#' @examples
+#' \dontrun{
+#' # Validate a candidate PDF against a record's identifiers + topic signals.
+#' discover_validate(record, pdf_path, cfg = at_discovery_config())
+#' }
 #' @export
 discover_validate <- function(
   record,
@@ -88,8 +93,8 @@ discover_validate <- function(
   norm_title <- normalise_text_for_match(record$title %||% "")
 
   signal_az <- FALSE
-  if (!is.null(cfg$aktenzahl_regex) && nzchar(cfg$aktenzahl_regex)) {
-    az <- (record$aktenzahl %||% NA_character_)
+  if (!is.null(cfg$file_number_regex) && nzchar(cfg$file_number_regex)) {
+    az <- (record$file_number %||% NA_character_)
     if (!is.na(az) && nzchar(az)) {
       # Build a tolerant pattern: AT's "02 0515" matches "02 0515", "02-0515", "020515".
       az_compact <- gsub("\\s+", "", az)
@@ -174,7 +179,9 @@ discover_validate <- function(
   # dependency): the user constructs a planscanR.screen embedding model and
   # passes it as `relevance_model`. Skipped cleanly when screen is absent.
   if (
-    !signal_az && !signal_title && !signal_extra &&
+    !signal_az &&
+      !signal_title &&
+      !signal_extra &&
       !is.null(relevance_model) &&
       requireNamespace("planscanR.screen", quietly = TRUE)
   ) {

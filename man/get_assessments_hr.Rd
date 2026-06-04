@@ -48,7 +48,7 @@ block with direct, anonymous \code{.pdf} (sometimes \code{.zip}) download links.
 \details{
 Two "registers" are merged into a single result tibble; an
 \code{assessment_type} column (\code{"EIA"} for PUO, \code{"SEA"} for SPUO) tags each row
-and is round-tripped to the sidecar so downstream tooling can tell them
+and is preserved in the offline metadata cache so downstream tooling can tell them
 apart without re-fetching anything. \code{document_id} is prefixed with
 \code{"HR-PUO-"} / \code{"HR-SPUO-"} so the two registers never collide on disk.
 \itemize{

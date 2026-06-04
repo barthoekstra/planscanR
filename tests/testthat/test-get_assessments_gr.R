@@ -18,11 +18,32 @@ gr_fixture_page <- function(name) {
 .gr_rec_geo <- .gr_records[[1]] # 19895, geometry + doc
 .gr_rec_nogeo <- .gr_records[[3]] # 44030, no geometry, no doc
 
+# `gr_fetch_records` is now a page-generator factory: it returns a zero-arg
+# closure that yields one page of entries then NULL. These mocks mirror that —
+# the returned generator emits the canned list once, then signals exhausted.
 mock_fetch_all <- function() {
-  function(query = NULL, type = NULL, date_range = NULL, limit = Inf) .gr_records
+  function(query = NULL, type = NULL, date_range = NULL) {
+    emitted <- FALSE
+    function() {
+      if (emitted) {
+        return(NULL)
+      }
+      emitted <<- TRUE
+      .gr_records
+    }
+  }
 }
 mock_fetch_geo_only <- function() {
-  function(query = NULL, type = NULL, date_range = NULL, limit = Inf) list(.gr_rec_geo)
+  function(query = NULL, type = NULL, date_range = NULL) {
+    emitted <- FALSE
+    function() {
+      if (emitted) {
+        return(NULL)
+      }
+      emitted <<- TRUE
+      list(.gr_rec_geo)
+    }
+  }
 }
 
 # -- Parse unit tests -------------------------------------------------------
@@ -52,7 +73,7 @@ test_that("gr_parse_record extracts every conventional column (record with geome
   expect_identical(rec$project_category, "A1")
   expect_identical(rec$project_pet, "2306963121")
   expect_true(rec$project_natura2000)
-  expect_match(rec$doc_ada, "ΨΥΑ") # ΨΥΑ...
+  expect_match(rec$transparency_id, "ΨΥΑ") # ΨΥΑ...
 
   # Attachment: single AEPO decision PDF.
   urls <- rec$attachment_urls[[1]]
@@ -178,9 +199,17 @@ test_that("get_assessments_gr forwards query + type into the fetch seam", {
 
     seen <- list()
     local_mocked_bindings(
-      gr_fetch_records = function(query = NULL, type = NULL, date_range = NULL, limit = Inf) {
+      gr_fetch_records = function(query = NULL, type = NULL, date_range = NULL) {
         seen <<- list(query = query, type = type)
-        list(.gr_rec_geo)
+        # Page generator: yield the one canned entry once, then signal exhausted.
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          list(.gr_rec_geo)
+        }
       }
     )
     res <- get_assessments_gr(
@@ -213,7 +242,7 @@ test_that("GR -> sidecar round-trip preserves country-specific extras + geometry
     # Country-specific extras survive the round-trip.
     expect_identical(idx$decision_type, "aepo_nonessential_modification")
     expect_identical(idx$project_category, "A1")
-    expect_identical(idx$doc_ada, res$doc_ada)
+    expect_identical(idx$transparency_id, res$transparency_id)
     # Geometry sidecar.
     expect_identical(idx$geometry_crs, "EPSG:4326")
     expect_true(file.exists(idx$geometry_path))

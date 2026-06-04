@@ -77,6 +77,13 @@ validate_result_schema <- function(x) {
 #'
 #' @param ... Tibbles.
 #' @return A single tibble.
+#' @examples
+#' a <- tibble::tibble(
+#'   country = "nl", source_portal = "x", document_id = "1", url = "https://x/1",
+#'   retrieved_at = as.POSIXct("2024-01-01", tz = "UTC"),
+#'   attachment_urls = list(character()), local_path = list(character())
+#' )
+#' bind_results(a, a)
 #' @export
 bind_results <- function(...) {
   out <- dplyr::bind_rows(...)

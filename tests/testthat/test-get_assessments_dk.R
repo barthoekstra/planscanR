@@ -246,16 +246,20 @@ test_that("dk_collect_attachments groups view URLs by da-DK document type", {
         doc <- sub(".*/documents/([^/]+)/links$", "\\1", url)
         return(list(viewUrl = paste0("https://blob.example/", doc, "/file.pdf")))
       }
-      list(documents = list(
-        list(
-          id = "d1", title = "a.pdf",
-          documentType = list(name = list(`da-DK` = "Miljøkonsekvensrapport", `en-US` = "EIA report"))
-        ),
-        list(
-          id = "d2", title = "b.pdf",
-          documentType = list(name = list(`da-DK` = "Afgørelse", `en-US` = "Decision"))
+      list(
+        documents = list(
+          list(
+            id = "d1",
+            title = "a.pdf",
+            documentType = list(name = list(`da-DK` = "Miljøkonsekvensrapport", `en-US` = "EIA report"))
+          ),
+          list(
+            id = "d2",
+            title = "b.pdf",
+            documentType = list(name = list(`da-DK` = "Afgørelse", `en-US` = "Decision"))
+          )
         )
-      ))
+      )
     }
   )
   per <- dk_collect_attachments("assess-1")
@@ -281,15 +285,28 @@ test_that("dk_finalise_record(download=TRUE) tags file sections in the sidecar",
     retrieved_at = as.POSIXct(Sys.time(), tz = "UTC"),
     attachment_urls = list(c("https://blob.example/d1/a.pdf", "https://blob.example/d2/b.pdf")),
     local_path = list(character(0)),
-    title = "Test", summary = NA_character_,
-    competent_authority = NA_character_, proponent = NA_character_,
-    date_published = as.Date(NA), date_decision = as.Date(NA),
-    native_type = NA_character_, jurisdiction = NA_character_, status = NA_character_,
-    year = NA_integer_, from_year = NA_integer_, to_year = NA_integer_,
-    is_project_assessment = TRUE, is_related_to_plan = FALSE, is_draft = FALSE,
-    has_geometry = FALSE, geometry_path = NA_character_, geometry_crs = NA_character_,
-    annex1 = NA_character_, annex2 = NA_character_,
-    plan_types = NA_character_, plan_categories = NA_character_,
+    title = "Test",
+    summary = NA_character_,
+    competent_authority = NA_character_,
+    proponent = NA_character_,
+    date_published = as.Date(NA),
+    date_decision = as.Date(NA),
+    native_type = NA_character_,
+    jurisdiction = NA_character_,
+    status = NA_character_,
+    year = NA_integer_,
+    from_year = NA_integer_,
+    to_year = NA_integer_,
+    is_project_assessment = TRUE,
+    is_related_to_plan = FALSE,
+    is_draft = FALSE,
+    has_geometry = FALSE,
+    geometry_path = NA_character_,
+    geometry_crs = NA_character_,
+    annex1 = NA_character_,
+    annex2 = NA_character_,
+    plan_types = NA_character_,
+    plan_categories = NA_character_,
     download_status = list(empty_download_status())
   )
   rec[["attachment_urls_miljoekonsekvensrapport"]] <- list("https://blob.example/d1/a.pdf")
@@ -320,12 +337,20 @@ test_that("dk_finalise_record(download=TRUE) tags file sections in the sidecar",
   # (The reader fans these back out into `attachment_urls_<section>` columns
   # rather than exposing a `section` column, so assert against the JSON.)
   sidecar <- file.path(
-    getOption("planscanR.cache_dir"), "files", "dk", "assess-1", "assess-1.meta.json"
+    getOption("planscanR.cache_dir"),
+    "files",
+    "dk",
+    "assess-1",
+    "assess-1.meta.json"
   )
   payload <- jsonlite::fromJSON(sidecar, simplifyVector = FALSE)
-  sec_by_url <- vapply(payload$files, function(f) {
-    paste(f$url, f$section, sep = "\t")
-  }, character(1))
+  sec_by_url <- vapply(
+    payload$files,
+    function(f) {
+      paste(f$url, f$section, sep = "\t")
+    },
+    character(1)
+  )
   expect_true("https://blob.example/d1/a.pdf\tmiljoekonsekvensrapport" %in% sec_by_url)
   expect_true("https://blob.example/d2/b.pdf\tafgoerelse" %in% sec_by_url)
 })
