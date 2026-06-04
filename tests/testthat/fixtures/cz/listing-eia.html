@@ -1,0 +1,2307 @@
+
+
+
+
+
+
+	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+	<html xmlns="http://www.w3.org/1999/xhtml" lang="cs">
+		<head>
+			<meta http-equiv="pragma" content="no-cache" />
+			<meta http-equiv="cache-control" content="no-cache" />
+			<meta http-equiv="expires" content="-1" />
+			<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+			<meta http-equiv="content-language" content="cs" />
+			<title>Informační systém EIA</title>
+			<link rel="stylesheet" type="text/css" href="/eiasea/resources/eia.css" />
+			<script type="text/javascript" src="/eiasea/resources/jquery-1.6.2.min.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery-ui-1.8.16.datepicker.min.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery.ui.datepicker-cs.js"></script>
+			<script type="text/javascript" src="/eiasea/resources/jquery.cluetip.all.min.js"></script>
+			<link rel="stylesheet" type="text/css" href="/eiasea/resources/jquery-ui/smoothness/jquery-ui-1.8.16.datepicker.css" media="all" />
+            <link rel="stylesheet" type="text/css" href="/eiasea/resources/cookies_lista.css">
+			<script type="text/javascript">
+				function changeLanguage(lang) {
+					document.location = "/eiasea/view/eia100_cr?lang=" + lang;
+					return false;
+				}
+				function cookiesLista() {
+					var cookiesSouhlas = document.cookie.replace(/(?:(?:^|.*;\s*)cookiesEIASouhlas\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+					if (cookiesSouhlas === "" || cookiesSouhlas === "0") {
+						var cookiesListaKontejner = document.createElement("div");
+						cookiesListaKontejner.classList.add("cookies-lista-kontejner");
+						var cookiesLista = document.createElement("div");
+						cookiesLista.classList.add("cookies-lista");
+						cookiesListaKontejner.appendChild(cookiesLista);
+						var cookiesListaText = document.createElement("p");
+						cookiesListaText.classList.add("cookies-lista-text");
+						//TODO odstranit cookiesListaText.innerText = "Tento web využívá pouze soubory cookie nezbytné pro jeho fungování a poskytování služeb.";
+						cookiesListaText.innerText = "Česká informační agentura životního prostředí je provozovatelem tohoto webu. Web využívá pouze soubory cookie SESSIONID nezbytné pro jeho fungování a poskytování služeb a jsou zaznamenány pouze po dobu používání webu.";
+						cookiesLista.appendChild(cookiesListaText);
+						var cookiesListaTlacitkoKontejner = document.createElement("div");
+						cookiesListaTlacitkoKontejner.classList.add("cookies-lista-tlacitko-kontejner");
+						cookiesLista.appendChild(cookiesListaTlacitkoKontejner);
+						var cookiesListaTlacitko = document.createElement("button");
+						cookiesListaTlacitko.classList.add("button", "cookies-lista-tlacitko");
+						cookiesListaTlacitko.innerText = "Zavřít";
+						cookiesListaTlacitkoKontejner.appendChild(cookiesListaTlacitko);
+						cookiesListaTlacitko.addEventListener("click", function() {
+							document.cookie = "cookiesEIASouhlas=1;path=/eiasea";
+							cookiesListaKontejner.outerHTML = "";
+						});
+						document.body.appendChild(cookiesListaKontejner)
+					}
+
+				};
+			</script>
+			
+		<script type="text/javascript">
+		function prepnoutVyhledavani() {
+			if (document.getElementById("typHledani").value == 'rychle') {
+				document.getElementById("typHledani").value = 'rozsirene';
+				document.getElementById("rychle_hledani").style.display = 'none';
+				document.getElementById("rozsirene_hledani").style.display = 'block';
+			}
+			else {
+				document.getElementById("typHledani").value = 'rychle';
+				document.getElementById("rozsirene_hledani").style.display = 'none';
+				document.getElementById("rychle_hledani").style.display = 'block';
+			}
+		}
+		function isValidDate(date) {
+			var matches = /^(\d{1,2})[\.](\d{1,2})[\.](\d{4})$/.exec(date);
+			if (matches == null) return false;
+			var d = matches[1];
+			var m = matches[2] - 1;
+			var y = matches[3];
+			var composedDate = new Date(y, m, d);
+			return ((composedDate.getDate() == d) && (composedDate.getMonth() == m) && (composedDate.getFullYear() == y));
+		}
+		function search() {
+			var d;
+			d = document.getElementById("poslZmenaOd").value;
+			if (d != '') {
+				if (!isValidDate(d)) {
+					alert("Zadejte platný datum poslední změny ve formátu DD.MM.RRRR!");
+					return false;
+				}
+			}
+			d = document.getElementById("poslZmenaDo").value;
+			if (d != '') {
+				if (!isValidDate(d)) {
+					alert("Datum poslední změny musí být ve formátu DD.MM.RRRR!");
+					return false;
+				}
+			}
+			document.forms[0].submit();
+			return false;
+		}
+		</script>
+	
+		</head>
+		<body>
+			
+			<table id="pageContainer">
+				<tr>
+					<td id="pageHeader" colspan="2"><img src="/eiasea/resources/eia.gif" /> Informační systém EIA
+						<div style="float: right; margin-right: 5px;">
+							
+								
+								
+									<span class="lang">CZ</span> | <a class="lang" href="#" onclick="return changeLanguage('en')">EN</a>
+								
+							
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td id="pageMenu">
+						
+							
+								<div class="menuItem"><a href="/eiasea/view/eia100_cr?lang=cs">Záměry na území ČR</a></div>
+								
+								<div class="menuItem"><a href="/eiasea/view/eia100_mimo_cr?lang=cs">Záměry mimo území ČR</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia100_podlimitni?lang=cs">Podlimitní záměry</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia100_pdz?lang=cs">Prioritní dopravní záměry dle §23a</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia100_vzvp?lang=cs">Vyhodnocení změn velkých projektů</a></div>
+								<div class="menuItem"><a href="/eiasea/view/eia244?lang=cs">Záměry dle zákona 244/1992 Sb.</a></div>
+								<div class="menuItem"><a href="/eiasea/dokumenty/eia_legislativa?lang=cs">Legislativa</a></div>
+								<div class="menuItem"><a href="/eiasea/dokumenty/eia_pokyny?lang=cs">Autorizace - pokyny a sdělení</a></div>
+								<div class="menuItem"><a href="/eiasea/dokumenty/eia_metodicka_doporuceni?lang=cs">Metodické výklady a pokyny</a></div>
+								<div class="menuItem"><a href="/eiasea/osoby/osoby?lang=cs">Autorizované osoby pro zpracování dokumentace, posudku a vyhodnocení</a></div>
+								<div class="menuItem"><a href="/eiasea/osoby/osoby_natura?lang=cs">Autorizované osoby pro hodnocení vlivů na soustavu Natura 2000</a></div>
+								<div class="menuItem"><a href="/eiasea/urednici?lang=cs">Seznam pracovníků příslušných úřadů</a></div>
+								<div class="menuItem"><a href="/eiasea/vyznamne_lokality?lang=cs">Dotčené evropsky významné lokality</a></div>
+								<div class="menuItem"><a href="/eiasea/ptaci_oblasti?lang=cs">Dotčené ptačí oblasti</a></div>
+								<div class="menuItem"><a href="/eiasea/static/eia_posudky">Přehled zpracovatelů posudků</a></div>
+								
+								<div class="menuItem">
+									
+										
+										
+											<a href="/eiasea/login_eia?url=%2Feiasea%2Fview%2Feia100_cr&lang=cs">Přihlásit</a>
+										
+									
+								</div>
+								
+							
+							
+						
+					</td>
+					<td id="content">
+		<table>
+			<tr>
+				<td style="width: 100%;">
+					<div style="font-weight: bold; font-size: 16px; padding-bottom: 5px; text-align: left;">Záměry na území ČR</div>
+					
+				</td>
+				<td>
+					<form action="/eiasea/view/eia100_cr?lang=cs" method="post" style="margin: 0; padding: 0;">
+					<input name="typHledani" id="typHledani" type="hidden" value="rychle" />
+					<div id="rychle_hledani" style="border: 1px solid #999999; margin: 0px; padding: 0px; display:block;">
+					<div style="padding: 2px; border-bottom: 1px solid #999999; background-color: #B2D83F;"><span style="font-weight: bold;">Rychlé hledání</span> &nbsp;&nbsp; [<span style="color: #808080;">přepnout na</span> <a href="#" onclick="prepnoutVyhledavani(); return false;">rozšířené</a>]</div>
+					<table>
+						<tr>
+							<td style="text-align: right;">Dotaz:</td>
+							<td><input name="quickSearch" type="text" style="width: 250px;" value="" placeholder="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Omezit na:</td>
+							<td>
+								<select name="stavRychleHledani">
+									<option value="">Všechny stavy</option>
+									<option value="1">Záznam založen</option>
+									<option value="2">Oznámení</option>
+									<option value="3">Závěry zjišťovacího řízení</option>
+									<option value="4">Dokumentace</option>
+									<option value="5">Posudek</option>
+									<option value="6">Veřejné projednání</option>
+									<option value="7">Stanovisko</option>
+									<option value="97">Nepodléhá dalšímu posuzování</option>
+									<option value="98">Prodloužení platnosti stanoviska</option>
+									<option value="99">Ukončeno z jiných důvodů</option>
+									<option value="100">Dokončeno pod jiným kódem (viz. poznámka)</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Řadit podle:</td>
+							<td>
+								<select name="razeniRychleHledani">
+									<option value="1" selected="selected">Data poslední změny</option>
+									<option value="2">Kódu záměru</option>
+									<option value="3">Příslušného úřadu</option>
+									<option value="4">Zařazení</option>
+									<option value="5">Stavu</option>
+									
+									
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Filtr:</td>
+							<td>
+								<select name="filtrRychleHledani">
+									<option value="" selected="selected"></option>
+									<option value="1">Záměry s mezistátním posuzováním</option>
+									<option value="2">Záměry s nevyloučeným vlivem na soustavu Natura 2000</option>
+									<option value="3">Podlimitní záměry</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td><input type="submit" onclick="return search();" value="Zobrazit" /></td>
+						</tr>
+						<tr>
+							<td colspan="2" style="border-top: 1px solid #999999; text-align: center;"><span style="font-size: 11px; color: #808080;">V rychlém vyhledávání se prohledávají následující údaje:<br/>kód, název, zařazení, stav, příslušný úřad.</span></td>
+						</tr>
+					</table>
+					</div>
+					
+					<div id="rozsirene_hledani" style="border: 1px solid #999999; margin: 0px; padding: 0px; display:none;">
+					<div style="padding: 2px; border-bottom: 1px solid #999999; background-color: #E7E7E7;"><span style="font-weight: bold;">Rozšířené hledání</span> &nbsp;&nbsp; [<span style="color: #808080;">přepnout na</span> <a href="#" onclick="prepnoutVyhledavani(); return false;">rychlé</a>]</div>
+					<table>
+						<tr>
+							<td style="text-align: right;">Název:</td>
+							<td><input name="nazev" type="text" style="width: 250px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;">Kód:</td>
+							<td><input name="kod" type="text" style="width: 100px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;">Oznamovatel:</td>
+							<td><input name="oznamovatel" type="text" style="width: 250px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>IČO oznamovatele:</td>
+							<td><input name="oznamovatelIc" type="text" style="width: 250px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Zařazení:</td>
+							<td>
+								<select name="zarazeni">
+									
+										
+											
+												<option value="" selected="selected"></option>
+											
+											
+										
+									
+										
+											
+											
+												<option value="I/1">(od 1.11.2017) I/1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/2">(od 1.11.2017) I/2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3">(od 1.11.2017) I/3</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/4">(od 1.11.2017) I/4</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/8">(od 1.11.2017) I/8</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/9">(od 1.11.2017) I/9</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/10">(od 1.11.2017) I/10</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/11">(od 1.11.2017) I/11</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/12">(od 1.11.2017) I/12</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/16">(od 1.11.2017) I/16</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/19">(od 1.11.2017) I/19</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/25">(od 1.11.2017) I/25</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/26">(od 1.11.2017) I/26</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/27">(od 1.11.2017) I/27</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/28">(od 1.11.2017) I/28</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/30">(od 1.11.2017) I/30</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/31">(od 1.11.2017) I/31</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/32">(od 1.11.2017) I/32</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/33">(od 1.11.2017) I/33</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/35">(od 1.11.2017) I/35</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/43">(od 1.11.2017) I/43</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/44">(od 1.11.2017) I/44</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/47">(od 1.11.2017) I/47</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/48">(od 1.11.2017) I/48</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/50">(od 1.11.2017) I/50</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/53">(od 1.11.2017) I/53</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/54">(od 1.11.2017) I/54</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/59">(od 1.11.2017) I/59</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/60">(od 1.11.2017) I/60</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/61">(od 1.11.2017) I/61</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/63">(od 1.11.2017) I/63</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/65">(od 1.11.2017) I/65</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/66">(od 1.11.2017) I/66</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/68">(od 1.11.2017) I/68</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/71">(od 1.11.2017) I/71</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/72">(od 1.11.2017) I/72</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/77">(od 1.11.2017) I/77</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/79">(od 1.11.2017) I/79</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/80">(od 1.11.2017) I/80</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/84">(od 1.11.2017) I/84</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/86">(od 1.11.2017) I/86</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/89">(od 1.11.2017) I/89</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/90">(od 1.11.2017) I/90</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2">(od 1.11.2017) II/2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/4">(od 1.11.2017) II/4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5">(od 1.11.2017) II/5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/6">(od 1.11.2017) II/6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/7">(od 1.11.2017) II/7</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/13">(od 1.11.2017) II/13</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/14">(od 1.11.2017) II/14</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/15">(od 1.11.2017) II/15</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/17">(od 1.11.2017) II/17</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/18">(od 1.11.2017) II/18</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/20">(od 1.11.2017) II/20</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/21">(od 1.11.2017) II/21</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/22">(od 1.11.2017) II/22</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/23">(od 1.11.2017) II/23</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/24">(od 1.11.2017) II/24</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/29">(od 1.11.2017) II/29</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/34">(od 1.11.2017) II/34</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/36">(od 1.11.2017) II/36</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/37">(od 1.11.2017) II/37</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/38">(od 1.11.2017) II/38</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/39">(od 1.11.2017) II/39</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/40">(od 1.11.2017) II/40</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/41">(od 1.11.2017) II/41</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/42">(od 1.11.2017) II/42</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/43">(od 1.11.2017) II/43</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/45">(od 1.11.2017) II/45</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/46">(od 1.11.2017) II/46</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/48">(od 1.11.2017) II/48</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/49">(od 1.11.2017) II/49</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/51">(od 1.11.2017) II/51</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/52">(od 1.11.2017) II/52</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/55">(od 1.11.2017) II/55</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/56">(od 1.11.2017) II/56</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/57">(od 1.11.2017) II/57</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/58">(od 1.11.2017) II/58</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/59">(od 1.11.2017) II/59</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/62">(od 1.11.2017) II/62</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/63">(od 1.11.2017) II/63</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/64">(od 1.11.2017) II/64</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/65">(od 1.11.2017) II/65</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/67">(od 1.11.2017) II/67</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/69">(od 1.11.2017) II/69</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/70">(od 1.11.2017) II/70</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/72">(od 1.11.2017) II/72</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/73">(od 1.11.2017) II/73</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/74">(od 1.11.2017) II/74</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/75">(od 1.11.2017) II/75</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/76">(od 1.11.2017) II/76</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/77">(od 1.11.2017) II/77</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/78">(od 1.11.2017) II/78</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/79">(od 1.11.2017) II/79</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/81">(od 1.11.2017) II/81</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/82">(od 1.11.2017) II/82</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/83">(od 1.11.2017) II/83</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/85">(od 1.11.2017) II/85</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/86">(od 1.11.2017) II/86</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/87">(od 1.11.2017) II/87</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/88">(od 1.11.2017) II/88</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/91">(od 1.11.2017) II/91</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/92">(od 1.11.2017) II/92</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/93">(od 1.11.2017) II/93</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/94">(od 1.11.2017) II/94</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/95">(od 1.11.2017) II/95</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/96">(od 1.11.2017) II/96</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/97">(od 1.11.2017) II/97</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/98">(od 1.11.2017) II/98</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/99">(od 1.11.2017) II/99</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/100">(od 1.11.2017) II/100</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/101">(od 1.11.2017) II/101</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/102">(od 1.11.2017) II/102</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/103">(od 1.11.2017) II/103</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/104">(od 1.11.2017) II/104</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/105">(od 1.11.2017) II/105</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/106">(od 1.11.2017) II/106</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/107">(od 1.11.2017) II/107</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/108">(od 1.11.2017) II/108</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/109">(od 1.11.2017) II/109</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/110">(od 1.11.2017) II/110</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/111">(od 1.11.2017) II/111</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/112">(od 1.11.2017) II/112</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/113">(od 1.11.2017) II/113</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/114">(od 1.11.2017) II/114</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/115">(od 1.11.2017) II/115</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/116">(od 1.11.2017) II/116</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/117">(od 1.11.2017) II/117</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/118">(od 1.11.2017) II/118</option>
+											
+										
+									
+										
+											
+											
+												<option value="§3 písm. a) odst. 2">(od 1.11.2017) §3 písm. a) odst. 2</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. a">(do 31.10.2017) §4 odst. 1 písm. a</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. b">(do 31.10.2017) §4 odst. 1 písm. b</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. c">(do 31.10.2017) §4 odst. 1 písm. c</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. d">(do 31.10.2017) §4 odst. 1 písm. d</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. e">(do 31.10.2017) §4 odst. 1 písm. e</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. f">(do 31.10.2017) §4 odst. 1 písm. f</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. g">(od 1.11.2017) §4 odst. 1 písm. g</option>
+											
+										
+									
+										
+											
+											
+												<option value="§4 odst. 1 písm. h">(od 1.11.2017) §4 odst. 1 písm. h</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.1">(do 31.10.2017) I/1.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.2">(do 31.10.2017) I/1.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.3">(do 31.10.2017) I/1.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.4">(do 31.10.2017) I/1.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.5">(do 31.10.2017) I/1.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.6">(do 31.10.2017) I/1.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.7">(do 31.10.2017) I/1.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/1.8">(do 31.10.2017) I/1.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/2.1">(do 31.10.2017) I/2.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/2.2">(do 31.10.2017) I/2.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/2.3">(do 31.10.2017) I/2.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/2.4">(do 31.10.2017) I/2.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/2.5">(do 31.10.2017) I/2.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3.1">(do 31.10.2017) I/3.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3.2">(do 31.10.2017) I/3.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3.3">(do 31.10.2017) I/3.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3.4">(do 31.10.2017) I/3.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3.5">(do 31.10.2017) I/3.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3.6">(do 31.10.2017) I/3.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/3.7">(do 31.10.2017) I/3.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/4.1">(do 31.10.2017) I/4.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/4.2">(do 31.10.2017) I/4.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/4.3">(do 31.10.2017) I/4.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/4.4">(do 31.10.2017) I/4.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/5.1">(do 31.10.2017) I/5.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/6.1">(do 31.10.2017) I/6.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/6.2">(do 31.10.2017) I/6.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.1">(do 31.10.2017) I/7.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.2">(do 31.10.2017) I/7.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.3">(do 31.10.2017) I/7.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.4">(do 31.10.2017) I/7.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.5">(do 31.10.2017) I/7.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.6">(do 31.10.2017) I/7.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.7">(do 31.10.2017) I/7.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/7.8">(do 31.10.2017) I/7.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/9.1">(do 31.10.2017) I/9.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/9.2">(do 31.10.2017) I/9.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/9.3">(do 31.10.2017) I/9.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/9.4">(do 31.10.2017) I/9.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/9.5">(do 31.10.2017) I/9.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/10.1">(do 31.10.2017) I/10.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="I/10.2">(do 31.10.2017) I/10.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.1">(do 31.10.2017) II/1.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.2">(do 31.10.2017) II/1.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.3">(do 31.10.2017) II/1.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.4">(do 31.10.2017) II/1.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.5">(do 31.10.2017) II/1.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.6">(do 31.10.2017) II/1.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.7">(do 31.10.2017) II/1.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.8">(do 31.10.2017) II/1.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/1.9">(do 31.10.2017) II/1.9</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.1">(do 31.10.2017) II/2.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.2">(do 31.10.2017) II/2.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.3">(do 31.10.2017) II/2.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.4">(do 31.10.2017) II/2.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.5">(do 31.10.2017) II/2.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.6">(do 31.10.2017) II/2.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.7">(do 31.10.2017) II/2.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.8">(do 31.10.2017) II/2.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.9">(do 31.10.2017) II/2.9</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.10">(do 31.10.2017) II/2.10</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/2.11">(do 31.10.2017) II/2.11</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.1">(do 31.10.2017) II/3.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.2">(do 31.10.2017) II/3.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.3">(do 31.10.2017) II/3.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.4">(do 31.10.2017) II/3.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.5">(do 31.10.2017) II/3.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.6">(do 31.10.2017) II/3.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.7">(do 31.10.2017) II/3.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.8">(do 31.10.2017) II/3.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/3.9">(do 31.10.2017) II/3.9</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/4.1">(do 31.10.2017) II/4.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/4.2">(do 31.10.2017) II/4.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/4.3">(do 31.10.2017) II/4.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.1">(do 31.10.2017) II/5.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.2">(do 31.10.2017) II/5.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.3">(do 31.10.2017) II/5.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.4">(do 31.10.2017) II/5.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.5">(do 31.10.2017) II/5.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.6">(do 31.10.2017) II/5.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.7">(do 31.10.2017) II/5.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/5.8">(do 31.10.2017) II/5.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/6.1">(do 31.10.2017) II/6.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/6.2">(do 31.10.2017) II/6.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/6.3">(do 31.10.2017) II/6.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/6.4">(do 31.10.2017) II/6.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/6.5">(do 31.10.2017) II/6.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/7.1">(do 31.10.2017) II/7.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/7.2">(do 31.10.2017) II/7.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/7.3">(do 31.10.2017) II/7.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/7.4">(do 31.10.2017) II/7.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/7.5">(do 31.10.2017) II/7.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/7.6">(do 31.10.2017) II/7.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.1">(do 31.10.2017) II/8.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.2">(do 31.10.2017) II/8.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.3">(do 31.10.2017) II/8.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.4">(do 31.10.2017) II/8.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.5">(do 31.10.2017) II/8.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.6">(do 31.10.2017) II/8.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.7">(do 31.10.2017) II/8.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.8">(do 31.10.2017) II/8.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.9">(do 31.10.2017) II/8.9</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.10">(do 31.10.2017) II/8.10</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/8.11">(do 31.10.2017) II/8.11</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/9.1">(do 31.10.2017) II/9.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/9.2">(do 31.10.2017) II/9.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/9.3">(do 31.10.2017) II/9.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/9.4">(do 31.10.2017) II/9.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/9.5">(do 31.10.2017) II/9.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.1">(do 31.10.2017) II/10.1</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.2">(do 31.10.2017) II/10.2</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.3">(do 31.10.2017) II/10.3</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.4">(do 31.10.2017) II/10.4</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.5">(do 31.10.2017) II/10.5</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.6">(do 31.10.2017) II/10.6</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.7">(do 31.10.2017) II/10.7</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.8">(do 31.10.2017) II/10.8</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.9">(do 31.10.2017) II/10.9</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.10">(do 31.10.2017) II/10.10</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.11">(do 31.10.2017) II/10.11</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.12">(do 31.10.2017) II/10.12</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.13">(do 31.10.2017) II/10.13</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.14">(do 31.10.2017) II/10.14</option>
+											
+										
+									
+										
+											
+											
+												<option value="II/10.15">(do 31.10.2017) II/10.15</option>
+											
+										
+									
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Poslední změna od:</td>
+							<td><input name="poslZmenaOd" id="poslZmenaOd" type="text" style="width: 100px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Poslední změna do:</td>
+							<td><input name="poslZmenaDo" id="poslZmenaDo" type="text" style="width: 100px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;">Umístění:</td>
+							<td><input name="umisteni" type="text" style="width: 250px;" value="" /></td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Omezit na:</td>
+							<td>
+								<select name="stavRozsireneHledani">
+									<option value="">Všechny stavy</option>
+									<option value="1">Záznam založen</option>
+									<option value="2">Oznámení</option>
+									<option value="3">Závěry zjišťovacího řízení</option>
+									<option value="4">Dokumentace</option>
+									<option value="5">Posudek</option>
+									<option value="6">Veřejné projednání</option>
+									<option value="7">Stanovisko</option>
+									<option value="97">Nepodléhá dalšímu posuzování</option>
+									<option value="98">Prodloužení platnosti stanoviska</option>
+									<option value="99">Ukončeno z jiných důvodů</option>
+									<option value="100">Dokončeno pod jiným kódem (viz. poznámka)</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Řadit podle:</td>
+							<td>
+								<select name="razeniRozsireneHledani">
+									<option value="1" selected="selected">Data poslední změny</option>
+									<option value="2">Kódu záměru</option>
+									<option value="3">Příslušného úřadu</option>
+									<option value="4">Zařazení</option>
+									<option value="5">Stavu</option>
+									
+									
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: right;" nowrap>Filtr:</td>
+							<td>
+								<select name="filtrRozsireneHledani">
+									<option value="" selected="selected"></option>
+									<option value="1">Záměry s mezistátním posuzováním</option>
+									<option value="2">Záměry s nevyloučeným vlivem na soustavu Natura 2000</option>
+									<option value="3">Podlimitní záměry</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td><input type="submit" onclick="return search();" value="Zobrazit"/></td>
+						</tr>
+					</table>
+					</div>
+					
+					
+					</form>
+				</td>
+			</tr>
+		</table>
+		<hr/>
+		<table cellpadding="0" cellspacing="2" style="width: 100%;"><tr><td style="width: 35%;"><i>Nalezeno záznamů:</i> <b>22780</b></td><td style="width: 30%; text-align: center;">Stránka 1/2278</td><td style="width: 35%; text-align: right;"><b>1</b>&nbsp;<a href="/eiasea/view/eia100_cr?p=2&lang=cs">2</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=3&lang=cs">3</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=4&lang=cs">4</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=5&lang=cs">5</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=6&lang=cs">6</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=7&lang=cs">7</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=8&lang=cs">8</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=9&lang=cs">9</a>&nbsp;<a href="/eiasea/view/eia100_cr?p=10&lang=cs">10</a>&nbsp;&nbsp;<a href="/eiasea/view/eia100_cr?p=2&lang=cs">další&nbsp;&gt;&gt;</a>&nbsp;&nbsp;<a href="/eiasea/view/eia100_cr?p=2278&lang=cs">konec</a></td></tr></table>
+		<table class="view">
+			<tr>
+				<td colspan="8" style="text-align: center;">
+					
+					
+					
+					<hr/>
+				</td>
+			</tr>
+		
+			<tr>
+				
+				<td style="font-weight: bold;">ZLK1043</td>
+				<td colspan="6" style="width: 100%; white-space: normal;"><a href="/eiasea/detail/EIA_ZLK1043?lang=cs" target="_blank" >Navýšení kapacity Skladu odpadu Prakšická</a></td>
+				<td style="text-align: right;">
+					
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><i>Příslušný úřad:</i></td>
+				<td>Krajský úřad Zlínského kraje</td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"><i>Zařazení:</i></td>
+				<td style="font-weight: bold;">
+					
+				</td>
+				<td style="width: 100%; text-align: right;"><i>Změněno:</i></td>
+				<td style="text-align: right;">Thu Jun 04 10:54:00 CEST 2026</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td style="text-align: right;"><i>Stav:</i></td>
+				<td style="font-weight: bold;">Záznam založen</td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td></td>
+				<td></td>
+			</tr>
+			
+			
+			<tr>
+				<td colspan="8"><hr class="list-div" style="" /></td>
+			</tr>
+		
+			<tr>
+				
+				<td style="font-weight: bold;">JHC1250</td>
+				<td colspan="6" style="width: 100%; white-space: normal;"><a href="/eiasea/detail/EIA_JHC1250?lang=cs" target="_blank" >Geotermální vrty pro tepelné čerpadlo rodinného domu Buk – Vyšovatka</a></td>
+				<td style="text-align: right;">
+					
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><i>Příslušný úřad:</i></td>
+				<td>Krajský úřad Jihočeského kraje</td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"><i>Zařazení:</i></td>
+				<td style="font-weight: bold;">
+					II/14
+				</td>
+				<td style="width: 100%; text-align: right;"><i>Změněno:</i></td>
+				<td style="text-align: right;">Thu Jun 04 09:50:11 CEST 2026</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td style="text-align: right;"><i>Stav:</i></td>
+				<td style="font-weight: bold;">Oznámení</td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td style="text-align: right;"><i>Podlimitní:</i></td>
+				<td style="font-weight: bold;">Ano</td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td></td>
+				<td></td>
+			</tr>
+			
+			
+			<tr>
+				<td colspan="8"><hr class="list-div" style="" /></td>
+			</tr>
+		
+			<tr>
+				
+				<td style="font-weight: bold;">ULK1368</td>
+				<td colspan="6" style="width: 100%; white-space: normal;"><a href="/eiasea/detail/EIA_ULK1368?lang=cs" target="_blank" >Stabilizace a následné odstranění stabilizovaných/solidifikovaných kadmiových kalů ze skladu Vikantice v rámci komplexu S-NO Lukavec</a></td>
+				<td style="text-align: right;">
+					
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><i>Příslušný úřad:</i></td>
+				<td>Krajský úřad Ústeckého kraje</td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"><i>Zařazení:</i></td>
+				<td style="font-weight: bold;">
+					I/53
+				</td>
+				<td style="width: 100%; text-align: right;"><i>Změněno:</i></td>
+				<td style="text-align: right;">Thu Jun 04 07:58:22 CEST 2026</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td style="text-align: right;"><i>Stav:</i></td>
+				<td style="font-weight: bold;">Oznámení</td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td><div style="width: 20px;"></div></td>
+				<td style="text-align: right;"></td>
+				<td style="font-weight: bold;"></td>
+				<td></td>
+				<td></td>
+			</tr>
+			
+			
+			<tr>
+				<td colspan="8"><hr class="list-div" style="" /></td></tr>
+		</table>
+	</td></tr></table></body></html>

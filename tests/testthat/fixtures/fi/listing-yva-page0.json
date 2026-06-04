@@ -1,0 +1,135 @@
+{
+ "took": 2,
+ "timed_out": false,
+ "_shards": {
+  "total": 1,
+  "successful": 1,
+  "skipped": 0,
+  "failed": 0
+ },
+ "hits": {
+  "total": {
+   "value": 3,
+   "relation": "eq"
+  },
+  "max_score": 7.97,
+  "hits": [
+   {
+    "_index": "search-fi",
+    "_id": "1498",
+    "_score": 7.972926,
+    "_source": {
+     "content": "Konnunsuon turvetuotantoalue, Tohmajärvi Arviointiohjelman Tiivistelmä &nbsp;(pdf 107 KB) Arviointiohjelma nähtävillä: 18.2.2009 – 31.3.2009 &nbsp;&nbsp;&nbsp;* Kuulutus arviointiohjelmasta: 18.2.2009 (Word 53,5 KB) &nbsp;&nbsp;&nbsp;* Esittelytilaisuus: Tohmajärven kunnanviraston valtuustosalissa &nbsp;&nbsp;&nbsp;25.2.2009 klo 18.00 alkaen &nbsp;&nbsp;&nbsp;* Lausunto pyydetty seuraavilta: Pohjo",
+     "description": "Tarkoituksena on aloittaa tuotanto Konnunsuolle perustettavalla turvetuotantoalueella.",
+     "link": "/fi/osallistu-ja-vaikuta/ymparistovaikutusten-arviointi/konnunsuon-turvetuotantoalue-tohmajarvi",
+     "publishTime": 1446636051,
+     "title": "Konnunsuon turvetuotantoalue, Tohmajärvi",
+     "type": "yva_project",
+     "typeLabel": "YVA-hanke",
+     "keywords": null,
+     "province": [
+      "Tohmajärvi"
+     ],
+     "municipality": [
+      "Tohmajärvi"
+     ],
+     "organization": [
+      "Pohjois-Karjalan ELY-keskus"
+     ],
+     "projectPhase": [
+      "Päättynyt / perusteltu päätelmä annettu"
+     ],
+     "projectType": null,
+     "statistic": null,
+     "statisticPage": null,
+     "subjectArea": [
+      "Luonnonvarojen otto ja käsittely"
+     ],
+     "publicHearingStart": null,
+     "publicHearingEnd": null,
+     "id": "1498",
+     "langcode": "fi"
+    }
+   },
+   {
+    "_index": "search-fi",
+    "_id": "1600",
+    "_score": 5.0,
+    "_source": {
+     "content": "Varpusuon turvetuotantohankkeen ympäristövaikutusten arviointi, Utajärvi. Hankkeesta vastaava on Vapo Oy.",
+     "description": "Varpusuon turvetuotantohanke Utajärven kunnassa.",
+     "link": "/fi/osallistu-ja-vaikuta/ymparistovaikutusten-arviointi/varpusuon-turvetuotantohanke-utajarvi",
+     "publishTime": 1260403200,
+     "title": "Varpusuon turvetuotantohanke, Utajärvi",
+     "type": "yva_project",
+     "typeLabel": "YVA-hanke",
+     "keywords": [
+      "turvetuotanto"
+     ],
+     "province": [
+      "Pohjois-Pohjanmaa"
+     ],
+     "municipality": [
+      "Utajärvi"
+     ],
+     "organization": [
+      "Pohjois-Pohjanmaan ELY-keskus"
+     ],
+     "projectPhase": [
+      "Vireillä"
+     ],
+     "projectType": null,
+     "subjectArea": [
+      "Turvetuotanto"
+     ],
+     "publicHearingStart": null,
+     "publicHearingEnd": null,
+     "id": "1600",
+     "langcode": "fi"
+    }
+   },
+   {
+    "_index": "search-fi",
+    "_id": "1004",
+    "_score": null,
+    "_source": {
+     "content": "Purmon tuulivoimapuisto, Pedersöre Hankkeen kuvaus ABO Wind Oy suunnittelee tuulivoimapuistoa Pedersören kuntaan Purmon alueelle. Hankealueelle suunnitellaan enintään 43 uuden tuulivoimalan rakentamista. Suunniteltujen voimaloiden kokonaiskorkeus on enintään 300 metriä. Suunniteltujen tuulivoimaloiden yksikköteho on alle 10 MW jolloin kokonaisteho olisi arviolta alle 440 MW. Purmon tuulivoimapuist",
+     "description": "Hankealue sijoittuu Pedersören kunnan lounaisosaan. Hankealueen länsipuolelle noin 2 km etäisyydelle sijoittuu Lillbyn ja Purmon taajamat. Pännäisten taajama sijoittuu hankealueen pohjoispuolelle noin 8 km etäisyydelle ja alueen länsiraja rajoittuu osittain Uudenkaarlepyyn kaupungin rajaan.",
+     "link": "/fi/osallistu-ja-vaikuta/ymparistovaikutusten-arviointi/purmon-tuulivoimapuisto-pedersore",
+     "publishTime": 1727264660,
+     "title": "Purmon tuulivoimapuisto, Pedersöre",
+     "type": "yva_project",
+     "typeLabel": "YVA-hanke",
+     "keywords": null,
+     "province": [
+      "Pedersören kunta",
+      "Pohjanmaa"
+     ],
+     "municipality": [
+      "Pedersören kunta"
+     ],
+     "organization": [
+      "Etelä-Pohjanmaan ELY-keskus"
+     ],
+     "projectPhase": [
+      "Päättynyt / perusteltu päätelmä annettu"
+     ],
+     "projectType": null,
+     "statistic": null,
+     "statisticPage": null,
+     "subjectArea": [
+      "Energiantuotanto",
+      "Tuulivoimalahankkeet"
+     ],
+     "publicHearingStart": 1684270800,
+     "publicHearingEnd": 1689282000,
+     "id": "1004",
+     "langcode": "fi"
+    },
+    "sort": [
+     "1004"
+    ]
+   }
+  ]
+ }
+}

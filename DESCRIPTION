@@ -7,8 +7,16 @@ Description: A unified R interface for fetching environmental-assessment
     records (EIA, SEA, follow-up advice) from European national portals into
     one consistent table, with an on-disk cache for offline re-use. Handlers
     ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund),
+    France (Projets-Environnement),
     Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders;
-    MER-register), and Estonia (Keskkonnaamet KOTKAS; KMH + KSH). Optional
+    MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Finland
+    (ymparisto.fi; EIA/YVA only), Bulgaria
+    (МОСВ registers; ОВОС + ЕО), the Czech Republic (CENIA EIA/SEA;
+    domestic registers only), Croatia (Ministry of Environment CMS
+    pages; PUO + SPUO), Greece (ΗΠΜ / EPRM; AEPO permit decisions
+    only), Iceland (Skipulagsgátt GraphQL; cases from ~June 2023
+    onward), and Ireland (gov.ie EIA Portal; ArcGIS REST; EIA only,
+    notice PDFs with the full EIAR off-portal). Optional
     fetch-time scoring of records by topic relevance is delegated to the
     companion 'planscanR.screen' package. Developed for the BIOGAIN project
     to support Net Biodiversity Gain in spatial energy planning.

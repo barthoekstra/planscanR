@@ -592,7 +592,12 @@ dk_fetch_documents <- function(assessment_id) {
 dk_resolve_document_link <- function(assessment_id, document_id) {
   req <- req_planscanr(dk_api_base())
   req <- httr2::req_url_path_append(
-    req, "assessments", assessment_id, "documents", document_id, "links"
+    req,
+    "assessments",
+    assessment_id,
+    "documents",
+    document_id,
+    "links"
   )
   payload <- tryCatch(perform_json(req), error = function(e) NULL)
   if (is.null(payload) || !is.list(payload)) {
@@ -612,19 +617,18 @@ dk_resolve_document_link <- function(assessment_id, document_id) {
 #' Mirrors [ee_section_slug()] / [be_section_slug()].
 #' @noRd
 dk_section_slug <- function(label) {
-  if (is.null(label) || !is.character(label) || length(label) != 1L ||
-    is.na(label) || !nzchar(label)) {
+  if (is.null(label) || !is.character(label) || length(label) != 1L || is.na(label) || !nzchar(label)) {
     return("document")
   }
   s <- label
   # Danish diacritics in document-type labels.
-  s <- gsub("æ", "ae", s) # æ
-  s <- gsub("ø", "oe", s) # ø
-  s <- gsub("å", "aa", s) # å
+  s <- gsub("\u00e6", "ae", s) # æ
+  s <- gsub("\u00f8", "oe", s) # ø
+  s <- gsub("\u00e5", "aa", s) # å
   # Common others that may appear (German-ish loans, accents).
-  s <- gsub("ä", "a", s)
-  s <- gsub("ö", "o", s)
-  s <- gsub("ü", "u", s)
+  s <- gsub("\u00e4", "a", s)
+  s <- gsub("\u00f6", "o", s)
+  s <- gsub("\u00fc", "u", s)
   s <- tolower(s)
   s <- gsub("[^a-z0-9]+", "_", s)
   s <- gsub("(^_+|_+$)", "", s)

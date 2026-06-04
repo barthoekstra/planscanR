@@ -34,6 +34,22 @@ test_that("DE coverage row exposes the procedure / bundesland vocabularies", {
   expect_true("obj_class_zv" %in% f$procedure)
 })
 
+test_that("FR coverage row exposes the theme / status / native_type vocabularies", {
+  c <- get_assessments_coverage()
+  fr <- c[c$country == "fr", ]
+  expect_identical(fr$source_portal, "projets-environnement.gouv.fr")
+  expect_false(fr$requires_auth)
+  expect_identical(fr$status, "supported")
+  f <- fr$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("theme", "status", "native_type"))
+  expect_true("ÉNERGIE" %in% f$theme)
+  expect_true("ENVIRONNEMENT" %in% f$theme)
+  expect_true("ouvert" %in% f$status)
+  expect_true("clos" %in% f$status)
+  expect_true("AENV" %in% f$native_type)
+})
+
 test_that("BE coverage row exposes the dossier-type vocabulary", {
   c <- get_assessments_coverage()
   be <- c[c$country == "be", ]
@@ -65,6 +81,122 @@ test_that("EE coverage row exposes the KOTKAS facet vocabularies", {
   expect_true("Harju maakond" %in% f$activity_area)
   expect_true("Energeetika ja energiakandjate tootmine" %in% f$activity)
   expect_true("Detailplaneering" %in% f$ksh_type)
+})
+
+test_that("FI coverage row signals EIA/YVA-only status and exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  fi <- c[c$country == "fi", ]
+  expect_identical(fi$source_portal, "ymparisto.fi")
+  expect_false(fi$requires_auth)
+  expect_identical(fi$status, "supported (EIA/YVA only; no SEA in register)")
+  f <- fi$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "type"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  # No SEA in the Finnish register.
+  expect_false("SEA" %in% f$assessment_type)
+  expect_identical(unname(f$type[["EIA"]]), "yva_project")
+})
+
+test_that("BG coverage row exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  bg <- c[c$country == "bg", ]
+  expect_identical(bg$source_portal, "registers.moew.government.bg")
+  expect_false(bg$requires_auth)
+  expect_identical(bg$status, "supported")
+  f <- bg$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+})
+
+test_that("CZ coverage row exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  cz <- c[c$country == "cz", ]
+  expect_identical(cz$source_portal, "portal.cenia.cz")
+  expect_false(cz$requires_auth)
+  expect_identical(cz$status, "supported")
+  f <- cz$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register_view"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  # Domestic-only register codes are documented; the cross-border ones are not.
+  expect_true("eia100_cr" %in% f$register_view)
+  expect_true("SEA100_koncepce" %in% f$register_view)
+})
+
+test_that("HR coverage row exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  hr <- c[c$country == "hr", ]
+  expect_identical(hr$source_portal, "mzozt.gov.hr")
+  expect_false(hr$requires_auth)
+  expect_identical(hr$status, "supported")
+  f <- hr$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  # PUO/SPUO register codes are documented.
+  expect_true("PUO" %in% f$register)
+  expect_true("SPUO" %in% f$register)
+})
+
+test_that("GR coverage row signals decisions-only status and exposes the type vocabulary", {
+  c <- get_assessments_coverage()
+  gr <- c[c$country == "gr", ]
+  expect_identical(gr$source_portal, "eprm.ypen.gr")
+  expect_false(gr$requires_auth)
+  expect_identical(
+    gr$status,
+    "supported (decisions-only; studies/SEA login-gated)"
+  )
+  f <- gr$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("type"))
+  expect_true("aepo_creation" %in% f$type)
+  expect_true("aepo_renewal" %in% f$type)
+  expect_true("pppa_creation" %in% f$type)
+})
+
+test_that("IS coverage row signals the GraphQL backend + coverage horizon and exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  is <- c[c$country == "is", ]
+  expect_identical(is$source_portal, "skipulagsgatt.is")
+  expect_false(is$requires_auth)
+  expect_identical(
+    is$status,
+    "supported (GraphQL; cases from ~June 2023 onward)"
+  )
+  f <- is$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "process_type"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  # The three environmental-assessment process types are documented.
+  expect_true("MAT_A_UMHVERFISAHRIFUM" %in% f$process_type)
+  expect_true("UMHVERFISMAT_AETLANA" %in% f$process_type)
+})
+
+test_that("IE coverage row signals EIA-only / notice-PDF status and exposes the competent_authority vocabulary", {
+  c <- get_assessments_coverage()
+  ie <- c[c$country == "ie", ]
+  expect_identical(ie$source_portal, "services.arcgis.com (gov.ie EIA Portal)")
+  expect_false(ie$requires_auth)
+  expect_identical(
+    ie$status,
+    "supported (EIA only; portal = notice PDFs, full EIAR off-portal)"
+  )
+  f <- ie$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "competent_authority")
+  expect_true("An Bord Pleanála" %in% f$competent_authority)
 })
 
 test_that("AT coverage row signals metadata-only status and exposes typology", {

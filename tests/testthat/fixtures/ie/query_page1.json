@@ -1,0 +1,61 @@
+{
+  "objectIdFieldName": "OBJECTID_1",
+  "uniqueIdField": { "name": "OBJECTID_1", "isSystemMaintained": true },
+  "globalIdFieldName": "GlobalID_2",
+  "geometryType": "esriGeometryPoint",
+  "spatialReference": { "wkid": 2157, "latestWkid": 2157 },
+  "exceededTransferLimit": false,
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID_1": 5427,
+        "OBJECTID": 0,
+        "Portal_Ref": "2024092",
+        "Competent_Authority": "An Bord Pleanála",
+        "Competent_Authority_Application": "ABP-318000-23",
+        "Applicant_name": "North Irish Sea Array Windfarm Limited",
+        "Location": "Off the coast of Counties Dublin, Meath and Louth",
+        "Description__Max__256_character": "Offshore wind farm comprising up to 46 wind turbine generators and associated infrastructure",
+        "Date_of_receipt_of_application_": 1726531200000,
+        "URL_link_to_application_appeal_": "https://www.pleanala.ie/en-ie/case/318000",
+        "URL_link_2__if_any_": "https://www.gov.ie/marac",
+        "Linear_Development": "Yes"
+      },
+      "geometry": { "x": 715871.6292, "y": 734092.5021 }
+    },
+    {
+      "attributes": {
+        "OBJECTID_1": 1115,
+        "OBJECTID": 0,
+        "Portal_Ref": "2020010",
+        "Competent_Authority": "Cork County Council",
+        "Competent_Authority_Application": "20/010",
+        "Applicant_name": "Commissioners of Public Works",
+        "Location": "Fermoy, Co. Cork",
+        "Description__Max__256_character": "Flood relief scheme works at Fermoy",
+        "Date_of_receipt_of_application_": 1581552000000,
+        "URL_link_to_application_appeal_": "https://www.corkcoco.ie/eplanning",
+        "URL_link_2__if_any_": null,
+        "Linear_Development": "No"
+      },
+      "geometry": { "x": 711996.6656, "y": 723733.4761 }
+    },
+    {
+      "attributes": {
+        "OBJECTID_1": 9001,
+        "OBJECTID": 0,
+        "Portal_Ref": "2023500",
+        "Competent_Authority": "Mayo County Council",
+        "Competent_Authority_Application": "23/500",
+        "Applicant_name": "Coillte CGA",
+        "Location": "Co. Mayo",
+        "Description__Max__256_character": "Afforestation project with no portal-hosted notice and no recorded location",
+        "Date_of_receipt_of_application_": 1690848000000,
+        "URL_link_to_application_appeal_": "https://www.epawebapp.epa.ie/case/23500",
+        "URL_link_2__if_any_": null,
+        "Linear_Development": null
+      },
+      "geometry": null
+    }
+  ]
+}
