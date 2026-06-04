@@ -22,7 +22,8 @@ make_record <- list(
     planscanR:::be_parse_detail(
       planscanR:::be_canonical_url("PR4037"),
       list(
-        nummer = "PR4037", dossierType = "PROJECT_MER",
+        nummer = "PR4037",
+        dossierType = "PROJECT_MER",
         titel = "Windturbineproject Overhaem",
         initiatiefnemer = list(naam = "Spark Power", kboNummer = "1002476390")
       ),
@@ -33,9 +34,14 @@ make_record <- list(
     planscanR:::bg_parse_detail(
       planscanR:::bg_canonical_url("OVOS", "21617"),
       list(
-        register = "OVOS", id = "21617", dossier_number = "БД - ОВОС - 75 - 2017",
+        register = "OVOS",
+        id = "21617",
+        dossier_number = "БД - ОВОС - 75 - 2017",
         incoming_number = "533",
-        title = "x", proponent = "y", native_type = NA_character_, status = "z"
+        title = "x",
+        proponent = "y",
+        native_type = NA_character_,
+        status = "z"
       ),
       rvest::read_html(fixture_path("bg", "detail-ovos-21617.html"))
     )
@@ -44,8 +50,12 @@ make_record <- list(
     planscanR:::cz_parse_detail(
       planscanR:::cz_canonical_url("EIA", "JHC1237"),
       list(
-        register = "EIA", code = "JHC1237", title = "x",
-        competent_authority = "y", native_type = "I/68", status = "z",
+        register = "EIA",
+        code = "JHC1237",
+        title = "x",
+        competent_authority = "y",
+        native_type = "I/68",
+        status = "z",
         last_modified = as.Date("2026-06-04")
       ),
       rvest::read_html(fixture_path("cz", "detail-eia-jhc1237.html"))
@@ -69,9 +79,16 @@ make_record <- list(
     planscanR:::ee_parse_detail(
       planscanR:::ee_canonical_url("KMH", "478"),
       list(
-        register = "KMH", id = "478", title = "x", region = "y",
-        initiation_date = as.Date("2025-01-22"), initiation_reason = NA_character_,
-        status = "z", developer = "w", ksh_type = NA_character_, activity = "a"
+        register = "KMH",
+        id = "478",
+        title = "x",
+        region = "y",
+        initiation_date = as.Date("2025-01-22"),
+        initiation_reason = NA_character_,
+        status = "z",
+        developer = "w",
+        ksh_type = NA_character_,
+        activity = "a"
       ),
       rvest::read_html(fixture_path("ee", "kmh-detail-478.html"))
     )$record
@@ -84,7 +101,9 @@ make_record <- list(
     )[[1]]
     url <- planscanR:::fi_canonical_url(src$link)
     planscanR:::fi_build_record(
-      url, src, planscanR:::fi_parse_detail(rvest::read_html(fixture_path("fi", "detail-1498.html")))
+      url,
+      src,
+      planscanR:::fi_parse_detail(rvest::read_html(fixture_path("fi", "detail-1498.html")))
     )
   },
   fr = function() {
@@ -105,9 +124,12 @@ make_record <- list(
     title <- planscanR:::hr_block_title(block)
     id <- planscanR:::hr_document_id("PUO", title)
     planscanR:::hr_parse_block(list(
-      register = "PUO", document_id = id,
+      register = "PUO",
+      document_id = id,
       url = planscanR:::hr_canonical_url(planscanR:::hr_register_urls("PUO")[[1]], id),
-      title = title, assessment_type = "EIA", block = block
+      title = title,
+      assessment_type = "EIA",
+      block = block
     ))
   },
   ie = function() {
@@ -123,7 +145,9 @@ make_record <- list(
       )
     }
     planscanR:::ie_parse_feature(
-      planscanR:::ie_canonical_url("2024092"), page$features[[1]], idx
+      planscanR:::ie_canonical_url("2024092"),
+      page$features[[1]],
+      idx
     )
   },
   is = function() {
@@ -131,10 +155,15 @@ make_record <- list(
     planscanR:::is_parse_issue(
       planscanR:::is_canonical_url("137"),
       list(
-        process_id = "16", id = "137", issue_number = "0137/2023",
-        title = "x", published_date = "2023-06-01T09:31:55.254Z",
-        closed_date = "2024-12-09T00:00:00.000Z", lifecycle = "done",
-        has_geography = TRUE, process_type = "MAT_A_UMHVERFISAHRIFUM",
+        process_id = "16",
+        id = "137",
+        issue_number = "0137/2023",
+        title = "x",
+        published_date = "2023-06-01T09:31:55.254Z",
+        closed_date = "2024-12-09T00:00:00.000Z",
+        lifecycle = "done",
+        has_geography = TRUE,
+        process_type = "MAT_A_UMHVERFISAHRIFUM",
         current_phase = "p"
       ),
       single$data$singleIssue
@@ -215,9 +244,13 @@ test_that("the sidecar reader guarantees relevance_model on round-trip", {
     options(planscanR.cache_dir = getwd())
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
     rec <- tibble::tibble(
-      country = "zz", source_portal = "x", document_id = "rm1",
-      url = "https://x/rm1", retrieved_at = as.POSIXct("2025-01-01", tz = "UTC"),
-      attachment_urls = list(character(0)), local_path = list(character(0))
+      country = "zz",
+      source_portal = "x",
+      document_id = "rm1",
+      url = "https://x/rm1",
+      retrieved_at = as.POSIXct("2025-01-01", tz = "UTC"),
+      attachment_urls = list(character(0)),
+      local_path = list(character(0))
     )
     planscanR:::write_record_sidecar(rec)
     back <- planscanR:::read_record_sidecar(planscanR:::sidecar_path("zz", "rm1"))

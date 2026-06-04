@@ -5,8 +5,11 @@
 test_that("merge keeps old scalar metadata when the new write omits it (new otherwise wins)", {
   new <- list(country = "nl", document_id = "1", title = "New title")
   old <- list(
-    country = "nl", document_id = "1",
-    source_portal = "commissiemer.nl", title = "Old title", summary = "Old summary"
+    country = "nl",
+    document_id = "1",
+    source_portal = "commissiemer.nl",
+    title = "Old title",
+    summary = "Old summary"
   )
   m <- planscanR:::merge_sidecar_payload(new, old)
   expect_identical(m$source_portal, "commissiemer.nl") # new omitted -> keep old
@@ -16,10 +19,12 @@ test_that("merge keeps old scalar metadata when the new write omits it (new othe
 
 test_that("merge unions files[] by URL: new supersedes same URL, old-only rows are kept", {
   new <- list(files = list(list(url = "https://x/a.pdf", status = "downloaded")))
-  old <- list(files = list(
-    list(url = "https://x/a.pdf", status = "pending"),
-    list(url = "https://x/b.pdf", status = "pending")
-  ))
+  old <- list(
+    files = list(
+      list(url = "https://x/a.pdf", status = "pending"),
+      list(url = "https://x/b.pdf", status = "pending")
+    )
+  )
   m <- planscanR:::merge_sidecar_payload(new, old)
   urls <- vapply(m$files, function(f) f$url, character(1))
   expect_setequal(urls, c("https://x/a.pdf", "https://x/b.pdf"))
@@ -31,10 +36,12 @@ test_that("merge unions files[] by URL: new supersedes same URL, old-only rows a
 
 test_that("merge unions relevance_scores[] by topic (new wins)", {
   new <- list(relevance_scores = list(list(topic = "wind", score = 0.8)))
-  old <- list(relevance_scores = list(
-    list(topic = "wind", score = 0.5),
-    list(topic = "solar", score = 0.3)
-  ))
+  old <- list(
+    relevance_scores = list(
+      list(topic = "wind", score = 0.5),
+      list(topic = "solar", score = 0.3)
+    )
+  )
   m <- planscanR:::merge_sidecar_payload(new, old)
   topics <- vapply(m$relevance_scores, function(e) e$topic, character(1))
   expect_setequal(topics, c("wind", "solar"))

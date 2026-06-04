@@ -23,13 +23,18 @@ test_that("migrate_sidecars_v3 upgrades v2 sidecars to v3, preserving index_cach
         title = paste("Rec", id),
         relevance_model = "old",
         relevance_scores = list(list(
-          topic = "wind", score = score, model = "old",
+          topic = "wind",
+          score = score,
+          model = "old",
           scored_at = "2024-01-02T03:04:05Z"
         )),
         extras = list(relevance_score_wind = score, native_type = "T"),
         files = list(list(
-          url = "https://x/a.pdf", local_path = abs_pdf,
-          status = "downloaded", size_bytes = 10, sha256 = "aa"
+          url = "https://x/a.pdf",
+          local_path = abs_pdf,
+          status = "downloaded",
+          size_bytes = 10,
+          sha256 = "aa"
         ))
       )
       writeLines(jsonlite::toJSON(payload, auto_unbox = TRUE, null = "null"), p)

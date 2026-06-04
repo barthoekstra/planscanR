@@ -61,20 +61,29 @@ test_that("slugify_topic lowercases, underscores, and falls back to 'topic'", {
 test_that("passes_download_gate passes when threshold or rel is NULL", {
   expect_true(planscanR:::passes_download_gate(list(), rel = NULL, threshold = 0.5))
   expect_true(planscanR:::passes_download_gate(
-    list(), rel = list(topics = c(w = "wind")), threshold = NULL
+    list(),
+    rel = list(topics = c(w = "wind")),
+    threshold = NULL
   ))
 })
 
 test_that("passes_download_gate scalar threshold: pass iff any score >= threshold (boundary inclusive)", {
   rel <- list(topics = c(wind = "wind", solar = "solar"))
   expect_true(planscanR:::passes_download_gate(
-    list(relevance_score_wind = 0.6, relevance_score_solar = 0.1), rel, 0.5
+    list(relevance_score_wind = 0.6, relevance_score_solar = 0.1),
+    rel,
+    0.5
   ))
   expect_false(planscanR:::passes_download_gate(
-    list(relevance_score_wind = 0.2, relevance_score_solar = 0.1), rel, 0.5
+    list(relevance_score_wind = 0.2, relevance_score_solar = 0.1),
+    rel,
+    0.5
   ))
-  expect_true(planscanR:::passes_download_gate( # exact boundary
-    list(relevance_score_wind = 0.5, relevance_score_solar = 0.1), rel, 0.5
+  expect_true(planscanR:::passes_download_gate(
+    # exact boundary
+    list(relevance_score_wind = 0.5, relevance_score_solar = 0.1),
+    rel,
+    0.5
   ))
 })
 
@@ -88,6 +97,8 @@ test_that("passes_download_gate named threshold: any named topic clearing its ow
 test_that("passes_download_gate ignores NA scores", {
   rel <- list(topics = c(wind = "wind"))
   expect_false(planscanR:::passes_download_gate(
-    list(relevance_score_wind = NA_real_), rel, 0.5
+    list(relevance_score_wind = NA_real_),
+    rel,
+    0.5
   ))
 })

@@ -31,6 +31,10 @@ and related advice) from European government portals.
 * Public helpers `download_to_cache()`, `cache_path()`, and
   `resolve_cached_path()` fetch or locate a single attachment using the same
   cache layout as the fetcher, so downstream packages need no internals.
+* On-disk metadata uses sidecar schema v3: file paths are stored relative to the
+  cache root, so a relocated or synced cache still resolves.
+  `migrate_sidecars_v3()` upgrades an existing cache in one pass, and older
+  (v1/v2) sidecars are still read.
 
 ## Optional scoring
 

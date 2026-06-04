@@ -128,7 +128,10 @@ test_that("re-scoring a v2 sidecar drops its stale extras relevance_score_* dupl
       retrieved_at = "2024-01-01T00:00:00Z",
       relevance_model = "old",
       relevance_scores = list(list(
-        topic = "wind", score = 0.5, model = "old", scored_at = "2024-01-01T00:00:00Z"
+        topic = "wind",
+        score = 0.5,
+        model = "old",
+        scored_at = "2024-01-01T00:00:00Z"
       )),
       extras = list(relevance_score_wind = 0.5),
       files = list()
