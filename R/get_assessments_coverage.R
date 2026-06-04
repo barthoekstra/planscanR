@@ -25,7 +25,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie", "si"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -40,7 +40,8 @@ get_assessments_coverage <- function() {
       "mzozt.gov.hr",
       "eprm.ypen.gr",
       "skipulagsgatt.is",
-      "services.arcgis.com (gov.ie EIA Portal)"
+      "services.arcgis.com (gov.ie EIA Portal)",
+      "gov.si"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -56,9 +57,11 @@ get_assessments_coverage <- function() {
       "https://mzozt.gov.hr",
       "https://eprm.ypen.gr",
       "https://www.skipulagsgatt.is",
-      "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0"
+      "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0",
+      "https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -88,7 +91,8 @@ get_assessments_coverage <- function() {
       "supported", # hr
       "supported (decisions-only; studies/SEA login-gated)", # gr
       "supported (GraphQL; cases from ~June 2023 onward)", # is
-      "supported (EIA only; portal = notice PDFs, full EIAR off-portal)" # ie
+      "supported (EIA only; portal = notice PDFs, full EIAR off-portal)", # ie
+      "supported" # si
     ),
     facets = list(
       commissiemer_facets(),
@@ -104,7 +108,29 @@ get_assessments_coverage <- function() {
       mzozt_hr_facets(),
       eprm_gr_facets(),
       skipulagsgatt_is_facets(),
-      eia_portal_ie_facets()
+      eia_portal_ie_facets(),
+      gov_si_facets()
+    )
+  )
+}
+
+#' Static lookup of the gov.si (Slovenia) facet vocabularies.
+#'
+#' Slovenia publishes its environmental-assessment registers as unfiltered
+#' bulk JSON exports, so there are no server-side search filters. The only
+#' first-class discriminator is the `assessment_type` selector (which
+#' register(s) to crawl — the screening register for EIA, the two CPVO
+#' registers for SEA, or all three). The three raw register codes are surfaced
+#' here for reference (they land in the `register` output column); `date_range`
+#' is matched client-side after the bulk export is fetched.
+#' @noRd
+gov_si_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c(
+      EIA = "predhodni-postopek",
+      SEA_state = "cpvo-drzavni",
+      SEA_municipal = "cpvo-obcinski"
     )
   )
 }

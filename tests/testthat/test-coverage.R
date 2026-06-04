@@ -199,6 +199,23 @@ test_that("IE coverage row signals EIA-only / notice-PDF status and exposes the 
   expect_true("An Bord Pleanála" %in% f$competent_authority)
 })
 
+test_that("SI coverage row exposes the assessment_type / register vocabulary", {
+  c <- get_assessments_coverage()
+  si <- c[c$country == "si", ]
+  expect_identical(si$source_portal, "gov.si")
+  expect_false(si$requires_auth)
+  expect_identical(si$status, "supported")
+  f <- si$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register"))
+  expect_true("All" %in% f$assessment_type)
+  expect_true("EIA" %in% f$assessment_type)
+  expect_true("SEA" %in% f$assessment_type)
+  expect_true("predhodni-postopek" %in% f$register)
+  expect_true("cpvo-drzavni" %in% f$register)
+  expect_true("cpvo-obcinski" %in% f$register)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

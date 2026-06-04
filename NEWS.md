@@ -11,11 +11,16 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 14 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 15 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
-  Greece, Iceland, and Ireland. Coverage, honoured filters, geometry, and
-  per-portal quirks differ by country — see `vignette("supported_sources")` and
-  `get_assessments_coverage()`.
+  Greece, Iceland, Ireland, and Slovenia. Coverage, honoured filters, geometry,
+  and per-portal quirks differ by country — see `vignette("supported_sources")`
+  and `get_assessments_coverage()`.
+* Slovenia (`get_assessments_si()`): fetches from the gov.si
+  environmental-assessment registers via their bulk JSON exports — the EIA
+  screening register plus the two SEA (CPVO) registers, merged with an
+  `assessment_type` / `register` dual-register tag; attachments are scraped
+  from each record's detail page.
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English

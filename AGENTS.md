@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Eleven country handlers ship:
+**v0.1 scope.** Fifteen country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -192,6 +192,25 @@ Python, no Shiny, no project-specific scoring config.
   by default (`getOption("planscanR.ie_throttle_rate")`). Reflected in
   `get_assessments_coverage()$status` as
   `"supported (EIA only; portal = notice PDFs, full EIAR off-portal)"`.
+- Slovenia (`get_assessments_si()`) — **gov.si** environmental-assessment
+  registers under `…/okoljske-presoje/`. **Bulk-export enumeration**: each
+  register is one JSON GET (`<list>/export/json/`) returning the whole
+  unpaginated array (single network seam `si_fetch_search(register)`, parsed
+  via `perform_json`). **Dual-register** (`assessment_type` `"All"`/`"EIA"`/
+  `"SEA"`): EIA screening `predhodni-postopek` (`document_id` prefix `PRED-`)
+  vs. two SEA/CPVO registers — state plans `cpvo-drzavni` (`CPVO-DRZ-`) and
+  municipal plans `cpvo-obcinski` (`CPVO-OBC-`). Field maps differ per register
+  (screening: `Poseg`/`Datum objave`/`Naziv`/`Naslov`/`Številka zadeve`/
+  `Oznaka posega`; CPVO: `Title`/`Naziv`/`Datum`/`Odločitev`). Export ids don't
+  map to filenames, so attachments are scraped from each detail page
+  (sidecar-first; seam `si_fetch_attachments(url)`): `a[href^="/assets/seznami/"]`
+  absolutised against `https://www.gov.si`, flat `attachment_urls` (no sections;
+  may be empty). No geometry. `competent_authority` fixed to *Ministrstvo za
+  okolje, podnebje in energijo*. `date_published` parses `"DD. MM. YYYY"`;
+  `date_decision` always `NA`; `date_range` matched client-side. Record language
+  Slovenian (`sl`). Throttled to 5 req/s
+  (`getOption("planscanR.si_throttle_rate")`). Scope ~2021 onward. Reflected in
+  `get_assessments_coverage()$status` as `"supported"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -279,7 +298,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_hr(...)          # mzozt.gov.hr
   │     ├── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
   │     ├── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
-  │     └── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
+  │     ├── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
+  │     └── get_assessments_si(...)          # gov.si (bulk JSON export; EIA + SEA/CPVO)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```
