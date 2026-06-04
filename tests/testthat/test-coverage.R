@@ -250,6 +250,23 @@ test_that("GB coverage row signals NSIP-only status and exposes the stage / appl
   expect_true("Transport" %in% f$application_type_prefix)
 })
 
+test_that("IT coverage row signals the VIA/VAS dual register and exposes the assessment_type / register vocabulary", {
+  c <- get_assessments_coverage()
+  it <- c[c$country == "it", ]
+  expect_identical(it$source_portal, "va.mite.gov.it")
+  expect_false(it$requires_auth)
+  expect_identical(
+    it$status,
+    "supported (VIA/VAS dual register; HTML scrape; no geometry)"
+  )
+  f <- it$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register"))
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+  expect_identical(unname(f$register[["EIA"]]), "VIA")
+  expect_identical(unname(f$register[["SEA"]]), "VAS")
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

@@ -54,6 +54,7 @@ Supported portals:
 | Slovenia (`"si"`) | gov.si environmental-assessment registers (bulk JSON exports) | EIA screening (`predhodni-postopek`) + SEA decisions (CPVO state + municipal plans) in one handler, dual-register, attachments scraped from detail pages, no geometry, ~2021 onward |
 | Portugal (`"pt"`) | APA SIAIA register (`siaia.apambiente.pt`; server-rendered HTML) | **AIA / project-level EIA only** (SEA/AAE in a separate APA register), paginated HTML listing + detail pages, direct `AIADOC` PDFs grouped into per-phase attachment columns, no geometry, client-side filters |
 | United Kingdom (`"gb"`) | Planning Inspectorate National Infrastructure Consenting (`planninginspectorate.gov.uk`; bulk CSV export) | **NSIP only** (every NSIP carries a statutory Environmental Statement), whole register as one CSV, Environmental Statement PDFs scraped per project from `nsip-documents.*`, OSGB (EPSG:27700) point geometry, client-side filters, 10 s crawl-delay |
+| Italy (`"it"`) | MASE *Valutazioni e Autorizzazioni Ambientali* (`va.mite.gov.it`; server-rendered HTML) | VIA (project EIA) + VAS (plan SEA) in one handler, dual-register, paginated HTML listing + Info detail + Documentazione index, direct `/File/Documento` PDFs grouped into per-*Sezione* attachment columns, no geometry, Italian, client-side filters, large register |
 
 See `vignette("supported_sources")` for per-portal details: how each portal
 is accessed, what filters are honoured, and what data comes back.

@@ -25,7 +25,26 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie", "si", "pt", "gb"),
+    country = c(
+      "nl",
+      "de",
+      "fr",
+      "at",
+      "dk",
+      "be",
+      "ee",
+      "fi",
+      "bg",
+      "cz",
+      "hr",
+      "gr",
+      "is",
+      "ie",
+      "si",
+      "pt",
+      "gb",
+      "it"
+    ),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -43,7 +62,8 @@ get_assessments_coverage <- function() {
       "services.arcgis.com (gov.ie EIA Portal)",
       "gov.si",
       "siaia.apambiente.pt",
-      "planninginspectorate.gov.uk"
+      "planninginspectorate.gov.uk",
+      "va.mite.gov.it"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -62,9 +82,11 @@ get_assessments_coverage <- function() {
       "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0",
       "https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje",
       "https://siaia.apambiente.pt",
-      "https://national-infrastructure-consenting.planninginspectorate.gov.uk"
+      "https://national-infrastructure-consenting.planninginspectorate.gov.uk",
+      "https://va.mite.gov.it"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -100,7 +122,8 @@ get_assessments_coverage <- function() {
       "supported (EIA only; portal = notice PDFs, full EIAR off-portal)", # ie
       "supported", # si
       "supported (EIA/AIA only; SEA/AAE in a separate APA register)", # pt
-      "supported (NSIP only; every NSIP carries an Environmental Statement)" # gb
+      "supported (NSIP only; every NSIP carries an Environmental Statement)", # gb
+      "supported (VIA/VAS dual register; HTML scrape; no geometry)" # it
     ),
     facets = list(
       commissiemer_facets(),
@@ -119,8 +142,27 @@ get_assessments_coverage <- function() {
       eia_portal_ie_facets(),
       gov_si_facets(),
       siaia_pt_facets(),
-      planning_inspectorate_gb_facets()
+      planning_inspectorate_gb_facets(),
+      va_mite_it_facets()
     )
+  )
+}
+
+#' Static lookup of the MASE va.mite.gov.it (Italy) facet vocabularies.
+#'
+#' Italy publishes two server-rendered HTML registers — VIA (project EIA) and
+#' VAS (plan SEA). The only first-class discriminator is the `assessment_type`
+#' selector (which register(s) to crawl — VIA for EIA, VAS for SEA, or both);
+#' the raw register labels are surfaced for reference (they land in the
+#' `register` output column). The portal's Procedura / free-text search is
+#' server-side, but the handler applies `query` (title substring) and
+#' `date_range` (against `date_published`) client-side after the listing is
+#' fetched.
+#' @noRd
+va_mite_it_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c(EIA = "VIA", SEA = "VAS")
   )
 }
 

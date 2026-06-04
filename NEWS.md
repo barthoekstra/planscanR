@@ -11,9 +11,9 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 17 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 18 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
-  Greece, Iceland, Ireland, Slovenia, Portugal, and the United Kingdom.
+  Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, and Italy.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.
@@ -39,6 +39,15 @@ and related advice) from European government portals.
   (EPSG:27700) point geometry sidecar from each project's grid reference.
   `query`, `status`, and `date_range` are matched client-side; the portal's
   10 s `robots.txt` crawl-delay is honoured (0.1 req/s default).
+* Italy (`get_assessments_it()`): fetches from the MASE *Valutazioni e
+  Autorizzazioni Ambientali* portal at `va.mite.gov.it` — the VIA (project EIA)
+  and VAS (plan SEA) registers, merged with an `assessment_type` / `register`
+  dual-register tag. Walks each register's paginated server-rendered HTML
+  listing, reads each Info detail page (proponent, procedure timeline, *Esito*,
+  and the *Regioni* / *Province* / *Comuni* text), and groups the direct
+  `/File/Documento` PDFs into per-*Sezione* `attachment_urls_<slug>` columns.
+  No geometry (location is text); `query` and `date_range` are matched
+  client-side.
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English

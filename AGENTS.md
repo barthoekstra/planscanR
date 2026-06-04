@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Seventeen country handlers ship:
+**v0.1 scope.** Eighteen country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -254,6 +254,29 @@ Python, no Shiny, no project-specific scoring config.
   `getOption("planscanR.gb_throttle_rate")`. Reflected in
   `get_assessments_coverage()$status` as
   `"supported (NSIP only; every NSIP carries an Environmental Statement)"`.
+- Italy (`get_assessments_it()`) — MASE **Valutazioni e Autorizzazioni
+  Ambientali** at `va.mite.gov.it`. **HTML pagination**: each register's search
+  listing paginates via a 1-based `?pagina=N` query (seam `it_fetch_search()`,
+  parsed with `perform_html`); the page footer's `"Pagina X di Y"` counter
+  bounds the crawl. **Dual-register** (`assessment_type` `"All"`/`"EIA"`/`"SEA"`):
+  VIA project EIA `Ricerca/ViaProcedura` (`document_id` prefix `VIA-`) vs. VAS
+  plan SEA `Ricerca/VasProcedura` (`VAS-`); the numeric `Oggetti/Info/{id}` is the
+  id. Per record (sidecar-first): the Info page `/it-IT/Oggetti/Info/{id}`
+  (`<p><strong>Label</strong>: value</p>` fields + a procedure-timeline table for
+  `date_published` / `date_decision` / `status` / `outcome`) plus the
+  Documentazione index `/it-IT/Oggetti/Documentazione/{id}/{grp}` whose rows carry
+  a *Sezione* and a direct `/File/Documento/{fileId}` PDF link — grouped into
+  per-section `attachment_urls_<slug>` columns (DE pattern) + the deduplicated
+  union. The Info-page value reader strips `<!--…-->` comment nodes before
+  reading text (mirrors the EE comment-leak guard, defensively). No geometry
+  (location is *Regioni* / *Province* / *Comuni* text, surfaced as the `regions`
+  / `provinces` / `municipalities` extras, Italian verbatim).
+  `competent_authority` fixed to *Ministero dell'Ambiente e della Sicurezza
+  Energetica* (MASE). `query` (title substring) and `date_range` matched
+  client-side. Italian. Throttled to 5 req/s
+  (`getOption("planscanR.it_throttle_rate")`); the VIA register is large
+  (~10.6k projects). Reflected in `get_assessments_coverage()$status` as
+  `"supported (VIA/VAS dual register; HTML scrape; no geometry)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -344,7 +367,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
   │     ├── get_assessments_si(...)          # gov.si (bulk JSON export; EIA + SEA/CPVO)
   │     ├── get_assessments_pt(...)          # siaia.apambiente.pt (HTML register; AIA/EIA)
-  │     └── get_assessments_gb(...)          # planninginspectorate.gov.uk (bulk CSV; NSIP/EIA)
+  │     ├── get_assessments_gb(...)          # planninginspectorate.gov.uk (bulk CSV; NSIP/EIA)
+  │     └── get_assessments_it(...)          # va.mite.gov.it (HTML scrape; VIA/EIA + VAS/SEA)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

@@ -979,6 +979,65 @@ get_assessments_gb(limit = 5, download = FALSE)
 get_assessments_gb(query = "solar", limit = 20, download = FALSE)
 ```
 
+## Italy — `"it"`
+
+* **Portal:** the *Ministero dell'Ambiente e della Sicurezza Energetica* (MASE)
+  portal **Valutazioni e Autorizzazioni Ambientali**,
+  [va.mite.gov.it](https://va.mite.gov.it/), a server-rendered HTML register
+  (no JSON API).
+* **Status:** supported
+  (`get_assessments_coverage()$status` =
+  `"supported (VIA/VAS dual register; HTML scrape; no geometry)"`).
+* **Authentication:** none (anonymous public register).
+* **Dual register (`assessment_type`).** Two adjacent registers are merged into
+  one result tibble, tagged by `assessment_type` (`"EIA"` / `"SEA"`) and
+  `register` (`"VIA"` / `"VAS"`):
+  * **VIA** — *Valutazione di Impatto Ambientale* (project-level EIA),
+    `…/it-IT/Ricerca/ViaProcedura`; `document_id` prefix `VIA-`.
+  * **VAS** — *Valutazione Ambientale Strategica* (plan/programme SEA),
+    `…/it-IT/Ricerca/VasProcedura`; `document_id` prefix `VAS-`.
+  Pass `assessment_type = "All"` (default), `"EIA"`, or `"SEA"` to select which
+  register(s) to crawl. The numeric `…/it-IT/Oggetti/Info/{id}` is the record id.
+* **HTML pagination.** Each register's search listing paginates via a 1-based
+  `?pagina=N` query parameter; the page footer carries a `"Pagina X di Y"`
+  counter that bounds the crawl. Each row gives the project/plan title, the
+  proponent, the procedure type, an *Info* detail link, and a *Doc*
+  documentation link.
+* **Detail (Info + Documentazione).** Per record (sidecar-first) the handler
+  reads the Info page `…/it-IT/Oggetti/Info/{id}` (its
+  `<strong>Label</strong>: value` paragraphs and a procedure-timeline table for
+  the start date, decree date, status, and *Esito* / outcome), then the
+  documentation index `…/it-IT/Oggetti/Documentazione/{id}/{grp}`.
+* **Attachments — direct PDFs grouped by *Sezione*.** Each documentation row
+  carries a *Sezione* (category) and a direct, public download link
+  `https://va.mite.gov.it/File/Documento/{fileId}` (the server returns
+  `application/pdf`; no authentication). PDFs are grouped by *Sezione* into
+  per-section `attachment_urls_<slug>` columns (the same pattern as Germany),
+  plus the deduplicated union in `attachment_urls`.
+* **No geometry.** Location is published only as named Italian text lists —
+  *Regioni* / *Province* / *Comuni* — surfaced as the `regions`, `provinces`,
+  and `municipalities` extras (Italian text kept verbatim). No coordinate
+  geometry is available.
+* **Competent authority.** Fixed to *Ministero dell'Ambiente e della Sicurezza
+  Energetica* (MASE), the national ministry that runs the register.
+* **Filters (client-side).** `query` is a case-insensitive substring match on
+  the record title; `date_range` is matched against `date_published` (the
+  procedure's *Data avvio* / start date). The portal's own Procedura / free-text
+  search is server-side, but client-side filtering is sufficient for v0.1.
+* **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.it_throttle_rate")`). The VIA register is large
+  (~10 600 projects across ~1 060 listing pages), so a `limit` is recommended
+  for exploratory runs; VAS is far smaller (~270 plans).
+* **Language:** Italian (ISO-639-1 `it`); portal-native values kept verbatim.
+
+```{r}
+# Recent VIA/VAS records (no PDFs downloaded yet)
+get_assessments_it(limit = 5, download = FALSE)
+
+# SEA (VAS) register only
+get_assessments_it(assessment_type = "SEA", limit = 10, download = FALSE)
+```
+
 ## Adding a new source
 
 Adding a handler for another national portal is a matter of writing one
