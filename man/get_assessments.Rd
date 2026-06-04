@@ -24,7 +24,7 @@ get_assessments(
 }
 \arguments{
 \item{country}{Character scalar, ISO-3166-1 alpha-2 country code (any case).
-v0.1 supports \code{"nl"}, \code{"de"}, \code{"at"}, \code{"dk"}, \code{"be"} (Flanders),
+v0.1 supports \code{"nl"}, \code{"de"}, \code{"fr"}, \code{"at"}, \code{"dk"}, \code{"be"} (Flanders),
 \code{"ee"}, \code{"bg"}, \code{"cz"}, and \code{"hr"}. See \code{\link[=supported_countries]{supported_countries()}}.}
 
 \item{date_range}{Optional length-2 vector \code{c(from, to)} of \code{Date},

@@ -53,6 +53,21 @@
   date. Attachments are split into four list-columns mirroring the on-page
   section headings: `attachment_urls_uvp_bericht`, `_berichte`, `_auslegung`,
   `_weitere` (plus the deduplicated `attachment_urls` union).
+* France handler `get_assessments_fr()` fetches from the national
+  Projets-Environnement portal (`projets-environnement.gouv.fr`), backed by a
+  public OpenDataSoft Explore API v2.1 — a single export call enumerates the
+  whole flat dataset (~5,483 records), every field inline (no detail call).
+  Maps `dc_title`/`descriptif_du_projet`/`dc_date`/`dc_type`/`vp_status` onto
+  the conventional columns and keeps `dc_subject_theme`/`dc_subject_category`
+  as extras. Server-side filters: `query` (ODSQL `search()`), `theme`
+  (`dc_subject_theme`), `native_type` (`dc_type`), `status` (`vp_status`), and
+  `date_range` (`dc_date`). Attachments come from a fixed set of typed
+  `dc_relation_*` fields mapped to curated slugs — `attachment_urls_etude_impact`
+  (étude d'impact PDF), `_resume_non_technique` (RNT), `_avis_ae`,
+  `_reponse_avis_ae`, `_dossier` (the `*_DCZIP.zip`), and others — restricted to
+  real SICODEI document URLs (external préfecture HTML pages are kept only as
+  extras). Records with a `localisation` Feature get a sibling
+  `.geometry.geojson` in WGS84 (`geometry_crs = "EPSG:4326"`).
 * **`relevance_threshold` is now a download-gate only.** Records that score
   below the threshold still get a sidecar JSON on disk and still appear in
   the returned tibble — only their PDF attachments are skipped. This makes

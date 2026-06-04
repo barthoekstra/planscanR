@@ -121,6 +121,50 @@ full layout.
 get_assessments_de(query = "windenergie", limit = 20, download = FALSE)
 ```
 
+## France — `"fr"`
+
+* **Portal:** Projets-Environnement
+  ([projets-environnement.gouv.fr](https://www.projets-environnement.gouv.fr/))
+* **Status:** supported — full records, WGS84 geometry, and document downloads.
+* **Authentication:** none.
+* **Coverage:** ~5,483 records (the full diffusion dataset).
+
+Unlike the SPA-behind-a-private-API portals elsewhere in the family, this one
+is a public **OpenDataSoft Explore API v2.1** platform — a documented,
+anonymous REST+JSON service. The whole register is one flat dataset
+(`projets-environnement-diffusion`), with every field inline in each record,
+so there is no separate detail call. The handler enumerates via the export
+endpoint (`/exports/json?limit=-1`), which has no offset cap and returns the
+full filtered set in one call. The stable business key `recordsid` is used as
+`document_id`.
+
+**Throttle.** 5 requests per second by default
+(`getOption("planscanR.fr_throttle_rate")`). The enumeration is a single
+export call; the throttle mainly paces per-attachment downloads.
+
+**Filter coverage.** All filters are server-side via ODSQL `where` clauses:
+`query` becomes `search("<query>")`; `theme` (`dc_subject_theme`),
+`native_type` (`dc_type`) and `status` (`vp_status`) become equality clauses;
+`date_range` becomes a `dc_date` window. See `?get_assessments_coverage` for
+the `theme` / `status` / `native_type` vocabularies.
+
+**Documents.** Attachments come from a fixed set of typed `dc_relation_*`
+fields, each mapped to a curated slug: `attachment_urls_etude_impact` (the
+étude d'impact PDF), `_resume_non_technique` (résumé non technique),
+`_avis_ae` (avis de l'Autorité environnementale), `_reponse_avis_ae`,
+`_dossier` (the `*_DCZIP.zip`), plus a few others. Only real document URLs on
+the `sicodei.projets-environnement.gouv.fr` blob host (or `.pdf`/`.zip` links)
+become attachments — external préfecture web pages are kept only as extras.
+
+**Geometry.** About 1,472 records carry a `localisation` GeoJSON Feature
+(typically a `MultiPolygon`). OpenDataSoft always serves WGS84, so each is
+saved as a sibling `<document_id>.geometry.geojson` with
+`geometry_crs = "EPSG:4326"`.
+
+```{r}
+get_assessments_fr(query = "éolien", limit = 20, download = FALSE)
+```
+
 ## Austria — `"at"`
 
 * **Portal:** Umweltbundesamt UVP-DB

@@ -12,11 +12,24 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Seven country handlers ship:
+**v0.1 scope.** Ten country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
   `uvp-verbund.de`.
+- France (`get_assessments_fr()`) — national Projets-Environnement portal at
+  `projets-environnement.gouv.fr`, backed by a public **OpenDataSoft Explore
+  API v2.1** (a documented anonymous REST+JSON service — the cleanest backend
+  in the family). One export call enumerates the whole flat dataset (~5,483
+  records, every field inline; no detail call). Server-side ODSQL `where`
+  filters: `query` (`search()`), `theme` (`dc_subject_theme`), `native_type`
+  (`dc_type`), `status` (`vp_status`), `date_range` (`dc_date`). Attachments
+  come from a fixed set of typed `dc_relation_*` fields mapped to curated slugs
+  (`etude_impact`, `resume_non_technique`, `avis_ae`, `reponse_avis_ae`,
+  `dossier`, ...), restricted to real SICODEI document URLs (external
+  préfecture HTML pages are dropped). Records with a `localisation` Feature get
+  a `<document_id>.geometry.geojson` in **EPSG:4326** (WGS84; ODS always serves
+  4326).
 - Denmark (`get_assessments_dk()`) — Danmarks Miljøportal EA-Hub at
   `eahub.miljoeportal.dk`. **Metadata-only** in v0.x (records carry full
   metadata + polygon geometry; document downloads deferred). Geometry is
@@ -174,6 +187,7 @@ get_assessments(country, ...)
   ├── select_assessments_handler(country)    # switch() returning a function
   │     ├── get_assessments_nl(...)          # commissiemer.nl
   │     ├── get_assessments_de(...)          # uvp-verbund.de
+  │     ├── get_assessments_fr(...)          # projets-environnement.gouv.fr
   │     ├── get_assessments_at(...)          # secure.umweltbundesamt.at/uvpdb
   │     ├── get_assessments_dk(...)          # eahub.miljoeportal.dk
   │     ├── get_assessments_be(...)          # merregister.omgeving.vlaanderen.be

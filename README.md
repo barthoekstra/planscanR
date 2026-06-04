@@ -34,6 +34,7 @@ Supported portals:
 |---|---|---|
 | Netherlands (`"nl"`) | Commissie m.e.r. adviezenregister | full records + document downloads |
 | Germany (`"de"`) | UVP-Verbund | full records + document downloads |
+| France (`"fr"`) | Projets-Environnement (OpenDataSoft API) | full records + WGS84 geometry + document downloads (étude d'impact, RNT, avis AE) |
 | Austria (`"at"`) | Umweltbundesamt UVP-DB | record details only (no documents) |
 | Denmark (`"dk"`) | Danmarks Miljøportal EA-Hub | record metadata + polygon geometry (document downloads deferred) |
 | Belgium (Flanders) (`"be"`) | Departement Omgeving MER-register | full records + polygon geometry + document downloads |

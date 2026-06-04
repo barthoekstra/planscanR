@@ -14,10 +14,11 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "at", "dk", "be", "ee", "bg", "cz", "hr"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "bg", "cz", "hr"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
+      "projets-environnement.gouv.fr",
       "umweltbundesamt.at/uvpdb",
       "miljoeportal.dk/eahub",
       "omgeving.vlaanderen.be/merregister",
@@ -29,6 +30,7 @@ get_assessments_coverage <- function() {
     base_url = c(
       "https://www.commissiemer.nl",
       "https://www.uvp-verbund.de",
+      "https://www.projets-environnement.gouv.fr",
       "https://secure.umweltbundesamt.at/uvpdb/public",
       "https://eahub.miljoeportal.dk",
       "https://merregister.omgeving.vlaanderen.be",
@@ -37,10 +39,11 @@ get_assessments_coverage <- function() {
       "https://portal.cenia.cz/eiasea",
       "https://mzozt.gov.hr"
     ),
-    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
+    requires_auth = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
     status = c(
       "supported",
       "supported",
+      "supported", # fr
       "supported (metadata-only)", # at
       "supported", # dk
       "supported",
@@ -52,6 +55,7 @@ get_assessments_coverage <- function() {
     facets = list(
       commissiemer_facets(),
       uvp_facets(),
+      projets_environnement_fr_facets(),
       uvpdb_at_facets(),
       eahub_dk_facets(),
       merregister_be_facets(),
@@ -74,6 +78,39 @@ get_assessments_coverage <- function() {
 merregister_be_facets <- function() {
   list(
     dossier_type = c("PROJECT_MER", "VERZOEK_TOT_ONTHEFFING")
+  )
+}
+
+#' Static lookup of the Projets-Environnement (France) facet vocabularies.
+#'
+#' The OpenDataSoft dataset exposes every field as a server-side ODSQL filter.
+#' The first-class discriminators surfaced here are the ones the handler maps
+#' to dedicated arguments: `theme` (`dc_subject_theme`), `status` (`vp_status`),
+#' and `native_type` (`dc_type`). The `theme` / `status` vocabularies below are
+#' the displayed single-value facets from the live `/facets` endpoint (captured
+#' 2026-06-04); composite multi-value facet labels are omitted. `native_type`
+#' is open-ended (free-text autorisation labels), so only the two dominant
+#' codes are surfaced for reference — pass any other `dc_type` value directly.
+#' @noRd
+projets_environnement_fr_facets <- function() {
+  list(
+    theme = c(
+      "ENVIRONNEMENT (dont ICPE installation classée)",
+      "ENVIRONNEMENT",
+      "ÉNERGIE",
+      "URBANISME ET CONSTRUCTION",
+      "TRANSPORTS",
+      "INDUSTRIE",
+      "AGRICULTURE, SYLVICULTURE ET PÊCHE",
+      "AGRO-ALIMENTAIRE",
+      "PRODUCTION, TECHNOLOGIE ET RECHERCHE"
+    ),
+    status = c("ouvert", "clos", "non defini"),
+    native_type = c(
+      "AENV",
+      "Autorisation au titre du code de l'environnement",
+      "Permis de construire"
+    )
   )
 }
 

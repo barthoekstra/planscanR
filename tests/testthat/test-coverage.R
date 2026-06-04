@@ -34,6 +34,22 @@ test_that("DE coverage row exposes the procedure / bundesland vocabularies", {
   expect_true("obj_class_zv" %in% f$procedure)
 })
 
+test_that("FR coverage row exposes the theme / status / native_type vocabularies", {
+  c <- get_assessments_coverage()
+  fr <- c[c$country == "fr", ]
+  expect_identical(fr$source_portal, "projets-environnement.gouv.fr")
+  expect_false(fr$requires_auth)
+  expect_identical(fr$status, "supported")
+  f <- fr$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("theme", "status", "native_type"))
+  expect_true("ÉNERGIE" %in% f$theme)
+  expect_true("ENVIRONNEMENT" %in% f$theme)
+  expect_true("ouvert" %in% f$status)
+  expect_true("clos" %in% f$status)
+  expect_true("AENV" %in% f$native_type)
+})
+
 test_that("BE coverage row exposes the dossier-type vocabulary", {
   c <- get_assessments_coverage()
   be <- c[c$country == "be", ]

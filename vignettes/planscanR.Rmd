@@ -86,9 +86,9 @@ it, omit `topic` and planscanR fetches without scoring — no Python required.
 ## Where to go next
 
 * `?get_assessments` — every fetching option, including date and region filters.
-* `?get_assessments_nl`, `?get_assessments_de`, `?get_assessments_at`,
-  `?get_assessments_dk`, `?get_assessments_be`, `?get_assessments_ee`,
-  `?get_assessments_bg`, `?get_assessments_cz`, `?get_assessments_hr` — the
-  portal-specific details for each country.
+* `?get_assessments_nl`, `?get_assessments_de`, `?get_assessments_fr`,
+  `?get_assessments_at`, `?get_assessments_dk`, `?get_assessments_be`,
+  `?get_assessments_ee`, `?get_assessments_bg`, `?get_assessments_cz`,
+  `?get_assessments_hr` — the portal-specific details for each country.
 * [**planscanR.screen**](https://barthoekstra.github.io/planscanR.screen/) —
   score records by topic relevance, classify them, and learn a selection model.
