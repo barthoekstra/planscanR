@@ -124,7 +124,7 @@ scoring — no Python required.
   `?get_assessments_cz`,
   `?get_assessments_hr`, `?get_assessments_gr`, `?get_assessments_is`,
   `?get_assessments_ie`, `?get_assessments_si`, `?get_assessments_pt`,
-  `?get_assessments_gb`, `?get_assessments_it` — the
+  `?get_assessments_gb`, `?get_assessments_it`, `?get_assessments_sk` — the
   portal-specific details for each country.
 * [**planscanR.screen**](https://barthoekstra.github.io/planscanR.screen/) —
   score records by topic relevance, classify them, and learn a selection model.

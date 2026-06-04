@@ -1,0 +1,502 @@
+{
+  "@context": "/api/contexts/EiaProject",
+  "@id": "/api/eia_projects/usadlost",
+  "@type": "EiaProject",
+  "id": "171227",
+  "seoId": "usadlost",
+  "name": "Usadlosť",
+  "zbierka": "24/2006 novela 269/2025 Z.z. časť EIA",
+  "stav": "Zámer",
+  "cinnosti": [
+    {
+      "num": "13.1",
+      "label": "\"Projekty rozvoja obcí vrátane: a) prípravy územia na následnú výstavbu stavieb alebo ich súborov od 10 000 m2 záberu celkovej plochy vrátane b) stavieb alebo ich súborov, ak nie sú uvedené v iných položkách tejto prílohy od 10 000 m2 hrubej podlažnej plochy nadzemných a podzemných podlaží v zastavanom území vrátane a od 1 000 m2 hrubej podlažnej plochy nadzemných a podzemných podlaží mimo\nzastavaného územia vrátane\""
+    },
+    {
+      "num": "13.1",
+      "label": "\"Projekty rozvoja obcí vrátane: a) prípravy územia na následnú výstavbu stavieb alebo ich súborov od 10 000 m2 záberu celkovej plochy vrátane b) stavieb alebo ich súborov, ak nie sú uvedené v iných položkách tejto prílohy od 10 000 m2 hrubej podlažnej plochy nadzemných a podzemných podlaží v zastavanom území vrátane a od 1 000 m2 hrubej podlažnej plochy nadzemných a podzemných podlaží mimo\nzastavaného územia vrátane\""
+    }
+  ],
+  "proces": "Zisťovacie konanie",
+  "cezhranicnaSpolupraca": null,
+  "ucel": "Vytvorenie rodinnej usadlosti, ktorá okrem hospodárskej činnosti umožní aj vedľajšie voľnočasové aktivity v rámci umeleckej a remeselnej tvorby – sochárstvo, rezbárstvo, maliarstvo, stolárstvo, krajčírstvo. Súbor stavieb tvoriacich hospodársku usadlosť tvorí rodinný dom s podzemným podlažím pre sklad poľnohospodárskych produktov, dielne a podobne; a ďalšie objekty – výmenok, záhradný domček s priľahlými skleníkmi, stajne a malý záhradný altánok. Stavba bude slúžiť na celoročné súkromné bývanie.  ",
+  "navrhovatel": {
+    "name": "Katarína Csibová, U pivovaru 3, 263 01 Dobřiš",
+    "ico": null
+  },
+  "prislusnyOrgan": {
+    "name": " Okresný úrad Myjava",
+    "address": "odbor starostlivosti o životné prostredie,<br /> Moravská 1, 907 01 Myjava"
+  },
+  "dotknutaObec": "Jablonka (okres: Myjava)",
+  "povolujuciOrgan": null,
+  "schvalujuciOrgan": null,
+  "dokumenty": {
+    "available": {
+      "status": false,
+      "message": ""
+    },
+    "availableOnRequest": false,
+    "data": [
+      {
+        "step": "Zámer",
+        "number": 1,
+        "items": [
+          {
+            "title": "Informácia o zámere",
+            "items": [
+              {
+                "type": "PDF",
+                "label": "Info pre verejnosť_Usadlosť.pdf",
+                "id": "403635",
+                "url": "/eia/dokument/403635",
+                "filesize": "223581",
+                "date": "03.06. 2026"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "label": "Spracovateľ zámeru",
+            "value": "EnvIdeal, s.r.o., Jaskový rad 151, 831 01 Bratislava, IČO: 44322623"
+          },
+          {
+            "title": "Text zámeru",
+            "items": [
+              {
+                "type": "PDF",
+                "label": "Usadlosť, k.ú. Jablonka.pdf",
+                "id": "403634",
+                "url": "/eia/dokument/403634",
+                "filesize": "14861928",
+                "date": "03.06. 2026"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "name": "Obsah stránky",
+      "type": "pageContent",
+      "content": null,
+      "params": null,
+      "place": "center"
+    },
+    {
+      "name": "EIA-SEA",
+      "type": "menu",
+      "content": {
+        "id": 2348,
+        "visibility": true,
+        "items": [
+          {
+            "id": 7719,
+            "parentId": 2348,
+            "name": "Aký je rozdiel medzi EIA a SEA?",
+            "link": "/eia-sea/rozdiel",
+            "children": []
+          },
+          {
+            "id": 7843,
+            "parentId": 2348,
+            "name": "EIA",
+            "link": "/eia",
+            "children": [
+              {
+                "id": 7721,
+                "parentId": 7843,
+                "name": "Čo je EIA?",
+                "link": "/co-je-eia",
+                "children": []
+              },
+              {
+                "id": 7722,
+                "parentId": 7843,
+                "name": "Čo predchádza EIA?",
+                "link": "#",
+                "children": [
+                  {
+                    "id": 7723,
+                    "parentId": 7722,
+                    "name": "Činnosti predchádzajúce EIA",
+                    "link": "/eia/co-jej-predchadza",
+                    "children": []
+                  },
+                  {
+                    "id": 7724,
+                    "parentId": 7722,
+                    "name": "Zisťovacie konanie",
+                    "link": "/eia/zistovacie-konanie",
+                    "children": []
+                  },
+                  {
+                    "id": 7725,
+                    "parentId": 7722,
+                    "name": "Konanie o podnete",
+                    "link": "/eia/konanie-o-podnete",
+                    "children": []
+                  },
+                  {
+                    "id": 7726,
+                    "parentId": 7722,
+                    "name": "Odborné stanovisko orgánu ochrany prírody a krajiny",
+                    "link": "/eia/odborne-stanovisko",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": 7727,
+                "parentId": 7843,
+                "name": "Ako prebieha EIA?",
+                "link": "#",
+                "children": [
+                  {
+                    "id": 7728,
+                    "parentId": 7727,
+                    "name": "Prehľad krokov",
+                    "link": "/eia/priebeh-procesu",
+                    "children": []
+                  },
+                  {
+                    "id": 7729,
+                    "parentId": 7727,
+                    "name": "1. KROK – Informácia o navrhovanej činnosti alebo jej zmene",
+                    "link": "/eia/navrhovana-cinnost",
+                    "children": []
+                  },
+                  {
+                    "id": 7730,
+                    "parentId": 7727,
+                    "name": "2. KROK – Rozsah hodnotenia a harmonogram",
+                    "link": "/eia/rozsah-hodnotenia",
+                    "children": []
+                  },
+                  {
+                    "id": 7731,
+                    "parentId": 7727,
+                    "name": "3. KROK – Správa o hodnotení a jej pripomienkovanie",
+                    "link": "/eia/sprava-o-hodnoteni",
+                    "children": []
+                  },
+                  {
+                    "id": 7732,
+                    "parentId": 7727,
+                    "name": "4. KROK – Verejné prerokovanie správy o hodnotení",
+                    "link": "/eia/verejne-prerokovanie",
+                    "children": []
+                  },
+                  {
+                    "id": 7733,
+                    "parentId": 7727,
+                    "name": "5. KROK – Odborný posudok",
+                    "link": "/eia/odborny-posudok",
+                    "children": []
+                  },
+                  {
+                    "id": 7734,
+                    "parentId": 7727,
+                    "name": "6. KROK – Záverečné stanovisko",
+                    "link": "/eia/zaverecne-stanovisko",
+                    "children": []
+                  },
+                  {
+                    "id": 7735,
+                    "parentId": 7727,
+                    "name": "7. KROK – Poprojektová analýza",
+                    "link": "/eia/poprojektova-analyza",
+                    "children": []
+                  },
+                  {
+                    "id": 8983,
+                    "parentId": 7727,
+                    "name": "8. KROK – Zjednotené povoľovanie",
+                    "link": "/eia/zjednotene-povolovanie",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": 7736,
+                "parentId": 7843,
+                "name": "Kto je účastníkom procesu EIA?",
+                "link": "/eia/ucastnik-procesu",
+                "children": []
+              },
+              {
+                "id": 7737,
+                "parentId": 7843,
+                "name": "Medzištátne posudzovanie EIA",
+                "link": "/eia/medzistatne-posudzovanie",
+                "children": []
+              },
+              {
+                "id": 7738,
+                "parentId": 7843,
+                "name": "Príklady z praxe EIA",
+                "link": "/eia/priklady-z-praxe",
+                "children": []
+              },
+              {
+                "id": 7739,
+                "parentId": 7843,
+                "name": "FAQ EIA",
+                "link": "/eia/faq",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": 7841,
+            "parentId": 2348,
+            "name": "SEA",
+            "link": "/sea",
+            "children": [
+              {
+                "id": 7741,
+                "parentId": 7841,
+                "name": "Čo je SEA?",
+                "link": "/co-je-sea",
+                "children": []
+              },
+              {
+                "id": 7742,
+                "parentId": 7841,
+                "name": "Čo predchádza SEA?",
+                "link": "/sea/co-predchadza-sea",
+                "children": [
+                  {
+                    "id": 7743,
+                    "parentId": 7742,
+                    "name": "Strategický dokument",
+                    "link": "/sea/strategicky-dokument",
+                    "children": []
+                  },
+                  {
+                    "id": 7744,
+                    "parentId": 7742,
+                    "name": "Zisťovacie konanie",
+                    "link": "/sea/zistovacie-konanie",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": 7745,
+                "parentId": 7841,
+                "name": "Ako prebieha SEA?",
+                "link": "/sea/ako-prebieha-sea",
+                "children": [
+                  {
+                    "id": 7746,
+                    "parentId": 7745,
+                    "name": "Prehľad krokov SEA",
+                    "link": "/sea/prehlad-krokov",
+                    "children": []
+                  },
+                  {
+                    "id": 7747,
+                    "parentId": 7745,
+                    "name": "1. KROK – Oznámenie",
+                    "link": "/sea/oznamenie",
+                    "children": []
+                  },
+                  {
+                    "id": 7748,
+                    "parentId": 7745,
+                    "name": "2. KROK – Rozsah hodnotenia a harmonogram",
+                    "link": "/sea/rozsah-hodnotenia",
+                    "children": []
+                  },
+                  {
+                    "id": 7749,
+                    "parentId": 7745,
+                    "name": "3. KROK – Správa o hodnotení a jej pripomienkovanie",
+                    "link": "/sea/sprava-o-hodnoteni",
+                    "children": []
+                  },
+                  {
+                    "id": 7750,
+                    "parentId": 7745,
+                    "name": "4. KROK – Verejné prerokovanie správy o hodnotení",
+                    "link": "/sea/verejne-prerokovanie",
+                    "children": []
+                  },
+                  {
+                    "id": 7751,
+                    "parentId": 7745,
+                    "name": "5. KROK – Odborný posudok",
+                    "link": "/sea/odborny-posudok",
+                    "children": []
+                  },
+                  {
+                    "id": 7752,
+                    "parentId": 7745,
+                    "name": "6. KROK – Záverečné stanovisko",
+                    "link": "/sea/zaverecne-stanovisko",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": 7753,
+                "parentId": 7841,
+                "name": "Kto je účastníkom procesu SEA?",
+                "link": "/sea/ucastnik-procesu",
+                "children": []
+              },
+              {
+                "id": 7754,
+                "parentId": 7841,
+                "name": "Medzištátne posudzovanie SEA",
+                "link": "/sea/medzistatne-posudzovanie",
+                "children": []
+              },
+              {
+                "id": 7755,
+                "parentId": 7841,
+                "name": "Príklady z praxe SEA",
+                "link": "/sea/priklady-z-praxe",
+                "children": []
+              },
+              {
+                "id": 7756,
+                "parentId": 7841,
+                "name": "FAQ SEA",
+                "link": "/sea/faq",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": 7757,
+            "parentId": 2348,
+            "name": "Dokumenty ",
+            "link": "/eia-sea/dokumenty",
+            "children": []
+          },
+          {
+            "id": 7758,
+            "parentId": 2348,
+            "name": "Centrálny informačný systém EIA/SEA",
+            "link": "/eia-sea/is",
+            "children": [
+              {
+                "id": 8554,
+                "parentId": 7758,
+                "name": "Vstup do CIS EIA/SEA",
+                "link": "/eia-sea/informacny-system",
+                "children": []
+              },
+              {
+                "id": 8555,
+                "parentId": 7758,
+                "name": "Online vstup pre príslušný orgán",
+                "link": "https://app.sazp.sk/SEIA/Account/Login.aspx",
+                "children": []
+              },
+              {
+                "id": 7760,
+                "parentId": 7758,
+                "name": "Zoznam odborne spôsobilých osôb",
+                "link": "/eia-sea/zoznam-odborne-sposobilych-osob",
+                "children": []
+              },
+              {
+                "id": 8557,
+                "parentId": 7758,
+                "name": "Mapa projektov EIA",
+                "link": "/mapa-projektov-eia",
+                "children": []
+              },
+              {
+                "id": 8556,
+                "parentId": 7758,
+                "name": "O CIS EIA/SEA",
+                "link": "/eia-sea/o-informacnom-systeme",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": 8448,
+            "parentId": 2348,
+            "name": "Okresné úrady",
+            "link": "/eia-sea/okresne-urady",
+            "children": []
+          },
+          {
+            "id": 7761,
+            "parentId": 2348,
+            "name": "Na koho sa obrátiť? ",
+            "link": "/eia-sea/na-koho-sa-obratit",
+            "children": []
+          }
+        ]
+      },
+      "params": {
+        "menuId": 2348
+      },
+      "place": "left"
+    },
+    {
+      "name": "EIA detail",
+      "type": "detail_iseia",
+      "content": null,
+      "params": [],
+      "place": "center"
+    },
+    {
+      "name": "Deliaca čiara",
+      "type": "static",
+      "content": "<hr>",
+      "params": null,
+      "place": "left"
+    },
+    {
+      "name": "EIA - Filter form",
+      "type": "filter",
+      "content": null,
+      "params": {
+        "apiId": "eia",
+        "apiFilterUrl": "/filter_params/eia",
+        "resultsUrl": "/eia-sea/informacny-system",
+        "apiResultsUrl": "/eia_projects"
+      },
+      "place": "left"
+    },
+    {
+      "name": "Deliaca čiara",
+      "type": "static",
+      "content": "<hr>",
+      "params": null,
+      "place": "center"
+    }
+  ],
+  "images": {
+    "header": "/cms/cke_images/subs/header/1920/eia_header_64346d7b37a4f.png"
+  },
+  "breadcrumbs": [
+    {
+      "name": "Posudzovanie vplyvov na životné prostredie (EIA/SEA)",
+      "link": "/eia-sea"
+    },
+    {
+      "name": "Centrálny informačný systém EIA/SEA",
+      "link": "/eia-sea/informacny-system"
+    }
+  ],
+  "locality": "TN",
+  "headerTitle": "Posudzovanie vplyvov na životné prostredie",
+  "pageTitle": "Usadlosť",
+  "kraj": "Trenčiansky",
+  "okres": "Myjava",
+  "obec": "Jablonka",
+  "datumPoslednejZmeny": "2026-06-03 10:09:55",
+  "dotknuteStrany": [],
+  "suvisiace": [],
+  "stranaPovodu": null
+}

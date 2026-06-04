@@ -1038,6 +1038,72 @@ get_assessments_it(limit = 5, download = FALSE)
 get_assessments_it(assessment_type = "SEA", limit = 10, download = FALSE)
 ```
 
+## Slovakia — `"sk"`
+
+* **Portal:** the Slovak EIA/SEA central information system
+  **enviroportal.sk**, [enviroportal.sk](https://www.enviroportal.sk/), a React
+  single-page app served by a Symfony **API Platform** JSON backend.
+* **Status:** supported
+  (`get_assessments_coverage()$status` =
+  `"supported (API Platform JSON; EIA/SEA via zbierka; no geometry)"`).
+* **Authentication:** none (anonymous public register).
+* **Plain JSON, no browser.** Although the site is a SPA, the handler talks to
+  the JSON API directly with `httr2` plus the
+  `Accept: application/ld+json` content-negotiation header — no headless
+  browser is involved.
+* **Single mixed register (`assessment_type`).** The portal exposes one
+  `eia_projects` collection that mixes project-level EIA and plan/programme SEA
+  records. The discriminator is the `zbierka` (law collection) string, which
+  contains either *časť EIA* or *časť SEA*. Each record is tagged with an
+  `assessment_type` column (`"EIA"` / `"SEA"`); `register` is the raw collection
+  label `"eia_projects"`; `document_id` is the globally-unique numeric portal
+  `id`, prefixed `SK-`. Pass `assessment_type = "All"` (default), `"EIA"`, or
+  `"SEA"` to filter client-side.
+* **List — array-of-arrays flatten + paginate-until-empty.** The list endpoint
+  is `GET /api/eia_projects?page=N`. Its `hydra:member` is an **array of
+  arrays** — a bucket of record objects, a pagination-metadata object, and
+  (sometimes) an empty bucket — so the handler flattens one level and keeps only
+  the objects carrying a `seoId`. Because `hydra:totalItems` / `hydra:view` are
+  unreliable or absent, the generator paginates `page = 1, 2, 3, …` until a page
+  flattens to zero records.
+* **Detail.** Per record (sidecar-first) the handler reads
+  `GET /api/eia_projects/{seoId}`, which carries the full field set: `name`
+  (title), `ucel` (purpose → summary), `navrhovatel$name` (proponent),
+  `prislusnyOrgan$name` (competent authority, trimmed), `stav` (status),
+  `proces` (process), `kraj` / `okres` / `obec` (region / district /
+  municipality), and the `dokumenty` documents object.
+* **Attachments — PDFs grouped by procedural step.** `dokumenty$data` is an
+  array of step groups (`{step, number, items}`); each `items[]` element is
+  either a document group or a plain text field. The handler walks every
+  downloadable leaf and absolutises its `/eia/dokument/{id}` `url` to
+  `https://www.enviroportal.sk/eia/dokument/{id}`, grouping the URLs by the
+  `step` (phase) name into per-section `attachment_urls_<slug>` columns (the
+  same pattern as Germany / Italy), plus the deduplicated union in
+  `attachment_urls`.
+* **No geometry.** The portal exposes only named region / district /
+  municipality text (surfaced as the `region`, `district`, `municipality`, and
+  `affected_municipality` extras, Slovak verbatim). No coordinate geometry is
+  available.
+* **Canonical URL.** The human SPA detail page
+  `https://www.enviroportal.sk/eia/detail/{seoId}` is used as the canonical
+  `url` (the cache key); the API detail path is `/api/eia_projects/{seoId}`.
+* **Filters (client-side).** `assessment_type` (from `zbierka`), `query` (a
+  case-insensitive substring of the title), and `date_range` (against
+  `date_published`, the date part of *datumPoslednejZmeny*) are all matched in R
+  after the list is fetched.
+* **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.sk_throttle_rate")`). The register is large (~18 700
+  records across ~940 pages), so a `limit` is recommended for exploratory runs.
+* **Language:** Slovak (ISO-639-1 `sk`); portal-native values kept verbatim.
+
+```{r}
+# Recent records (no PDFs downloaded yet)
+get_assessments_sk(limit = 5, download = FALSE)
+
+# SEA records only
+get_assessments_sk(assessment_type = "SEA", limit = 10, download = FALSE)
+```
+
 ## Adding a new source
 
 Adding a handler for another national portal is a matter of writing one

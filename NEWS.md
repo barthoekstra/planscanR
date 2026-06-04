@@ -11,9 +11,10 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 18 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 19 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
-  Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, and Italy.
+  Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy, and
+  Slovakia.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.
@@ -48,6 +49,18 @@ and related advice) from European government portals.
   `/File/Documento` PDFs into per-*Sezione* `attachment_urls_<slug>` columns.
   No geometry (location is text); `query` and `date_range` are matched
   client-side.
+* Slovakia (`get_assessments_sk()`): fetches from the Slovak EIA/SEA central
+  information system **enviroportal.sk** — a React SPA over a Symfony API
+  Platform JSON backend, reached with pure `httr2` plus the
+  `Accept: application/ld+json` header. The single `eia_projects` collection
+  mixes project EIA and plan/programme SEA records, tagged with an
+  `assessment_type` / `register` dual-register flag derived from the `zbierka`
+  law string (`"časť EIA"` / `"časť SEA"`). The list endpoint's `hydra:member`
+  is an array of arrays, so the handler flattens one level and paginates until a
+  page yields no records; per-record detail JSON groups the direct
+  `/eia/dokument` PDFs by procedural step into per-section
+  `attachment_urls_<slug>` columns. No geometry; `assessment_type`, `query`, and
+  `date_range` are matched client-side.
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English

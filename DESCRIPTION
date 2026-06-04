@@ -21,9 +21,11 @@ Description: A unified R interface for fetching environmental-assessment
     Portugal (APA SIAIA; HTML register; AIA / project-level EIA only,
     SEA/AAE in a separate register), the United Kingdom (Planning
     Inspectorate National Infrastructure Consenting; bulk CSV export;
-    NSIP only, each with a statutory Environmental Statement), and
+    NSIP only, each with a statutory Environmental Statement),
     Italy (MASE va.mite.gov.it; HTML register; VIA project EIA + VAS
-    plan SEA). Optional
+    plan SEA), and Slovakia (enviroportal.sk; API Platform JSON;
+    EIA + SEA in one register, tagged by the zbierka law string).
+    Optional
     fetch-time scoring of records by topic relevance is delegated to the
     companion 'planscanR.screen' package. Developed for the BIOGAIN project
     to support Net Biodiversity Gain in spatial energy planning.

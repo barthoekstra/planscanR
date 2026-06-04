@@ -267,6 +267,21 @@ test_that("IT coverage row signals the VIA/VAS dual register and exposes the ass
   expect_identical(unname(f$register[["SEA"]]), "VAS")
 })
 
+test_that("SK coverage row signals the API Platform JSON register and exposes the assessment_type vocabulary", {
+  c <- get_assessments_coverage()
+  sk <- c[c$country == "sk", ]
+  expect_identical(sk$source_portal, "enviroportal.sk")
+  expect_false(sk$requires_auth)
+  expect_identical(
+    sk$status,
+    "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)"
+  )
+  f <- sk$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "assessment_type")
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

@@ -43,7 +43,8 @@ get_assessments_coverage <- function() {
       "si",
       "pt",
       "gb",
-      "it"
+      "it",
+      "sk"
     ),
     source_portal = c(
       "commissiemer.nl",
@@ -63,7 +64,8 @@ get_assessments_coverage <- function() {
       "gov.si",
       "siaia.apambiente.pt",
       "planninginspectorate.gov.uk",
-      "va.mite.gov.it"
+      "va.mite.gov.it",
+      "enviroportal.sk"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -83,9 +85,11 @@ get_assessments_coverage <- function() {
       "https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje",
       "https://siaia.apambiente.pt",
       "https://national-infrastructure-consenting.planninginspectorate.gov.uk",
-      "https://va.mite.gov.it"
+      "https://va.mite.gov.it",
+      "https://www.enviroportal.sk/eia-sea/informacny-system"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -123,7 +127,8 @@ get_assessments_coverage <- function() {
       "supported", # si
       "supported (EIA/AIA only; SEA/AAE in a separate APA register)", # pt
       "supported (NSIP only; every NSIP carries an Environmental Statement)", # gb
-      "supported (VIA/VAS dual register; HTML scrape; no geometry)" # it
+      "supported (VIA/VAS dual register; HTML scrape; no geometry)", # it
+      "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)" # sk
     ),
     facets = list(
       commissiemer_facets(),
@@ -143,8 +148,28 @@ get_assessments_coverage <- function() {
       gov_si_facets(),
       siaia_pt_facets(),
       planning_inspectorate_gb_facets(),
-      va_mite_it_facets()
+      va_mite_it_facets(),
+      enviroportal_sk_facets()
     )
+  )
+}
+
+#' Static lookup of the enviroportal.sk (Slovakia) facet vocabularies.
+#'
+#' Slovakia publishes a single `eia_projects` API Platform JSON collection that
+#' mixes project-level EIA and plan/programme SEA records, discriminated by the
+#' `zbierka` (law collection) string (`"časť EIA"` vs `"časť SEA"`). The only
+#' first-class discriminator is the `assessment_type` selector (`"All"` /
+#' `"EIA"` / `"SEA"`), applied client-side after tagging each record from
+#' `zbierka` (the API itself serves one unfiltered list). The portal's own
+#' `kraj` (region) / `okres` (district) / `stav` (status) / year filters are
+#' reference-only here and are matched client-side — `query` (title substring)
+#' and `date_range` (against `date_published`) are applied in R after the list
+#' is fetched.
+#' @noRd
+enviroportal_sk_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA")
   )
 }
 

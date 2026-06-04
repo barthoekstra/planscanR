@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Eighteen country handlers ship:
+**v0.1 scope.** Nineteen country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -277,6 +277,33 @@ Python, no Shiny, no project-specific scoring config.
   (`getOption("planscanR.it_throttle_rate")`); the VIA register is large
   (~10.6k projects). Reflected in `get_assessments_coverage()$status` as
   `"supported (VIA/VAS dual register; HTML scrape; no geometry)"`.
+- Slovakia (`get_assessments_sk()`) — Slovak EIA/SEA central information system
+  **enviroportal.sk** at `enviroportal.sk`. **API Platform JSON** (a React SPA
+  over a Symfony backend), reached with pure `httr2` + the
+  `Accept: application/ld+json` content-negotiation header. **List**:
+  `GET /api/eia_projects?page=N` (seam `sk_fetch_search()`, parsed with
+  `perform_json`); its `hydra:member` is an **array of arrays** (a record bucket,
+  a pagination-metadata object, an empty bucket), so the handler flattens one
+  level and keeps the objects carrying a `seoId`. `hydra:totalItems` /
+  `hydra:view` are unreliable, so the generator **paginates until a page flattens
+  to zero records**. **Single mixed register** (`assessment_type`
+  `"All"`/`"EIA"`/`"SEA"`): the `zbierka` law string (`"časť EIA"` /
+  `"časť SEA"`) is the discriminator — each record is tagged and the filter
+  applied client-side; `register` is `"eia_projects"`; `document_id` is the
+  globally-unique numeric `id`, `SK-`-prefixed. The canonical URL is the SPA page
+  `https://www.enviroportal.sk/eia/detail/{seoId}`; the detail JSON is
+  `/api/eia_projects/{seoId}` (sidecar-first). Attachments come from
+  `dokumenty$data` — an array of step groups (`{step, number, items}`); every
+  downloadable leaf's `/eia/dokument/{id}` `url` is absolutised and grouped by
+  the `step` (phase) name into per-section `attachment_urls_<slug>` columns (DE/IT
+  pattern) + the deduplicated union. `competent_authority` ← `prislusnyOrgan$name`
+  (trimmed), `proponent` ← `navrhovatel$name`; extras `law_collection`,
+  `process`, `region` (kraj), `district` (okres), `municipality` (obec),
+  `affected_municipality`, `locality`, `proponent_id` (ico). No geometry. `query`
+  (title substring) and `date_range` matched client-side. Slovak. Throttled to
+  5 req/s (`getOption("planscanR.sk_throttle_rate")`); the register is large
+  (~18.7k records). Reflected in `get_assessments_coverage()$status` as
+  `"supported (API Platform JSON; EIA/SEA via zbierka; no geometry)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -368,7 +395,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_si(...)          # gov.si (bulk JSON export; EIA + SEA/CPVO)
   │     ├── get_assessments_pt(...)          # siaia.apambiente.pt (HTML register; AIA/EIA)
   │     ├── get_assessments_gb(...)          # planninginspectorate.gov.uk (bulk CSV; NSIP/EIA)
-  │     └── get_assessments_it(...)          # va.mite.gov.it (HTML scrape; VIA/EIA + VAS/SEA)
+  │     ├── get_assessments_it(...)          # va.mite.gov.it (HTML scrape; VIA/EIA + VAS/SEA)
+  │     └── get_assessments_sk(...)          # enviroportal.sk (API Platform JSON; EIA + SEA)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```
