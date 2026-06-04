@@ -93,10 +93,27 @@ cached record metadata (and any derived artefacts) in place.
 ## Scoring records (optional)
 
 `get_assessments()` accepts an optional `topic` (and `relevance_threshold`) to
-score records during the fetch and gate PDF downloads on the score. The scoring
-itself is delegated to the **planscanR.screen** package: install it to enable
-`topic =`, and see its "Scoring records" vignette for the walkthrough. Without
-it, omit `topic` and planscanR fetches without scoring — no Python required.
+score records during the fetch and gate PDF downloads on the score:
+
+```{r}
+records <- get_assessments(
+  "nl",
+  topic = c(wind = "wind energy", solar = "solar energy"),
+  relevance_threshold = 0.5,
+  limit = 20,
+  download = FALSE
+)
+# One score column per topic, plus the model that produced them.
+records[c("title", "relevance_score_wind", "relevance_score_solar", "relevance_model")]
+```
+
+Each topic adds a `relevance_score_<name>` column. `relevance_threshold` only
+*gates downloads* — it never drops records, so every record still appears in the
+table and the offline metadata cache, and re-running with a different threshold
+needs no network. The scoring itself is delegated to the **planscanR.screen**
+package: install it to enable `topic =`, and see its "Scoring records" vignette
+for the walkthrough. Without it, omit `topic` and planscanR fetches without
+scoring — no Python required.
 
 ## Where to go next
 
