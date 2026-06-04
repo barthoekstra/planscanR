@@ -8,12 +8,18 @@
 
 read_raw_sidecar <- function(path) jsonlite::fromJSON(path, simplifyVector = FALSE)
 
+# Path assertions must be cross-platform (Windows paths start `C:/`, use `\`).
+fwd <- function(p) gsub("\\\\", "/", p)
+is_abs_path <- function(p) grepl("^([A-Za-z]:[/\\\\]|/|\\\\\\\\)", p)
+
 test_that("files[].local_path is stored relative to the cache root, absolutised on read", {
   withr::with_tempdir({
     options(planscanR.cache_dir = getwd())
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
     root <- getwd()
     abs_pdf <- file.path(root, "files", "nl", "relpath1", "a.pdf")
+    dir.create(dirname(abs_pdf), recursive = TRUE, showWarnings = FALSE)
+    writeBin(as.raw(0L), abs_pdf) # exist so normalizePath resolves consistently
 
     rec <- tibble::tibble(
       country = "nl",
@@ -36,14 +42,14 @@ test_that("files[].local_path is stored relative to the cache root, absolutised 
 
     raw <- read_raw_sidecar(path)
     json_lp <- raw$files[[1]]$local_path
-    expect_false(startsWith(json_lp, "/")) # not absolute
-    expect_identical(json_lp, file.path("files", "nl", "relpath1", "a.pdf"))
+    expect_false(is_abs_path(json_lp)) # stored relative
+    expect_match(fwd(json_lp), "^files/nl/relpath1/a\\.pdf$")
 
     back <- planscanR:::read_record_sidecar(path)
     bp <- back$download_status[[1]]$local_path
-    expect_true(startsWith(bp, "/")) # absolutised back to a working path
-    expect_match(bp, "files/nl/relpath1/a\\.pdf$")
-    expect_match(back$local_path[[1]], "files/nl/relpath1/a\\.pdf$")
+    expect_true(is_abs_path(bp)) # absolutised back to a working path
+    expect_match(fwd(bp), "files/nl/relpath1/a\\.pdf$")
+    expect_match(fwd(back$local_path[[1]]), "files/nl/relpath1/a\\.pdf$")
   })
 })
 
@@ -53,6 +59,8 @@ test_that("geometry_path is stored relative to the cache root, absolutised on re
     on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
     root <- getwd()
     abs_geo <- file.path(root, "files", "ie", "geo1", "geo1.geometry.geojson")
+    dir.create(dirname(abs_geo), recursive = TRUE, showWarnings = FALSE)
+    writeBin(as.raw(0L), abs_geo)
 
     rec <- tibble::tibble(
       country = "ie",
@@ -68,14 +76,12 @@ test_that("geometry_path is stored relative to the cache root, absolutised on re
     path <- planscanR:::write_record_sidecar(rec)
 
     raw <- read_raw_sidecar(path)
-    expect_identical(
-      raw$extras$geometry_path,
-      file.path("files", "ie", "geo1", "geo1.geometry.geojson")
-    )
+    expect_false(is_abs_path(raw$extras$geometry_path))
+    expect_match(fwd(raw$extras$geometry_path), "^files/ie/geo1/geo1\\.geometry\\.geojson$")
 
     back <- planscanR:::read_record_sidecar(path)
-    expect_true(startsWith(back$geometry_path, "/"))
-    expect_match(back$geometry_path, "files/ie/geo1/geo1\\.geometry\\.geojson$")
+    expect_true(is_abs_path(back$geometry_path))
+    expect_match(fwd(back$geometry_path), "files/ie/geo1/geo1\\.geometry\\.geojson$")
   })
 })
 

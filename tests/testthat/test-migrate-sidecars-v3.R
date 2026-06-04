@@ -2,6 +2,10 @@
 # (relative paths, schema_version 3, no relevance_score_* extras dup) while
 # index_cache() keeps returning identical tibble values.
 
+# Cross-platform path helpers (Windows paths start `C:/`, use `\`).
+fwd <- function(p) gsub("\\\\", "/", p)
+is_abs_path <- function(p) grepl("^([A-Za-z]:[/\\\\]|/|\\\\\\\\)", p)
+
 test_that("migrate_sidecars_v3 upgrades v2 sidecars to v3, preserving index_cache values", {
   withr::with_tempdir({
     options(planscanR.cache_dir = getwd())
@@ -13,6 +17,8 @@ test_that("migrate_sidecars_v3 upgrades v2 sidecars to v3, preserving index_cach
     write_v2 <- function(country, id, score) {
       p <- planscanR:::sidecar_path(country, id)
       abs_pdf <- file.path(root, "files", country, id, "a.pdf")
+      dir.create(dirname(abs_pdf), recursive = TRUE, showWarnings = FALSE)
+      writeBin(as.raw(0L), abs_pdf) # exist so relativise resolves on Windows
       payload <- list(
         schema_version = 2L,
         country = country,
@@ -52,7 +58,8 @@ test_that("migrate_sidecars_v3 upgrades v2 sidecars to v3, preserving index_cach
     # On disk: v3, relative path, no extras relevance dup, other extras kept.
     raw1 <- jsonlite::fromJSON(p1, simplifyVector = FALSE)
     expect_equal(as.integer(raw1$schema_version), 3L)
-    expect_identical(raw1$files[[1]]$local_path, file.path("files", "nl", "m1", "a.pdf"))
+    expect_false(is_abs_path(raw1$files[[1]]$local_path))
+    expect_match(fwd(raw1$files[[1]]$local_path), "^files/nl/m1/a\\.pdf$")
     expect_null(raw1$extras$relevance_score_wind)
     expect_identical(raw1$extras$native_type, "T")
 
