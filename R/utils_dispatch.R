@@ -28,7 +28,8 @@ supported_countries <- function() {
     "it",
     "sk",
     "no",
-    "lv"
+    "lv",
+    "es"
   )
 }
 

@@ -319,6 +319,25 @@ test_that("LV coverage row signals the asymmetric dual register and metadata-onl
   )
 })
 
+test_that("ES coverage row signals the headless-browser requirement and exposes the assessment_type / register vocabulary", {
+  c <- get_assessments_coverage()
+  es <- c[c$country == "es", ]
+  expect_identical(es$source_portal, "sede.miteco.gob.es")
+  expect_false(es$requires_auth)
+  expect_identical(
+    es$status,
+    "supported (requires optional headless browser; TLS-fingerprinted portal)"
+  )
+  f <- es$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("assessment_type", "register", "buscador_filters"))
+  expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
+  expect_identical(unname(f$register[["EIA"]]), "proyectos")
+  expect_identical(unname(f$register[["SEA"]]), "planes")
+  expect_true("EstadoTramitacion" %in% f$buscador_filters)
+  expect_true("Comunidad" %in% f$buscador_filters)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

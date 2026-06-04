@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Twenty-one country handlers ship:
+**v0.1 scope.** Twenty-two country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -362,6 +362,38 @@ Python, no Shiny, no project-specific scoring config.
   Reflected in `get_assessments_coverage()$status` as `"supported
   (metadata-only EIA register — documents via discovery; SEA
   opinions/decisions carry direct PDFs)"`.
+- Spain (`get_assessments_es()`) — MITECO/SABIA *Consulta pública de
+  evaluaciones ambientales* at `sede.miteco.gob.es`. **The only handler
+  that cannot run on a pure-R install:** the portal *TLS-fingerprints* the
+  client and rejects libcurl's ClientHello before any HTTP, so it is reached
+  **only** through the optional `{chromote}` headless-browser transport
+  (`R/utils_browser.R`; `Suggests: chromote`). The handler gates on
+  `browser_available()` and aborts with class
+  `planscanR_error_browser_unavailable` (via `require_browser("es")`) when
+  the browser is absent — **degrade gracefully**. **National-competence
+  procedures only** (most Spanish EIA is regional → out of scope). **Dual
+  register** via `assessment_type` (`"All"`/`"EIA"`/`"SEA"`): EIA = the
+  `navServicioContenido` origin (`register = "proyectos"`), SEA = the
+  `navSabiaPlanes` origin (`register = "planes"`). One session per register:
+  `browser_open(origin)` → harvest `datosPropios` → a single
+  `accion=proy_resultados` `browser_fetch()` POST whose response carries
+  `<table id="tablaResultados">` (code / title / estado). The ficha PDFs are
+  reached by two in-page form submits (`browser_submit_form()`):
+  `proy_estado_tramitacion` then `listadoDocumentacion`, whose
+  `<table id="tablaDocumentos">` lists `BINARYPORTLET resource.process` PDF
+  links grouped by *Tipo de documento*. Those live URLs are **session-bound
+  and ephemeral**, so `attachment_urls` stores a stable synthetic
+  `<origin>#<code>/<NOMBRE_SABIA>` per document (grouped into
+  `attachment_urls_<slug>`); on `download = TRUE` the bytes are pulled
+  in-session via `browser_download()` (the PDFs are on the TLS-walled host
+  too). `document_id` prefixed `EIA-`/`SEA-`; `competent_authority` the
+  constant `"Ministerio para la Transición Ecológica y el Reto
+  Demográfico"`; extra `expediente` (the code). No geometry. `query` →
+  server-side `<Titulo>` + client-side; `codigo` → server-side `<Codigo>` +
+  client-side; `date_range` client-side. Spanish. Throttled via
+  `getOption("planscanR.es_throttle_rate", 2)` (seconds between ficha
+  fetches). Coverage `status` = `"supported (requires optional headless
+  browser; TLS-fingerprinted portal)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -456,7 +488,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_it(...)          # va.mite.gov.it (HTML scrape; VIA/EIA + VAS/SEA)
   │     ├── get_assessments_sk(...)          # enviroportal.sk (API Platform JSON; EIA + SEA)
   │     ├── get_assessments_no(...)          # nve.no (JSON list + HTML detail; concession EIA)
-  │     └── get_assessments_lv(...)          # eva.gov.lv (Drupal HTML; metadata-only EIA + SEA PDFs)
+  │     ├── get_assessments_lv(...)          # eva.gov.lv (Drupal HTML; metadata-only EIA + SEA PDFs)
+  │     └── get_assessments_es(...)          # sede.miteco.gob.es (SABIA; needs {chromote} browser; EIA + SEA)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

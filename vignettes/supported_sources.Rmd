@@ -23,7 +23,8 @@ library(planscanR)
 `planscanR` is a thin layer over a handful of national environmental-assessment
 portals (currently Netherlands, Germany, France, Austria, Denmark, Belgium
 (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia, Greece,
-Iceland, Ireland, Slovenia, and Portugal).
+Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy, Slovakia,
+Norway, Latvia, and Spain).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
@@ -1239,6 +1240,64 @@ get_assessments_lv(limit = 5, download = FALSE)
 
 # SEA only — the three flat sub-pages, with direct PDFs
 get_assessments_lv(assessment_type = "SEA", limit = 10, download = TRUE)
+```
+
+## Spain — `"es"`
+
+* **Portal:** the MITECO/SABIA *Consulta pública de evaluaciones ambientales* on
+  the electronic headquarters at
+  [sede.miteco.gob.es](https://sede.miteco.gob.es/), a server-rendered Liferay
+  portal driven entirely by POST forms.
+* **Requires the optional `{chromote}` headless browser.** This is the one
+  handler in the package that cannot run on a pure-R install. The SABIA portal
+  *TLS-fingerprints* the client and resets `libcurl`'s TLS handshake before any
+  HTTP is exchanged, so `httr2` cannot reach it at all. `planscanR` therefore
+  drives a real headless Chrome through the optional `{chromote}` package (in
+  `Suggests`): it navigates to the portal origin — clearing the TLS gate and
+  establishing the Liferay session cookie the way a real browser would — and
+  then runs the portal's own in-page requests so they ride Chrome's TLS stack
+  and cookies. All parsing still happens in R. If `{chromote}` or a
+  Chrome/Chromium binary is unavailable the handler aborts up front with an
+  actionable message; install `{chromote}` and Google Chrome (or point
+  `options(planscanR.chrome_path=)` / the `CHROMOTE_CHROME` environment variable
+  at a Chrome binary) to enable it.
+* **National competence only.** Most Spanish EIA is decided by the autonomous
+  communities and lives in their regional registers, which are out of scope
+  here. SABIA covers the national-competence procedures.
+* **Dual register (SABIA).** Selected with the `assessment_type` argument
+  (`"All"` / `"EIA"` / `"SEA"`): **EIA** = *Evaluación de Impacto Ambiental de
+  proyectos* via the `navServicioContenido` origin (`register = "proyectos"`);
+  **SEA** = *Evaluación Ambiental Estratégica de planes y programas* via the
+  `navSabiaPlanes` origin (`register = "planes"`). An `assessment_type` column
+  tags each row; `document_id` is prefixed `EIA-` / `SEA-`.
+* **Enumeration — one bulk POST.** Per register, the handler opens the origin,
+  harvests the per-session `datosPropios` token from the search form, and issues
+  a single `accion=proy_resultados` POST whose response carries
+  `<table id="tablaResultados">` with every record (expediente code, title,
+  *estado de tramitación*).
+* **Attachments — ficha PDFs, downloaded in-session.** Each record's documents
+  (DIA / EsIA / resolución / BOE) are reached through the *Acceso a la
+  Documentación* panel (`<table id="tablaDocumentos">`), grouped by *Tipo de
+  documento*. The portal's document URLs are **session-bound and ephemeral**
+  (and the PDFs are on the same TLS-walled host), so `attachment_urls` stores a
+  stable synthetic identity per document and, when `download = TRUE`, the bytes
+  are pulled in-session through the browser.
+* **No geometry.** SABIA exposes no public per-record geometry.
+* **Filters:** `assessment_type`; `query` (free-text title, sent into the
+  server-side *Buscador* `<Titulo>` filter and re-checked client-side); `codigo`
+  (exact expediente code, server-side `<Codigo>` + client-side); `date_range`
+  client-side; `limit`.
+* **Language:** Spanish (ISO-639-1 `es`); portal-native values kept verbatim.
+
+```{r}
+# Requires {chromote} + a Chrome/Chromium binary.
+get_assessments_es(limit = 5, download = FALSE)
+
+# SEA only (the planes register)
+get_assessments_es(assessment_type = "SEA", limit = 10, download = FALSE)
+
+# Title substring + download the national-competence PDFs through the browser
+get_assessments_es(query = "eólica", limit = 5, download = TRUE)
 ```
 
 ## Adding a new source

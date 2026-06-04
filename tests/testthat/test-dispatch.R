@@ -22,7 +22,8 @@ test_that("supported_countries() returns the shipped set", {
       "it",
       "sk",
       "no",
-      "lv"
+      "lv",
+      "es"
     )
   )
 })
@@ -80,4 +81,5 @@ test_that("select_assessments_handler returns the per-country function", {
   expect_identical(planscanR:::select_assessments_handler("sk"), get_assessments_sk)
   expect_identical(planscanR:::select_assessments_handler("no"), get_assessments_no)
   expect_identical(planscanR:::select_assessments_handler("lv"), get_assessments_lv)
+  expect_identical(planscanR:::select_assessments_handler("es"), get_assessments_es)
 })

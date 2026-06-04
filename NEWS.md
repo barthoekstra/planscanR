@@ -11,10 +11,10 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 21 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 22 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
   Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy,
-  Slovakia, Norway, and Latvia.
+  Slovakia, Norway, Latvia, and Spain.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.
@@ -93,6 +93,25 @@ and related advice) from European government portals.
   (`IVN-` / `ATZ-` / `LEM-` / `MON-`). No geometry; `query` and `date_range`
   are matched client-side (the portal's own filters are POST/AJAX). Latvian.
   Throttled to 5 req/s by default (`getOption("planscanR.lv_throttle_rate")`).
+* Spain (`get_assessments_es()`): fetches the national-competence environmental
+  assessments from the MITECO/SABIA *Consulta pública de evaluaciones
+  ambientales* portal at **sede.miteco.gob.es**. This is the first handler that
+  needs the **optional `{chromote}` headless-browser transport**: the portal
+  *TLS-fingerprints* the client and rejects `libcurl`'s handshake outright, so
+  it is reachable only through a real headless Chrome (clearing the TLS gate and
+  riding Chrome's TLS + session cookies for the portal's own in-page requests).
+  The dependency is strictly optional — the handler gates on
+  `browser_available()` and aborts with an actionable message
+  (class `planscanR_error_browser_unavailable`) when `{chromote}` or a Chrome
+  binary is absent; **every other country still works without a browser**. It is
+  a **dual register** (`assessment_type` = `"All"` / `"EIA"` / `"SEA"`): EIA via
+  the *proyectos* origin, SEA via the *planes* origin. Enumeration is one bulk
+  `proy_resultados` POST per register (the full `tablaResultados` listing); the
+  per-record ficha PDFs (DIA / EsIA / resolución / BOE) are reached by two
+  in-page form submits and downloaded in-session (their portal URLs are
+  session-bound), grouped per *Tipo de documento*. `document_id` is prefixed
+  `EIA-` / `SEA-`. National-competence procedures only (most Spanish EIA is
+  regional → out of scope); no public geometry. Spanish.
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English

@@ -46,7 +46,8 @@ get_assessments_coverage <- function() {
       "it",
       "sk",
       "no",
-      "lv"
+      "lv",
+      "es"
     ),
     source_portal = c(
       "commissiemer.nl",
@@ -69,7 +70,8 @@ get_assessments_coverage <- function() {
       "va.mite.gov.it",
       "enviroportal.sk",
       "nve.no",
-      "eva.gov.lv"
+      "eva.gov.lv",
+      "sede.miteco.gob.es"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -92,9 +94,11 @@ get_assessments_coverage <- function() {
       "https://va.mite.gov.it",
       "https://www.enviroportal.sk/eia-sea/informacny-system",
       "https://www.nve.no/konsesjon/konsesjonssaker",
-      "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti"
+      "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti",
+      "https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -138,7 +142,8 @@ get_assessments_coverage <- function() {
       "supported (VIA/VAS dual register; HTML scrape; no geometry)", # it
       "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)", # sk
       "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)", # no
-      "supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)" # lv
+      "supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
+      "supported (requires optional headless browser; TLS-fingerprinted portal)" # es
     ),
     facets = list(
       commissiemer_facets(),
@@ -161,7 +166,35 @@ get_assessments_coverage <- function() {
       va_mite_it_facets(),
       enviroportal_sk_facets(),
       nve_no_facets(),
-      eva_lv_facets()
+      eva_lv_facets(),
+      sabia_es_facets()
+    )
+  )
+}
+
+#' Static lookup of the MITECO/SABIA (Spain) facet vocabularies.
+#'
+#' Spain's national-competence environmental assessments live on the SABIA
+#' portal of the MITECO electronic headquarters, reached only through the
+#' optional headless-browser transport (the portal TLS-fingerprints and rejects
+#' libcurl). The first-class discriminator is the `assessment_type` selector
+#' (which register(s) to crawl — proyectos for EIA, planes for SEA, or both);
+#' the raw register labels are surfaced for reference (they land in the
+#' `register` output column). The portal's own search form exposes
+#' `EstadoTramitacion` / `Tipo` / `OrganoSustantivo` / `Comunidad` filter fields
+#' (plus free-text `Titulo` and exact `Codigo`); only `assessment_type`, `query`
+#' (→ `Titulo`), and `codigo` (→ `Codigo`) are first-class in v0.1, so the other
+#' `xml` *Buscador* filter fields are surfaced here as reference only.
+#' @noRd
+sabia_es_facets <- function() {
+  list(
+    assessment_type = c("All", "EIA", "SEA"),
+    register = c(EIA = "proyectos", SEA = "planes"),
+    buscador_filters = c(
+      "EstadoTramitacion",
+      "Tipo",
+      "OrganoSustantivo",
+      "Comunidad"
     )
   )
 }

@@ -117,7 +117,7 @@ browser_close <- function(session) {
 #' session cookies established by [browser_open()] — the only way to reach a
 #' TLS-fingerprinting WAF such as MITECO. Same-origin requests only.
 #'
-#' @param session A session from [browser_open()].
+#' @param session A session from `browser_open()`.
 #' @param url Request URL (same origin as the session).
 #' @param method HTTP method.
 #' @param body Request body string (e.g. a urlencoded form), or `NULL`.
@@ -168,6 +168,167 @@ browser_fetch <- function(
   list(status = as.integer(parsed$status), body = parsed$body %||% "")
 }
 
+#' Drive a stateful portlet by submitting its in-page `<form>`.
+#'
+#' Some portals (MITECO/SABIA) hold navigation state **server-side, keyed by the
+#' session cookie**, and advance it via successive POSTs of the page's own
+#' `<form name="formulario">` with a different `accion`. Replaying those POSTs
+#' with `browser_fetch()` is brittle (the exact hidden-field set differs per
+#' step), so instead we set the requested fields on the live form and submit it,
+#' then wait for the new page and return its rendered HTML. All *parsing* still
+#' happens in R; the browser is only the transport that keeps the cookie-backed
+#' portlet state in sync.
+#'
+#' @param session A session from `browser_open()`.
+#' @param fields Named list of `<input>`/`<select>` `name` -> value to set on the
+#'   form before submitting (e.g. `list(codigo_seleccionado = "20210330",
+#'   accion = "listadoDocumentacion")`).
+#' @param form_id The form element id (default `"formulario"`).
+#' @param wait Seconds to wait after submit for the new page to render.
+#' @return The rendered HTML of the resulting page as a single string.
+#' @noRd
+browser_submit_form <- function(session, fields, form_id = "formulario", wait = 4) {
+  payload <- jsonlite::toJSON(
+    list(form = form_id, fields = fields),
+    auto_unbox = TRUE,
+    null = "null"
+  )
+  js <- sprintf(
+    "(function(){
+       const a = %s;
+       const f = document.getElementById(a.form) ||
+                 document.querySelector(\"form[name='\" + a.form + \"']\");
+       if (!f) return 'NO_FORM';
+       for (const k in a.fields) {
+         let el = f.querySelector(\"[name='\" + k + \"']\") ||
+                  document.getElementById(k);
+         if (el) { el.value = a.fields[k]; }
+       }
+       f.submit();
+       return 'OK';
+     })()",
+    payload
+  )
+  res <- session$Runtime$evaluate(js, returnByValue = TRUE)
+  if (identical(res$result$value, "NO_FORM")) {
+    cli::cli_abort(
+      "Form {.val {form_id}} not found in the page.",
+      class = "planscanR_error_browser_form"
+    )
+  }
+  if (is.finite(wait) && wait > 0) {
+    Sys.sleep(wait)
+  }
+  session$Runtime$evaluate(
+    "document.documentElement.outerHTML",
+    returnByValue = TRUE
+  )$result$value %||%
+    ""
+}
+
+#' Download a (TLS-walled / session-bound) file through an open browser session.
+#'
+#' Fetches `url` *in-page* (so it rides Chrome's TLS + the cookie-backed portlet
+#' state), reads the response as an `ArrayBuffer`, base64-encodes it in the page,
+#' hands it back to R, and writes the decoded bytes to `dest_path`. This is the
+#' only way to pull MITECO/SABIA PDFs, whose `BINARYPORTLET resource.process`
+#' URLs are valid only inside the live session that rendered them.
+#'
+#' @param session A session from `browser_open()`.
+#' @param url The (same-origin, session-bound) file URL.
+#' @param dest_path Destination path on disk.
+#' @param max_bytes Optional byte cap; when the response exceeds it the file is
+#'   not written and the function returns a `"skipped_size"` outcome.
+#' @param timeout Seconds to allow the in-page fetch to resolve.
+#' @return `list(status, content_type, size_bytes, written = <logical>,
+#'   reason)`.
+#' @noRd
+browser_download <- function(session, url, dest_path, max_bytes = Inf, timeout = 180) {
+  # CDP rides a WebSocket whose per-message size is bounded, so a multi-MB PDF
+  # base64'd into one Runtime.evaluate result overflows it ("message too large").
+  # Instead: fetch the bytes once and stash the base64 on `window`, return only
+  # the metadata + total length, then pull the base64 back in bounded slices and
+  # reassemble in R.
+  args <- list(url = url)
+  payload <- jsonlite::toJSON(args, auto_unbox = TRUE, null = "null")
+  fetch_js <- sprintf(
+    "(async () => {
+       const a = %s;
+       const r = await fetch(a.url);
+       const ct = r.headers.get('content-type') || '';
+       const ab = await r.arrayBuffer();
+       const bytes = new Uint8Array(ab);
+       let bin = '';
+       const chunk = 0x8000;
+       for (let i = 0; i < bytes.length; i += chunk) {
+         bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+       }
+       window.__planscanr_dl = btoa(bin);
+       return JSON.stringify({ status: r.status, ct: ct, len: bytes.length, b64len: window.__planscanr_dl.length });
+     })()",
+    payload
+  )
+  res <- session$Runtime$evaluate(
+    fetch_js,
+    awaitPromise = TRUE,
+    returnByValue = TRUE,
+    timeout = timeout * 1000
+  )
+  raw <- res$result$value
+  if (is.null(raw)) {
+    return(list(
+      status = NA_integer_,
+      content_type = NA_character_,
+      size_bytes = NA_real_,
+      written = FALSE,
+      reason = "in-page download returned nothing"
+    ))
+  }
+  parsed <- jsonlite::fromJSON(raw, simplifyVector = TRUE)
+  size <- as.numeric(parsed$len %||% NA_real_)
+  b64len <- as.numeric(parsed$b64len %||% 0)
+  if (is.finite(max_bytes) && !is.na(size) && size > max_bytes) {
+    session$Runtime$evaluate("delete window.__planscanr_dl;", returnByValue = TRUE)
+    return(list(
+      status = as.integer(parsed$status),
+      content_type = parsed$ct %||% NA_character_,
+      size_bytes = size,
+      written = FALSE,
+      reason = sprintf("downloaded size %s exceeds cap %s", format(size), format(max_bytes))
+    ))
+  }
+  # Pull the base64 back in <=4 MB slices (well under the WebSocket cap).
+  slice <- 4000000L
+  b64 <- ""
+  ok <- tryCatch(
+    {
+      pos <- 0
+      while (pos < b64len) {
+        part <- session$Runtime$evaluate(
+          sprintf("window.__planscanr_dl.substr(%d, %d)", pos, slice),
+          returnByValue = TRUE
+        )$result$value %||%
+          ""
+        b64 <- paste0(b64, part)
+        pos <- pos + slice
+      }
+      bytes <- jsonlite::base64_dec(b64)
+      dir.create(dirname(dest_path), recursive = TRUE, showWarnings = FALSE)
+      writeBin(bytes, dest_path)
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+  session$Runtime$evaluate("delete window.__planscanr_dl;", returnByValue = TRUE)
+  list(
+    status = as.integer(parsed$status),
+    content_type = parsed$ct %||% NA_character_,
+    size_bytes = size,
+    written = ok,
+    reason = if (ok) NA_character_ else "failed to decode/write bytes"
+  )
+}
+
 #' Return the fully rendered HTML of a page (after JS / challenge).
 #'
 #' For portals where the *page itself* is what we want (a Cloudflare-gated HTML
@@ -191,5 +352,6 @@ browser_get_html <- function(url, wait = 3, origin = NULL) {
   session$Runtime$evaluate(
     "document.documentElement.outerHTML",
     returnByValue = TRUE
-  )$result$value %||% ""
+  )$result$value %||%
+    ""
 }

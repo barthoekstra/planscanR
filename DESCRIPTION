@@ -29,7 +29,10 @@ Description: A unified R interface for fetching environmental-assessment
     concession cases carrying the konsekvensutredning EIA documents), and
     Latvia (Environmental State Bureau eva.gov.lv; Drupal HTML;
     asymmetric dual register: metadata-only project EIA listing plus
-    strategic SEA sub-pages with direct PDFs).
+    strategic SEA sub-pages with direct PDFs), and Spain
+    (MITECO/SABIA sede.miteco.gob.es; national-competence project EIA +
+    plan SEA; reached only through the optional chromote headless
+    browser because the portal TLS-fingerprints and rejects libcurl).
     Optional
     fetch-time scoring of records by topic relevance is delegated to the
     companion 'planscanR.screen' package. Developed for the BIOGAIN project
