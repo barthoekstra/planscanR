@@ -412,7 +412,7 @@ no_section_slug <- function(heading) {
 #' Transliterate Norwegian diacritics to ASCII (for slugs only).
 #' @noRd
 no_transliterate <- function(s) {
-  from <- c("æ", "ø", "å", "Æ", "Ø", "Å")
+  from <- c("\u00e6", "\u00f8", "\u00e5", "\u00c6", "\u00d8", "\u00c5")
   to <- c("ae", "oe", "aa", "ae", "oe", "aa")
   for (i in seq_along(from)) {
     s <- gsub(from[i], to[i], s, fixed = TRUE)

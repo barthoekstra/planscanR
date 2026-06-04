@@ -236,7 +236,7 @@ lv_portal_base <- function() "https://www.eva.gov.lv"
 #'
 #' Latvian verbatim.
 #' @noRd
-lv_competent_authority <- function() "Vides pārraudzības valsts birojs"
+lv_competent_authority <- function() "Vides p\u0101rraudz\u012bbas valsts birojs"
 
 #' EIA Views listing path.
 #' @noRd
@@ -264,7 +264,7 @@ lv_sea_native_type <- function(register) {
   switch(
     register,
     atzinumi = "atzinums",
-    lemumi = "lēmums",
+    lemumi = "l\u0113mums",
     monitorings = "monitorings",
     register
   )
@@ -348,8 +348,8 @@ lv_parse_eia_rows <- function(html) {
       url = lv_absolute_url(href),
       title = title,
       status = fields[["IVN Statuss"]],
-      proponent = fields[["IVN projekta ierosinātājs"]],
-      decision_text = fields[["Lēmums par IVN nepieciešamību"]]
+      proponent = fields[["IVN projekta ierosin\u0101t\u0101js"]],
+      decision_text = fields[["L\u0113mums par IVN nepiecie\u0161am\u012bbu"]]
     )
   }
   out
@@ -532,11 +532,11 @@ lv_parse_eia_detail <- function(url, entry, html) {
 
   title <- h1 %||% entry$title %||% NA_character_
   status <- fields[["IVN Statuss"]] %||% entry$status %||% NA_character_
-  proponent <- fields[["IVN projekta ierosinātājs"]] %||% entry$proponent %||% NA_character_
-  decision_text <- fields[["Lēmums par IVN nepieciešamību"]] %||% entry$decision_text
+  proponent <- fields[["IVN projekta ierosin\u0101t\u0101js"]] %||% entry$proponent %||% NA_character_
+  decision_text <- fields[["L\u0113mums par IVN nepiecie\u0161am\u012bbu"]] %||% entry$decision_text
 
-  location <- lv_strong_value(html, "Paredzētās darbības norises vieta")
-  summary <- lv_strong_value(html, "Īss paredzētās darbības raksturojums")
+  location <- lv_strong_value(html, "Paredz\u0113t\u0101s darb\u012bbas norises vieta")
+  summary <- lv_strong_value(html, "\u012ass paredz\u0113t\u0101s darb\u012bbas raksturojums")
 
   lv_eia_record(
     url = url,

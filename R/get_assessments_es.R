@@ -222,7 +222,7 @@ es_portal_base <- function() "https://sede.miteco.gob.es"
 #' in a stable place, so we tag every record with the national ministry.
 #' @noRd
 es_competent_authority <- function() {
-  "Ministerio para la Transición Ecológica y el Reto Demográfico"
+  "Ministerio para la Transici\u00f3n Ecol\u00f3gica y el Reto Demogr\u00e1fico"
 }
 
 #' Map a register code to its portal origin (search/results page).
@@ -642,7 +642,7 @@ es_section_slug <- function(tipo) {
     return("documento")
   }
   folded <- chartr(
-    "áéíóúüñÁÉÍÓÚÜÑ",
+    "\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1",
     "aeiouunAEIOUUN",
     tipo
   )

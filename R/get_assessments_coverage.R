@@ -142,7 +142,7 @@ get_assessments_coverage <- function() {
       "supported (VIA/VAS dual register; HTML scrape; no geometry)", # it
       "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)", # sk
       "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)", # no
-      "supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
+      "supported (metadata-only EIA register \u2014 documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
       "supported (requires optional headless browser; TLS-fingerprinted portal)" # es
     ),
     facets = list(
@@ -326,9 +326,9 @@ planning_inspectorate_gb_facets <- function() {
 siaia_pt_facets <- function() {
   list(
     decision_sense = c(
-      "Favorável",
-      "Favorável condicionado",
-      "Desfavorável",
+      "Favor\u00e1vel",
+      "Favor\u00e1vel condicionado",
+      "Desfavor\u00e1vel",
       "Desconformidade do EIA",
       "Encerrado"
     )

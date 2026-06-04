@@ -228,7 +228,7 @@ pt_phase_slug <- function(label) {
   }
   l <- tolower(label)
   # Fold the common Portuguese diacritics so keyword matching is robust.
-  l <- chartr("áàâãéêíóôõúç", "aaaaeeiooouc", l)
+  l <- chartr("\u00e1\u00e0\u00e2\u00e3\u00e9\u00ea\u00ed\u00f3\u00f4\u00f5\u00fa\u00e7", "aaaaeeiooouc", l)
   if (grepl("\\bdia\\b|declaracao", l)) {
     return("dia")
   }
@@ -410,21 +410,21 @@ pt_fetch_documents <- function(pro_id) {
 pt_parse_detail <- function(url, entry, html, documents) {
   fields <- pt_parse_detail_fields(html)
 
-  aia_number <- fields[["Nº AIA"]] %||% entry$aia_number
+  aia_number <- fields[["N\u00ba AIA"]] %||% entry$aia_number
   pro_id <- entry$pro_id
   document_id <- pt_document_id(aia_number, pro_id)
 
-  title <- fields[["Designação do projeto"]] %||% entry$title %||% NA_character_
+  title <- fields[["Designa\u00e7\u00e3o do projeto"]] %||% entry$title %||% NA_character_
   proponent <- fields[["Proponente"]] %||% entry$proponent %||% NA_character_
   competent_authority <- fields[["Autoridade AIA"]] %||% entry$autoridade %||% NA_character_
   licensing_authority <- fields[["Licenciador"]] %||% entry$licenciador %||% NA_character_
-  municipalities <- fields[["Localização (Concelhos)"]] %||% entry$localizacao %||% NA_character_
-  decision_sense <- fields[["Sentido da Decisão"]] %||% entry$sentido_decisao %||% NA_character_
+  municipalities <- fields[["Localiza\u00e7\u00e3o (Concelhos)"]] %||% entry$localizacao %||% NA_character_
+  decision_sense <- fields[["Sentido da Decis\u00e3o"]] %||% entry$sentido_decisao %||% NA_character_
   status <- fields[["Estado"]] %||% NA_character_
 
-  date_decision <- pt_parse_date(fields[["Data da decisão"]])
+  date_decision <- pt_parse_date(fields[["Data da decis\u00e3o"]])
   # date_published: prefer the public-consultation start date when exposed.
-  date_published <- pt_parse_date(fields[["Início de consulta pública"]])
+  date_published <- pt_parse_date(fields[["In\u00edcio de consulta p\u00fablica"]])
 
   # decision_year: a full date wins; else fall back to the listing's Ano Decisão.
   decision_year <- if (!is.na(date_decision)) {

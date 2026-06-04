@@ -398,7 +398,7 @@ si_build_record <- function(entry, attachments) {
     date_published <- si_parse_date(si_field(raw, "Datum objave"))
     proponent <- si_field(raw, "Naziv")
     proponent_address <- si_field(raw, "Naslov")
-    case_number <- si_field(raw, "Številka zadeve")
+    case_number <- si_field(raw, "\u0160tevilka zadeve")
     annex_code <- si_field(raw, "Oznaka posega")
     native_type <- NA_character_
     decision <- NA_character_
@@ -412,7 +412,7 @@ si_build_record <- function(entry, attachments) {
     proponent_address <- NA_character_
     case_number <- NA_character_
     annex_code <- NA_character_
-    decision <- si_field(raw, "Odločitev")
+    decision <- si_field(raw, "Odlo\u010ditev")
     native_type <- decision
   }
 
