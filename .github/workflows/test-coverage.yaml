@@ -44,9 +44,11 @@ jobs:
 
       - uses: codecov/codecov-action@v5
         with:
-          # Fail CI if Codecov errors, except on pull requests from forks where
-          # the upload token is unavailable.
-          fail_ci_if_error: ${{ github.event_name != 'pull_request' }}
+          # Non-fatal: coverage is still computed by covr above; the upload to
+          # codecov.io needs a CODECOV_TOKEN repo secret. Until that is set, a
+          # missing-token upload error must not fail CI. Flip back to
+          # `${{ github.event_name != 'pull_request' }}` once the token exists.
+          fail_ci_if_error: false
           files: ./cobertura.xml
           plugins: noop
           disable_search: true
