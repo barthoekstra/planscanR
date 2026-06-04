@@ -164,7 +164,7 @@ get_assessments_is <- function(
       ),
       error = function(e) {
         warn_partial(
-          "Failed to enumerate Skipulagsgátt process {.val {pid}}: {conditionMessage(e)}"
+          "Failed to enumerate Skipulagsg\u00e1tt process {.val {pid}}: {conditionMessage(e)}"
         )
         list()
       }
@@ -626,16 +626,16 @@ is_section_slug <- function(type) {
   }
   s <- tolower(type)
   # Icelandic diacritics that can show up in role labels.
-  s <- gsub("á", "a", s)
-  s <- gsub("é", "e", s)
-  s <- gsub("í", "i", s)
-  s <- gsub("ó", "o", s)
-  s <- gsub("ú", "u", s)
-  s <- gsub("ý", "y", s)
-  s <- gsub("ð", "d", s)
-  s <- gsub("þ", "th", s)
-  s <- gsub("æ", "ae", s)
-  s <- gsub("ö", "o", s)
+  s <- gsub("\u00e1", "a", s)
+  s <- gsub("\u00e9", "e", s)
+  s <- gsub("\u00ed", "i", s)
+  s <- gsub("\u00f3", "o", s)
+  s <- gsub("\u00fa", "u", s)
+  s <- gsub("\u00fd", "y", s)
+  s <- gsub("\u00f0", "d", s)
+  s <- gsub("\u00fe", "th", s)
+  s <- gsub("\u00e6", "ae", s)
+  s <- gsub("\u00f6", "o", s)
   s <- gsub("[^a-z0-9]+", "_", s)
   s <- gsub("(^_+|_+$)", "", s)
   if (!nzchar(s)) "document" else s

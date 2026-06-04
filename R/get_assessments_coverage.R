@@ -117,7 +117,7 @@ get_assessments_coverage <- function() {
 eia_portal_ie_facets <- function() {
   list(
     competent_authority = c(
-      "An Bord Pleanála",
+      "An Bord Plean\u00e1la",
       "Environmental Protection Agency"
     )
   )
@@ -200,13 +200,13 @@ merregister_be_facets <- function() {
 projets_environnement_fr_facets <- function() {
   list(
     theme = c(
-      "ENVIRONNEMENT (dont ICPE installation classée)",
+      "ENVIRONNEMENT (dont ICPE installation class\u00e9e)",
       "ENVIRONNEMENT",
-      "ÉNERGIE",
+      "\u00c9NERGIE",
       "URBANISME ET CONSTRUCTION",
       "TRANSPORTS",
       "INDUSTRIE",
-      "AGRICULTURE, SYLVICULTURE ET PÊCHE",
+      "AGRICULTURE, SYLVICULTURE ET P\u00caCHE",
       "AGRO-ALIMENTAIRE",
       "PRODUCTION, TECHNOLOGIE ET RECHERCHE"
     ),

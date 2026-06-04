@@ -356,10 +356,10 @@ cz_parse_index_rows <- function(html, register) {
     # The header <tr> for this result holds the bold code cell + this anchor;
     # the following sibling rows carry the label/value cells of this block.
     block_rows <- cz_index_block_rows(a)
-    competent_authority <- cz_index_block_value(block_rows, "Příslušný úřad")
-    native_type <- cz_index_block_value(block_rows, "Zařazení")
+    competent_authority <- cz_index_block_value(block_rows, "P\u0159\u00edslu\u0161n\u00fd \u00fa\u0159ad")
+    native_type <- cz_index_block_value(block_rows, "Za\u0159azen\u00ed")
     status <- cz_index_block_value(block_rows, "Stav")
-    changed <- cz_parse_java_date(cz_index_block_value(block_rows, "Změněno"))
+    changed <- cz_parse_java_date(cz_index_block_value(block_rows, "Zm\u011bn\u011bno"))
     out[[length(out) + 1L]] <- list(
       register = register,
       code = code,
@@ -481,20 +481,20 @@ cz_parse_detail <- function(url, entry, html) {
   rows <- cz_extract_detail_rows(html)
   pick <- function(...) cz_detail_value(rows, c(...))
 
-  title <- pick("Název záměru", "Název koncepce") %||% entry$title %||% NA_character_
+  title <- pick("N\u00e1zev z\u00e1m\u011bru", "N\u00e1zev koncepce") %||% entry$title %||% NA_character_
   status <- pick("Stav") %||% entry$status %||% NA_character_
-  competent_authority <- pick("Příslušný úřad") %||%
+  competent_authority <- pick("P\u0159\u00edslu\u0161n\u00fd \u00fa\u0159ad") %||%
     entry$competent_authority %||%
     NA_character_
-  proponent <- pick("Oznamovatel", "Předkladatel") %||% NA_character_
-  ico <- pick("IČO oznamovatele", "IČO předkladatele") %||% NA_character_
-  native_type <- pick("Zařazení") %||% entry$native_type %||% NA_character_
+  proponent <- pick("Oznamovatel", "P\u0159edkladatel") %||% NA_character_
+  ico <- pick("I\u010cO oznamovatele", "I\u010cO p\u0159edkladatele") %||% NA_character_
+  native_type <- pick("Za\u0159azen\u00ed") %||% entry$native_type %||% NA_character_
 
-  # date_published: SEA carries a dedicated "Datum zveřejnění" publication date
-  # (preferred); EIA only exposes "Datum a čas posledních úprav" (last-modified,
+  # date_published: SEA carries a dedicated "Datum zve\u0159ejn\u011bn\u00ed" publication date
+  # (preferred); EIA only exposes "Datum a \u010das posledn\u00edch \u00faprav" (last-modified,
   # Java Date.toString() form). Try the publication date first, in priority
   # order, since both labels can co-occur on a SEA page.
-  date_raw <- pick("Datum zveřejnění") %||% pick("Datum a čas posledních úprav")
+  date_raw <- pick("Datum zve\u0159ejn\u011bn\u00ed") %||% pick("Datum a \u010das posledn\u00edch \u00faprav")
   date_published <- cz_parse_java_date(date_raw)
   if (is.null(date_published) || length(date_published) == 0L) {
     date_published <- entry$last_modified %||% as.Date(NA)
@@ -687,36 +687,36 @@ cz_section_slug <- function(label) {
 #' @noRd
 cz_transliterate <- function(s) {
   from <- c(
-    "á",
-    "č",
-    "ď",
-    "é",
-    "ě",
-    "í",
-    "ň",
-    "ó",
-    "ř",
-    "š",
-    "ť",
-    "ú",
-    "ů",
-    "ý",
-    "ž",
-    "Á",
-    "Č",
-    "Ď",
-    "É",
-    "Ě",
-    "Í",
-    "Ň",
-    "Ó",
-    "Ř",
-    "Š",
-    "Ť",
-    "Ú",
-    "Ů",
-    "Ý",
-    "Ž"
+    "\u00e1",
+    "\u010d",
+    "\u010f",
+    "\u00e9",
+    "\u011b",
+    "\u00ed",
+    "\u0148",
+    "\u00f3",
+    "\u0159",
+    "\u0161",
+    "\u0165",
+    "\u00fa",
+    "\u016f",
+    "\u00fd",
+    "\u017e",
+    "\u00c1",
+    "\u010c",
+    "\u010e",
+    "\u00c9",
+    "\u011a",
+    "\u00cd",
+    "\u0147",
+    "\u00d3",
+    "\u0158",
+    "\u0160",
+    "\u0164",
+    "\u00da",
+    "\u016e",
+    "\u00dd",
+    "\u017d"
   )
   to <- c(
     "a",

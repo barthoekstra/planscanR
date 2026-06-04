@@ -386,43 +386,67 @@ bg_parse_detail <- function(url, entry, html) {
   pick <- function(...) bg_field(rows, c(...))
 
   # title: investment proposal (ОВОС) / plan name (ЕО). ОВОС has a dedicated
-  # label; ЕО reuses the generic "Наименование" label but under the plan
+  # label; ЕО reuses the generic "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435" label but under the plan
   # description section, so we disambiguate by the row's rowgroup section.
-  title <- pick("Наименование на инвестиционното предложение") %||%
-    bg_field_in_section(rows, "Наименование", "Описание на плана/програмата") %||%
+  title <- pick(
+    "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435 \u043d\u0430 \u0438\u043d\u0432\u0435\u0441\u0442\u0438\u0446\u0438\u043e\u043d\u043d\u043e\u0442\u043e \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435"
+  ) %||%
+    bg_field_in_section(
+      rows,
+      "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435",
+      "\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u043d\u0430 \u043f\u043b\u0430\u043d\u0430/\u043f\u0440\u043e\u0433\u0440\u0430\u043c\u0430\u0442\u0430"
+    ) %||%
     entry$title %||%
     NA_character_
 
-  # proponent: the "Наименование" / "Наименование/Име" under the
+  # proponent: the "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435" / "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435/\u0418\u043c\u0435" under the
   # Възложител (proponent) / Вносител (submitter) section.
   proponent <- bg_field_in_section(
     rows,
-    c("Наименование/Име", "Наименование"),
-    c("Възложител", "Вносител")
+    c(
+      "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435/\u0418\u043c\u0435",
+      "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435"
+    ),
+    c(
+      "\u0412\u044a\u0437\u043b\u043e\u0436\u0438\u0442\u0435\u043b",
+      "\u0412\u043d\u043e\u0441\u0438\u0442\u0435\u043b"
+    )
   ) %||%
     entry$proponent %||%
     NA_character_
 
-  competent_authority <- pick("Компетентен орган") %||% NA_character_
-  native_type <- pick("Приложима процедура") %||% entry$native_type %||% NA_character_
+  competent_authority <- pick(
+    "\u041a\u043e\u043c\u043f\u0435\u0442\u0435\u043d\u0442\u0435\u043d \u043e\u0440\u0433\u0430\u043d"
+  ) %||%
+    NA_character_
+  native_type <- pick(
+    "\u041f\u0440\u0438\u043b\u043e\u0436\u0438\u043c\u0430 \u043f\u0440\u043e\u0446\u0435\u0434\u0443\u0440\u0430"
+  ) %||%
+    entry$native_type %||%
+    NA_character_
 
   # date_published: the submission date (under the proposal/plan section).
-  date_published <- bg_parse_dmy(pick("Дата")) %||% as.Date(NA)
+  date_published <- bg_parse_dmy(pick("\u0414\u0430\u0442\u0430")) %||% as.Date(NA)
   if (length(date_published) == 0L || is.null(date_published)) {
     date_published <- as.Date(NA)
   }
   # date_decision: the termination-decision date, when present.
-  date_decision <- bg_parse_dmy(pick("Дата на решението за прекратяване")) %||% as.Date(NA)
+  date_decision <- bg_parse_dmy(pick(
+    "\u0414\u0430\u0442\u0430 \u043d\u0430 \u0440\u0435\u0448\u0435\u043d\u0438\u0435\u0442\u043e \u0437\u0430 \u043f\u0440\u0435\u043a\u0440\u0430\u0442\u044f\u0432\u0430\u043d\u0435"
+  )) %||%
+    as.Date(NA)
   if (length(date_decision) == 0L || is.null(date_decision)) {
     date_decision <- as.Date(NA)
   }
 
-  region <- pick("Област")
-  municipality <- pick("Община")
-  settlement <- pick("Населено място")
+  region <- pick("\u041e\u0431\u043b\u0430\u0441\u0442")
+  municipality <- pick("\u041e\u0431\u0449\u0438\u043d\u0430")
+  settlement <- pick("\u041d\u0430\u0441\u0435\u043b\u0435\u043d\u043e \u043c\u044f\u0441\u0442\u043e")
   jurisdiction <- bg_join_path(c(region, municipality, settlement))
 
-  dossier_number <- pick("Номер на досие") %||% entry$dossier_number %||% NA_character_
+  dossier_number <- pick("\u041d\u043e\u043c\u0435\u0440 \u043d\u0430 \u0434\u043e\u0441\u0438\u0435") %||%
+    entry$dossier_number %||%
+    NA_character_
   status <- entry$status %||% NA_character_
 
   per_section <- bg_parse_documents(rows)
@@ -609,36 +633,36 @@ bg_section_slug <- function(label) {
 #' @noRd
 bg_transliterate <- function(s) {
   from <- c(
-    "а",
-    "б",
-    "в",
-    "г",
-    "д",
-    "е",
-    "ж",
-    "з",
-    "и",
-    "й",
-    "к",
-    "л",
-    "м",
-    "н",
-    "о",
-    "п",
-    "р",
-    "с",
-    "т",
-    "у",
-    "ф",
-    "х",
-    "ц",
-    "ч",
-    "ш",
-    "щ",
-    "ъ",
-    "ь",
-    "ю",
-    "я"
+    "\u0430",
+    "\u0431",
+    "\u0432",
+    "\u0433",
+    "\u0434",
+    "\u0435",
+    "\u0436",
+    "\u0437",
+    "\u0438",
+    "\u0439",
+    "\u043a",
+    "\u043b",
+    "\u043c",
+    "\u043d",
+    "\u043e",
+    "\u043f",
+    "\u0440",
+    "\u0441",
+    "\u0442",
+    "\u0443",
+    "\u0444",
+    "\u0445",
+    "\u0446",
+    "\u0447",
+    "\u0448",
+    "\u0449",
+    "\u044a",
+    "\u044c",
+    "\u044e",
+    "\u044f"
   )
   to <- c(
     "a",

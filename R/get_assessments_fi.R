@@ -513,10 +513,10 @@ fi_fold <- function(x) {
     return("")
   }
   s <- tolower(as.character(x))
-  s <- gsub("ä", "a", s)
-  s <- gsub("ö", "o", s)
-  s <- gsub("å", "a", s)
-  s <- gsub("ü", "u", s)
+  s <- gsub("\u00e4", "a", s)
+  s <- gsub("\u00f6", "o", s)
+  s <- gsub("\u00e5", "a", s)
+  s <- gsub("\u00fc", "u", s)
   trimws(s)
 }
 

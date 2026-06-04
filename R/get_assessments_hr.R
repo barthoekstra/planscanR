@@ -260,7 +260,7 @@ hr_register_urls <- function(register) {
 #' Competent authority constant for the Ministry-competent registers.
 #' @noRd
 hr_ministry_authority <- function() {
-  "Ministarstvo zaštite okoliša i zelene tranzicije"
+  "Ministarstvo za\u0161tite okoli\u0161a i zelene tranzicije"
 }
 
 #' Map our `assessment_type` argument to a normalised value.
@@ -612,8 +612,8 @@ hr_normalise_heading <- function(heading) {
   }
   s <- heading
   # Non-breaking spaces / zero-width chars -> plain space / nothing.
-  s <- gsub(" ", " ", s)
-  s <- gsub("[​‌‍﻿]", "", s)
+  s <- gsub("\u00a0", " ", s)
+  s <- gsub("[\u200b\u200c\u200d\ufeff]", "", s)
   s <- hr_transliterate(s)
   s <- tolower(s)
   s <- gsub("\\s+", " ", s)
@@ -624,16 +624,16 @@ hr_normalise_heading <- function(heading) {
 #' @noRd
 hr_transliterate <- function(s) {
   from <- c(
-    "ž",
-    "Ž",
-    "ć",
-    "Ć",
-    "š",
-    "Š",
-    "đ",
-    "Đ",
-    "č",
-    "Č"
+    "\u017e",
+    "\u017d",
+    "\u0107",
+    "\u0106",
+    "\u0161",
+    "\u0160",
+    "\u0111",
+    "\u0110",
+    "\u010d",
+    "\u010c"
   )
   to <- c("z", "z", "c", "c", "s", "s", "d", "d", "c", "c")
   for (i in seq_along(from)) {
@@ -659,7 +659,7 @@ hr_collect_dates <- function(block) {
 hr_decision_dates <- function(block) {
   anchors <- rvest::html_elements(block, xpath = ".//a")
   texts <- vapply(anchors, function(a) rvest::html_text2(a) %||% "", character(1))
-  decision <- grepl("rješenj|odluk", texts, ignore.case = TRUE)
+  decision <- grepl("rje\u0161enj|odluk", texts, ignore.case = TRUE)
   hr_parse_dates(texts[decision])
 }
 
@@ -709,7 +709,7 @@ hr_native_type <- function(block, register) {
 #' @noRd
 hr_infer_status <- function(block, register) {
   txt <- rvest::html_text2(block)
-  decided <- grepl("rješenj", txt, ignore.case = TRUE) ||
+  decided <- grepl("rje\u0161enj", txt, ignore.case = TRUE) ||
     grepl("Odluka o prihva|Odluka o usvaja|Odluka o dono", txt, ignore.case = TRUE) ||
     length(hr_decision_dates(block)) > 0L
   if (decided) "decided" else "ongoing"
@@ -726,7 +726,7 @@ hr_jurisdiction_from_title <- function(title) {
   }
   parts <- trimws(strsplit(title, ",")[[1]])
   admin <- parts[grepl(
-    "(Grad|Općina|županija)",
+    "(Grad|Op\u0107ina|\u017eupanija)",
     parts,
     ignore.case = TRUE
   )]
@@ -835,8 +835,8 @@ hr_text <- function(x) {
     return(NULL)
   }
   s <- as.character(x)
-  s <- gsub(" ", " ", s)
-  s <- gsub("[​‌‍﻿]", "", s)
+  s <- gsub("\u00a0", " ", s)
+  s <- gsub("[\u200b\u200c\u200d\ufeff]", "", s)
   s <- trimws(s)
   s <- gsub("[ \t]*\n[ \t]*", "\n", s)
   s <- gsub("[ \t]{2,}", " ", s)

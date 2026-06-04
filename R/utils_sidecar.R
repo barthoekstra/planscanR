@@ -36,7 +36,9 @@ assert_sidecar_schema <- function(payload, path = NULL) {
       c(
         paste0(
           "Sidecar {.field schema_version} {ver} is newer than this ",
-          "planscanR understands ({SCHEMA_VERSION})", where, "."
+          "planscanR understands ({SCHEMA_VERSION})",
+          where,
+          "."
         ),
         i = "Upgrade {.pkg planscanR} to read this cache."
       ),
@@ -493,6 +495,23 @@ read_record_sidecar <- function(path) {
       out[[nm]] <- list(unlist(v, use.names = FALSE))
     } else {
       out[[nm]] <- v
+    }
+  }
+  # `date_published` is the one conventional date column that is NOT a
+  # first-class sidecar field (unlike `date_decision`), so it round-trips
+  # through `extras` above as an ISO "YYYY-MM-DD" string (or a logical NA when
+  # absent). Handlers emit it as a `Date`, so without this coercion a record
+  # read back from a sidecar carries a `character`/`logical` `date_published`
+  # while a freshly-parsed record carries a `Date` — and `bind_rows()` over a
+  # mix of cached and fresh records then aborts with a class-mismatch. Coerce
+  # it back to `Date` here so the column is type-stable regardless of cache
+  # state. No JSON-schema change: the on-disk value is unchanged.
+  if ("date_published" %in% names(out)) {
+    dp <- out[["date_published"]]
+    out[["date_published"]] <- if (length(dp) != 1L || is.na(dp[[1]])) {
+      as.Date(NA)
+    } else {
+      as.Date(as.character(dp[[1]]))
     }
   }
   # v2: expose the discovery audit trail as a list-column. Empty list when

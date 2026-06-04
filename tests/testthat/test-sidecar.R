@@ -245,3 +245,43 @@ test_that("sidecar schema assertion accepts current/legacy and rejects newer", {
     )
   })
 })
+
+test_that("date_published round-trips as Date (type-stable across cached + fresh)", {
+  # date_published is the one conventional date column that travels through
+  # extras{} rather than a first-class sidecar field. Without coercion on read
+  # it comes back as character, so a bind_rows() over a mix of cached and
+  # freshly-parsed records aborts with a Date-vs-character class mismatch.
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    mk <- function(id, dp) {
+      tibble::tibble(
+        country = "zz",
+        source_portal = "x",
+        document_id = id,
+        url = paste0("http://x/", id),
+        retrieved_at = as.POSIXct("2025-01-01", tz = "UTC"),
+        attachment_urls = list(character(0)),
+        local_path = list(character(0)),
+        title = id,
+        date_published = dp,
+        date_decision = as.Date(NA),
+        download_status = list(planscanR:::empty_download_status())
+      )
+    }
+    planscanR:::write_record_sidecar(mk("A", as.Date("2025-01-22")))
+    planscanR:::write_record_sidecar(mk("B", as.Date(NA)))
+
+    back_a <- planscanR:::read_record_sidecar(planscanR:::sidecar_path("zz", "A"))
+    back_b <- planscanR:::read_record_sidecar(planscanR:::sidecar_path("zz", "B"))
+    expect_s3_class(back_a$date_published, "Date")
+    expect_identical(back_a$date_published, as.Date("2025-01-22"))
+    expect_s3_class(back_b$date_published, "Date")
+    expect_true(is.na(back_b$date_published))
+
+    # The actual failure mode: binding a cached record (read back) with a
+    # freshly-parsed one must not abort.
+    fresh <- mk("C", as.Date("2025-03-15"))
+    expect_no_error(dplyr::bind_rows(back_a, fresh))
+  })
+})
