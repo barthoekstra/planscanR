@@ -1,4 +1,4 @@
-# Schema v3 contract (docs/spec/contract.md §2):
+# Schema v3 contract (dev/spec/contract.md §2):
 #   1. on-disk paths (files[].local_path, geometry_path) stored RELATIVE to the
 #      cache root and absolutised on read;
 #   2. extras{} no longer duplicates relevance_score_* (relevance_scores[] is

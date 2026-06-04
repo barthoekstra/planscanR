@@ -21,3 +21,4 @@
 ^out$
 ^pkgdown$
 ^planscanR\.Rcheck$
+^dev$

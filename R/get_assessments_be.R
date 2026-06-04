@@ -516,7 +516,9 @@ be_record_earliest_date <- function(documenten) {
   if (length(dates) == 0L) {
     return(as.Date(NA))
   }
-  min(as.Date(dates))
+  # `unlist()` above drops the Date class, so `dates` is the numeric day-count;
+  # supply origin so as.Date() works on R <= 4.2 (4.3+ defaults it).
+  min(as.Date(dates, origin = "1970-01-01"))
 }
 
 #' First document creation timestamp, ISO-8601 — for the geometry sidecar.

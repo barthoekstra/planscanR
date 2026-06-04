@@ -20,7 +20,7 @@ and related advice) from European government portals.
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English
   `snake_case` names. The guaranteed core columns and the on-disk shape are
-  documented in `docs/spec/contract.md`.
+  documented in `dev/spec/contract.md`.
 
 ## Offline cache
 

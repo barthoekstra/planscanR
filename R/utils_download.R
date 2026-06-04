@@ -525,8 +525,11 @@ clear_cache <- function(cache_dir = NULL, country = NULL, confirm = TRUE) {
   }
 
   # Sanity guard: every target must resolve under the cache root.
-  abs_targets <- normalizePath(targets, mustWork = TRUE)
-  root_real <- normalizePath(root, mustWork = TRUE)
+  # winslash = "/" so the prefix check below works on Windows, where
+  # normalizePath() otherwise returns backslash paths that never match the
+  # forward-slash-appended root.
+  abs_targets <- normalizePath(targets, winslash = "/", mustWork = TRUE)
+  root_real <- normalizePath(root, winslash = "/", mustWork = TRUE)
   if (!all(startsWith(paste0(abs_targets, "/"), paste0(root_real, "/")))) {
     cli::cli_abort(
       "Refusing to clear paths outside the cache root {.file {root_real}}.",

@@ -1,4 +1,4 @@
-# Output column contract (docs/spec/contract.md §1). Locks the guaranteed core
+# Output column contract (dev/spec/contract.md §1). Locks the guaranteed core
 # columns across ALL 14 country handlers BEFORE Phase 3.2 renames portal-native
 # keys, so that work cannot silently drop or retype a core column. Each handler
 # is driven to one representative record through its parse seam + existing
