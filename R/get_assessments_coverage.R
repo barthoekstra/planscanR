@@ -25,7 +25,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie", "si", "pt"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie", "si", "pt", "gb"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -42,7 +42,8 @@ get_assessments_coverage <- function() {
       "skipulagsgatt.is",
       "services.arcgis.com (gov.ie EIA Portal)",
       "gov.si",
-      "siaia.apambiente.pt"
+      "siaia.apambiente.pt",
+      "planninginspectorate.gov.uk"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -60,9 +61,11 @@ get_assessments_coverage <- function() {
       "https://www.skipulagsgatt.is",
       "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0",
       "https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje",
-      "https://siaia.apambiente.pt"
+      "https://siaia.apambiente.pt",
+      "https://national-infrastructure-consenting.planninginspectorate.gov.uk"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -96,7 +99,8 @@ get_assessments_coverage <- function() {
       "supported (GraphQL; cases from ~June 2023 onward)", # is
       "supported (EIA only; portal = notice PDFs, full EIAR off-portal)", # ie
       "supported", # si
-      "supported (EIA/AIA only; SEA/AAE in a separate APA register)" # pt
+      "supported (EIA/AIA only; SEA/AAE in a separate APA register)", # pt
+      "supported (NSIP only; every NSIP carries an Environmental Statement)" # gb
     ),
     facets = list(
       commissiemer_facets(),
@@ -114,7 +118,45 @@ get_assessments_coverage <- function() {
       skipulagsgatt_is_facets(),
       eia_portal_ie_facets(),
       gov_si_facets(),
-      siaia_pt_facets()
+      siaia_pt_facets(),
+      planning_inspectorate_gb_facets()
+    )
+  )
+}
+
+#' Static lookup of the Planning Inspectorate (UK) facet vocabularies.
+#'
+#' The UK National Infrastructure Consenting register is **NSIP only** (every
+#' NSIP application carries a statutory Environmental Statement, so the register
+#' is an EIA-equivalent source; local-authority Town-and-Country-Planning EIAs
+#' are out of scope). It is published as a single unfiltered bulk CSV export, so
+#' there are no server-side search filters — `query`, `date_range`, and `status`
+#' are all matched client-side after the CSV is fetched. The reference
+#' vocabularies surfaced here are the project *Stage* enum (which lands in the
+#' `status` output column) and the *Application type* sector prefixes
+#' (`EN` energy, `TR` transport, `WA` water, `WW` waste water, `WS` waste,
+#' `BC` business / commercial), which prefix the `document_id` (Project
+#' reference) and land in `native_type`.
+#' @noRd
+planning_inspectorate_gb_facets <- function() {
+  list(
+    status = c(
+      "Pre-application",
+      "Acceptance",
+      "Pre-examination",
+      "Examination",
+      "Recommendation",
+      "Decision",
+      "Post-decision",
+      "Withdrawn"
+    ),
+    application_type_prefix = c(
+      EN = "Energy",
+      TR = "Transport",
+      WA = "Water",
+      WW = "Waste Water",
+      WS = "Waste",
+      BC = "Business and Commercial"
     )
   )
 }

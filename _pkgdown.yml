@@ -33,6 +33,7 @@ reference:
   - get_assessments_ie
   - get_assessments_si
   - get_assessments_pt
+  - get_assessments_gb
   - get_assessments_coverage
   - supported_countries
   - bind_results

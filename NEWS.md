@@ -11,11 +11,12 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 16 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 17 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
-  Greece, Iceland, Ireland, Slovenia, and Portugal. Coverage, honoured filters,
-  geometry, and per-portal quirks differ by country — see
-  `vignette("supported_sources")` and `get_assessments_coverage()`.
+  Greece, Iceland, Ireland, Slovenia, Portugal, and the United Kingdom.
+  Coverage, honoured filters, geometry, and per-portal quirks differ by
+  country — see `vignette("supported_sources")` and
+  `get_assessments_coverage()`.
 * Slovenia (`get_assessments_si()`): fetches from the gov.si
   environmental-assessment registers via their bulk JSON exports — the EIA
   screening register plus the two SEA (CPVO) registers, merged with an
@@ -28,6 +29,16 @@ and related advice) from European government portals.
   direct `AIADOC` PDFs/ZIPs into per-phase `attachment_urls_<slug>` columns
   (DIA / EIA / consulta pública / parecer / outros). No geometry (location is
   concelho text); `query` and `date_range` are matched client-side.
+* United Kingdom (`get_assessments_gb()`): fetches from the Planning
+  Inspectorate's National Infrastructure Consenting register at
+  `planninginspectorate.gov.uk` — **NSIP only** (every Nationally Significant
+  Infrastructure Project carries a statutory Environmental Statement, so there
+  is no `assessment_type`; local-authority EIAs are out of scope). Enumerates
+  the whole register from one bulk CSV export, scrapes each project's
+  Environmental Statement PDFs from `nsip-documents.*`, and writes an OSGB
+  (EPSG:27700) point geometry sidecar from each project's grid reference.
+  `query`, `status`, and `date_range` are matched client-side; the portal's
+  10 s `robots.txt` crawl-delay is honoured (0.1 req/s default).
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English

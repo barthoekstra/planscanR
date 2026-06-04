@@ -232,6 +232,24 @@ test_that("PT coverage row signals AIA-only status and exposes the decision_sens
   expect_true("Encerrado" %in% f$decision_sense)
 })
 
+test_that("GB coverage row signals NSIP-only status and exposes the stage / application-type vocabulary", {
+  c <- get_assessments_coverage()
+  gb <- c[c$country == "gb", ]
+  expect_identical(gb$source_portal, "planninginspectorate.gov.uk")
+  expect_false(gb$requires_auth)
+  expect_identical(
+    gb$status,
+    "supported (NSIP only; every NSIP carries an Environmental Statement)"
+  )
+  f <- gb$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), c("status", "application_type_prefix"))
+  expect_true("Examination" %in% f$status)
+  expect_true("Withdrawn" %in% f$status)
+  expect_identical(unname(f$application_type_prefix[["EN"]]), "Energy")
+  expect_true("Transport" %in% f$application_type_prefix)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

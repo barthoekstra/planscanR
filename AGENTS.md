@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Sixteen country handlers ship:
+**v0.1 scope.** Seventeen country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -232,6 +232,28 @@ Python, no Shiny, no project-specific scoring config.
   (`getOption("planscanR.pt_throttle_rate")`). Reflected in
   `get_assessments_coverage()$status` as
   `"supported (EIA/AIA only; SEA/AAE in a separate APA register)"`.
+- United Kingdom (`get_assessments_gb()`) — Planning Inspectorate's **National
+  Infrastructure Consenting** register at `planninginspectorate.gov.uk`.
+  **Bulk-CSV enumeration**: one GET of `/api/applications-download` (≈540 rows)
+  is the whole register (seam `gb_fetch_search()`, parsed with base
+  `utils::read.csv()` — no new dependency); the generator returns all rows once
+  then NULL. **Single register** — NSIP only (every NSIP carries a statutory
+  Environmental Statement, so it is an EIA source; no `assessment_type`;
+  local-authority EIAs out of scope). `document_id` is the *Project reference*
+  (e.g. `EN010001`); canonical URL `…/projects/{REF}`. Per record (sidecar-first)
+  a document-list GET (`…/projects/{REF}/documents?type=Environmental Statement`)
+  scrapes the Environmental Statement PDF hrefs on
+  `nsip-documents.planninginspectorate.gov.uk/published-documents/...`
+  (flat `attachment_urls`, no section split). **Point geometry**: the *Grid
+  reference - Easting/Northing* is written to a sibling `.geometry.geojson`
+  (GeoJSON Point, OSGB **EPSG:27700**), with `geometry_path` (relative) +
+  `geometry_crs`. `query` / `status` / `date_range` are matched client-side.
+  English. Throttled to 0.1 req/s (one request per 10 s, honouring the portal's
+  `robots.txt` `Crawl-delay: 10`; the neutral `planscanR/…` UA is allowed where
+  AI-crawler UAs are `Disallow: /`); override via
+  `getOption("planscanR.gb_throttle_rate")`. Reflected in
+  `get_assessments_coverage()$status` as
+  `"supported (NSIP only; every NSIP carries an Environmental Statement)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -321,7 +343,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
   │     ├── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
   │     ├── get_assessments_si(...)          # gov.si (bulk JSON export; EIA + SEA/CPVO)
-  │     └── get_assessments_pt(...)          # siaia.apambiente.pt (HTML register; AIA/EIA)
+  │     ├── get_assessments_pt(...)          # siaia.apambiente.pt (HTML register; AIA/EIA)
+  │     └── get_assessments_gb(...)          # planninginspectorate.gov.uk (bulk CSV; NSIP/EIA)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```
