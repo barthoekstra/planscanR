@@ -111,9 +111,12 @@ records <- get_assessments("nl", limit = 20, download = FALSE)
 
 ### Scoring (optional)
 
-With **planscanR.screen** installed, pass a `topic` to score each record as it
-is fetched, and use `relevance_threshold` to gate which records' PDFs are
-downloaded:
+Scoring is **not** part of planscanR itself — it lives in the companion package
+**[planscanR.screen](https://github.com/barthoekstra/planscanR.screen)**, which
+planscanR calls only when you opt in. With it installed, pass a `topic` to
+`get_assessments()` to score each record as it is fetched, and use
+`relevance_threshold` to gate which records' PDFs are downloaded (it gates
+downloads only — every record still comes back):
 
 ```r
 records <- get_assessments(
