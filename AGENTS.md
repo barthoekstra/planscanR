@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Nineteen country handlers ship:
+**v0.1 scope.** Twenty country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -304,6 +304,36 @@ Python, no Shiny, no project-specific scoring config.
   5 req/s (`getOption("planscanR.sk_throttle_rate")`); the register is large
   (~18.7k records). Reflected in `get_assessments_coverage()$status` as
   `"supported (API Platform JSON; EIA/SEA via zbierka; no geometry)"`.
+- Norway (`get_assessments_no()`) — NVE (*Norges vassdrags- og
+  energidirektorat*) energy/water concession-case register
+  (`konsesjonssaker`) at `nve.no`. Plain JSON list API + server-rendered
+  detail HTML, reached with pure `httr2`. **List**:
+  `GET /umbraco/api/license/getall?caseType=00&county=00&filterText=&municipality=00&pageNumber=N`
+  (seam `no_fetch_search()`, parsed with `perform_json`); its `Licenses` array
+  carries the case records (the `Counties`/`Municipalities`/`CaseTypes`/
+  `LicenseStatuses` keys are filter-vocab facets returned inline, `TotalCount`
+  the unfiltered count). The generator **paginates `pageNumber=1,2,…` until a
+  page returns no `Licenses`**. **Single concession register** (no
+  `assessment_type` arg — every case carries the EIA *konsekvensutredning*
+  among its documents); `document_id` is the numeric `SoknadId`,
+  `NVE-`-prefixed. The canonical URL is the detail page
+  `https://www.nve.no/konsesjon/konsesjonssaker/konsesjonssak?id={SoknadId}&type={Type}`
+  (sidecar-first). Attachments are scraped from the detail page's
+  `div.n-filelist` sections — `webfileservice.nve.no/API/PublishedFiles/Download/...`
+  PDFs grouped by the `<h2>` section heading into per-section
+  `attachment_urls_<slug>` columns (DE/IT/SK pattern) + the deduplicated union;
+  EIA docs are identified by filename, not a type flag. `competent_authority` is
+  the constant `"Norges vassdrags- og energidirektorat (NVE)"`; extras `county`
+  (Fylke), `municipality` (Kommune), `case_type` (Sakstype), `case_type_id`
+  (SakstypeID), `case_type_code` (Type), `stage` (Stadium), `progress`
+  (Fremdrift), `hearing_deadline` (HoeringsfristText), `mw`, `gwh`,
+  `installed_effect`, `estimated_production`. No geometry (NVE ArcGIS is a
+  separate keyed service). `query` is forwarded **server-side** as the API
+  `filterText` param; `date_range` matched client-side. Norwegian. Throttled to
+  0.05 req/s (~20 s between requests, honouring NVE's `robots.txt`
+  `Crawl-delay: 20`; `getOption("planscanR.no_throttle_rate")`). Reflected in
+  `get_assessments_coverage()$status` as `"supported (NVE energy/water
+  concession cases; EIA docs by filename; no geometry)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -396,7 +426,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_pt(...)          # siaia.apambiente.pt (HTML register; AIA/EIA)
   │     ├── get_assessments_gb(...)          # planninginspectorate.gov.uk (bulk CSV; NSIP/EIA)
   │     ├── get_assessments_it(...)          # va.mite.gov.it (HTML scrape; VIA/EIA + VAS/SEA)
-  │     └── get_assessments_sk(...)          # enviroportal.sk (API Platform JSON; EIA + SEA)
+  │     ├── get_assessments_sk(...)          # enviroportal.sk (API Platform JSON; EIA + SEA)
+  │     └── get_assessments_no(...)          # nve.no (JSON list + HTML detail; concession EIA)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```

@@ -44,7 +44,8 @@ get_assessments_coverage <- function() {
       "pt",
       "gb",
       "it",
-      "sk"
+      "sk",
+      "no"
     ),
     source_portal = c(
       "commissiemer.nl",
@@ -65,7 +66,8 @@ get_assessments_coverage <- function() {
       "siaia.apambiente.pt",
       "planninginspectorate.gov.uk",
       "va.mite.gov.it",
-      "enviroportal.sk"
+      "enviroportal.sk",
+      "nve.no"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -86,9 +88,11 @@ get_assessments_coverage <- function() {
       "https://siaia.apambiente.pt",
       "https://national-infrastructure-consenting.planninginspectorate.gov.uk",
       "https://va.mite.gov.it",
-      "https://www.enviroportal.sk/eia-sea/informacny-system"
+      "https://www.enviroportal.sk/eia-sea/informacny-system",
+      "https://www.nve.no/konsesjon/konsesjonssaker"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -128,7 +132,8 @@ get_assessments_coverage <- function() {
       "supported (EIA/AIA only; SEA/AAE in a separate APA register)", # pt
       "supported (NSIP only; every NSIP carries an Environmental Statement)", # gb
       "supported (VIA/VAS dual register; HTML scrape; no geometry)", # it
-      "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)" # sk
+      "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)", # sk
+      "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)" # no
     ),
     facets = list(
       commissiemer_facets(),
@@ -149,8 +154,29 @@ get_assessments_coverage <- function() {
       siaia_pt_facets(),
       planning_inspectorate_gb_facets(),
       va_mite_it_facets(),
-      enviroportal_sk_facets()
+      enviroportal_sk_facets(),
+      nve_no_facets()
     )
+  )
+}
+
+#' Static lookup of the NVE nve.no (Norway) facet vocabularies.
+#'
+#' NVE publishes a single concession-case register (`konsesjonssaker`) of
+#' energy/water concession cases that carry the EIA (*konsekvensutredning*)
+#' documents — there is no EIA/SEA split, so there is no `assessment_type`
+#' selector. The getall list API accepts server-side `caseType` / `county` /
+#' `municipality` / `filterText` filters; the corresponding vocabularies
+#' (`CaseTypes`, `Counties`, `Municipalities`, and `LicenseStatuses`) are
+#' returned **inline** by the API on every call. Only `filterText` is
+#' first-class in v0.1 — it is forwarded server-side as the `query` argument;
+#' `date_range` is matched client-side against `date_published`. The case-type
+#' and status vocabularies are reference-only here (they land in the
+#' `case_type` / `status` output columns).
+#' @noRd
+nve_no_facets <- function() {
+  list(
+    list_filters = c("caseType", "county", "municipality", "filterText")
   )
 }
 

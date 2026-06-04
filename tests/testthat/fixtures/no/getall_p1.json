@@ -1,0 +1,110 @@
+{
+ "Licenses": [
+  {
+   "SoknadId": 8934,
+   "Tittel": "Harpefoss - krav om omgjøring § 28",
+   "Tiltakshaver": "OPPLANDSKRAFT DA",
+   "Fylke": "Innlandet",
+   "Kommune": "Sør-Fron",
+   "MW": 0.0,
+   "InstallertEffekt": "",
+   "GWh": 0.0,
+   "EstimertProduksjon": "",
+   "Hoeringsfrist": "2026-06-04T00:00:00",
+   "HoeringsfristText": "04.06.2026",
+   "Type": "V-1",
+   "Sakstype": "Endring i vilkår",
+   "Dato": "2022-09-28T00:00:00",
+   "DatoText": "28.09.2022",
+   "Status": "Krav om innkalling/omgjøring",
+   "StadiumDato": "12.03.2026",
+   "SakstypeID": "C-28",
+   "Stadium": "Klage oversendt ED",
+   "Fremdrift": "",
+   "AnleggNrList": null
+  },
+  {
+   "SoknadId": 8517,
+   "Tittel": "Urdelva kraftverk - nye planer",
+   "Tiltakshaver": "LOCUS HYDRO PROSJEKT AS",
+   "Fylke": "Møre og Romsdal",
+   "Kommune": "Vestnes",
+   "MW": 4.5,
+   "InstallertEffekt": "4,50",
+   "GWh": 12.5,
+   "EstimertProduksjon": "12,50",
+   "Hoeringsfrist": "2026-06-08T00:00:00",
+   "HoeringsfristText": "08.06.2026",
+   "Type": "V-1",
+   "Sakstype": "Ny vannkraft",
+   "Dato": "2020-07-03T00:00:00",
+   "DatoText": "03.07.2020",
+   "Status": "Søknad",
+   "StadiumDato": "03.07.2020",
+   "SakstypeID": "C-41",
+   "Stadium": "Søknad",
+   "Fremdrift": "",
+   "AnleggNrList": null
+  },
+  {
+   "SoknadId": 9239,
+   "Tittel": "Søfferud mikrokraftverk",
+   "Tiltakshaver": "",
+   "Fylke": "Innlandet",
+   "Kommune": "Søndre Land",
+   "MW": 0.11,
+   "InstallertEffekt": "0,11",
+   "GWh": 0.4,
+   "EstimertProduksjon": "0,40",
+   "Hoeringsfrist": "2026-06-12T00:00:00",
+   "HoeringsfristText": "12.06.2026",
+   "Type": "V-1",
+   "Sakstype": "Opprusting og utvidelse",
+   "Dato": "2025-10-21T00:00:00",
+   "DatoText": "21.10.2025",
+   "Status": "Søknad forberedes (Ikke melding)",
+   "StadiumDato": "21.10.2025",
+   "SakstypeID": "C-04",
+   "Stadium": "Søknad forberedes (Ikke melding)",
+   "Fremdrift": "",
+   "AnleggNrList": null
+  }
+ ],
+ "Counties": [
+  {
+   "Id": "00",
+   "Name": "Alle fylker"
+  },
+  {
+   "Id": "42",
+   "Name": "Agder"
+  },
+  {
+   "Id": "32",
+   "Name": "Akershus"
+  }
+ ],
+ "Municipalities": [
+  {
+   "Id": "00",
+   "Name": "Alle kommuner"
+  }
+ ],
+ "CaseTypes": [
+  {
+   "ID": "00",
+   "Name": "Alle sakstyper"
+  }
+ ],
+ "LicenseStatuses": [
+  {
+   "ID": 0,
+   "Name": "Alle"
+  },
+  {
+   "ID": 10,
+   "Name": "Under behandling"
+  }
+ ],
+ "TotalCount": 7344
+}

@@ -282,6 +282,21 @@ test_that("SK coverage row signals the API Platform JSON register and exposes th
   expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
 })
 
+test_that("NO coverage row signals the NVE concession register and exposes the getall list filters", {
+  c <- get_assessments_coverage()
+  no <- c[c$country == "no", ]
+  expect_identical(no$source_portal, "nve.no")
+  expect_false(no$requires_auth)
+  expect_identical(
+    no$status,
+    "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)"
+  )
+  f <- no$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "list_filters")
+  expect_setequal(f$list_filters, c("caseType", "county", "municipality", "filterText"))
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

@@ -11,10 +11,10 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 19 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 20 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
-  Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy, and
-  Slovakia.
+  Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy,
+  Slovakia, and Norway.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.
@@ -61,6 +61,21 @@ and related advice) from European government portals.
   `/eia/dokument` PDFs by procedural step into per-section
   `attachment_urls_<slug>` columns. No geometry; `assessment_type`, `query`, and
   `date_range` are matched client-side.
+* Norway (`get_assessments_no()`): fetches from the NVE (*Norges vassdrags- og
+  energidirektorat*) energy/water concession-case register
+  (`konsesjonssaker`) at **nve.no** — a plain JSON list API plus
+  server-rendered detail HTML, reached with pure `httr2`. The getall list
+  endpoint returns a `Licenses` array (and inline filter-vocab facets); the
+  handler paginates `pageNumber` until a page returns no records. There is one
+  concession register (no `assessment_type` split — every case carries the
+  *konsekvensutredning* EIA among its documents). Attachments are scraped from
+  the detail page's `div.n-filelist` sections — `webfileservice.nve.no` PDFs
+  grouped by section heading into per-section `attachment_urls_<slug>` columns;
+  EIA docs are identified by filename. No geometry; `query` is forwarded
+  server-side as the API `filterText` param, `date_range` matched client-side.
+  Conservatively throttled to ~20 s between requests, honouring NVE's
+  `robots.txt` crawl-delay (overridable via
+  `getOption("planscanR.no_throttle_rate")`).
 * **Breaking:** `download` now defaults to `FALSE`. Fetching PDF documents is
   opt-in; pass `download = TRUE` to retrieve attachments.
 * Portal-native fields are carried through as extra columns with English
