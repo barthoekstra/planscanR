@@ -113,6 +113,33 @@
   (`getOption("planscanR.is_throttle_rate")`). Record language is Icelandic
   (`is`). Reflected in `get_assessments_coverage()$status` as
   `"supported (GraphQL; cases from ~June 2023 onward)"`.
+* Ireland handler `get_assessments_ie()` — the package's **first ArcGIS REST
+  backend** — fetches from the **gov.ie EIA Portal**, an Esri ArcGIS Online app
+  over a public anonymous ArcGIS REST FeatureServer
+  (`services.arcgis.com`, the `EIA_Location_Point` master layer, ≈5,100
+  records). Transport is plain `GET .../query?f=json`; pagination is
+  `resultOffset` / `resultRecordCount` (page size 1000), and the Esri point
+  geometry is converted to GeoJSON in-house. **EIA only — no SEA register.**
+  **Portal hosts only the statutory newspaper / public-notice PDF; the full
+  EIAR is off-portal** on the competent-authority sites (An Bord Pleanála,
+  councils, the EPA, …), surfaced as the `url_link_application` /
+  `url_link_secondary` extras (HTML case pages, kept out of `attachment_urls` —
+  a discovery target). Watch the **`OBJECTID_1` gotcha**: the layer's unique id
+  field is `OBJECTID_1`, not the non-unique `OBJECTID`; attachment lookups and
+  the id fallback key off it, while `document_id` is the `Portal_Ref`. The
+  portal has no per-record permalink, so `url` is a deterministic
+  record-specific query URL on `Portal_Ref`. Server-side filters: `query`
+  (`UPPER(Description...) LIKE`), `competent_authority` (equality), and
+  `date_range` (a `Date_of_receipt_of_application_` epoch-ms BETWEEN window).
+  The notice-PDF attachment URLs are resolved in a batched phase-2
+  `queryAttachments` call keyed by `OBJECTID_1` (needed even when
+  `download = FALSE`) and emitted under `attachment_urls_notice`. Records carry
+  an ITM point geometry written to a sibling `.geometry.geojson` in
+  **EPSG:2157** (Irish Transverse Mercator — *not* reprojected; `geometry_crs =
+  "EPSG:2157"`). Throttled to 5 req/s by default
+  (`getOption("planscanR.ie_throttle_rate")`). Record language is English
+  (`en`). Reflected in `get_assessments_coverage()$status` as
+  `"supported (EIA only; portal = notice PDFs, full EIAR off-portal)"`.
 * **`relevance_threshold` is now a download-gate only.** Records that score
   below the threshold still get a sidecar JSON on disk and still appear in
   the returned tibble — only their PDF attachments are skipped. This makes

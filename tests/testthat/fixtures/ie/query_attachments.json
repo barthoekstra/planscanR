@@ -1,0 +1,36 @@
+{
+  "fields": [
+    { "name": "OBJECTID_1", "type": "esriFieldTypeOID", "alias": "OBJECTID_1" },
+    { "name": "GlobalID_2", "type": "esriFieldTypeGlobalID", "alias": "GlobalID_2", "length": 38 }
+  ],
+  "attachmentGroups": [
+    {
+      "parentObjectId": 5427,
+      "parentGlobalId": "ebdebbb4-0f4f-4483-939c-0062559dc725",
+      "attachmentInfos": [
+        {
+          "id": 5448,
+          "globalId": "cf728bf4-7160-4a73-a960-1ff06f583864",
+          "name": "Newspaper Notice 2024092 North Irish Sea Array Windfarm Limited.pdf",
+          "contentType": "application/pdf",
+          "size": 326443,
+          "keywords": ""
+        }
+      ]
+    },
+    {
+      "parentObjectId": 1115,
+      "parentGlobalId": "c4e51747-1ba9-447d-aae1-00604c506078",
+      "attachmentInfos": [
+        {
+          "id": 992,
+          "globalId": "f6cbbba2-c153-431c-b63f-6f6ed4674c39",
+          "name": "2020010 Commisioner for Public Works newspaper notice.pdf",
+          "contentType": "application/pdf",
+          "size": 742454,
+          "keywords": ""
+        }
+      ]
+    }
+  ]
+}

@@ -745,6 +745,85 @@ get_assessments_is(assessment_type = "EIA", limit = 5, download = FALSE)
 get_assessments_is(assessment_type = "SEA", limit = 5, download = FALSE)
 ```
 
+## Ireland — `"ie"`
+
+* **Portal:** Ireland's **EIA Portal** (gov.ie), an Esri ArcGIS Online map
+  app backed by a public **anonymous ArcGIS REST FeatureServer** at
+  [services.arcgis.com](https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0)
+  (the `EIA_Location_Point` master layer, ≈5,100 records). The human-facing
+  app lives at
+  [experience.arcgis.com/.../a1a85d92623147b191dd25a14b2571da](https://experience.arcgis.com/experience/a1a85d92623147b191dd25a14b2571da/).
+  This is the package's **first ArcGIS REST-backed handler** — transport is a
+  plain `GET .../query?f=json`, pagination is `resultOffset` /
+  `resultRecordCount`, and the Esri point geometry is converted to GeoJSON
+  in-house.
+* **Status:** supported, **with two important caveats** — see below. Reflected
+  in `get_assessments_coverage()$status` as
+  `"supported (EIA only; portal = notice PDFs, full EIAR off-portal)"`.
+* **Authentication:** none (anonymous public layer).
+* **EIA only — no SEA.** The portal covers **EIA applications only**; there is
+  no SEA register here.
+* **Notices only — full EIAR is off-portal.** For each application the portal
+  hosts (at most) the statutory **newspaper / public-notice PDF**. The full
+  EIAR itself lives **off-portal** on the relevant competent-authority website
+  (An Bord Pleanála, the local council, the EPA, …). Those external case pages
+  are surfaced as the `url_link_application` / `url_link_secondary` extras
+  columns — HTML landing pages on heterogeneous third-party sites, *not* direct
+  PDFs — and are deliberately kept **out** of `attachment_urls`. Treat them as a
+  discovery target.
+* **The `OBJECTID_1` gotcha.** The layer's unique object-id field is
+  **`OBJECTID_1`**, *not* the plain `OBJECTID` (which is non-unique on this
+  layer and frequently `0`). All attachment lookups and the internal id
+  fallback key off `OBJECTID_1`. The stable business key used as `document_id`
+  is `Portal_Ref` (e.g. `"2024092"`).
+* **Enumeration.** Listing is `GET <layer>/query`, paginated with
+  `resultOffset` / `resultRecordCount` (page size 1000), looping while
+  `exceededTransferLimit` is true, ordered by `OBJECTID_1 ASC`. Each feature
+  carries all its metadata inline in `attributes` (no separate detail endpoint).
+  The portal has no per-record permalink, so a unique, deterministic `url` is
+  synthesised per record — the record-specific query URL
+  `<layer>/query?where=Portal_Ref='<ref>'&outFields=*&f=json`.
+* **Dates.** `Date_of_receipt_of_application_` is **epoch milliseconds** →
+  `date_published` (divided by 1000). `date_decision` is `NA` (no decision-date
+  field on the layer).
+* **Throttle:** 5 requests/second by default
+  (`getOption("planscanR.ie_throttle_rate")`).
+* **Language:** English (ISO-639-1 `en`).
+
+**Geometry.** Each record carries an Esri point `geometry` (`{x, y}`) in
+**Irish Transverse Mercator (IRENET95 ITM / EPSG:2157)** — requested via
+`outSR=2157`. It is converted in-house to a GeoJSON **Point** and, when
+`write_sidecar = TRUE`, written next to the sidecar as
+`<document_id>.geometry.geojson` (family FeatureCollection layout,
+`urn:ogc:def:crs:EPSG::2157`); `geometry_crs` is `"EPSG:2157"`. No reprojection
+happens — coordinates stay in EPSG:2157. Records with a null geometry leave the
+geometry columns `NA`.
+
+**Filter coverage.** Server-side: `query` -> an
+`UPPER(Description__Max__256_character) LIKE '%…%'` predicate (free-text over
+the description), `competent_authority` -> equality on `Competent_Authority`,
+and `date_range` -> a `Date_of_receipt_of_application_` BETWEEN window (epoch
+ms), re-checked client-side against `date_published`.
+
+**Documents.** Portal-hosted attachments are ArcGIS feature attachments — the
+statutory newspaper / public-notice PDF. Because the download URL needs both the
+`OBJECTID_1` and the per-attachment id
+(`<layer>/<OBJECTID_1>/attachments/<id>`), attachment metadata is resolved in a
+batched **phase-2** `queryAttachments` call (keyed by `OBJECTID_1`) — even when
+`download = FALSE`, this is needed to populate `attachment_urls`. The single
+slug is `notice` (`attachment_urls_notice` / `local_path_notice`); the
+deduplicated union goes to `attachment_urls` / `local_path`. A record may carry
+**0** attachments (still schema-valid). The full EIAR is *not* here — see the
+off-portal caveat above.
+
+```{r}
+# Recent EIA applications, first few records (portal hosts the notice PDF only)
+get_assessments_ie(limit = 5, download = FALSE)
+
+# Wind-themed slice (server-side description LIKE)
+get_assessments_ie(query = "wind", limit = 20, download = FALSE)
+```
+
 ## Adding a new source
 
 Adding a handler for another national portal is a matter of writing one

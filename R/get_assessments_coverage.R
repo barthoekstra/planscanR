@@ -14,7 +14,7 @@
 #' get_assessments_coverage()
 get_assessments_coverage <- function() {
   tibble::tibble(
-    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is"),
+    country = c("nl", "de", "fr", "at", "dk", "be", "ee", "fi", "bg", "cz", "hr", "gr", "is", "ie"),
     source_portal = c(
       "commissiemer.nl",
       "uvp-verbund.de",
@@ -28,7 +28,8 @@ get_assessments_coverage <- function() {
       "portal.cenia.cz",
       "mzozt.gov.hr",
       "eprm.ypen.gr",
-      "skipulagsgatt.is"
+      "skipulagsgatt.is",
+      "services.arcgis.com (gov.ie EIA Portal)"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -43,9 +44,11 @@ get_assessments_coverage <- function() {
       "https://portal.cenia.cz/eiasea",
       "https://mzozt.gov.hr",
       "https://eprm.ypen.gr",
-      "https://www.skipulagsgatt.is"
+      "https://www.skipulagsgatt.is",
+      "https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -73,7 +76,8 @@ get_assessments_coverage <- function() {
       "supported", # cz
       "supported", # hr
       "supported (decisions-only; studies/SEA login-gated)", # gr
-      "supported (GraphQL; cases from ~June 2023 onward)" # is
+      "supported (GraphQL; cases from ~June 2023 onward)", # is
+      "supported (EIA only; portal = notice PDFs, full EIAR off-portal)" # ie
     ),
     facets = list(
       commissiemer_facets(),
@@ -88,7 +92,33 @@ get_assessments_coverage <- function() {
       cenia_cz_facets(),
       mzozt_hr_facets(),
       eprm_gr_facets(),
-      skipulagsgatt_is_facets()
+      skipulagsgatt_is_facets(),
+      eia_portal_ie_facets()
+    )
+  )
+}
+
+#' Static lookup of the gov.ie EIA Portal (Ireland) facet vocabularies.
+#'
+#' Ireland's EIA Portal is an Esri ArcGIS REST FeatureServer covering **EIA
+#' applications only** (no SEA register), and the portal hosts only the
+#' statutory newspaper / public-notice PDF — the full EIAR sits off-portal on
+#' the competent-authority sites (surfaced as the `url_link_application` /
+#' `url_link_secondary` extras, a discovery target). The first-class
+#' server-side discriminator surfaced here is `competent_authority`
+#' (`Competent_Authority` equality). The portal also honours free-text (the
+#' `query` argument, sent as an `UPPER(Description...) LIKE`) and an
+#' application-receipt date window (`date_range`, matched against
+#' `Date_of_receipt_of_application_`). The handful of authorities below are the
+#' common ones for reference — pass any other `Competent_Authority` value
+#' directly. Note the OBJECTID_1 gotcha: the layer's unique id field is
+#' `OBJECTID_1`, not the non-unique `OBJECTID`.
+#' @noRd
+eia_portal_ie_facets <- function() {
+  list(
+    competent_authority = c(
+      "An Bord Pleanála",
+      "Environmental Protection Agency"
     )
   )
 }

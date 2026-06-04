@@ -184,6 +184,21 @@ test_that("IS coverage row signals the GraphQL backend + coverage horizon and ex
   expect_true("UMHVERFISMAT_AETLANA" %in% f$process_type)
 })
 
+test_that("IE coverage row signals EIA-only / notice-PDF status and exposes the competent_authority vocabulary", {
+  c <- get_assessments_coverage()
+  ie <- c[c$country == "ie", ]
+  expect_identical(ie$source_portal, "services.arcgis.com (gov.ie EIA Portal)")
+  expect_false(ie$requires_auth)
+  expect_identical(
+    ie$status,
+    "supported (EIA only; portal = notice PDFs, full EIAR off-portal)"
+  )
+  f <- ie$facets[[1]]
+  expect_true(is.list(f))
+  expect_setequal(names(f), "competent_authority")
+  expect_true("An Bord Pleanála" %in% f$competent_authority)
+})
+
 test_that("AT coverage row signals metadata-only status and exposes typology", {
   c <- get_assessments_coverage()
   at <- c[c$country == "at", ]

@@ -167,6 +167,31 @@ Python, no Shiny, no project-specific scoring config.
   (`getOption("planscanR.is_throttle_rate")`). Reflected in
   `get_assessments_coverage()$status` as
   `"supported (GraphQL; cases from ~June 2023 onward)"`.
+- Ireland (`get_assessments_ie()`) — **gov.ie EIA Portal** at
+  `services.arcgis.com` (the `EIA_Location_Point` master layer); the package's
+  **first ArcGIS REST backend** (anonymous `GET .../query?f=json`, parsed via
+  `perform_json`; single network seam `ie_arcgis_get(path, query)`). **EIA only
+  — no SEA.** **Portal hosts only the newspaper / public-notice PDF; the full
+  EIAR is off-portal** on the competent-authority sites, surfaced as the
+  `url_link_application` / `url_link_secondary` extras (kept out of
+  `attachment_urls` — a discovery target). **`OBJECTID_1` gotcha:** the layer's
+  unique id field is `OBJECTID_1`, not the non-unique `OBJECTID`; attachment
+  lookups + the id fallback key off it, while `document_id` is the `Portal_Ref`.
+  Listing = paginated `query` (`resultOffset`/`resultRecordCount`, page 1000,
+  loop while `exceededTransferLimit`); metadata is inline in `attributes` (no
+  detail endpoint); the synthetic `url` is a record-specific query on
+  `Portal_Ref` (no permalink). Server-side filters: `query`
+  (`UPPER(Description...) LIKE`), `competent_authority` (equality), `date_range`
+  (`Date_of_receipt_of_application_` epoch-ms BETWEEN). Notice-PDF attachment
+  URLs are resolved in a batched phase-2 `queryAttachments` (keyed by
+  `OBJECTID_1`, needed even when `download = FALSE`) and emitted under
+  `attachment_urls_notice`. Esri point geometry converted in-house to a GeoJSON
+  Point and saved to a sibling `.geometry.geojson` in **EPSG:2157** (Irish
+  Transverse Mercator — *not* reprojected). `Date_of_receipt_of_application_` is
+  epoch **milliseconds**. Record language English (`en`). Throttled to 5 req/s
+  by default (`getOption("planscanR.ie_throttle_rate")`). Reflected in
+  `get_assessments_coverage()$status` as
+  `"supported (EIA only; portal = notice PDFs, full EIAR off-portal)"`.
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only
@@ -253,7 +278,8 @@ get_assessments(country, ...)
   │     ├── get_assessments_cz(...)          # portal.cenia.cz/eiasea
   │     ├── get_assessments_hr(...)          # mzozt.gov.hr
   │     ├── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
-  │     └── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
+  │     ├── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
+  │     └── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
   ├── validate_result_schema()               # invariant gate before returning
   └── discover_attachments()                 # optional, when discover = TRUE
 ```
