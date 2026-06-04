@@ -1,0 +1,25 @@
+# NA
+
+- Italy (<https://va.mite.gov.it/it-IT>)
+- Latvia
+  (<https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti> and
+  <https://www.eva.gov.lv/lv/darbibas-jomas-strategiskais-ietekmes-uz-vidi-novertejums>
+  (not sure where precisely))
+- Lithuania
+  (<https://aaa.lrv.lt/lt/veiklos-sritys/poveikio-aplinkai-vertinimas-pav/>,
+  quite a difficult pattern honestly, seems to result in an Excel file
+  containing this information)
+- Norway (<https://www.nve.no/konsesjon/konsesjonssaker/>)
+- Portugal (<https://siaia.apambiente.pt/>)
+- Romania (<https://raportare.anpm.ro/>, not entirely sure this contains
+  EIA/SEAs)
+- Slovakia (<https://www.enviroportal.sk/eia-sea/informacny-system>)
+- Slovenia (please search if you can find something)
+- Spain
+  (<https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido>
+  and <https://sede.miteco.gob.es/portal/site/seMITECO/navSabiaPlanes>,
+  probably both, not sure)
+- United Kingdom (several portals, some listed here:
+  <https://www.gov.uk/government/publications/environmental-impact-assessment-regulations-public-register>
+  and also here:
+  <https://national-infrastructure-consenting.planninginspectorate.gov.uk/>)

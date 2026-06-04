@@ -38,7 +38,7 @@ distinguished in that handler's facet documentation:
 
 ``` r
 get_assessments_coverage()
-#> # A tibble: 14 × 6
+#> # A tibble: 22 × 6
 #>    country source_portal              base_url requires_auth status facets      
 #>    <chr>   <chr>                      <chr>    <lgl>         <chr>  <list>      
 #>  1 nl      commissiemer.nl            https:/… FALSE         suppo… <named list>
@@ -51,8 +51,5 @@ get_assessments_coverage()
 #>  8 fi      ymparisto.fi               https:/… FALSE         suppo… <named list>
 #>  9 bg      registers.moew.government… https:/… FALSE         suppo… <named list>
 #> 10 cz      portal.cenia.cz            https:/… FALSE         suppo… <named list>
-#> 11 hr      mzozt.gov.hr               https:/… FALSE         suppo… <named list>
-#> 12 gr      eprm.ypen.gr               https:/… FALSE         suppo… <named list>
-#> 13 is      skipulagsgatt.is           https:/… FALSE         suppo… <named list>
-#> 14 ie      services.arcgis.com (gov.… https:/… FALSE         suppo… <named list>
+#> # ℹ 12 more rows
 ```

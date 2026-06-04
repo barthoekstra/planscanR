@@ -69,9 +69,10 @@
 <p><code>planscanR</code> is a thin layer over a handful of national
 environmental-assessment portals (currently Netherlands, Germany,
 France, Austria, Denmark, Belgium (Flanders), Estonia, Finland,
-Bulgaria, the Czech Republic, Croatia, Greece, Iceland, and Ireland).
-There is no shared API behind the scenes — each country gives us a
-different mix of HTML pages, sitemaps, search endpoints, and
+Bulgaria, the Czech Republic, Croatia, Greece, Iceland, Ireland,
+Slovenia, Portugal, the United Kingdom, Italy, Slovakia, Norway, Latvia,
+and Spain). There is no shared API behind the scenes — each country
+gives us a different mix of HTML pages, sitemaps, search endpoints, and
 undocumented JSON handlers, and each one comes with its own quirks. This
 vignette describes what each handler does, where it pulls data from, and
 what to expect (or watch out for) when using it.</p>
@@ -1100,6 +1101,736 @@ see the off-portal caveat above.</p>
 <span></span>
 <span><span class="co"># Wind-themed slice (server-side description LIKE)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_ie.html">get_assessments_ie</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"wind"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="slovenia--si">Slovenia — <code>"si"</code><a class="anchor" aria-label="anchor" href="#slovenia--si"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the Slovenian government portal
+<strong>gov.si</strong>, which publishes its environmental-assessment
+registers under the <a href="https://www.gov.si/podrocja/okolje-in-prostor/okolje/okoljske-presoje" class="external-link">okoljske-presoje</a>
+pages. Each register offers a <strong>bulk JSON export</strong> at
+<code>&lt;list&gt;/export/json/</code> that returns the whole register
+as a single JSON array (not paginated) — the handler issues one GET per
+register.</li>
+<li>
+<strong>Status:</strong> supported
+(<code>get_assessments_coverage()$status</code> =
+<code>"supported"</code>).</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public
+exports).</li>
+<li>
+<strong>Dual-register.</strong> Three registers are merged into one
+result tibble, tagged with <code>assessment_type</code>
+(<code>"EIA"</code> / <code>"SEA"</code>) and the raw
+<code>register</code> label:
+<ul>
+<li>EIA screening — <code>predhodni-postopek</code> (register
+<code>"predhodni-postopek"</code>, <code>document_id</code> prefix
+<code>PRED-</code>);</li>
+<li>SEA — CPVO decisions for <strong>state</strong> spatial plans
+(<code>odlocitve-…-drzavnih-prostorskih-nacrtov</code>, register
+<code>"cpvo-drzavni"</code>, prefix <code>CPVO-DRZ-</code>) and
+<strong>municipal</strong> spatial plans
+(<code>odlocitve-…-obcinskih-prostorskih-nacrtov-2</code>, register
+<code>"cpvo-obcinski"</code>, prefix <code>CPVO-OBC-</code>). An
+<code>assessment_type</code> argument (<code>"All"</code> default /
+<code>"EIA"</code> / <code>"SEA"</code>) selects which register(s) to
+crawl.</li>
+</ul>
+</li>
+<li>
+<strong>Field maps differ per register.</strong> The screening
+export uses Slovenian keys (<code>Poseg</code> → title,
+<code>Datum objave</code> → <code>date_published</code>,
+<code>Naziv</code> → proponent, <code>Naslov</code> →
+<code>proponent_address</code>, <code>Številka zadeve</code> →
+<code>case_number</code>, <code>Oznaka posega</code> →
+<code>annex_code</code>); the CPVO exports use
+<code>Title</code>/<code>Naziv</code> → title, <code>Datum</code> →
+<code>date_published</code>, and <code>Odločitev</code> →
+<code>decision</code> (also the <code>native_type</code>).
+<code>competent_authority</code> is the fixed national ministry
+(<em>Ministrstvo za okolje, podnebje in energijo</em>). Slovenian values
+are kept verbatim.</li>
+<li>
+<strong>Attachments.</strong> The bulk-export ids do not map to
+filenames, so attachments are scraped from each record’s detail page
+(sidecar-first): every <code>/assets/seznami/…</code> link is collected
+and absolutised against <code>https://www.gov.si</code>. These go to
+<code>attachment_urls</code> (a flat list, no section split). A record
+may carry <strong>0</strong> attachments (still schema-valid).</li>
+<li>
+<strong>No geometry.</strong> The registers expose no spatial
+geometry.</li>
+<li>
+<strong>Dates.</strong> <code>date_published</code> parses the
+Slovenian <code>"DD. MM. YYYY"</code> format; <code>date_decision</code>
+is always <code>NA</code> (no decision date as a date).
+<code>date_range</code> is matched client-side against
+<code>date_published</code>.</li>
+<li>
+<strong>Scope.</strong> The registers cover roughly <strong>2021
+onward</strong>.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.si_throttle_rate")</code>).</li>
+<li>
+<strong>Language:</strong> Slovenian (ISO-639-1 <code>sl</code>); no
+normalisation.</li>
+</ul>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent screening + CPVO records (no PDFs downloaded yet)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_si.html">get_assessments_si</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA only (both CPVO registers)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_si.html">get_assessments_si</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">10</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="portugal--pt">Portugal — <code>"pt"</code><a class="anchor" aria-label="anchor" href="#portugal--pt"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the <strong>SIAIA</strong> register
+(<em>Sistema de Informação sobre AIA</em>) of the Agência Portuguesa do
+Ambiente (APA), <a href="https://siaia.apambiente.pt/" class="external-link">siaia.apambiente.pt</a>. It is a
+server-rendered ASP.NET MVC application: the listing lives at
+<code>https://siaia.apambiente.pt/ProcessoAIA?pagina=&lt;n&gt;</code>
+(1-based pages, ~100 rows each), and the handler walks pages until an
+out-of-range page returns an empty table body.</li>
+<li>
+<strong>Status:</strong> supported
+(<code>get_assessments_coverage()$status</code> =
+<code>"supported (EIA/AIA only; SEA/AAE in a separate APA register)"</code>).</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public
+register).</li>
+<li>
+<strong>AIA only (single register).</strong> SIAIA covers
+<strong>AIA</strong> procedures (<em>Avaliação de Impacte Ambiental</em>
+— project-level EIA). The <strong>AAE</strong> (<em>Avaliação Ambiental
+Estratégica</em> — plan/programme SEA) register sits in a separate APA
+application and is <strong>not</strong> covered, so there is no
+<code>assessment_type</code> argument — every row is an EIA-equivalent
+procedure.</li>
+<li>
+<strong>Per-record fetch.</strong> For each listing row the handler
+reads the detail page
+<code>https://siaia.apambiente.pt/ProcessoAIA/Detalhes/{id}</code> (the
+canonical record URL, sidecar-first) — its <em>Campo / Conteúdo</em>
+table supplies <code>title</code> (<em>Designação do projeto</em>),
+<code>proponent</code>, <code>competent_authority</code> (<em>Autoridade
+AIA</em>), <code>municipalities</code> (<em>Localização
+(Concelhos)</em>), <code>decision_sense</code> (<em>Sentido da
+Decisão</em>, also the <code>native_type</code>), <code>status</code>,
+and <code>date_decision</code> (<em>Data da decisão</em>) — plus the
+document list at
+<code>https://siaia.apambiente.pt/ListaDocumentos?pro_id={id}</code>.
+<code>document_id</code> is the <code>AIA-&lt;n&gt;</code> form built
+from the <em>Nº AIA</em>.</li>
+<li>
+<strong>Attachments — per-phase grouping.</strong> Documents are
+direct PDFs/ZIPs of the form
+<code>https://siaia.apambiente.pt/AIADOC/AIA{n}/{file}</code>. SIAIA
+prints no phase headings, so each document’s Portuguese type label is
+classified into a coarse <strong>phase</strong> — <code>dia</code> (the
+decision, <em>Declaração de Impacte Ambiental</em>), <code>eia</code>
+(the substantive dossier), <code>consulta_publica</code>,
+<code>parecer</code>, or <code>outros</code> — and grouped into its own
+<code>attachment_urls_&lt;slug&gt;</code> /
+<code>local_path_&lt;slug&gt;</code> list column.
+<code>attachment_urls</code> is the deduplicated union across
+phases.</li>
+<li>
+<strong>No geometry.</strong> SIAIA exposes the location only as
+free-text <em>concelho</em> (municipal) names, so no spatial geometry is
+written.</li>
+<li>
+<strong>Filters (client-side).</strong> <code>query</code> is a
+case-insensitive substring match on the project title;
+<code>date_range</code> is matched against <code>date_decision</code>
+when the detail page exposes a full decision date, otherwise against the
+<code>decision_year</code> (the listing’s <em>Ano Decisão</em>).</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.pt_throttle_rate")</code>).</li>
+<li>
+<strong>Language:</strong> Portuguese (ISO-639-1 <code>pt</code>);
+no normalisation.</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent AIA procedures (no PDFs downloaded yet)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_pt.html">get_assessments_pt</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Substring query on the project designation</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_pt.html">get_assessments_pt</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"solar"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="united-kingdom--gb">United Kingdom — <code>"gb"</code><a class="anchor" aria-label="anchor" href="#united-kingdom--gb"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the Planning Inspectorate’s
+<strong>National Infrastructure Consenting</strong> service, <a href="https://national-infrastructure-consenting.planninginspectorate.gov.uk/" class="external-link">national-infrastructure-consenting.planninginspectorate.gov.uk</a>,
+the register of <strong>Nationally Significant Infrastructure Projects
+(NSIPs)</strong>.</li>
+<li>
+<strong>Status:</strong> supported
+(<code>get_assessments_coverage()$status</code> =
+<code>"supported (NSIP only; every NSIP carries an Environmental Statement)"</code>).</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public
+register).</li>
+<li>
+<strong>NSIP only (single register).</strong> Every NSIP application
+carries a statutory <strong>Environmental Statement</strong>, so the
+register is an EIA-equivalent source; every row is an EIA-equivalent
+procedure and there is no <code>assessment_type</code> argument.
+Local-authority / Town-and-Country-Planning EIAs are
+<strong>not</strong> in this register and are out of scope.</li>
+<li>
+<strong>Bulk-CSV enumeration.</strong> The whole register is
+published as a single bulk CSV export at
+<code>…/api/applications-download</code> (≈540 rows). One GET fetches
+the entire register; it is parsed with base
+<code><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">utils::read.csv()</a></code> (no extra package dependency).
+<code>document_id</code> is the <em>Project reference</em>
+(e.g. <code>EN010001</code>); the canonical record URL is
+<code>…/projects/{REF}</code>.</li>
+<li>
+<strong>Attachments — Environmental Statement PDFs.</strong> Per
+record (sidecar-first) the handler fetches the project’s Environmental
+Statement document list
+(<code>…/projects/{REF}/documents?type=Environmental Statement</code>)
+and scrapes the published-document PDF hrefs, which live on
+<code>https://nsip-documents.planninginspectorate.gov.uk/published-documents/{REF}-{NNNNNN}-{title}.pdf</code>.
+These become a flat <code>attachment_urls</code> list (no per-section
+split). A project with no ES documents yet yields an empty list, which
+is valid.</li>
+<li>
+<strong>Point geometry (EPSG:27700).</strong> Each row carries an
+Ordnance Survey National Grid point (<em>Grid reference -
+Easting/Northing</em>). When present it is written next to the sidecar
+as a GeoJSON <code>Point</code> in OSGB36 <strong>EPSG:27700</strong>,
+recorded on <code>geometry_path</code> (relative to the cache root) /
+<code>geometry_crs</code>. The raw grid reference and the portal’s WGS84
+<em>GPS co-ordinates</em> string are also surfaced as extras.</li>
+<li>
+<strong>Filters (client-side).</strong> <code>query</code> is a
+case-insensitive substring match on the project name;
+<code>status</code> matches the project <em>Stage</em>
+(e.g. <code>"Examination"</code>, <code>"Withdrawn"</code>);
+<code>date_range</code> is matched against <code>date_decision</code>
+when present, otherwise <code>date_published</code> (the
+application-accepted date).</li>
+<li>
+<strong>Throttle:</strong> 0.1 requests/second by default — one
+request every 10 s, to honour the portal’s <code>robots.txt</code>
+<code>Crawl-delay: 10</code>
+(<code>getOption("planscanR.gb_throttle_rate")</code>). The package’s
+neutral <code>planscanR/…</code> User-Agent is allowed by the portal’s
+<code>robots.txt</code>, which blocks AI-crawler agents (ClaudeBot /
+GPTBot / CCBot) with <code>Disallow: /</code>.</li>
+<li>
+<strong>Language:</strong> English (ISO-639-1 <code>en</code>); no
+normalisation.</li>
+</ul>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent NSIP applications (no PDFs downloaded yet)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_gb.html">get_assessments_gb</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Substring query on the project name</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_gb.html">get_assessments_gb</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"solar"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="italy--it">Italy — <code>"it"</code><a class="anchor" aria-label="anchor" href="#italy--it"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the <em>Ministero dell’Ambiente e della
+Sicurezza Energetica</em> (MASE) portal <strong>Valutazioni e
+Autorizzazioni Ambientali</strong>, <a href="https://va.mite.gov.it/" class="external-link">va.mite.gov.it</a>, a server-rendered
+HTML register (no JSON API).</li>
+<li>
+<strong>Status:</strong> supported
+(<code>get_assessments_coverage()$status</code> =
+<code>"supported (VIA/VAS dual register; HTML scrape; no geometry)"</code>).</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public
+register).</li>
+<li>
+<strong>Dual register (<code>assessment_type</code>).</strong> Two
+adjacent registers are merged into one result tibble, tagged by
+<code>assessment_type</code> (<code>"EIA"</code> / <code>"SEA"</code>)
+and <code>register</code> (<code>"VIA"</code> / <code>"VAS"</code>):
+<ul>
+<li>
+<strong>VIA</strong> — <em>Valutazione di Impatto Ambientale</em>
+(project-level EIA), <code>…/it-IT/Ricerca/ViaProcedura</code>;
+<code>document_id</code> prefix <code>VIA-</code>.</li>
+<li>
+<strong>VAS</strong> — <em>Valutazione Ambientale Strategica</em>
+(plan/programme SEA), <code>…/it-IT/Ricerca/VasProcedura</code>;
+<code>document_id</code> prefix <code>VAS-</code>. Pass
+<code>assessment_type = "All"</code> (default), <code>"EIA"</code>, or
+<code>"SEA"</code> to select which register(s) to crawl. The numeric
+<code>…/it-IT/Oggetti/Info/{id}</code> is the record id.</li>
+</ul>
+</li>
+<li>
+<strong>HTML pagination.</strong> Each register’s search listing
+paginates via a 1-based <code>?pagina=N</code> query parameter; the page
+footer carries a <code>"Pagina X di Y"</code> counter that bounds the
+crawl. Each row gives the project/plan title, the proponent, the
+procedure type, an <em>Info</em> detail link, and a <em>Doc</em>
+documentation link.</li>
+<li>
+<strong>Detail (Info + Documentazione).</strong> Per record
+(sidecar-first) the handler reads the Info page
+<code>…/it-IT/Oggetti/Info/{id}</code> (its
+<code>&lt;strong&gt;Label&lt;/strong&gt;: value</code> paragraphs and a
+procedure-timeline table for the start date, decree date, status, and
+<em>Esito</em> / outcome), then the documentation index
+<code>…/it-IT/Oggetti/Documentazione/{id}/{grp}</code>.</li>
+<li>
+<strong>Attachments — direct PDFs grouped by
+<em>Sezione</em>.</strong> Each documentation row carries a
+<em>Sezione</em> (category) and a direct, public download link
+<code>https://va.mite.gov.it/File/Documento/{fileId}</code> (the server
+returns <code>application/pdf</code>; no authentication). PDFs are
+grouped by <em>Sezione</em> into per-section
+<code>attachment_urls_&lt;slug&gt;</code> columns (the same pattern as
+Germany), plus the deduplicated union in
+<code>attachment_urls</code>.</li>
+<li>
+<strong>No geometry.</strong> Location is published only as named
+Italian text lists — <em>Regioni</em> / <em>Province</em> /
+<em>Comuni</em> — surfaced as the <code>regions</code>,
+<code>provinces</code>, and <code>municipalities</code> extras (Italian
+text kept verbatim). No coordinate geometry is available.</li>
+<li>
+<strong>Competent authority.</strong> Fixed to <em>Ministero
+dell’Ambiente e della Sicurezza Energetica</em> (MASE), the national
+ministry that runs the register.</li>
+<li>
+<strong>Filters (client-side).</strong> <code>query</code> is a
+case-insensitive substring match on the record title;
+<code>date_range</code> is matched against <code>date_published</code>
+(the procedure’s <em>Data avvio</em> / start date). The portal’s own
+Procedura / free-text search is server-side, but client-side filtering
+is sufficient for v0.1.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.it_throttle_rate")</code>). The VIA register
+is large (~10 600 projects across ~1 060 listing pages), so a
+<code>limit</code> is recommended for exploratory runs; VAS is far
+smaller (~270 plans).</li>
+<li>
+<strong>Language:</strong> Italian (ISO-639-1 <code>it</code>);
+portal-native values kept verbatim.</li>
+</ul>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent VIA/VAS records (no PDFs downloaded yet)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_it.html">get_assessments_it</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA (VAS) register only</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_it.html">get_assessments_it</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">10</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="slovakia--sk">Slovakia — <code>"sk"</code><a class="anchor" aria-label="anchor" href="#slovakia--sk"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the Slovak EIA/SEA central information
+system <strong>enviroportal.sk</strong>, <a href="https://www.enviroportal.sk/" class="external-link">enviroportal.sk</a>, a React
+single-page app served by a Symfony <strong>API Platform</strong> JSON
+backend.</li>
+<li>
+<strong>Status:</strong> supported
+(<code>get_assessments_coverage()$status</code> =
+<code>"supported (API Platform JSON; EIA/SEA via zbierka; no geometry)"</code>).</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public
+register).</li>
+<li>
+<strong>Plain JSON, no browser.</strong> Although the site is a SPA,
+the handler talks to the JSON API directly with <code>httr2</code> plus
+the <code>Accept: application/ld+json</code> content-negotiation header
+— no headless browser is involved.</li>
+<li>
+<strong>Single mixed register
+(<code>assessment_type</code>).</strong> The portal exposes one
+<code>eia_projects</code> collection that mixes project-level EIA and
+plan/programme SEA records. The discriminator is the
+<code>zbierka</code> (law collection) string, which contains either
+<em>časť EIA</em> or <em>časť SEA</em>. Each record is tagged with an
+<code>assessment_type</code> column (<code>"EIA"</code> /
+<code>"SEA"</code>); <code>register</code> is the raw collection label
+<code>"eia_projects"</code>; <code>document_id</code> is the
+globally-unique numeric portal <code>id</code>, prefixed
+<code>SK-</code>. Pass <code>assessment_type = "All"</code> (default),
+<code>"EIA"</code>, or <code>"SEA"</code> to filter client-side.</li>
+<li>
+<strong>List — array-of-arrays flatten +
+paginate-until-empty.</strong> The list endpoint is
+<code>GET /api/eia_projects?page=N</code>. Its <code>hydra:member</code>
+is an <strong>array of arrays</strong> — a bucket of record objects, a
+pagination-metadata object, and (sometimes) an empty bucket — so the
+handler flattens one level and keeps only the objects carrying a
+<code>seoId</code>. Because <code>hydra:totalItems</code> /
+<code>hydra:view</code> are unreliable or absent, the generator
+paginates <code>page = 1, 2, 3, …</code> until a page flattens to zero
+records.</li>
+<li>
+<strong>Detail.</strong> Per record (sidecar-first) the handler
+reads <code>GET /api/eia_projects/{seoId}</code>, which carries the full
+field set: <code>name</code> (title), <code>ucel</code> (purpose →
+summary), <code>navrhovatel$name</code> (proponent),
+<code>prislusnyOrgan$name</code> (competent authority, trimmed),
+<code>stav</code> (status), <code>proces</code> (process),
+<code>kraj</code> / <code>okres</code> / <code>obec</code> (region /
+district / municipality), and the <code>dokumenty</code> documents
+object.</li>
+<li>
+<strong>Attachments — PDFs grouped by procedural step.</strong>
+<code>dokumenty$data</code> is an array of step groups
+(<code>{step, number, items}</code>); each <code>items[]</code> element
+is either a document group or a plain text field. The handler walks
+every downloadable leaf and absolutises its
+<code>/eia/dokument/{id}</code> <code>url</code> to
+<code>https://www.enviroportal.sk/eia/dokument/{id}</code>, grouping the
+URLs by the <code>step</code> (phase) name into per-section
+<code>attachment_urls_&lt;slug&gt;</code> columns (the same pattern as
+Germany / Italy), plus the deduplicated union in
+<code>attachment_urls</code>.</li>
+<li>
+<strong>No geometry.</strong> The portal exposes only named region /
+district / municipality text (surfaced as the <code>region</code>,
+<code>district</code>, <code>municipality</code>, and
+<code>affected_municipality</code> extras, Slovak verbatim). No
+coordinate geometry is available.</li>
+<li>
+<strong>Canonical URL.</strong> The human SPA detail page
+<code>https://www.enviroportal.sk/eia/detail/{seoId}</code> is used as
+the canonical <code>url</code> (the cache key); the API detail path is
+<code>/api/eia_projects/{seoId}</code>.</li>
+<li>
+<strong>Filters (client-side).</strong> <code>assessment_type</code>
+(from <code>zbierka</code>), <code>query</code> (a case-insensitive
+substring of the title), and <code>date_range</code> (against
+<code>date_published</code>, the date part of
+<em>datumPoslednejZmeny</em>) are all matched in R after the list is
+fetched.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.sk_throttle_rate")</code>). The register is
+large (~18 700 records across ~940 pages), so a <code>limit</code> is
+recommended for exploratory runs.</li>
+<li>
+<strong>Language:</strong> Slovak (ISO-639-1 <code>sk</code>);
+portal-native values kept verbatim.</li>
+</ul>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent records (no PDFs downloaded yet)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_sk.html">get_assessments_sk</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA records only</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_sk.html">get_assessments_sk</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">10</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="norway--no">Norway — <code>"no"</code><a class="anchor" aria-label="anchor" href="#norway--no"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the NVE (<em>Norges vassdrags- og
+energidirektorat</em>, Norwegian Water Resources &amp; Energy
+Directorate) concession-case register (<code>konsesjonssaker</code>), <a href="https://www.nve.no/konsesjon/konsesjonssaker" class="external-link">nve.no</a>. Each
+case is an energy/water concession application that carries the
+application, the <em>konsekvensutredning</em> (EIA), and the hearing
+documents as downloadable PDFs.</li>
+<li>
+<strong>Status:</strong> supported
+(<code>get_assessments_coverage()$status</code> =
+<code>"supported (NVE energy/water concession cases; EIA docs by filename; no geometry)"</code>).</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public
+register).</li>
+<li>
+<strong>Plain JSON + HTML, no browser.</strong> The handler talks to
+NVE’s JSON list API and the server-rendered detail HTML directly with
+<code>httr2</code> — no headless browser is involved.</li>
+<li>
+<strong>List — getall JSON + <code>pageNumber</code>
+pagination.</strong> The list endpoint is
+<code>GET /umbraco/api/license/getall?caseType=00&amp;county=00&amp;filterText=&amp;municipality=00&amp;pageNumber=N</code>.
+Its <code>Licenses</code> array carries the case records (25–10 per
+page); the <code>Counties</code> / <code>Municipalities</code> /
+<code>CaseTypes</code> / <code>LicenseStatuses</code> keys are
+filter-vocab facets returned inline, and <code>TotalCount</code> is the
+unfiltered count. The defaults
+<code>caseType=00&amp;county=00&amp;municipality=00&amp;filterText=</code>
+mean “all”. The generator paginates <code>pageNumber = 1, 2, …</code>
+until a page returns no <code>Licenses</code>.</li>
+<li>
+<strong>Single concession register (no
+<code>assessment_type</code>).</strong> NVE publishes one
+concession-case register; there is no EIA/SEA split, so there is no
+<code>assessment_type</code> argument — every case carries the EIA
+documents. <code>document_id</code> is the numeric
+<code>SoknadId</code>, prefixed <code>NVE-</code>.</li>
+<li>
+<strong>Detail — server-rendered HTML.</strong> Per record
+(sidecar-first) the handler reads
+<code>https://www.nve.no/konsesjon/konsesjonssaker/konsesjonssak?id={SoknadId}&amp;type={Type}</code>,
+which renders the case documents in one or more
+<code>div.n-filelist</code> sections.</li>
+<li>
+<strong>Attachments — PDFs grouped by section heading.</strong> Each
+<code>div.n-filelist</code> section has an <code>&lt;h2&gt;</code>
+heading and a list of links to downloadable PDFs at
+<code>https://webfileservice.nve.no/API/PublishedFiles/Download/&lt;saksnummer&gt;/&lt;fileId&gt;</code>
+(and a UUID variant
+<code>.../Download/&lt;uuid&gt;/&lt;saksnummer&gt;/&lt;fileId&gt;</code>).
+The handler scrapes those links and groups the URLs by the section
+heading into per-section <code>attachment_urls_&lt;slug&gt;</code>
+columns (the same pattern as Germany / Italy / Slovakia), plus the
+deduplicated union in <code>attachment_urls</code>. EIA documents are
+<strong>not</strong> type-flagged — every case document is collected,
+and the document label (the link’s <code>&lt;h3&gt;</code>) is kept
+verbatim so the <em>konsekvensutredning</em> / <em>KU</em> /
+<em>melding</em> can be identified by filename downstream.</li>
+<li>
+<strong>No geometry.</strong> NVE’s spatial concession layers live
+in a separate keyed ArcGIS service that is out of scope for this handler
+in v0.1.</li>
+<li>
+<strong>Conventional columns + extras.</strong> <code>title</code> ←
+Tittel, <code>proponent</code> ← Tiltakshaver,
+<code>competent_authority</code> is the constant
+<code>"Norges vassdrags- og energidirektorat (NVE)"</code>,
+<code>native_type</code> / <code>status</code> from Sakstype / Status.
+Norwegian-verbatim extras: <code>county</code> (Fylke),
+<code>municipality</code> (Kommune), <code>case_type</code> (Sakstype),
+<code>case_type_id</code> (SakstypeID), <code>case_type_code</code>
+(Type), <code>stage</code> (Stadium), <code>progress</code> (Fremdrift),
+<code>hearing_deadline</code> (HoeringsfristText), <code>mw</code>,
+<code>gwh</code>, <code>installed_effect</code>,
+<code>estimated_production</code>.</li>
+<li>
+<strong>Filters.</strong> <code>query</code> is forwarded
+<strong>server-side</strong> as the API <code>filterText</code>
+parameter (the getall API matches it and returns a filtered list);
+<code>date_range</code> is matched client-side against
+<code>date_published</code> (the case <code>Dato</code>). The getall API
+also accepts server-side <code>caseType</code> / <code>county</code> /
+<code>municipality</code> filters via the facet codes returned inline,
+documented for reference but not first-class in v0.1.</li>
+<li>
+<strong>Throttle:</strong> ~20 s between requests (0.05
+requests/second) by default, honouring NVE’s <code>robots.txt</code>
+<code>Crawl-delay: 20</code> — intentionally conservative. Override via
+<code>getOption("planscanR.no_throttle_rate")</code>
+(requests/sec).</li>
+<li>
+<strong>Language:</strong> Norwegian (ISO-639-1 <code>no</code>);
+portal-native values kept verbatim.</li>
+</ul>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent concession cases (no PDFs downloaded yet)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_no.html">get_assessments_no</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Wind-themed slice (server-side filterText)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_no.html">get_assessments_no</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"vind"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="latvia--lv">Latvia — <code>"lv"</code><a class="anchor" aria-label="anchor" href="#latvia--lv"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the Environmental State Bureau (<em>Vides
+pārraudzības valsts birojs</em>) register at <a href="https://www.eva.gov.lv/" class="external-link">eva.gov.lv</a>, a server-rendered Drupal
+site.</li>
+<li>
+<strong>Status:</strong> supported
+(<code>get_assessments_coverage()$status</code> =
+<code>"supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)"</code>).</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public
+register).</li>
+<li>
+<strong>Plain HTML, no browser.</strong> The handler talks to the
+Drupal HTML pages directly with <code>httr2</code> — no headless browser
+is involved.</li>
+<li>
+<strong>Asymmetric dual register.</strong> The portal exposes two
+structurally <em>different</em> halves, unioned via the
+<code>assessment_type</code> argument (<code>"All"</code> /
+<code>"EIA"</code> / <code>"SEA"</code>):
+<ul>
+<li>
+<strong>EIA — <em>Ietekmes uz vidi novērtējums</em> (project-level
+EIA).</strong> A Drupal Views listing at
+<code>https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti?page=N</code>.
+The <code>page</code> parameter is <strong>0-indexed</strong> (~20
+records per page). The portal’s exposed-form filters are POST/AJAX (a
+GET <code>?combine=</code> is ignored), so the handler does a
+<strong>full crawl</strong> <code>?page=0,1,2,…</code>, stopping when a
+page yields no records. Each row links to a per-project detail page
+(sidecar-first).</li>
+<li>
+<strong>SEA — <em>Stratēģiskais IVN</em> (plan/programme
+SEA).</strong> Three flat sub-pages — <code>/lv/atzinumi</code>
+(opinions), <code>/lv/lemumi</code> (decisions),
+<code>/lv/monitorings</code> (monitoring). Each is a year-grouped HTML
+table (no pagination, no detail pages) whose rows carry a direct PDF
+link, a document number, a date, and the planning-document title.</li>
+</ul>
+</li>
+<li>
+<strong>Attachments — EIA metadata-only / SEA direct PDFs.</strong>
+This is the key asymmetry:
+<ul>
+<li>EIA detail pages carry metadata (IVN Statuss, proponent, decision
+year, location prose, a short description) but <strong>no downloadable
+document attachments</strong> — decisions are referenced as
+prose/numbers. Every EIA record therefore has an empty
+<code>attachment_urls</code>; its documents are filled in downstream by
+<a href="../reference/discover_attachments.html"><code>discover_attachments()</code></a>
+(<code>discover = TRUE</code>).</li>
+<li>SEA sub-page rows each link to a public PDF at
+<code>https://www.eva.gov.lv/lv/media/{id}/download?attachment</code>
+(no authentication; the server returns <code>application/pdf</code>).
+One attachment per SEA record.</li>
+</ul>
+</li>
+<li>
+<strong>No geometry.</strong> The portal exposes location only as
+Latvian prose (cadastral numbers, parishes, municipalities), surfaced
+for EIA records in the <code>location</code> extra column. No coordinate
+geometry is available.</li>
+<li>
+<strong>Registers tagged + prefixed.</strong> An
+<code>assessment_type</code> column (<code>"EIA"</code> /
+<code>"SEA"</code>) and a <code>register</code> column
+(<code>"ivn-projekti"</code> for EIA; <code>"atzinumi"</code> /
+<code>"lemumi"</code> / <code>"monitorings"</code> for SEA) tag each
+row. <code>document_id</code> is prefixed per register
+(<code>IVN-</code> / <code>ATZ-</code> / <code>LEM-</code> /
+<code>MON-</code>) so the halves never collide on disk.</li>
+<li>
+<strong>Conventional columns + extras.</strong>
+<code>competent_authority</code> is the constant
+<code>"Vides pārraudzības valsts birojs"</code>. Latvian-verbatim
+extras: <code>location</code> (EIA cadastral / parish text) and
+<code>decision</code> (the EIA decision text or the SEA document
+number).</li>
+<li>
+<strong>Filters.</strong> <code>assessment_type</code> selects which
+half to crawl; <code>query</code> is a case-insensitive substring on the
+title, and <code>date_range</code> is matched client-side against
+<code>date_published</code> / <code>date_decision</code>. All filtering
+is <strong>client-side</strong> — the portal’s own exposed-form filters
+are POST/AJAX and not honoured.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default; override
+via <code>getOption("planscanR.lv_throttle_rate")</code>
+(requests/sec).</li>
+<li>
+<strong>Language:</strong> Latvian (ISO-639-1 <code>lv</code>);
+portal-native values kept verbatim.</li>
+</ul>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent records across both halves (no PDFs downloaded yet)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_lv.html">get_assessments_lv</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA only — the three flat sub-pages, with direct PDFs</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_lv.html">get_assessments_lv</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">10</span>, download <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="spain--es">Spain — <code>"es"</code><a class="anchor" aria-label="anchor" href="#spain--es"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> the MITECO/SABIA <em>Consulta pública de
+evaluaciones ambientales</em> on the electronic headquarters at <a href="https://sede.miteco.gob.es/" class="external-link">sede.miteco.gob.es</a>, a
+server-rendered Liferay portal driven entirely by POST forms.</li>
+<li>
+<strong>Requires the optional <a href="https://rstudio.github.io/chromote/" class="external-link">chromote</a> headless
+browser.</strong> This is the one handler in the package that cannot run
+on a pure-R install. The SABIA portal <em>TLS-fingerprints</em> the
+client and resets <code>libcurl</code>’s TLS handshake before any HTTP
+is exchanged, so <code>httr2</code> cannot reach it at all.
+<code>planscanR</code> therefore drives a real headless Chrome through
+the optional <a href="https://rstudio.github.io/chromote/" class="external-link">chromote</a> package (in <code>Suggests</code>):
+it navigates to the portal origin — clearing the TLS gate and
+establishing the Liferay session cookie the way a real browser would —
+and then runs the portal’s own in-page requests so they ride Chrome’s
+TLS stack and cookies. All parsing still happens in R. If
+<a href="https://rstudio.github.io/chromote/" class="external-link">chromote</a> or a Chrome/Chromium binary is unavailable the
+handler aborts up front with an actionable message; install
+<a href="https://rstudio.github.io/chromote/" class="external-link">chromote</a> and Google Chrome (or point
+<code>options(planscanR.chrome_path=)</code> / the
+<code>CHROMOTE_CHROME</code> environment variable at a Chrome binary) to
+enable it.</li>
+<li>
+<strong>National competence only.</strong> Most Spanish EIA is
+decided by the autonomous communities and lives in their regional
+registers, which are out of scope here. SABIA covers the
+national-competence procedures.</li>
+<li>
+<strong>Dual register (SABIA).</strong> Selected with the
+<code>assessment_type</code> argument (<code>"All"</code> /
+<code>"EIA"</code> / <code>"SEA"</code>): <strong>EIA</strong> =
+<em>Evaluación de Impacto Ambiental de proyectos</em> via the
+<code>navServicioContenido</code> origin
+(<code>register = "proyectos"</code>); <strong>SEA</strong> =
+<em>Evaluación Ambiental Estratégica de planes y programas</em> via the
+<code>navSabiaPlanes</code> origin (<code>register = "planes"</code>).
+An <code>assessment_type</code> column tags each row;
+<code>document_id</code> is prefixed <code>EIA-</code> /
+<code>SEA-</code>.</li>
+<li>
+<strong>Enumeration — one bulk POST.</strong> Per register, the
+handler opens the origin, harvests the per-session
+<code>datosPropios</code> token from the search form, and issues a
+single <code>accion=proy_resultados</code> POST whose response carries
+<code>&lt;table id="tablaResultados"&gt;</code> with every record
+(expediente code, title, <em>estado de tramitación</em>).</li>
+<li>
+<strong>Attachments — ficha PDFs, downloaded in-session.</strong>
+Each record’s documents (DIA / EsIA / resolución / BOE) are reached
+through the <em>Acceso a la Documentación</em> panel
+(<code>&lt;table id="tablaDocumentos"&gt;</code>), grouped by <em>Tipo
+de documento</em>. The portal’s document URLs are <strong>session-bound
+and ephemeral</strong> (and the PDFs are on the same TLS-walled host),
+so <code>attachment_urls</code> stores a stable synthetic identity per
+document and, when <code>download = TRUE</code>, the bytes are pulled
+in-session through the browser.</li>
+<li>
+<strong>No geometry.</strong> SABIA exposes no public per-record
+geometry.</li>
+<li>
+<strong>Filters:</strong> <code>assessment_type</code>;
+<code>query</code> (free-text title, sent into the server-side
+<em>Buscador</em> <code>&lt;Titulo&gt;</code> filter and re-checked
+client-side); <code>codigo</code> (exact expediente code, server-side
+<code>&lt;Codigo&gt;</code> + client-side); <code>date_range</code>
+client-side; <code>limit</code>.</li>
+<li>
+<strong>Language:</strong> Spanish (ISO-639-1 <code>es</code>);
+portal-native values kept verbatim.</li>
+</ul>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Requires {chromote} + a Chrome/Chromium binary.</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_es.html">get_assessments_es</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA only (the planes register)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_es.html">get_assessments_es</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">10</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Title substring + download the national-competence PDFs through the browser</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_es.html">get_assessments_es</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"eólica"</span>, limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="adding-a-new-source">Adding a new source<a class="anchor" aria-label="anchor" href="#adding-a-new-source"></a>

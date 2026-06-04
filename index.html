@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Retrieve Environmental-Assessment Records From European Portals">
-<meta name="description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals into one consistent table, with an on-disk cache for offline re-use. Handlers ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund), France (Projets-Environnement), Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders; MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Finland (ymparisto.fi; EIA/YVA only), Bulgaria (МОСВ registers; ОВОС + ЕО), the Czech Republic (CENIA EIA/SEA; domestic registers only), Croatia (Ministry of Environment CMS pages; PUO + SPUO), Greece (ΗΠΜ / EPRM; AEPO permit decisions only), Iceland (Skipulagsgátt GraphQL; cases from ~June 2023 onward), and Ireland (gov.ie EIA Portal; ArcGIS REST; EIA only, notice PDFs with the full EIAR off-portal). Optional fetch-time scoring of records by topic relevance is delegated to the companion planscanR.screen package. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.">
-<meta property="og:description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals into one consistent table, with an on-disk cache for offline re-use. Handlers ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund), France (Projets-Environnement), Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders; MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Finland (ymparisto.fi; EIA/YVA only), Bulgaria (МОСВ registers; ОВОС + ЕО), the Czech Republic (CENIA EIA/SEA; domestic registers only), Croatia (Ministry of Environment CMS pages; PUO + SPUO), Greece (ΗΠΜ / EPRM; AEPO permit decisions only), Iceland (Skipulagsgátt GraphQL; cases from ~June 2023 onward), and Ireland (gov.ie EIA Portal; ArcGIS REST; EIA only, notice PDFs with the full EIAR off-portal). Optional fetch-time scoring of records by topic relevance is delegated to the companion planscanR.screen package. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.">
+<meta name="description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals into one consistent table, with an on-disk cache for offline re-use. Handlers ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund), France (Projets-Environnement), Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders; MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Finland (ymparisto.fi; EIA/YVA only), Bulgaria (МОСВ registers; ОВОС + ЕО), the Czech Republic (CENIA EIA/SEA; domestic registers only), Croatia (Ministry of Environment CMS pages; PUO + SPUO), Greece (ΗΠΜ / EPRM; AEPO permit decisions only), Iceland (Skipulagsgátt GraphQL; cases from ~June 2023 onward), Ireland (gov.ie EIA Portal; ArcGIS REST; EIA only, notice PDFs with the full EIAR off-portal), Slovenia (gov.si registers; bulk JSON exports; EIA screening + SEA/CPVO), Portugal (APA SIAIA; HTML register; AIA / project-level EIA only, SEA/AAE in a separate register), the United Kingdom (Planning Inspectorate National Infrastructure Consenting; bulk CSV export; NSIP only, each with a statutory Environmental Statement), Italy (MASE va.mite.gov.it; HTML register; VIA project EIA + VAS plan SEA), Slovakia (enviroportal.sk; API Platform JSON; EIA + SEA in one register, tagged by the zbierka law string), Norway (NVE nve.no; JSON list + HTML detail; energy/water concession cases carrying the konsekvensutredning EIA documents), and Latvia (Environmental State Bureau eva.gov.lv; Drupal HTML; asymmetric dual register: metadata-only project EIA listing plus strategic SEA sub-pages with direct PDFs), and Spain (MITECO/SABIA sede.miteco.gob.es; national-competence project EIA + plan SEA; reached only through the optional chromote headless browser because the portal TLS-fingerprints and rejects libcurl). Optional fetch-time scoring of records by topic relevance is delegated to the companion planscanR.screen package. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.">
+<meta property="og:description" content="A unified R interface for fetching environmental-assessment records (EIA, SEA, follow-up advice) from European national portals into one consistent table, with an on-disk cache for offline re-use. Handlers ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund), France (Projets-Environnement), Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders; MER-register), Estonia (Keskkonnaamet KOTKAS; KMH + KSH), Finland (ymparisto.fi; EIA/YVA only), Bulgaria (МОСВ registers; ОВОС + ЕО), the Czech Republic (CENIA EIA/SEA; domestic registers only), Croatia (Ministry of Environment CMS pages; PUO + SPUO), Greece (ΗΠΜ / EPRM; AEPO permit decisions only), Iceland (Skipulagsgátt GraphQL; cases from ~June 2023 onward), Ireland (gov.ie EIA Portal; ArcGIS REST; EIA only, notice PDFs with the full EIAR off-portal), Slovenia (gov.si registers; bulk JSON exports; EIA screening + SEA/CPVO), Portugal (APA SIAIA; HTML register; AIA / project-level EIA only, SEA/AAE in a separate register), the United Kingdom (Planning Inspectorate National Infrastructure Consenting; bulk CSV export; NSIP only, each with a statutory Environmental Statement), Italy (MASE va.mite.gov.it; HTML register; VIA project EIA + VAS plan SEA), Slovakia (enviroportal.sk; API Platform JSON; EIA + SEA in one register, tagged by the zbierka law string), Norway (NVE nve.no; JSON list + HTML detail; energy/water concession cases carrying the konsekvensutredning EIA documents), and Latvia (Environmental State Bureau eva.gov.lv; Drupal HTML; asymmetric dual register: metadata-only project EIA listing plus strategic SEA sub-pages with direct PDFs), and Spain (MITECO/SABIA sede.miteco.gob.es; national-competence project EIA + plan SEA; reached only through the optional chromote headless browser because the portal TLS-fingerprints and rejects libcurl). Optional fetch-time scoring of records by topic relevance is delegated to the companion planscanR.screen package. Developed for the BIOGAIN project to support Net Biodiversity Gain in spatial energy planning.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -151,6 +151,50 @@
 <td>gov.ie EIA Portal (Esri ArcGIS REST FeatureServer)</td>
 <td>
 <strong>EIA only</strong> (no SEA register), full records + ITM (EPSG:2157) point geometry; portal hosts only the newspaper-notice PDF — the <strong>full EIAR is off-portal</strong> on the competent-authority sites</td>
+</tr>
+<tr>
+<td>Slovenia (<code>"si"</code>)</td>
+<td>gov.si environmental-assessment registers (bulk JSON exports)</td>
+<td>EIA screening (<code>predhodni-postopek</code>) + SEA decisions (CPVO state + municipal plans) in one handler, dual-register, attachments scraped from detail pages, no geometry, ~2021 onward</td>
+</tr>
+<tr>
+<td>Portugal (<code>"pt"</code>)</td>
+<td>APA SIAIA register (<code>siaia.apambiente.pt</code>; server-rendered HTML)</td>
+<td>
+<strong>AIA / project-level EIA only</strong> (SEA/AAE in a separate APA register), paginated HTML listing + detail pages, direct <code>AIADOC</code> PDFs grouped into per-phase attachment columns, no geometry, client-side filters</td>
+</tr>
+<tr>
+<td>United Kingdom (<code>"gb"</code>)</td>
+<td>Planning Inspectorate National Infrastructure Consenting (<code>planninginspectorate.gov.uk</code>; bulk CSV export)</td>
+<td>
+<strong>NSIP only</strong> (every NSIP carries a statutory Environmental Statement), whole register as one CSV, Environmental Statement PDFs scraped per project from <code>nsip-documents.*</code>, OSGB (EPSG:27700) point geometry, client-side filters, 10 s crawl-delay</td>
+</tr>
+<tr>
+<td>Italy (<code>"it"</code>)</td>
+<td>MASE <em>Valutazioni e Autorizzazioni Ambientali</em> (<code>va.mite.gov.it</code>; server-rendered HTML)</td>
+<td>VIA (project EIA) + VAS (plan SEA) in one handler, dual-register, paginated HTML listing + Info detail + Documentazione index, direct <code>/File/Documento</code> PDFs grouped into per-<em>Sezione</em> attachment columns, no geometry, Italian, client-side filters, large register</td>
+</tr>
+<tr>
+<td>Slovakia (<code>"sk"</code>)</td>
+<td>Enviroportal EIA/SEA information system (<code>enviroportal.sk</code>; API Platform JSON)</td>
+<td>EIA + SEA in one unified register (type from the <em>zbierka</em> law citation), <code>hydra:member</code> array-of-arrays flattened + paginate-until-empty, detail <code>dokumenty</code> PDFs (<code>/eia/dokument/{id}</code>) grouped per process step, no geometry, Slovak, client-side filters</td>
+</tr>
+<tr>
+<td>Norway (<code>"no"</code>)</td>
+<td>NVE concession-case register (<code>nve.no</code>; getall JSON list + server-rendered detail HTML)</td>
+<td>energy/water concession cases (<code>konsesjonssaker</code>) carrying the <em>konsekvensutredning</em> (EIA) among their documents, single register, paginated JSON list + detail HTML, <code>webfileservice.nve.no</code> PDFs grouped by section heading into per-section attachment columns (EIA docs identified by filename), no geometry, Norwegian, server-side <code>filterText</code> query + client-side <code>date_range</code>, ~20 s crawl-delay</td>
+</tr>
+<tr>
+<td>Latvia (<code>"lv"</code>)</td>
+<td>Environmental State Bureau register (<code>eva.gov.lv</code>; server-rendered Drupal HTML)</td>
+<td>
+<strong>asymmetric dual register</strong> — EIA (<em>Ietekmes uz vidi novērtējums</em>) is a 0-indexed <code>?page=N</code> Drupal Views listing whose detail pages are <strong>metadata-only</strong> (no PDFs; documents via discovery), SEA (<em>Stratēģiskais IVN</em>) is three flat sub-pages (<code>atzinumi</code> / <code>lemumi</code> / <code>monitorings</code>) with <strong>direct <code>/lv/media/{id}/download</code> PDFs</strong>, no geometry, Latvian, client-side filters (portal filters are POST/AJAX)</td>
+</tr>
+<tr>
+<td>Spain (<code>"es"</code>)</td>
+<td>MITECO/SABIA <em>Consulta pública de evaluaciones ambientales</em> (<code>sede.miteco.gob.es</code>; Liferay POST forms)</td>
+<td>
+<strong>requires the optional {chromote} headless browser</strong> — the portal TLS-fingerprints and rejects libcurl, so it is reached only through a real headless Chrome; <strong>national-competence only</strong> (regional EIA is out of scope), dual register EIA (<em>proyectos</em>) + SEA (<em>planes</em>) selected via <code>assessment_type</code>, one bulk <code>proy_resultados</code> POST → <code>tablaResultados</code>, ficha (<em>listadoDocumentacion</em>) PDFs downloaded in-session (session-bound URLs) grouped per <em>Tipo de documento</em>, no geometry, Spanish, server-side <code>query</code>/<code>codigo</code> + client-side filters</td>
 </tr>
 </tbody>
 </table>

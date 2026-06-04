@@ -34,7 +34,11 @@ get_assessments(
 
   Character scalar, ISO-3166-1 alpha-2 country code (any case). v0.1
   supports `"nl"`, `"de"`, `"fr"`, `"at"`, `"dk"`, `"be"` (Flanders),
-  `"ee"`, `"fi"`, `"bg"`, `"cz"`, `"hr"`, `"gr"`, `"is"`, and `"ie"`.
+  `"ee"`, `"fi"`, `"bg"`, `"cz"`, `"hr"`, `"gr"`, `"is"`, `"ie"`,
+  `"si"`, `"pt"`, `"gb"`, `"it"`, `"sk"`, `"no"`, `"lv"`, and `"es"`.
+  Note that `"es"` (Spain) requires the optional {chromote}
+  headless-browser transport — see
+  [`get_assessments_es()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md).
   See
   [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md).
 

@@ -14,7 +14,7 @@ advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R:
 no Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Eleven country handlers ship: - Netherlands
+**v0.1 scope.** Twenty-two country handlers ship: - Netherlands
 ([`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md))
 — Commissie m.e.r. adviezenregister at `commissiemer.nl`. - Germany
 ([`get_assessments_de()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md))
@@ -216,6 +216,238 @@ sibling `.geometry.geojson` in **EPSG:2157** (Irish Transverse Mercator
 by default (`getOption("planscanR.ie_throttle_rate")`). Reflected in
 `get_assessments_coverage()$status` as
 `"supported (EIA only; portal = notice PDFs, full EIAR off-portal)"`. -
+Slovenia
+([`get_assessments_si()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_si.md))
+— **gov.si** environmental-assessment registers under
+`…/okoljske-presoje/`. **Bulk-export enumeration**: each register is one
+JSON GET (`<list>/export/json/`) returning the whole unpaginated array
+(single network seam `si_fetch_search(register)`, parsed via
+`perform_json`). **Dual-register** (`assessment_type` `"All"`/`"EIA"`/
+`"SEA"`): EIA screening `predhodni-postopek` (`document_id` prefix
+`PRED-`) vs. two SEA/CPVO registers — state plans `cpvo-drzavni`
+(`CPVO-DRZ-`) and municipal plans `cpvo-obcinski` (`CPVO-OBC-`). Field
+maps differ per register (screening:
+`Poseg`/`Datum objave`/`Naziv`/`Naslov`/`Številka zadeve`/
+`Oznaka posega`; CPVO: `Title`/`Naziv`/`Datum`/`Odločitev`). Export ids
+don’t map to filenames, so attachments are scraped from each detail page
+(sidecar-first; seam `si_fetch_attachments(url)`):
+`a[href^="/assets/seznami/"]` absolutised against `https://www.gov.si`,
+flat `attachment_urls` (no sections; may be empty). No geometry.
+`competent_authority` fixed to *Ministrstvo za okolje, podnebje in
+energijo*. `date_published` parses `"DD. MM. YYYY"`; `date_decision`
+always `NA`; `date_range` matched client-side. Record language Slovenian
+(`sl`). Throttled to 5 req/s
+(`getOption("planscanR.si_throttle_rate")`). Scope ~2021 onward.
+Reflected in `get_assessments_coverage()$status` as `"supported"`. -
+Portugal
+([`get_assessments_pt()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_pt.md))
+— APA **SIAIA** register at `siaia.apambiente.pt` (server-rendered
+ASP.NET MVC). **HTML-pagination enumeration**: a page generator walks
+`?pagina=<n>` (~100 rows/page, seam `pt_fetch_search()`, parsed via
+`perform_html`); an empty `<tbody>` ends the crawl. **Single register**
+— AIA = project-level EIA only (no `assessment_type`); SEA/AAE lives in
+a separate APA register and is out of scope. Per record: a sidecar-first
+detail GET (`/ProcessoAIA/Detalhes/{id}`, `document_id` prefix `AIA-`)
+parses the *Campo / Conteúdo* table, and a document-list GET
+(`/ListaDocumentos?pro_id={id}`) yields the attachments. Direct
+PDFs/ZIPs are `https://siaia.apambiente.pt/AIADOC/AIA{n}/...`; each
+document’s Portuguese type label is classified into a coarse **phase**
+(`dia` / `eia` / `consulta_publica` / `parecer` / `outros`) and grouped
+into per-phase `attachment_urls_<slug>` / `local_path_<slug>` columns,
+with `attachment_urls` the deduplicated union. No geometry (location is
+concelho text in `municipalities`). `decision_sense` (the *Sentido de
+Decisão*) is also the `native_type`. `date_decision` parses
+`"DD/MM/YYYY"`; `query` and `date_range` are matched client-side.
+Portuguese language. Throttled to 5 req/s
+(`getOption("planscanR.pt_throttle_rate")`). Reflected in
+`get_assessments_coverage()$status` as
+`"supported (EIA/AIA only; SEA/AAE in a separate APA register)"`. -
+United Kingdom
+([`get_assessments_gb()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_gb.md))
+— Planning Inspectorate’s **National Infrastructure Consenting**
+register at `planninginspectorate.gov.uk`. **Bulk-CSV enumeration**: one
+GET of `/api/applications-download` (≈540 rows) is the whole register
+(seam `gb_fetch_search()`, parsed with base
+[`utils::read.csv()`](https://rdrr.io/r/utils/read.table.html) — no new
+dependency); the generator returns all rows once then NULL. **Single
+register** — NSIP only (every NSIP carries a statutory Environmental
+Statement, so it is an EIA source; no `assessment_type`; local-authority
+EIAs out of scope). `document_id` is the *Project reference*
+(e.g. `EN010001`); canonical URL `…/projects/{REF}`. Per record
+(sidecar-first) a document-list GET
+(`…/projects/{REF}/documents?type=Environmental Statement`) scrapes the
+Environmental Statement PDF hrefs on
+`nsip-documents.planninginspectorate.gov.uk/published-documents/...`
+(flat `attachment_urls`, no section split). **Point geometry**: the
+*Grid reference - Easting/Northing* is written to a sibling
+`.geometry.geojson` (GeoJSON Point, OSGB **EPSG:27700**), with
+`geometry_path` (relative) + `geometry_crs`. `query` / `status` /
+`date_range` are matched client-side. English. Throttled to 0.1 req/s
+(one request per 10 s, honouring the portal’s `robots.txt`
+`Crawl-delay: 10`; the neutral `planscanR/…` UA is allowed where
+AI-crawler UAs are `Disallow: /`); override via
+`getOption("planscanR.gb_throttle_rate")`. Reflected in
+`get_assessments_coverage()$status` as
+`"supported (NSIP only; every NSIP carries an Environmental Statement)"`. -
+Italy
+([`get_assessments_it()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_it.md))
+— MASE **Valutazioni e Autorizzazioni Ambientali** at `va.mite.gov.it`.
+**HTML pagination**: each register’s search listing paginates via a
+1-based `?pagina=N` query (seam `it_fetch_search()`, parsed with
+`perform_html`); the page footer’s `"Pagina X di Y"` counter bounds the
+crawl. **Dual-register** (`assessment_type` `"All"`/`"EIA"`/`"SEA"`):
+VIA project EIA `Ricerca/ViaProcedura` (`document_id` prefix `VIA-`)
+vs. VAS plan SEA `Ricerca/VasProcedura` (`VAS-`); the numeric
+`Oggetti/Info/{id}` is the id. Per record (sidecar-first): the Info page
+`/it-IT/Oggetti/Info/{id}` (`<p><strong>Label</strong>: value</p>`
+fields + a procedure-timeline table for `date_published` /
+`date_decision` / `status` / `outcome`) plus the Documentazione index
+`/it-IT/Oggetti/Documentazione/{id}/{grp}` whose rows carry a *Sezione*
+and a direct `/File/Documento/{fileId}` PDF link — grouped into
+per-section `attachment_urls_<slug>` columns (DE pattern) + the
+deduplicated union. The Info-page value reader strips `<!--…-->` comment
+nodes before reading text (mirrors the EE comment-leak guard,
+defensively). No geometry (location is *Regioni* / *Province* / *Comuni*
+text, surfaced as the `regions` / `provinces` / `municipalities` extras,
+Italian verbatim). `competent_authority` fixed to *Ministero
+dell’Ambiente e della Sicurezza Energetica* (MASE). `query` (title
+substring) and `date_range` matched client-side. Italian. Throttled to 5
+req/s (`getOption("planscanR.it_throttle_rate")`); the VIA register is
+large (~10.6k projects). Reflected in
+`get_assessments_coverage()$status` as
+`"supported (VIA/VAS dual register; HTML scrape; no geometry)"`. -
+Slovakia
+([`get_assessments_sk()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sk.md))
+— Slovak EIA/SEA central information system **enviroportal.sk** at
+`enviroportal.sk`. **API Platform JSON** (a React SPA over a Symfony
+backend), reached with pure `httr2` + the `Accept: application/ld+json`
+content-negotiation header. **List**: `GET /api/eia_projects?page=N`
+(seam `sk_fetch_search()`, parsed with `perform_json`); its
+`hydra:member` is an **array of arrays** (a record bucket, a
+pagination-metadata object, an empty bucket), so the handler flattens
+one level and keeps the objects carrying a `seoId`. `hydra:totalItems` /
+`hydra:view` are unreliable, so the generator **paginates until a page
+flattens to zero records**. **Single mixed register** (`assessment_type`
+`"All"`/`"EIA"`/`"SEA"`): the `zbierka` law string (`"časť EIA"` /
+`"časť SEA"`) is the discriminator — each record is tagged and the
+filter applied client-side; `register` is `"eia_projects"`;
+`document_id` is the globally-unique numeric `id`, `SK-`-prefixed. The
+canonical URL is the SPA page
+`https://www.enviroportal.sk/eia/detail/{seoId}`; the detail JSON is
+`/api/eia_projects/{seoId}` (sidecar-first). Attachments come from
+`dokumenty$data` — an array of step groups (`{step, number, items}`);
+every downloadable leaf’s `/eia/dokument/{id}` `url` is absolutised and
+grouped by the `step` (phase) name into per-section
+`attachment_urls_<slug>` columns (DE/IT pattern) + the deduplicated
+union. `competent_authority` ← `prislusnyOrgan$name` (trimmed),
+`proponent` ← `navrhovatel$name`; extras `law_collection`, `process`,
+`region` (kraj), `district` (okres), `municipality` (obec),
+`affected_municipality`, `locality`, `proponent_id` (ico). No geometry.
+`query` (title substring) and `date_range` matched client-side. Slovak.
+Throttled to 5 req/s (`getOption("planscanR.sk_throttle_rate")`); the
+register is large (~18.7k records). Reflected in
+`get_assessments_coverage()$status` as
+`"supported (API Platform JSON; EIA/SEA via zbierka; no geometry)"`. -
+Norway
+([`get_assessments_no()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_no.md))
+— NVE (*Norges vassdrags- og energidirektorat*) energy/water
+concession-case register (`konsesjonssaker`) at `nve.no`. Plain JSON
+list API + server-rendered detail HTML, reached with pure `httr2`.
+**List**:
+`GET /umbraco/api/license/getall?caseType=00&county=00&filterText=&municipality=00&pageNumber=N`
+(seam `no_fetch_search()`, parsed with `perform_json`); its `Licenses`
+array carries the case records (the
+`Counties`/`Municipalities`/`CaseTypes`/ `LicenseStatuses` keys are
+filter-vocab facets returned inline, `TotalCount` the unfiltered count).
+The generator **paginates `pageNumber=1,2,…` until a page returns no
+`Licenses`**. **Single concession register** (no `assessment_type` arg —
+every case carries the EIA *konsekvensutredning* among its documents);
+`document_id` is the numeric `SoknadId`, `NVE-`-prefixed. The canonical
+URL is the detail page
+`https://www.nve.no/konsesjon/konsesjonssaker/konsesjonssak?id={SoknadId}&type={Type}`
+(sidecar-first). Attachments are scraped from the detail page’s
+`div.n-filelist` sections —
+`webfileservice.nve.no/API/PublishedFiles/Download/...` PDFs grouped by
+the `<h2>` section heading into per-section `attachment_urls_<slug>`
+columns (DE/IT/SK pattern) + the deduplicated union; EIA docs are
+identified by filename, not a type flag. `competent_authority` is the
+constant `"Norges vassdrags- og energidirektorat (NVE)"`; extras
+`county` (Fylke), `municipality` (Kommune), `case_type` (Sakstype),
+`case_type_id` (SakstypeID), `case_type_code` (Type), `stage` (Stadium),
+`progress` (Fremdrift), `hearing_deadline` (HoeringsfristText), `mw`,
+`gwh`, `installed_effect`, `estimated_production`. No geometry (NVE
+ArcGIS is a separate keyed service). `query` is forwarded
+**server-side** as the API `filterText` param; `date_range` matched
+client-side. Norwegian. Throttled to 0.05 req/s (~20 s between requests,
+honouring NVE’s `robots.txt` `Crawl-delay: 20`;
+`getOption("planscanR.no_throttle_rate")`). Reflected in
+`get_assessments_coverage()$status` as
+`"supported (NVE energy/water concession cases; EIA docs by filename; no geometry)"`. -
+Latvia
+([`get_assessments_lv()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lv.md))
+— Environmental State Bureau (*Vides pārraudzības valsts birojs*) Drupal
+portal at `eva.gov.lv`. Server-rendered HTML, reached with pure `httr2`.
+**Asymmetric dual register** via `assessment_type`
+(`"All"`/`"EIA"`/`"SEA"`). **EIA** = the Drupal Views listing
+`https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti?page=N`
+(**0-indexed** `page`; seam `lv_fetch_eia()`; full crawl until an empty
+page, ~20 rows/page); each `.views-row .node-catalog-item` links to a
+per-project detail page that is **metadata-only** — it carries IVN
+Statuss / proponent / decision-year + location/summary prose but **no
+document attachments**, so EIA records leave `attachment_urls` empty and
+documents are filled in downstream by
+[`discover_attachments()`](https://barthoekstra.github.io/planscanR/reference/discover_attachments.md).
+**SEA** = three flat sub-pages `/lv/atzinumi` (opinions), `/lv/lemumi`
+(decisions), `/lv/monitorings` (monitoring) (seam `lv_fetch_sea()`),
+each listing documents as **direct `/lv/media/{id}/download?attachment`
+PDF links** (one attachment per record). `assessment_type` column
+`"EIA"`/`"SEA"`; `register` column (`"ivn-projekti"` / `"atzinumi"` /
+`"lemumi"` / `"monitorings"`); `document_id` prefixed per register
+(`IVN-` / `ATZ-` / `LEM-` / `MON-`) so they never collide.
+`competent_authority` is the constant
+`"Vides pārraudzības valsts birojs"`; extras `location` (EIA cadastral /
+parish prose) and `decision` (EIA decision text / SEA document number).
+No geometry. `query` (title substring) and `date_range` are matched
+**client-side** (the portal’s exposed-form filters are POST/AJAX).
+Latvian. Throttled to 5 req/s
+(`getOption("planscanR.lv_throttle_rate")`). Reflected in
+`get_assessments_coverage()$status` as
+`"supported (metadata-only EIA register — documents via discovery; SEA opinions/decisions carry direct PDFs)"`. -
+Spain
+([`get_assessments_es()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md))
+— MITECO/SABIA *Consulta pública de evaluaciones ambientales* at
+`sede.miteco.gob.es`. **The only handler that cannot run on a pure-R
+install:** the portal *TLS-fingerprints* the client and rejects
+libcurl’s ClientHello before any HTTP, so it is reached **only** through
+the optional [chromote](https://rstudio.github.io/chromote/)
+headless-browser transport (`R/utils_browser.R`; `Suggests: chromote`).
+The handler gates on `browser_available()` and aborts with class
+`planscanR_error_browser_unavailable` (via `require_browser("es")`) when
+the browser is absent — **degrade gracefully**. **National-competence
+procedures only** (most Spanish EIA is regional → out of scope). **Dual
+register** via `assessment_type` (`"All"`/`"EIA"`/`"SEA"`): EIA = the
+`navServicioContenido` origin (`register = "proyectos"`), SEA = the
+`navSabiaPlanes` origin (`register = "planes"`). One session per
+register: `browser_open(origin)` → harvest `datosPropios` → a single
+`accion=proy_resultados` `browser_fetch()` POST whose response carries
+`<table id="tablaResultados">` (code / title / estado). The ficha PDFs
+are reached by two in-page form submits (`browser_submit_form()`):
+`proy_estado_tramitacion` then `listadoDocumentacion`, whose
+`<table id="tablaDocumentos">` lists `BINARYPORTLET resource.process`
+PDF links grouped by *Tipo de documento*. Those live URLs are
+**session-bound and ephemeral**, so `attachment_urls` stores a stable
+synthetic `<origin>#<code>/<NOMBRE_SABIA>` per document (grouped into
+`attachment_urls_<slug>`); on `download = TRUE` the bytes are pulled
+in-session via `browser_download()` (the PDFs are on the TLS-walled host
+too). `document_id` prefixed `EIA-`/`SEA-`; `competent_authority` the
+constant
+`"Ministerio para la Transición Ecológica y el Reto Demográfico"`; extra
+`expediente` (the code). No geometry. `query` → server-side `<Titulo>` +
+client-side; `codigo` → server-side `<Codigo>` + client-side;
+`date_range` client-side. Spanish. Throttled via
+`getOption("planscanR.es_throttle_rate", 2)` (seconds between ficha
+fetches). Coverage `status` =
+`"supported (requires optional headless browser; TLS-fingerprinted portal)"`. -
 Austria
 ([`get_assessments_at()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md))
 — Umweltbundesamt UVP-DB at `secure.umweltbundesamt.at/uvpdb`.
@@ -308,7 +540,15 @@ the answer — see
       │     ├── get_assessments_hr(...)          # mzozt.gov.hr
       │     ├── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
       │     ├── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
-      │     └── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
+      │     ├── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
+      │     ├── get_assessments_si(...)          # gov.si (bulk JSON export; EIA + SEA/CPVO)
+      │     ├── get_assessments_pt(...)          # siaia.apambiente.pt (HTML register; AIA/EIA)
+      │     ├── get_assessments_gb(...)          # planninginspectorate.gov.uk (bulk CSV; NSIP/EIA)
+      │     ├── get_assessments_it(...)          # va.mite.gov.it (HTML scrape; VIA/EIA + VAS/SEA)
+      │     ├── get_assessments_sk(...)          # enviroportal.sk (API Platform JSON; EIA + SEA)
+      │     ├── get_assessments_no(...)          # nve.no (JSON list + HTML detail; concession EIA)
+      │     ├── get_assessments_lv(...)          # eva.gov.lv (Drupal HTML; metadata-only EIA + SEA PDFs)
+      │     └── get_assessments_es(...)          # sede.miteco.gob.es (SABIA; needs {chromote} browser; EIA + SEA)
       ├── validate_result_schema()               # invariant gate before returning
       └── discover_attachments()                 # optional, when discover = TRUE
 

@@ -131,7 +131,15 @@ see its “Scoring records” vignette for the walkthrough. Without it, omit
   [`?get_assessments_hr`](https://barthoekstra.github.io/planscanR/reference/get_assessments_hr.md),
   [`?get_assessments_gr`](https://barthoekstra.github.io/planscanR/reference/get_assessments_gr.md),
   [`?get_assessments_is`](https://barthoekstra.github.io/planscanR/reference/get_assessments_is.md),
-  [`?get_assessments_ie`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ie.md)
+  [`?get_assessments_ie`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ie.md),
+  [`?get_assessments_si`](https://barthoekstra.github.io/planscanR/reference/get_assessments_si.md),
+  [`?get_assessments_pt`](https://barthoekstra.github.io/planscanR/reference/get_assessments_pt.md),
+  [`?get_assessments_gb`](https://barthoekstra.github.io/planscanR/reference/get_assessments_gb.md),
+  [`?get_assessments_it`](https://barthoekstra.github.io/planscanR/reference/get_assessments_it.md),
+  [`?get_assessments_sk`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sk.md),
+  [`?get_assessments_no`](https://barthoekstra.github.io/planscanR/reference/get_assessments_no.md),
+  [`?get_assessments_lv`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lv.md),
+  [`?get_assessments_es`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md)
   — the portal-specific details for each country.
 - [**planscanR.screen**](https://barthoekstra.github.io/planscanR.screen/)
   — score records by topic relevance, classify them, and learn a
