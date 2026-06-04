@@ -85,10 +85,18 @@ Python required.
   — every fetching option, including date and region filters.
 - [`?get_assessments_nl`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md),
   [`?get_assessments_de`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md),
+  [`?get_assessments_fr`](https://barthoekstra.github.io/planscanR/reference/get_assessments_fr.md),
   [`?get_assessments_at`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md),
   [`?get_assessments_dk`](https://barthoekstra.github.io/planscanR/reference/get_assessments_dk.md),
   [`?get_assessments_be`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md),
-  [`?get_assessments_ee`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.md)
+  [`?get_assessments_ee`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.md),
+  [`?get_assessments_fi`](https://barthoekstra.github.io/planscanR/reference/get_assessments_fi.md),
+  [`?get_assessments_bg`](https://barthoekstra.github.io/planscanR/reference/get_assessments_bg.md),
+  [`?get_assessments_cz`](https://barthoekstra.github.io/planscanR/reference/get_assessments_cz.md),
+  [`?get_assessments_hr`](https://barthoekstra.github.io/planscanR/reference/get_assessments_hr.md),
+  [`?get_assessments_gr`](https://barthoekstra.github.io/planscanR/reference/get_assessments_gr.md),
+  [`?get_assessments_is`](https://barthoekstra.github.io/planscanR/reference/get_assessments_is.md),
+  [`?get_assessments_ie`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ie.md)
   — the portal-specific details for each country.
 - [**planscanR.screen**](https://barthoekstra.github.io/planscanR.screen/)
   — score records by topic relevance, classify them, and learn a

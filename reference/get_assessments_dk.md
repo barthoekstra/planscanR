@@ -35,8 +35,6 @@ get_assessments_dk(
 
   See
   [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md).
-  `download`, `overwrite`, and `max_file_size_mb` are accepted for API
-  symmetry but currently ignored — no PDFs are fetched in this version.
 
 - query:
 
@@ -85,14 +83,13 @@ WGS84.
 
 ## Attachments
 
-EA-Hub exposes PDFs at public Azure blob URLs reachable via
-`GET /assessments/{id}/documents/{docId}/links`, but resolving those
-costs an extra HTTP call per document. The current handler is **scan +
-classify only**: it returns `attachment_urls = character(0)` and an
-empty `download_status` for every record. A future download phase will
-fetch the per-document links and populate the per-section columns.
-Reflected as `"supported (metadata-only)"` in
-[`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md).
+EA-Hub exposes each document's PDF at a public Azure blob URL. When
+`download = TRUE`, the handler fetches the record's document list from
+`GET /assessments/{id}`, resolves each document's blob URL via
+`GET /assessments/{id}/documents/{docId}/links`, and downloads it into
+the cache, tagging each file with its da-DK document type as the sidecar
+`section`. A pure scan (`download = FALSE`) stays metadata-only and
+makes no per-document calls.
 
 ## Filter coverage (v0.1)
 

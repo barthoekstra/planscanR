@@ -17,5 +17,5 @@ Character vector.
 
 ``` r
 supported_countries()
-#> [1] "nl" "de" "at" "dk" "be" "ee"
+#>  [1] "nl" "de" "fr" "at" "dk" "be" "ee" "fi" "bg" "cz" "hr" "gr" "is" "ie"
 ```

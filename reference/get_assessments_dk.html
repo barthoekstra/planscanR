@@ -79,9 +79,7 @@ register for both EIA ("miljøvurdering af projekter", the old VVM /
 
 
 <dl><dt id="arg-date-range-limit-download-cache-dir-overwrite-max-file-size-mb-write-sidecar-refresh-topic-relevance-threshold-relevance-model">date_range, limit, download, cache_dir, overwrite, max_file_size_mb, write_sidecar, refresh, topic, relevance_threshold, relevance_model<a class="anchor" aria-label="anchor" href="#arg-date-range-limit-download-cache-dir-overwrite-max-file-size-mb-write-sidecar-refresh-topic-relevance-threshold-relevance-model"></a></dt>
-<dd><p>See <code><a href="get_assessments.html">get_assessments()</a></code>. <code>download</code>, <code>overwrite</code>, and
-<code>max_file_size_mb</code> are accepted for API symmetry but currently
-ignored — no PDFs are fetched in this version.</p></dd>
+<dd><p>See <code><a href="get_assessments.html">get_assessments()</a></code>.</p></dd>
 
 
 <dt id="arg-query">query<a class="anchor" aria-label="anchor" href="#arg-query"></a></dt>
@@ -133,14 +131,13 @@ WGS84.</p>
     <h2 id="attachments">Attachments<a class="anchor" aria-label="anchor" href="#attachments"></a></h2>
 
 
-<p>EA-Hub exposes PDFs at public Azure blob URLs reachable via
-<code>GET /assessments/{id}/documents/{docId}/links</code>, but resolving those
-costs an extra HTTP call per document. The current handler is
-<strong>scan + classify only</strong>: it returns <code>attachment_urls = character(0)</code>
-and an empty <code>download_status</code> for every record. A future download
-phase will fetch the per-document links and populate the per-section
-columns. Reflected as <code>"supported (metadata-only)"</code> in
-<code><a href="get_assessments_coverage.html">get_assessments_coverage()</a></code>.</p>
+<p>EA-Hub exposes each document's PDF at a public Azure blob URL. When
+<code>download = TRUE</code>, the handler fetches the record's document list from
+<code>GET /assessments/{id}</code>, resolves each document's blob URL via
+<code>GET /assessments/{id}/documents/{docId}/links</code>, and downloads it into the
+cache, tagging each file with its da-DK document type as the sidecar
+<code>section</code>. A pure scan (<code>download = FALSE</code>) stays metadata-only and makes no
+per-document calls.</p>
     </div>
     <div class="section level2">
     <h2 id="filter-coverage-v-">Filter coverage (v0.1)<a class="anchor" aria-label="anchor" href="#filter-coverage-v-"></a></h2>

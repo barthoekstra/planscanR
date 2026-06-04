@@ -41,10 +41,18 @@ Supported portals:
 |----|----|----|
 | Netherlands (`"nl"`) | Commissie m.e.r. adviezenregister | full records + document downloads |
 | Germany (`"de"`) | UVP-Verbund | full records + document downloads |
+| France (`"fr"`) | Projets-Environnement (OpenDataSoft API) | full records + WGS84 geometry + document downloads (étude d’impact, RNT, avis AE) |
 | Austria (`"at"`) | Umweltbundesamt UVP-DB | record details only (no documents) |
 | Denmark (`"dk"`) | Danmarks Miljøportal EA-Hub | record metadata + polygon geometry (document downloads deferred) |
 | Belgium (Flanders) (`"be"`) | Departement Omgeving MER-register | full records + polygon geometry + document downloads |
 | Estonia (`"ee"`) | Keskkonnaamet KOTKAS (KMH + KSH) | EIA + SEA in one handler, full records + polygon geometry + document downloads |
+| Finland (`"fi"`) | ymparisto.fi (Elasticsearch proxy + HTML attachment scrape) | **EIA/YVA only** (no SEA in register), full records + document downloads (no geometry) |
+| Bulgaria (`"bg"`) | МОСВ registers (ОВОС + ЕО) | EIA + SEA in one handler, full records + document downloads (no geometry) |
+| Czech Republic (`"cz"`) | CENIA EIA/SEA (eia100_cr + SEA100_koncepce) | EIA + SEA in one handler, domestic CZ only, full records + document downloads (no geometry) |
+| Croatia (`"hr"`) | mzozt.gov.hr CMS pages (PUO + SPUO) | EIA + SEA in one handler, scraped CMS pages (no API), full records + document downloads (no geometry) |
+| Greece (`"gr"`) | ΗΠΜ / EPRM JSON:API (`eprm.ypen.gr`) | **AEPO decisions only** (EIA studies + SEA are login-gated), full records + WGS84 point geometry + one Diavgeia decision PDF |
+| Iceland (`"is"`) | Skipulagsgátt GraphQL API (`skipulagsgatt.is`) | EIA (screening + full) + SEA in one handler, **cases from ~June 2023 onward**, full records + WGS84 geometry + phase-file document downloads |
+| Ireland (`"ie"`) | gov.ie EIA Portal (Esri ArcGIS REST FeatureServer) | **EIA only** (no SEA register), full records + ITM (EPSG:2157) point geometry; portal hosts only the newspaper-notice PDF — the **full EIAR is off-portal** on the competent-authority sites |
 
 See
 [`vignette("supported_sources")`](https://barthoekstra.github.io/planscanR/articles/supported_sources.md)

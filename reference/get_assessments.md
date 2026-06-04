@@ -33,8 +33,9 @@ get_assessments(
 - country:
 
   Character scalar, ISO-3166-1 alpha-2 country code (any case). v0.1
-  supports `"nl"`, `"de"`, `"at"`, `"dk"`, `"be"` (Flanders), and
-  `"ee"`. See
+  supports `"nl"`, `"de"`, `"fr"`, `"at"`, `"dk"`, `"be"` (Flanders),
+  `"ee"`, `"fi"`, `"bg"`, `"cz"`, `"hr"`, `"gr"`, `"is"`, and `"ie"`.
+  See
   [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md).
 
 - date_range:

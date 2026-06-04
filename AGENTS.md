@@ -14,11 +14,27 @@ advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R:
 no Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Six country handlers ship: - Netherlands
+**v0.1 scope.** Eleven country handlers ship: - Netherlands
 ([`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md))
 — Commissie m.e.r. adviezenregister at `commissiemer.nl`. - Germany
 ([`get_assessments_de()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md))
-— UVP-Verbund federated portal at `uvp-verbund.de`. - Denmark
+— UVP-Verbund federated portal at `uvp-verbund.de`. - France
+([`get_assessments_fr()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_fr.md))
+— national Projets-Environnement portal at
+`projets-environnement.gouv.fr`, backed by a public **OpenDataSoft
+Explore API v2.1** (a documented anonymous REST+JSON service — the
+cleanest backend in the family). One export call enumerates the whole
+flat dataset (~5,483 records, every field inline; no detail call).
+Server-side ODSQL `where` filters: `query`
+([`search()`](https://rdrr.io/r/base/search.html)), `theme`
+(`dc_subject_theme`), `native_type` (`dc_type`), `status` (`vp_status`),
+`date_range` (`dc_date`). Attachments come from a fixed set of typed
+`dc_relation_*` fields mapped to curated slugs (`etude_impact`,
+`resume_non_technique`, `avis_ae`, `reponse_avis_ae`, `dossier`, …),
+restricted to real SICODEI document URLs (external préfecture HTML pages
+are dropped). Records with a `localisation` Feature get a
+`<document_id>.geometry.geojson` in **EPSG:4326** (WGS84; ODS always
+serves 4326). - Denmark
 ([`get_assessments_dk()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_dk.md))
 — Danmarks Miljøportal EA-Hub at `eahub.miljoeportal.dk`.
 **Metadata-only** in v0.x (records carry full metadata + polygon
@@ -45,6 +61,161 @@ input) in **EPSG:3301** (L-EST97), persisted as
 `<document_id>.geometry.geojson` next to the sidecar in the same layout
 as DK / BE. Direct anonymous document downloads, grouped per `Liik`
 (document type) into `attachment_urls_<slug>` columns dynamically. -
+Finland
+([`get_assessments_fi()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_fi.md))
+— the national environmental-administration site `ymparisto.fi`.
+**EIA/YVA only** (no SOVA/SEA content type in the register;
+`yva_project` is the only project type, so `assessment_type` accepts
+only `"All"` / `"EIA"`). **Hybrid** handler: a JSON Elasticsearch-proxy
+listing call (`POST .../fi/app/search/query`, raw ES Query DSL,
+from/size paging filtered to `type=yva_project`) supplies all metadata,
+then a per-record HTML landing-page fetch scrapes the attachment URLs
+(absent from the index) from `<a href>` under `/sites/default/files/`,
+typed from anchor text via a curated keyword map + auto-slug fallback.
+The detail fetch runs even when `download = FALSE` (to populate
+`attachment_urls`), skipped sidecar-first. Anonymous PDF downloads. **No
+geometry.** Throttled to 5 req/s by default. Two network seams
+(`fi_es_search`, `fi_fetch_detail`) mocked independently in tests. -
+Bulgaria
+([`get_assessments_bg()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_bg.md))
+— Ministry of Environment and Water (МОСВ) registers at
+`registers.moew.government.bg`. Merges both registers — **ОВОС** (EIA)
+and **ЕО** (SEA) — into one result tibble; each row carries an
+`assessment_type` column (`"EIA"` / `"SEA"`) and `document_id` is
+prefixed `"OVOS-"` / `"EO-"` so the two registers never collide on disk.
+Server-rendered (ASP.NET MVC) portal: listings paginate via
+`?offset=<n>&limit=<k>`, detail pages (`/ovos/lot/<id>`, `/eo/lot/<id>`)
+are scraped with `rvest` from a nested row-group `table.table-lot`. **No
+geometry** (location is administrative text only). Direct anonymous
+document downloads (`/ovos/file?fileKey=...&fileName=...`; the
+`fileName` param is required, so the full href is kept verbatim),
+grouped per row label into `attachment_urls_<slug>` columns dynamically
+(Bulgarian labels transliterated to ASCII). Throttled to 2 req/s by
+default (`getOption("planscanR.bg_throttle_rate")`). - Czech Republic
+([`get_assessments_cz()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_cz.md))
+— CENIA *Informační systém EIA/SEA* at `portal.cenia.cz/eiasea`.
+**Domestic CZ only**: merges just the two in-scope registers —
+`eia100_cr` (*Záměry na území ČR*, EIA) and `SEA100_koncepce`
+(*Posuzování koncepcí*, SEA) — into one result tibble and **never**
+crawls the cross-border / foreign (`eia100_mimo_cr`,
+`sea100_mezistatni`) or special sub-registers (`eia100_podlimitni` /
+`_pdz` / `_vzvp` / `eia244`, `sea100_pur*` / `zur*` / `up*`);
+ministry-coded records (`EIA_MZP*` / `SEA_MZP*`) inside the two domestic
+registers stay in scope. Each row carries an `assessment_type` column
+(`"EIA"` / `"SEA"`) and `document_id` is the register-namespaced detail
+code (`"EIA_JHC1237"`, `"SEA_HKK015K"`) so the two never collide on
+disk. Server-rendered (JSP / Tomcat) portal: listings paginate via a
+1-based `?p=<n>` query (out-of-range pages clamp to the last page, so
+stop when a page adds no new codes), detail pages
+(`/eiasea/detail/EIA_<CODE>`, `/eiasea/detail/SEA_<CODE>`) are scraped
+with `rvest` from a `table.detail` of label/value rows interspersed with
+bold stage headings. **No geometry** (location is administrative text
+only: Kraj / Okres / Obec / Katastr). Direct anonymous document
+downloads (`/eiasea/download/<token>/<file>`; token + filename kept
+verbatim from the href), grouped per process stage into
+`attachment_urls_<slug>` columns (Czech labels transliterated to ASCII);
+some attachments are very large ZIPs, bounded by `max_file_size_mb`.
+Throttled to 2 req/s by default
+(`getOption("planscanR.cz_throttle_rate")`). - Croatia
+([`get_assessments_hr()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_hr.md))
+— Ministry of Environment and Green Transition CMS pages at
+`mzozt.gov.hr`. **No API / no machine-readable register**: the register
+is a small set of server-rendered ASP.NET CMS pages where each procedure
+is an inlined
+`<li><strong>TITLE</strong> <ul>...document links...</ul></li>` block.
+The handler fetches the master page(s) once and parses each block as one
+record — no pagination, no per-record detail endpoint. Merges both
+registers — **PUO** (EIA) and **SPUO** (SEA) — into one result tibble;
+each row carries an `assessment_type` column (`"EIA"` / `"SEA"`). No
+native id: `document_id` is a stable SHA-1 hash of the title
+(`HR-PUO-<hash>` / `HR-SPUO-<hash>`, year folded in) and `url` is the
+master-page URL plus `#<document_id>` for a unique landing URL. **No
+geometry** (spatial info is inside the PDFs; a county/grad is
+heuristically pulled from the title into `jurisdiction`). Direct
+anonymous `.pdf` / `.zip` downloads grouped by stage sub-heading into
+`attachment_urls_<slug>` columns via a DE-style curated-map + auto-slug
+fallback (Croatian diacritics transliterated to ASCII; flat SPUO docs
+fall under `document`); the original href (with spaces / diacritics) is
+kept verbatim and percent-encoded only at download time. Filters:
+`assessment_type`, a client-side `query` title substring, and
+client-side `date_range`. Throttled to 5 req/s by default
+(`getOption("planscanR.hr_throttle_rate")`). - Greece
+([`get_assessments_gr()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_gr.md))
+— ΗΠΜ / EPRM JSON:API at `api.eprm.ypen.gr` (SPA landing at
+`eprm.ypen.gr`, robots-disallowed for crawling, used only as the human
+`url`). **AEPO decisions only**: the public registry exposes *Αποφάσεις
+Έγκρισης Περιβαλλοντικών Όρων* (the regulatory output of the EIA / ΜΠΕ
+process); the underlying ΜΠΕ study files and **all ΣΜΠΕ / SEA records
+are behind the gov.gr login** and are not fetchable, so each record is a
+decision (metadata + at most one decision PDF) and SEA is out of scope.
+Public, no-auth JSON:API (`Accept: application/json`): listing
+`GET /v1/license-decisions` paginates JSON:API-style (`page[number]`
+1-based, `page[size]`) and **each row is already the full record** (no
+detail call). `document_id` is the registry `id`. Server-side filters:
+`query` (`filter[text_search]`), `type` (`filter[type]`, decision-type
+enum), and `date_range` (`filter[issued_after]` /
+`filter[issued_before]`, on the issue date). One attachment per decision
+— the AEPO PDF from `diavgeia_doc_url` (hosted on Διαύγεια / Diavgeia) —
+under `attachment_urls_aepo`; a null `diavgeia_doc_url` yields zero
+attachments. Records with a `project_location` get a sibling
+`.geometry.geojson` **Point** in **EPSG:4326** (WGS84 lat/lon — *not*
+the Greek Grid EPSG:2100). Record language is Greek (`el`; country code
+`gr` differs). Throttled to 5 req/s by default
+(`getOption("planscanR.gr_throttle_rate")`). Reflected in
+`get_assessments_coverage()$status` as
+`"supported (decisions-only; studies/SEA login-gated)"`. - Iceland
+([`get_assessments_is()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_is.md))
+— **Skipulagsgátt** (Skipulagsstofnun) at `skipulagsgatt.is`; the
+package’s **first GraphQL backend** (anonymous `POST .../graphql`, body
+`{"query", "variables"}`, parsed via `perform_json`; single network seam
+`is_graphql()`). **Coverage horizon: cases from ~June 2023 onward only**
+(the dead `skipulag.is` DB is not crawled). Three `Issue` processes
+selected by `processId`, merged + tagged via `assessment_type`: `15`
+(matsskylda screening) + `16` (full EIA) → `"EIA"`, `501` (umhverfismat
+áætlana) → `"SEA"`; `assessment_type` arg picks the loop; `document_id`
+prefixed `IS-<processId>-<id>`. Listing = `issueConnection` cursor
+connection (`after: endCursor`); detail = `singleIssue(issueId)`,
+sidecar-first. Status from the plain `lifecycle` field — the
+`issueStatus` enum is **not** requested (server-side serialization bug
+500s the whole query on some records). Server-side filters: `query`
+(GraphQL `search`), `date_range` (`fromDate`/`toDate`). Attachments from
+`phases[].files[]` (published only), grouped by role into
+`attachment_urls_almennt` / `_vidbrogd` / `_afgreidsla`; URLs
+`https://www.skipulagsgatt.is/files/<uuid>`. `hasGeography` records get
+a sibling `.geometry.geojson` in **EPSG:4326** (WGS84 lon/lat — *not*
+projected ISN93); the per-feature geometry is a GeoJSON **string**
+needing a second parse. Record language Icelandic (`is`). Throttled to 5
+req/s by default (`getOption("planscanR.is_throttle_rate")`). Reflected
+in `get_assessments_coverage()$status` as
+`"supported (GraphQL; cases from ~June 2023 onward)"`. - Ireland
+([`get_assessments_ie()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ie.md))
+— **gov.ie EIA Portal** at `services.arcgis.com` (the
+`EIA_Location_Point` master layer); the package’s **first ArcGIS REST
+backend** (anonymous `GET .../query?f=json`, parsed via `perform_json`;
+single network seam `ie_arcgis_get(path, query)`). **EIA only — no
+SEA.** **Portal hosts only the newspaper / public-notice PDF; the full
+EIAR is off-portal** on the competent-authority sites, surfaced as the
+`url_link_application` / `url_link_secondary` extras (kept out of
+`attachment_urls` — a discovery target). **`OBJECTID_1` gotcha:** the
+layer’s unique id field is `OBJECTID_1`, not the non-unique `OBJECTID`;
+attachment lookups + the id fallback key off it, while `document_id` is
+the `Portal_Ref`. Listing = paginated `query`
+(`resultOffset`/`resultRecordCount`, page 1000, loop while
+`exceededTransferLimit`); metadata is inline in `attributes` (no detail
+endpoint); the synthetic `url` is a record-specific query on
+`Portal_Ref` (no permalink). Server-side filters: `query`
+(`UPPER(Description...) LIKE`), `competent_authority` (equality),
+`date_range` (`Date_of_receipt_of_application_` epoch-ms BETWEEN).
+Notice-PDF attachment URLs are resolved in a batched phase-2
+`queryAttachments` (keyed by `OBJECTID_1`, needed even when
+`download = FALSE`) and emitted under `attachment_urls_notice`. Esri
+point geometry converted in-house to a GeoJSON Point and saved to a
+sibling `.geometry.geojson` in **EPSG:2157** (Irish Transverse Mercator
+— *not* reprojected). `Date_of_receipt_of_application_` is epoch
+**milliseconds**. Record language English (`en`). Throttled to 5 req/s
+by default (`getOption("planscanR.ie_throttle_rate")`). Reflected in
+`get_assessments_coverage()$status` as
+`"supported (EIA only; portal = notice PDFs, full EIAR off-portal)"`. -
 Austria
 ([`get_assessments_at()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md))
 — Umweltbundesamt UVP-DB at `secure.umweltbundesamt.at/uvpdb`.
@@ -127,10 +298,17 @@ the answer — see
       ├── select_assessments_handler(country)    # switch() returning a function
       │     ├── get_assessments_nl(...)          # commissiemer.nl
       │     ├── get_assessments_de(...)          # uvp-verbund.de
+      │     ├── get_assessments_fr(...)          # projets-environnement.gouv.fr
       │     ├── get_assessments_at(...)          # secure.umweltbundesamt.at/uvpdb
       │     ├── get_assessments_dk(...)          # eahub.miljoeportal.dk
       │     ├── get_assessments_be(...)          # merregister.omgeving.vlaanderen.be
-      │     └── get_assessments_ee(...)          # kotkas.envir.ee
+      │     ├── get_assessments_ee(...)          # kotkas.envir.ee
+      │     ├── get_assessments_bg(...)          # registers.moew.government.bg
+      │     ├── get_assessments_cz(...)          # portal.cenia.cz/eiasea
+      │     ├── get_assessments_hr(...)          # mzozt.gov.hr
+      │     ├── get_assessments_gr(...)          # api.eprm.ypen.gr (AEPO decisions)
+      │     ├── get_assessments_is(...)          # skipulagsgatt.is/graphql (GraphQL)
+      │     └── get_assessments_ie(...)          # services.arcgis.com (ArcGIS REST; EIA)
       ├── validate_result_schema()               # invariant gate before returning
       └── discover_attachments()                 # optional, when discover = TRUE
 

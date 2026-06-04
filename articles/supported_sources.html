@@ -68,12 +68,13 @@
     
 <p><code>planscanR</code> is a thin layer over a handful of national
 environmental-assessment portals (currently Netherlands, Germany,
-Austria, Denmark, Belgium (Flanders), and Estonia). There is no shared
-API behind the scenes — each country gives us a different mix of HTML
-pages, sitemaps, search endpoints, and undocumented JSON handlers, and
-each one comes with its own quirks. This vignette describes what each
-handler does, where it pulls data from, and what to expect (or watch out
-for) when using it.</p>
+France, Austria, Denmark, Belgium (Flanders), Estonia, Finland,
+Bulgaria, the Czech Republic, Croatia, Greece, and Iceland). There is no
+shared API behind the scenes — each country gives us a different mix of
+HTML pages, sitemaps, search endpoints, and undocumented JSON handlers,
+and each one comes with its own quirks. This vignette describes what
+each handler does, where it pulls data from, and what to expect (or
+watch out for) when using it.</p>
 <p>For the runtime equivalent — the same information in tabular form,
 including the valid vocabularies for the search facets each handler
 accepts — call:</p>
@@ -189,6 +190,61 @@ for the full layout.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_de.html">get_assessments_de</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"windenergie"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="france--fr">France — <code>"fr"</code><a class="anchor" aria-label="anchor" href="#france--fr"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> Projets-Environnement (<a href="https://www.projets-environnement.gouv.fr/" class="external-link">projets-environnement.gouv.fr</a>)</li>
+<li>
+<strong>Status:</strong> supported — full records, WGS84 geometry,
+and document downloads.</li>
+<li>
+<strong>Authentication:</strong> none.</li>
+<li>
+<strong>Coverage:</strong> ~5,483 records (the full diffusion
+dataset).</li>
+</ul>
+<p>Unlike the SPA-behind-a-private-API portals elsewhere in the family,
+this one is a public <strong>OpenDataSoft Explore API v2.1</strong>
+platform — a documented, anonymous REST+JSON service. The whole register
+is one flat dataset (<code>projets-environnement-diffusion</code>), with
+every field inline in each record, so there is no separate detail call.
+The handler enumerates via the export endpoint
+(<code>/exports/json?limit=-1</code>), which has no offset cap and
+returns the full filtered set in one call. The stable business key
+<code>recordsid</code> is used as <code>document_id</code>.</p>
+<p><strong>Throttle.</strong> 5 requests per second by default
+(<code>getOption("planscanR.fr_throttle_rate")</code>). The enumeration
+is a single export call; the throttle mainly paces per-attachment
+downloads.</p>
+<p><strong>Filter coverage.</strong> All filters are server-side via
+ODSQL <code>where</code> clauses: <code>query</code> becomes
+<code>search("&lt;query&gt;")</code>; <code>theme</code>
+(<code>dc_subject_theme</code>), <code>native_type</code>
+(<code>dc_type</code>) and <code>status</code> (<code>vp_status</code>)
+become equality clauses; <code>date_range</code> becomes a
+<code>dc_date</code> window. See <code><a href="../reference/get_assessments_coverage.html">?get_assessments_coverage</a></code>
+for the <code>theme</code> / <code>status</code> /
+<code>native_type</code> vocabularies.</p>
+<p><strong>Documents.</strong> Attachments come from a fixed set of
+typed <code>dc_relation_*</code> fields, each mapped to a curated slug:
+<code>attachment_urls_etude_impact</code> (the étude d’impact PDF),
+<code>_resume_non_technique</code> (résumé non technique),
+<code>_avis_ae</code> (avis de l’Autorité environnementale),
+<code>_reponse_avis_ae</code>, <code>_dossier</code> (the
+<code>*_DCZIP.zip</code>), plus a few others. Only real document URLs on
+the <code>sicodei.projets-environnement.gouv.fr</code> blob host (or
+<code>.pdf</code>/<code>.zip</code> links) become attachments — external
+préfecture web pages are kept only as extras.</p>
+<p><strong>Geometry.</strong> About 1,472 records carry a
+<code>localisation</code> GeoJSON Feature (typically a
+<code>MultiPolygon</code>). OpenDataSoft always serves WGS84, so each is
+saved as a sibling <code>&lt;document_id&gt;.geometry.geojson</code>
+with <code>geometry_crs = "EPSG:4326"</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_fr.html">get_assessments_fr</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"éolien"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="austria--at">Austria — <code>"at"</code><a class="anchor" aria-label="anchor" href="#austria--at"></a>
 </h2>
 <ul>
@@ -225,7 +281,7 @@ record returns <code>attachment_urls = character(0)</code>. The
 effect. If you need attachments, point
 <code>get_assessments(..., discover = TRUE)</code> at a web-search
 backend — see [<code><a href="../reference/discover_attachments.html">?discover_attachments</a></code>].</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_at.html">get_assessments_at</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"Windpark"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -278,7 +334,7 @@ URLs reachable via
 resolving them costs an extra HTTP call per document. The current
 handler is scan + classify only; a future release will add the download
 phase.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_dk.html">get_assessments_dk</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"vindmølle"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -336,7 +392,7 @@ own <code>attachment_urls_&lt;slug&gt;</code> /
 <code>local_path_&lt;slug&gt;</code> column. The deduplicated union is
 at <code>attachment_urls</code> / <code>local_path</code> as the schema
 requires.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_be.html">get_assessments_be</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"wind"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -410,12 +466,640 @@ Each type becomes its own <code>attachment_urls_&lt;slug&gt;</code> /
 <code>local_path_&lt;slug&gt;</code> column. The deduplicated union is
 at <code>attachment_urls</code> / <code>local_path</code> as the schema
 requires.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Both registers, wind-themed slice</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_ee.html">get_assessments_ee</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"tuulepark"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># SEA only</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_ee.html">get_assessments_ee</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="finland--fi">Finland — <code>"fi"</code><a class="anchor" aria-label="anchor" href="#finland--fi"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> ymparisto.fi, the national
+environmental-administration site (<a href="https://www.ymparisto.fi/" class="external-link">ymparisto.fi</a>)</li>
+<li>
+<strong>Status:</strong> supported — <strong>EIA/YVA only</strong>.
+The ymparisto.fi search index has no SOVA/SEA (strategic assessment)
+content type; <code>yva_project</code> is the only project type, so this
+handler delivers project-level EIA (<em>YVA</em>,
+<em>ympäristövaikutusten arviointi</em>) records only. There is no SEA
+path.</li>
+<li>
+<strong>Authentication:</strong> none.</li>
+<li>
+<strong>Coverage:</strong> ~1,334 YVA records at the time of
+writing.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.fi_throttle_rate")</code>) — the ~1,334
+per-record HTML landing-page GETs (needed to harvest attachment URLs)
+dominate a cold crawl.</li>
+</ul>
+<p>This handler is a <strong>hybrid</strong>. ymparisto.fi is a Drupal +
+React site whose site-search is backed by an Elasticsearch index exposed
+through a same-origin proxy that passes raw ES Query DSL:
+<code>POST https://www.ymparisto.fi/fi/app/search/query</code> with a
+JSON body. The handler filters to
+<code>{"query":{"term":{"type":"yva_project"}}}</code> and paginates
+with ES <code>from</code>/<code>size</code> against a stable id sort;
+the whole register sits under the 10,000 <code>max_result_window</code>.
+All record <strong>metadata</strong> (title, description, publish time,
+project phase, the responsible ELY-keskus, municipality, province,
+subject area) comes from the index. A Swedish <code>/sv/</code> index
+exists but is ignored in v0.1.</p>
+<p><strong>Geometry.</strong> None — neither the index nor the landing
+page exposes coordinates, so no geometry columns are emitted.</p>
+<p><strong>Filter coverage.</strong> <code>query</code> is forwarded
+server-side as an ES <code>match</code> over the <code>content</code> +
+<code>title</code> fields. <code>assessment_type</code> accepts only
+<code>"All"</code> / <code>"EIA"</code> (both crawl the single
+<code>yva_project</code> register; there is no <code>"SEA"</code>).
+<code>date_range</code> is matched client-side against
+<code>date_published</code> (the <code>publishTime</code> unix-seconds
+epoch); <code>date_decision</code> is always <code>NA</code> (no
+structured decision timestamp in the index).</p>
+<p><strong>Documents.</strong> Attachment URLs are <strong>not</strong>
+in the Elasticsearch index — they live only on the HTML landing page.
+For each kept record the handler GETs the record’s landing page and
+scrapes every <code>&lt;a href&gt;</code> under
+<code>/sites/default/files/</code>, resolving them to absolute,
+anonymous
+<code>https://www.ymparisto.fi/sites/default/files/documents/&lt;file&gt;.{pdf,doc,docx}</code>
+URLs. Because the URLs come from the HTML, this detail fetch runs even
+when <code>download = FALSE</code> (to populate
+<code>attachment_urls</code>); it is skipped only when a sidecar already
+exists for the URL (sidecar-first). Documents are typed by their
+<strong>anchor text</strong> (the page has no structured section markup)
+via a curated keyword map with an auto-slug fallback:
+<code>arviointiohjelma</code> → <code>programme</code>,
+<code>arviointiselostus</code> → <code>report</code>,
+<code>lausunto</code> → <code>statement</code>, <code>kuulutus</code> →
+<code>notice</code>, <code>tiivistelmä</code> → <code>summary</code>.
+Each type becomes its own <code>attachment_urls_&lt;slug&gt;</code> /
+<code>local_path_&lt;slug&gt;</code> column; the deduplicated union is
+at <code>attachment_urls</code> / <code>local_path</code> as the schema
+requires.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Wind-themed slice (server-side full-text)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_fi.html">get_assessments_fi</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"tuulivoima"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="bulgaria--bg">Bulgaria — <code>"bg"</code><a class="anchor" aria-label="anchor" href="#bulgaria--bg"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> Ministry of Environment and Water (МОСВ)
+public registers — ОВОС-register (EIA) and ЕО-register (SEA) (<a href="https://registers.moew.government.bg/" class="external-link">registers.moew.government.bg</a>)</li>
+<li>
+<strong>Status:</strong> supported — full metadata and anonymous
+document downloads, across <strong>both</strong> registers. No
+geometry.</li>
+<li>
+<strong>Authentication:</strong> none.</li>
+<li>
+<strong>Coverage:</strong> ~35,000 EIA records (ОВОС, <em>Оценка на
+въздействието върху околната среда</em>) and ~10,000 SEA records (ЕО,
+<em>Екологична оценка</em>) at the time of writing. The handler merges
+both registers into one result tibble and tags each row via the
+<code>assessment_type</code> column (<code>"EIA"</code> for ОВОС,
+<code>"SEA"</code> for ЕО). <code>document_id</code> is prefixed
+<code>"OVOS-"</code> / <code>"EO-"</code> so the two registers never
+collide on disk. Because the registers are large, pass
+<code>limit</code> and/or <code>query</code> while exploring.</li>
+<li>
+<strong>Throttle:</strong> 2 requests/second by default
+(<code>getOption("planscanR.bg_throttle_rate")</code>) — detail fetches
+are slow (~4 s server-side) and the host is a small government
+server.</li>
+</ul>
+<p>The registers are server-rendered ASP.NET MVC pages (no SPA, no
+viewstate). Each register’s listing paginates via a numeric
+<code>offset</code> plus a <code>limit</code> query parameter
+(<code>?offset=&lt;n&gt;&amp;limit=&lt;k&gt;</code>); the page text
+<em>Намерени <n> досиета.</n></em> (“Found N dossiers”) is the authoritative
+total. Detail pages live at <code>/ovos/lot/&lt;id&gt;</code> and
+<code>/eo/lot/&lt;id&gt;</code> and are scraped with <code>rvest</code>
+from a single nested row-group <code>table.table-lot</code> (each row
+carries a label <code>&lt;th&gt;</code> and a value
+<code>&lt;td&gt;</code>).</p>
+<p><strong>Geometry.</strong> None. The МОСВ registers expose no
+coordinates or GeoJSON; location is administrative text only and is
+composed into <code>jurisdiction</code> (Област / Община / Населено
+място). No <code>geometry_path</code> / <code>geometry_crs</code>
+columns are emitted.</p>
+<p><strong>Filter coverage.</strong> <code>query</code> is forwarded
+server-side as <code>projectName</code> (substring match on the
+project/plan name). <code>assessment_type</code> (<code>"All"</code>,
+<code>"EIA"</code>, <code>"SEA"</code>) decides which register(s) to
+crawl. <code>date_range</code> is matched client-side against
+<code>date_published</code> (the dossier submission date);
+<code>date_decision</code> is the termination-decision date (<em>Дата на
+решението за прекратяване</em>) when present, else <code>NA</code>. The
+portal also accepts <code>contractorNames</code> and
+region/authority/procedure/date filters server-side; these are not
+first-class in v0.1.</p>
+<p><strong>Documents.</strong> Detail pages render document links inline
+inside the lot table’s value cells, with direct anonymous download URLs
+of the form
+<code>/ovos/file?fileKey=&lt;uuid&gt;&amp;fileName=&lt;name&gt;</code>
+(and <code>/eo/file?...</code>). The <code>fileName</code> query
+parameter is required by the server (it 500s without it), so the handler
+captures the full href verbatim rather than reconstructing it. Documents
+are typed only by the table-row label they sit under (Уведомление,
+Описание, Писмо, …); each label becomes its own
+<code>attachment_urls_&lt;slug&gt;</code> /
+<code>local_path_&lt;slug&gt;</code> column (the Bulgarian label is
+transliterated to ASCII). The deduplicated union is at
+<code>attachment_urls</code> / <code>local_path</code> as the schema
+requires.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Both registers, wind-themed slice</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_bg.html">get_assessments_bg</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"вятър"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA only</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_bg.html">get_assessments_bg</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="czech-republic--cz">Czech Republic — <code>"cz"</code><a class="anchor" aria-label="anchor" href="#czech-republic--cz"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> CENIA <em>Informační systém EIA/SEA</em> —
+the EIA register <em>Záměry na území ČR</em> (<code>eia100_cr</code>)
+and the SEA register <em>Posuzování koncepcí</em>
+(<code>SEA100_koncepce</code>) (<a href="https://portal.cenia.cz/eiasea/" class="external-link">portal.cenia.cz/eiasea</a>)</li>
+<li>
+<strong>Status:</strong> supported — full metadata and anonymous
+document downloads, across <strong>both</strong> in-scope registers. No
+geometry.</li>
+<li>
+<strong>Authentication:</strong> none.</li>
+<li>
+<strong>Scope (domestic CZ only):</strong> the handler crawls
+<strong>only</strong> the two domestic registers above. The portal also
+hosts cross-border / foreign registers (<code>eia100_mimo_cr</code> —
+projects outside CZ, <code>sea100_mezistatni</code> — cross-border SEA)
+and several special sub-registers (the sub-limit / priority-transport /
+large-project EIA registers <code>eia100_podlimitni</code> /
+<code>_pdz</code> / <code>_vzvp</code> / <code>eia244</code>, and the
+territorial-planning SEA registers <code>sea100_pur*</code> /
+<code>zur*</code> / <code>up*</code>); these are <strong>never</strong>
+enumerated. Ministry-coded records (<code>EIA_MZP*</code> /
+<code>SEA_MZP*</code>) <em>inside</em> the two domestic registers are
+domestic projects/plans assessed by the Ministry and stay in scope.</li>
+<li>
+<strong>Coverage:</strong> ~22,780 EIA záměry and ~640 SEA koncepce
+at the time of writing. Both registers merge into one result tibble and
+tag each row via the <code>assessment_type</code> column
+(<code>"EIA"</code> / <code>"SEA"</code>). <code>document_id</code> is
+the register-namespaced detail code (e.g. <code>"EIA_JHC1237"</code>,
+<code>"SEA_HKK015K"</code>), so the two never collide on disk. Because
+the EIA register is large, pass <code>limit</code> while exploring.</li>
+<li>
+<strong>Throttle:</strong> 2 requests/second by default
+(<code>getOption("planscanR.cz_throttle_rate")</code>) — the portal is a
+single Tomcat instance and a full crawl is large.</li>
+<li>
+<strong>Language:</strong> record content is Czech (ISO-639-1
+<code>cs</code>; the country code <code>cz</code> differs from the
+language code). <code>lang=en</code> only flips UI chrome, so the
+handler fetches with <code>lang=cs</code>.</li>
+</ul>
+<p>The registers are server-rendered JSP pages (Apache Tomcat — not a
+SPA). Each listing paginates via a <strong>1-based</strong>
+<code>?p=&lt;n&gt;</code> query (10 records/page); out-of-range pages
+are clamped to the last page by the server, so the handler stops
+paginating once a page contributes no detail codes it has not already
+seen. Detail pages live at <code>/eiasea/detail/EIA_&lt;CODE&gt;</code>
+and <code>/eiasea/detail/SEA_&lt;CODE&gt;</code> and are scraped with
+<code>rvest</code> from a single <code>table.detail</code> of
+label/value rows interspersed with bold process-stage heading rows.</p>
+<p><strong>Geometry.</strong> None. The CENIA detail pages expose no
+coordinates or GeoJSON; location is administrative text only and is
+composed into <code>jurisdiction</code> (Kraj / Okres / Obec / Katastr).
+No <code>geometry_path</code> / <code>geometry_crs</code> columns are
+emitted.</p>
+<p><strong>Filter coverage.</strong> <code>assessment_type</code>
+(<code>"All"</code>, <code>"EIA"</code>, <code>"SEA"</code>) decides
+which register(s) to crawl. <code>date_range</code> is matched
+client-side against <code>date_published</code> — the EIA last-modified
+date (<em>Datum a čas posledních úprav</em>) or the SEA publication date
+(<em>Datum zveřejnění</em>); <code>date_decision</code> is always
+<code>NA</code> because the portal exposes no single clean decision-date
+field. Dates are parsed from the Java <code>Date.toString()</code> form
+(e.g. <code>Thu Jun 04 07:28:50 CEST 2026</code>).</p>
+<p><strong>Documents.</strong> Detail pages render document links inline
+inside the detail table’s value cells, with direct anonymous download
+URLs of the form
+<code>/eiasea/download/&lt;token&gt;/&lt;file&gt;</code>. Both the
+base64-ish token and the trailing human filename are captured verbatim
+from the rendered href. Documents are grouped by process-stage heading
+(OZNÁMENÍ, ZJIŠŤOVACÍ ŘÍZENÍ, DOKUMENTACE, POSUDEK, VEŘEJNÉ PROJEDNÁNÍ,
+STANOVISKO for EIA; the oznámení / vyhodnocení / návrh koncepce /
+stanovisko / schválená koncepce fields for SEA); each stage becomes its
+own <code>attachment_urls_&lt;slug&gt;</code> /
+<code>local_path_&lt;slug&gt;</code> column (the Czech label is
+transliterated to ASCII). The deduplicated union is at
+<code>attachment_urls</code> / <code>local_path</code> as the schema
+requires. Note that some attachments are very large ZIP bundles (e.g. a
+79 MB <code>oznameni.zip</code>); the <code>max_file_size_mb</code> cap
+skips oversized files rather than fetching them.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Both registers, first few records</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_cz.html">get_assessments_cz</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA only</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_cz.html">get_assessments_cz</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="croatia--hr">Croatia — <code>"hr"</code><a class="anchor" aria-label="anchor" href="#croatia--hr"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> Ministry of Environment and Green
+Transition CMS pages — <em>Procjena utjecaja zahvata na okoliš</em> (PUO
+/ project-level EIA) and <em>Strateška procjena utjecaja na okoliš</em>
+(SPUO / plan-level SEA) (<a href="https://mzozt.gov.hr/" class="external-link">mzozt.gov.hr</a>). Pin the domain
+<code>mzozt.gov.hr</code>; it was renamed from <code>mingor</code> /
+<code>mingo</code> and the old links 30x-redirect to it.</li>
+<li>
+<strong>Status:</strong> supported — full metadata and anonymous
+document downloads, across <strong>both</strong> registers. No API. No
+geometry.</li>
+<li>
+<strong>Authentication:</strong> none.</li>
+<li>
+<strong>No machine-readable register.</strong> Croatia exposes no
+JSON API and no per-record detail endpoint. The “register” is a small
+set of server-rendered ASP.NET CMS pages; each procedure is an inlined
+<code>&lt;li&gt;&lt;strong&gt;PROJECT TITLE&lt;/strong&gt; &lt;ul&gt;...document links...&lt;/ul&gt;&lt;/li&gt;</code>
+block. The handler fetches the master page(s) once and treats each block
+as one record — there is <strong>no</strong> pagination. PUO is one
+large master archive page (~550 procedures / ~2,500 documents); SPUO is
+two small pages (Ministry-competent and other-competent-body
+procedures).</li>
+<li>
+<strong>Coverage:</strong> both registers merge into one result
+tibble and tag each row via the <code>assessment_type</code> column
+(<code>"EIA"</code> / <code>"SEA"</code>). Because there is no native
+procedure id, <code>document_id</code> is a stable deterministic SHA-1
+hash of the title (<code>HR-PUO-&lt;hash&gt;</code> /
+<code>HR-SPUO-&lt;hash&gt;</code>, with a cleanly-parseable year folded
+in when present), so the two never collide on disk. <code>url</code> is
+the master-page URL plus <code>#&lt;document_id&gt;</code>, giving each
+record a unique landing URL while still pointing a human at the right
+page.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.hr_throttle_rate")</code>) — only ~3 HTML
+fetches plus N PDF downloads, so the throttle is politeness for the
+download phase.</li>
+<li>
+<strong>Language:</strong> record content is Croatian (ISO-639-1
+<code>hr</code>).</li>
+</ul>
+<p><strong>Geometry.</strong> None. The CMS pages expose no coordinates
+or GeoJSON; spatial information, where present, lives inside the PDFs. A
+county / <em>grad</em> is heuristically pulled from the title into
+<code>jurisdiction</code> when trivially present, else <code>NA</code>.
+No <code>geometry_path</code> / <code>geometry_crs</code> columns are
+emitted.</p>
+<p><strong>Filter coverage.</strong> <code>assessment_type</code>
+(<code>"All"</code>, <code>"EIA"</code>, <code>"SEA"</code>) decides
+which register(s) to crawl. <code>query</code> is a
+<strong>client-side</strong> title substring match (the CMS pages have
+no server-side search). <code>date_range</code> is matched client-side
+against <code>date_published</code> — the earliest document date in the
+block (every document anchor is prefixed <code>DD.MM.YYYY.</code>);
+<code>date_decision</code> is the <em>rješenje</em> / <em>odluka</em>
+(decision) date when present, else <code>NA</code>.</p>
+<p><strong>Documents.</strong> Direct anonymous <code>.pdf</code>
+(sometimes <code>.zip</code>) download links carry stable
+<code>data-fileid</code> attributes. Documents are grouped by the stage
+sub-heading they sit under (PUO <em>informacija o zahtjevu</em> /
+<em>javni uvid</em> / <em>nacrt rješenja</em> / <em>rješenje</em>); SPUO
+procedures often list their documents flat under the title with no stage
+sub-heading, which fall under the <code>document</code> slug. Known
+stage labels get a stable curated slug; anything else is auto-slugged
+from the heading (Croatian diacritics transliterated to ASCII). Each
+stage becomes its own <code>attachment_urls_&lt;slug&gt;</code> /
+<code>local_path_&lt;slug&gt;</code> column; the deduplicated union is
+at <code>attachment_urls</code> / <code>local_path</code> as the schema
+requires. The <code>href</code> is captured verbatim (with its spaces
+and Croatian diacritics) and percent-encoded only for the network
+request at download time.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Both registers, first few records</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_hr.html">get_assessments_hr</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA only</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_hr.html">get_assessments_hr</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="greece--gr">Greece — <code>"gr"</code><a class="anchor" aria-label="anchor" href="#greece--gr"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> ΗΠΜ / EPRM (<em>Ηλεκτρονικό Περιβαλλοντικό
+Μητρώο</em> — Electronic Environmental Registry) of the Ministry of
+Environment &amp; Energy (ΥΠΕΝ), served by a public JSON:API at <a href="https://api.eprm.ypen.gr/v1/license-decisions" class="external-link">api.eprm.ypen.gr</a>.
+The human-facing SPA lives at <a href="https://eprm.ypen.gr/" class="external-link">eprm.ypen.gr</a> (its
+<code>robots.txt</code> disallows crawling the HTML, so the handler
+harvests only from the JSON:API and uses the SPA route purely as the
+canonical <code>url</code>).</li>
+<li>
+<strong>Status:</strong> supported, <strong>with an important
+coverage caveat (decisions only)</strong> — see below. Reflected in
+<code>get_assessments_coverage()$status</code> as
+<code>"supported (decisions-only; studies/SEA login-gated)"</code>.</li>
+<li>
+<strong>Authentication:</strong> none for the public registry (each
+request sends <code>Accept: application/json</code>; no cookie /
+CSRF).</li>
+<li>
+<strong>AEPO decisions only (read this first).</strong> The public
+registry exposes only <strong>AEPO decisions</strong> — <em>Αποφάσεις
+Έγκρισης Περιβαλλοντικών Όρων</em>, the regulatory
+<strong>output</strong> of the EIA (ΜΠΕ) process. The underlying
+<strong>ΜΠΕ study files and all ΣΜΠΕ / SEA records sit behind the gov.gr
+login</strong> on <code>platform.eprm.ypen.gr</code> and are
+<strong>not</strong> fetchable here. So each record is a decision
+(metadata + at most one decision PDF) — never the EIA study itself, and
+the SEA register is entirely out of scope. Plan for a decisions-only
+corpus.</li>
+<li>
+<strong>Coverage:</strong> ≈19,800 AEPO decisions. The listing
+endpoint (<code>GET /v1/license-decisions</code>) paginates
+JSON:API-style via <code>page[number]</code> (1-based) and
+<code>page[size]</code> (default 100); each list row is <strong>already
+the full record</strong>, so there is no separate detail call.
+<code>document_id</code> is the registry <code>id</code>
+(e.g. <code>"19895"</code>, globally unique in the register).</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.gr_throttle_rate")</code>) — enumeration is
+≈200 list calls plus one download per attachment.</li>
+<li>
+<strong>Language:</strong> record content is Greek (ISO-639-1
+<code>el</code>; note the country code <code>gr</code> differs from the
+language code <code>el</code>).</li>
+</ul>
+<p><strong>Geometry.</strong> A record’s <code>project_location</code>
+is an array of <code>{lat, lon}</code> pairs. When present, the first
+pair is written as a <strong>Point</strong> geometry next to the sidecar
+as <code>&lt;document_id&gt;.geometry.geojson</code> (the family
+FeatureCollection layout, GeoJSON-2008 <code>crs</code> member naming
+<code>urn:ogc:def:crs:EPSG::4326</code>). The coordinates are already
+geographic <strong>WGS84 (EPSG:4326)</strong> — <em>not</em> the Greek
+Grid (EPSG:2100) — so no reprojection happens; <code>geometry_crs</code>
+is <code>"EPSG:4326"</code>. Records with no location leave the geometry
+columns <code>NA</code>.</p>
+<p><strong>Filter coverage.</strong> All server-side JSON:API
+<code>filter[...]</code> parameters: <code>query</code> -&gt;
+<code>filter[text_search]</code> (free-text), <code>type</code> -&gt;
+<code>filter[type]</code> (decision-type enum — see
+<code><a href="../reference/get_assessments_coverage.html">get_assessments_coverage()</a></code>,
+e.g. <code>"aepo_creation"</code>), and <code>date_range</code> -&gt;
+<code>filter[issued_after]</code> / <code>filter[issued_before]</code>
+(matched on the decision issue date, re-checked client-side as a guard).
+<code>date_published</code> is the registry publication timestamp;
+<code>date_decision</code> is the issue date.</p>
+<p><strong>Documents.</strong> At most one document per decision — the
+AEPO decision PDF — taken verbatim from <code>diavgeia_doc_url</code>.
+These are hosted on <strong>Διαύγεια / Diavgeia</strong> (the Greek
+government transparency portal) at
+<code>https://diavgeia.gov.gr/luminapi/api/decisions/{ADA}/document.pdf</code>;
+the ADA in the path contains Greek characters, left for the HTTP client
+to percent-encode at request time. It lands under the single slug
+<code>attachment_urls_aepo</code> / <code>local_path_aepo</code>, with
+the deduplicated union at <code>attachment_urls</code> /
+<code>local_path</code>. Records whose <code>diavgeia_doc_url</code> is
+<code>null</code> yield zero attachments (still schema-valid).</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># AEPO decisions, first few records</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_gr.html">get_assessments_gr</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># New AEPO approvals only</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_gr.html">get_assessments_gr</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"aepo_creation"</span>, limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="iceland--is">Iceland — <code>"is"</code><a class="anchor" aria-label="anchor" href="#iceland--is"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> <strong>Skipulagsgátt</strong>
+(Skipulagsstofnun / National Planning Agency), served by an anonymous
+<strong>GraphQL</strong> API at <a href="https://www.skipulagsgatt.is/graphql" class="external-link">www.skipulagsgatt.is/graphql</a>.
+The human-facing Vue SPA lives at <a href="https://www.skipulagsgatt.is/" class="external-link">www.skipulagsgatt.is</a>; the
+canonical <code>url</code> for a record is
+<code>https://www.skipulagsgatt.is/issues/&lt;id&gt;</code>. This is the
+package’s <strong>first GraphQL-backed handler</strong> — the transport
+is a single HTTP <code>POST .../graphql</code> with a JSON body
+<code>{"query": ..., "variables": ...}</code>.</li>
+<li>
+<strong>Status:</strong> supported, <strong>with an important
+coverage caveat (recent cases only)</strong> — see below. Reflected in
+<code>get_assessments_coverage()$status</code> as
+<code>"supported (GraphQL; cases from ~June 2023 onward)"</code>.</li>
+<li>
+<strong>Authentication:</strong> none (anonymous GraphQL).</li>
+<li>
+<strong>Coverage horizon (read this first).</strong> Skipulagsgátt
+only carries cases from <strong>roughly June 2023 onward</strong> (when
+the portal went live). The older <code>skipulag.is</code> /
+<code>island.is</code> “gagnagrunnur umhverfismats” is dead (it now
+redirects to static info) and is <strong>not</strong> crawled. So this
+handler yields a recent-cases-only corpus (~235 environmental-assessment
+issues at the time of writing).</li>
+<li>
+<strong>Three processes merged.</strong> The portal models every
+dossier as a unified <code>Issue</code>; environmental assessment lives
+in three of its <code>process</code>es, selected server-side by
+<code>processId</code> and merged into one tibble with an
+<code>assessment_type</code> tag: <code>15</code> (<em>matsskylda</em>
+screening, EIA-track) and <code>16</code> (full <em>Mat á
+umhverfisáhrifum</em>, EIA) → <code>"EIA"</code>; <code>501</code>
+(<em>Umhverfismat áætlana</em>, SEA) → <code>"SEA"</code>. The
+<code>assessment_type</code> argument
+(<code>"All"</code>/<code>"EIA"</code>/<code>"SEA"</code>) picks the
+process loop. Because the three share the same <code>Issue.id</code>
+space, <code>document_id</code> is prefixed
+<code>IS-&lt;processId&gt;-&lt;id&gt;</code> (e.g.
+<code>IS-16-137</code>) so they never collide on disk; the finer
+distinction is kept in <code>process_type</code> /
+<code>native_type</code>.</li>
+<li>
+<strong>Enumeration.</strong> The listing is the GraphQL
+<code>issueConnection(input, first, after)</code> cursor connection,
+paginated with <code>after: endCursor</code>. <code>processId</code> is
+single-valued per query, so the handler loops the selected processes.
+Detail is one <code>singleIssue(issueId)</code> call per record,
+sidecar-first.</li>
+<li>
+<strong>Status field gotcha.</strong> Record status is read from the
+plain-string <code>lifecycle</code> field (e.g. <code>"done"</code>,
+<code>"process_initialized"</code>). The handler deliberately does
+<strong>not</strong> request the <code>issueStatus</code> enum — it has
+a server-side serialization bug that returns HTTP 500 for the whole
+query on some records.</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.is_throttle_rate")</code>).</li>
+<li>
+<strong>Language:</strong> record content is Icelandic (ISO-639-1
+<code>is</code>).</li>
+</ul>
+<p><strong>Geometry.</strong> <code>Issue.hasGeography</code> flags
+whether a record has a footprint; <code>Issue.geographies</code> returns
+a GraphQL <code>FeatureCollection</code> whose per-feature
+<code>geometry</code> arrives as a GeoJSON <strong>string</strong> that
+needs a <em>second</em> <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html" class="external-link">jsonlite::fromJSON</a></code> parse. Point /
+LineString / Polygon are all observed. Coordinates are already
+geographic <strong>WGS84 (EPSG:4326 lon/lat)</strong> — <em>not</em> the
+projected ISN93 grid — so no reprojection happens. When present, the
+geometry is written next to the sidecar as
+<code>&lt;document_id&gt;.geometry.geojson</code> (family
+FeatureCollection layout, <code>urn:ogc:def:crs:EPSG::4326</code>);
+<code>geometry_crs</code> is <code>"EPSG:4326"</code>. Records with
+<code>hasGeography = false</code> / an empty collection leave the
+geometry columns <code>NA</code>.</p>
+<p><strong>Filter coverage.</strong> Server-side: <code>query</code>
+-&gt; the GraphQL <code>search</code> field (full-text), and
+<code>date_range</code> -&gt; <code>fromDate</code> /
+<code>toDate</code> (matched on the <code>publishedDate</code>,
+re-checked client-side as a guard). <code>assessment_type</code> selects
+which process(es) to crawl (applied in R, by choosing the process loop).
+<code>date_published</code> is the <code>publishedDate</code>;
+<code>date_decision</code> is the <code>closedDate</code>.</p>
+<p><strong>Documents.</strong> Documents live under
+<code>phases[].files[]</code>, each an <code>IssuePhaseFile</code> with
+a semantic-role <code>type</code> and a nested <code>data</code>
+<code>File</code>. Only files with <code>published == true</code> are
+emitted. They are grouped by their role into lowercase slugs —
+<code>almennt</code> (general; incl. the matsskýrsla / EIA report and
+matsáætlun), <code>vidbrogd</code> (developer responses),
+<code>afgreidsla</code> (the decision / álit) — one
+<code>attachment_urls_&lt;slug&gt;</code> /
+<code>local_path_&lt;slug&gt;</code> list-column each, with the
+deduplicated union at <code>attachment_urls</code> /
+<code>local_path</code>. The download URL is
+<code>https://www.skipulagsgatt.is/&lt;File.path&gt;</code> (path of the
+form <code>files/&lt;uuid&gt;</code>), anonymous. PDFs are large (often
+10-16 MB) — set <code>max_file_size_mb</code> accordingly. The top-level
+<code>Issue.files</code> collection is usually empty and is ignored.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent EIA cases (screening + full), first few records</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_is.html">get_assessments_is</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"EIA"</span>, limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SEA only (umhverfismat áætlana)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_is.html">get_assessments_is</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"SEA"</span>, limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="ireland--ie">Ireland — <code>"ie"</code><a class="anchor" aria-label="anchor" href="#ireland--ie"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> Ireland’s <strong>EIA Portal</strong>
+(gov.ie), an Esri ArcGIS Online map app backed by a public
+<strong>anonymous ArcGIS REST FeatureServer</strong> at <a href="https://services.arcgis.com/NzlPQPKn5QF9v2US/arcgis/rest/services/EIA_Location_Point/FeatureServer/0" class="external-link">services.arcgis.com</a>
+(the <code>EIA_Location_Point</code> master layer, ≈5,100 records). The
+human-facing app lives at <a href="https://experience.arcgis.com/experience/a1a85d92623147b191dd25a14b2571da/" class="external-link">experience.arcgis.com/…/a1a85d92623147b191dd25a14b2571da</a>.
+This is the package’s <strong>first ArcGIS REST-backed handler</strong>
+— transport is a plain <code>GET .../query?f=json</code>, pagination is
+<code>resultOffset</code> / <code>resultRecordCount</code>, and the Esri
+point geometry is converted to GeoJSON in-house.</li>
+<li>
+<strong>Status:</strong> supported, <strong>with two important
+caveats</strong> — see below. Reflected in
+<code>get_assessments_coverage()$status</code> as
+<code>"supported (EIA only; portal = notice PDFs, full EIAR off-portal)"</code>.</li>
+<li>
+<strong>Authentication:</strong> none (anonymous public layer).</li>
+<li>
+<strong>EIA only — no SEA.</strong> The portal covers <strong>EIA
+applications only</strong>; there is no SEA register here.</li>
+<li>
+<strong>Notices only — full EIAR is off-portal.</strong> For each
+application the portal hosts (at most) the statutory <strong>newspaper /
+public-notice PDF</strong>. The full EIAR itself lives
+<strong>off-portal</strong> on the relevant competent-authority website
+(An Bord Pleanála, the local council, the EPA, …). Those external case
+pages are surfaced as the <code>url_link_application</code> /
+<code>url_link_secondary</code> extras columns — HTML landing pages on
+heterogeneous third-party sites, <em>not</em> direct PDFs — and are
+deliberately kept <strong>out</strong> of <code>attachment_urls</code>.
+Treat them as a discovery target.</li>
+<li>
+<strong>The <code>OBJECTID_1</code> gotcha.</strong> The layer’s
+unique object-id field is <strong><code>OBJECTID_1</code></strong>,
+<em>not</em> the plain <code>OBJECTID</code> (which is non-unique on
+this layer and frequently <code>0</code>). All attachment lookups and
+the internal id fallback key off <code>OBJECTID_1</code>. The stable
+business key used as <code>document_id</code> is <code>Portal_Ref</code>
+(e.g. <code>"2024092"</code>).</li>
+<li>
+<strong>Enumeration.</strong> Listing is
+<code>GET &lt;layer&gt;/query</code>, paginated with
+<code>resultOffset</code> / <code>resultRecordCount</code> (page size
+1000), looping while <code>exceededTransferLimit</code> is true, ordered
+by <code>OBJECTID_1 ASC</code>. Each feature carries all its metadata
+inline in <code>attributes</code> (no separate detail endpoint). The
+portal has no per-record permalink, so a unique, deterministic
+<code>url</code> is synthesised per record — the record-specific query
+URL
+<code>&lt;layer&gt;/query?where=Portal_Ref='&lt;ref&gt;'&amp;outFields=*&amp;f=json</code>.</li>
+<li>
+<strong>Dates.</strong> <code>Date_of_receipt_of_application_</code>
+is <strong>epoch milliseconds</strong> → <code>date_published</code>
+(divided by 1000). <code>date_decision</code> is <code>NA</code> (no
+decision-date field on the layer).</li>
+<li>
+<strong>Throttle:</strong> 5 requests/second by default
+(<code>getOption("planscanR.ie_throttle_rate")</code>).</li>
+<li>
+<strong>Language:</strong> English (ISO-639-1 <code>en</code>).</li>
+</ul>
+<p><strong>Geometry.</strong> Each record carries an Esri point
+<code>geometry</code> (<code>{x, y}</code>) in <strong>Irish Transverse
+Mercator (IRENET95 ITM / EPSG:2157)</strong> — requested via
+<code>outSR=2157</code>. It is converted in-house to a GeoJSON
+<strong>Point</strong> and, when <code>write_sidecar = TRUE</code>,
+written next to the sidecar as
+<code>&lt;document_id&gt;.geometry.geojson</code> (family
+FeatureCollection layout, <code>urn:ogc:def:crs:EPSG::2157</code>);
+<code>geometry_crs</code> is <code>"EPSG:2157"</code>. No reprojection
+happens — coordinates stay in EPSG:2157. Records with a null geometry
+leave the geometry columns <code>NA</code>.</p>
+<p><strong>Filter coverage.</strong> Server-side: <code>query</code>
+-&gt; an <code>UPPER(Description__Max__256_character) LIKE '%…%'</code>
+predicate (free-text over the description),
+<code>competent_authority</code> -&gt; equality on
+<code>Competent_Authority</code>, and <code>date_range</code> -&gt; a
+<code>Date_of_receipt_of_application_</code> BETWEEN window (epoch ms),
+re-checked client-side against <code>date_published</code>.</p>
+<p><strong>Documents.</strong> Portal-hosted attachments are ArcGIS
+feature attachments — the statutory newspaper / public-notice PDF.
+Because the download URL needs both the <code>OBJECTID_1</code> and the
+per-attachment id
+(<code>&lt;layer&gt;/&lt;OBJECTID_1&gt;/attachments/&lt;id&gt;</code>),
+attachment metadata is resolved in a batched <strong>phase-2</strong>
+<code>queryAttachments</code> call (keyed by <code>OBJECTID_1</code>) —
+even when <code>download = FALSE</code>, this is needed to populate
+<code>attachment_urls</code>. The single slug is <code>notice</code>
+(<code>attachment_urls_notice</code> / <code>local_path_notice</code>);
+the deduplicated union goes to <code>attachment_urls</code> /
+<code>local_path</code>. A record may carry <strong>0</strong>
+attachments (still schema-valid). The full EIAR is <em>not</em> here —
+see the off-portal caveat above.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Recent EIA applications, first few records (portal hosts the notice PDF only)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_ie.html">get_assessments_ie</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Wind-themed slice (server-side description LIKE)</span></span>
+<span><span class="fu"><a href="../reference/get_assessments_ie.html">get_assessments_ie</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"wind"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="adding-a-new-source">Adding a new source<a class="anchor" aria-label="anchor" href="#adding-a-new-source"></a>
