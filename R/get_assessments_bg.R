@@ -170,7 +170,7 @@ get_assessments_bg <- function(
     if (remaining <= 0L) {
       break
     }
-    gen <- tryCatch(
+    page_gen <- tryCatch(
       bg_fetch_search(register = reg, query = query),
       error = function(e) {
         warn_partial(
@@ -179,6 +179,12 @@ get_assessments_bg <- function(
         function() NULL
       }
     )
+    # Wrap the page generator so each page's not-yet-cached detail pages are
+    # fetched concurrently (capped at 8) before stream_crawl() processes the
+    # rows; process_entry() then parses/scores/writes them serially.
+    gen <- function() {
+      bg_prefetch_details(page_gen(), sidecar_index, max_active = 8L)
+    }
     block <- stream_crawl(gen, process_entry, limit = remaining, label = "bg")
     records <- c(records, block)
   }
@@ -355,7 +361,9 @@ bg_load_or_fetch <- function(url, entry, sidecar_index, write_sidecar) {
   if (length(hit) == 1L && !is.na(hit) && nzchar(hit) && file.exists(hit)) {
     return(read_record_sidecar(hit))
   }
-  detail <- bg_fetch_detail(url)
+  # Use the page-level parallel prefetch's HTML when present (see
+  # bg_prefetch_details()); otherwise fall back to a serial fetch.
+  detail <- entry$detail_html %||% bg_fetch_detail(url)
   bg_parse_detail(url, entry, detail)
 }
 
@@ -364,6 +372,59 @@ bg_load_or_fetch <- function(url, entry, sidecar_index, write_sidecar) {
 bg_fetch_detail <- function(url) {
   req <- req_planscanr(url)
   perform_html(req)
+}
+
+#' Prefetch a listing page's detail HTML concurrently.
+#'
+#' BG's wall-clock is dominated by the per-record detail GET (~4 s server-side),
+#' and those fetches are independent, so we overlap them: build one request per
+#' not-yet-cached entry and run them through [httr2::req_perform_parallel()]
+#' (capped at `max_active`, throttle/retry still applied via [req_planscanr()]).
+#' The parsed HTML is attached to each entry as `$detail_html` for
+#' [bg_load_or_fetch()] to consume; sidecar-cached entries are skipped, and any
+#' request that errors is simply left without `$detail_html` so it falls back to
+#' the serial path. Scoring/parsing/sidecar writes stay sequential downstream
+#' (relevance scoring goes through reticulate, which is not concurrency-safe).
+#' @noRd
+bg_prefetch_details <- function(entries, sidecar_index, max_active = 8L) {
+  if (length(entries) == 0L) {
+    return(entries)
+  }
+  urls <- vapply(
+    entries,
+    function(e) bg_canonical_url(e$register, e$id),
+    character(1)
+  )
+  hit <- sidecar_index[urls]
+  cached <- !is.na(hit) & nzchar(hit) & file.exists(hit)
+  need <- which(!cached)
+  if (length(need) == 0L) {
+    return(entries)
+  }
+  reqs <- lapply(urls[need], req_planscanr)
+  resps <- tryCatch(
+    httr2::req_perform_parallel(
+      reqs,
+      on_error = "continue",
+      progress = FALSE,
+      max_active = max_active
+    ),
+    error = function(e) NULL
+  )
+  if (is.null(resps)) {
+    return(entries)
+  }
+  for (k in seq_along(need)) {
+    resp <- resps[[k]]
+    if (!inherits(resp, "httr2_response")) {
+      next
+    }
+    entries[[need[k]]]$detail_html <- tryCatch(
+      rvest::read_html(httr2::resp_body_string(resp)),
+      error = function(e) NULL
+    )
+  }
+  entries
 }
 
 #' Parse one detail page into a 1-row tibble.
