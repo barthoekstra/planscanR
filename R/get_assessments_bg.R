@@ -179,11 +179,18 @@ get_assessments_bg <- function(
         function() NULL
       }
     )
-    # Wrap the page generator so each page's not-yet-cached detail pages are
-    # fetched concurrently (capped at 8) before stream_crawl() processes the
-    # rows; process_entry() then parses/scores/writes them serially.
+    # Wrap the page generator so each page's still-needed detail pages are
+    # downloaded together (up to 8 at once) before stream_crawl() walks the rows;
+    # process_entry() then parses, scores, and saves them one row at a time.
+    # `max_fetch = remaining` keeps a small `limit =` crawl from downloading a
+    # whole page it will not use.
     gen <- function() {
-      bg_prefetch_details(page_gen(), sidecar_index, max_active = 8L)
+      bg_prefetch_details(
+        page_gen(),
+        sidecar_index,
+        max_active = 8L,
+        max_fetch = remaining
+      )
     }
     block <- stream_crawl(gen, process_entry, limit = remaining, label = "bg")
     records <- c(records, block)
@@ -361,8 +368,8 @@ bg_load_or_fetch <- function(url, entry, sidecar_index, write_sidecar) {
   if (length(hit) == 1L && !is.na(hit) && nzchar(hit) && file.exists(hit)) {
     return(read_record_sidecar(hit))
   }
-  # Use the page-level parallel prefetch's HTML when present (see
-  # bg_prefetch_details()); otherwise fall back to a serial fetch.
+  # Reuse the HTML the parallel prefetch already downloaded for this row when it
+  # is there; otherwise download this one page on its own.
   detail <- entry$detail_html %||% bg_fetch_detail(url)
   bg_parse_detail(url, entry, detail)
 }
@@ -374,19 +381,72 @@ bg_fetch_detail <- function(url) {
   perform_html(req)
 }
 
-#' Prefetch a listing page's detail HTML concurrently.
+#' Download several BG detail pages at the same time.
 #'
-#' BG's wall-clock is dominated by the per-record detail GET (~4 s server-side),
-#' and those fetches are independent, so we overlap them: build one request per
-#' not-yet-cached entry and run them through [httr2::req_perform_parallel()]
-#' (capped at `max_active`, throttle/retry still applied via [req_planscanr()]).
-#' The parsed HTML is attached to each entry as `$detail_html` for
-#' [bg_load_or_fetch()] to consume; sidecar-cached entries are skipped, and any
-#' request that errors is simply left without `$detail_html` so it falls back to
-#' the serial path. Scoring/parsing/sidecar writes stay sequential downstream
-#' (relevance scoring goes through reticulate, which is not concurrency-safe).
+#' A single BG detail page is slow to fetch (the portal takes a few seconds to
+#' respond), and the pages do not depend on each other, so we ask for a batch of
+#' them together instead of one after another. This is the only piece that
+#' actually talks to the network in parallel, which keeps it easy to swap out in
+#' tests.
+#'
+#' @param urls Character vector of detail-page web addresses.
+#' @param max_active How many downloads may be in flight at once.
+#' @return A list the same length and order as `urls`. Each element is the parsed
+#'   HTML for that address, or `NULL` if its download failed (so the caller can
+#'   fall back to fetching that one page on its own).
 #' @noRd
-bg_prefetch_details <- function(entries, sidecar_index, max_active = 8L) {
+bg_fetch_details_parallel <- function(urls, max_active = 8L) {
+  reqs <- lapply(urls, req_planscanr)
+  resps <- tryCatch(
+    httr2::req_perform_parallel(
+      reqs,
+      on_error = "continue",
+      progress = FALSE,
+      max_active = max_active
+    ),
+    error = function(e) NULL
+  )
+  if (is.null(resps)) {
+    return(vector("list", length(urls)))
+  }
+  lapply(resps, function(resp) {
+    if (!inherits(resp, "httr2_response")) {
+      return(NULL)
+    }
+    tryCatch(
+      rvest::read_html(httr2::resp_body_string(resp)),
+      error = function(e) NULL
+    )
+  })
+}
+
+#' Download a listing page's detail pages ahead of time, in parallel.
+#'
+#' Fetching BG detail pages one at a time is what makes a full crawl slow, so for
+#' each row on a listing page we start the (slow) downloads together and stash
+#' each page's HTML on its own row as `detail_html`. The next step
+#' (bg_load_or_fetch()) then just reads that stored HTML instead of downloading
+#' again. Turning a page into a saved record (parsing, relevance scoring, writing
+#' the sidecar) still happens one row at a time afterwards -- only the
+#' downloading is sped up.
+#'
+#' Rows already saved to disk are skipped (we never re-download them), and a row
+#' whose download failed is simply left without `detail_html` so it falls back to
+#' the normal one-at-a-time fetch.
+#'
+#' @param entries A listing page's rows (as built by [bg_parse_index_rows()]).
+#' @param sidecar_index Named vector mapping detail URL -> on-disk sidecar path,
+#'   used to skip rows already saved.
+#' @param max_active How many downloads may run at once.
+#' @param max_fetch Most rows to download from this page. Defaults to all of
+#'   them; a smaller `limit =` crawl passes its remaining budget so we do not
+#'   pull a whole page we will not use.
+#' @return `entries`, with `detail_html` attached to the rows we downloaded.
+#' @noRd
+bg_prefetch_details <- function(entries,
+                                sidecar_index,
+                                max_active = 8L,
+                                max_fetch = Inf) {
   if (length(entries) == 0L) {
     return(entries)
   }
@@ -398,31 +458,17 @@ bg_prefetch_details <- function(entries, sidecar_index, max_active = 8L) {
   hit <- sidecar_index[urls]
   cached <- !is.na(hit) & nzchar(hit) & file.exists(hit)
   need <- which(!cached)
+  if (is.finite(max_fetch) && length(need) > max_fetch) {
+    need <- need[seq_len(max(0L, as.integer(max_fetch)))]
+  }
   if (length(need) == 0L) {
     return(entries)
   }
-  reqs <- lapply(urls[need], req_planscanr)
-  resps <- tryCatch(
-    httr2::req_perform_parallel(
-      reqs,
-      on_error = "continue",
-      progress = FALSE,
-      max_active = max_active
-    ),
-    error = function(e) NULL
-  )
-  if (is.null(resps)) {
-    return(entries)
-  }
+  details <- bg_fetch_details_parallel(urls[need], max_active = max_active)
   for (k in seq_along(need)) {
-    resp <- resps[[k]]
-    if (!inherits(resp, "httr2_response")) {
-      next
+    if (!is.null(details[[k]])) {
+      entries[[need[k]]]$detail_html <- details[[k]]
     }
-    entries[[need[k]]]$detail_html <- tryCatch(
-      rvest::read_html(httr2::resp_body_string(resp)),
-      error = function(e) NULL
-    )
   }
   entries
 }

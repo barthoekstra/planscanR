@@ -1,6 +1,7 @@
-# Tests for get_assessments_bg(). Offline strategy: stub `perform_html` to hand
-# back the recorded HTML fixtures so no live HTTP is needed in CI. The fixtures
-# cover both МОСВ registers:
+# Tests for get_assessments_bg(). Offline strategy: stub `perform_html` (the
+# one-at-a-time fetch) and `bg_fetch_details_parallel` (the batched prefetch) to
+# hand back the recorded HTML fixtures so no live HTTP is needed in CI. The
+# fixtures cover both МОСВ registers:
 #  - ОВОС (EIA): listing-ovos.html, detail-ovos-21617.html  (one terminated
 #    EIA dossier with several inline document links, no geometry)
 #  - ЕО (SEA): listing-eo.html, detail-eo-44841.html  (one ongoing SEA dossier
@@ -29,6 +30,24 @@ bg_mock_perform_html_two_records <- function() {
       return(.bg_fix_eo_detail)
     }
     stop("Unexpected URL in test: ", url)
+  }
+}
+
+bg_mock_fetch_details_parallel <- function() {
+  # The parallel-fetch equivalent of bg_mock_perform_html_two_records(): given a
+  # batch of detail URLs, hand back each one's recorded fixture HTML (or NULL for
+  # an unknown URL), in the same order. Keeps the end-to-end tests offline while
+  # exercising the page-level prefetch path.
+  function(urls, max_active = 8L) {
+    lapply(urls, function(url) {
+      if (grepl("/ovos/lot/21617", url)) {
+        return(.bg_fix_ovos_detail)
+      }
+      if (grepl("/eo/lot/44841", url)) {
+        return(.bg_fix_eo_detail)
+      }
+      NULL
+    })
   }
 }
 
@@ -184,6 +203,109 @@ test_that("bg_record_matches honours the date_range filter", {
   ))
 })
 
+# -- Parallel detail prefetch -----------------------------------------------
+
+test_that("bg_prefetch_details attaches each row's downloaded HTML", {
+  local_mocked_bindings(
+    bg_fetch_details_parallel = bg_mock_fetch_details_parallel()
+  )
+  empty_index <- stats::setNames(character(0), character(0))
+  out <- planscanR:::bg_prefetch_details(
+    list(.bg_entry_ovos_21617, .bg_entry_eo_44841),
+    empty_index
+  )
+  expect_s3_class(out[[1]]$detail_html, "xml_document")
+  expect_s3_class(out[[2]]$detail_html, "xml_document")
+})
+
+test_that("bg_prefetch_details never re-downloads rows already on disk", {
+  withr::with_tempdir({
+    # Mark only the OVOS row as already saved to disk.
+    saved <- file.path(getwd(), "OVOS-21617.meta.json")
+    writeLines("{}", saved)
+    ovos_url <- planscanR:::bg_canonical_url("OVOS", "21617")
+    index <- stats::setNames(saved, ovos_url)
+
+    requested <- character(0)
+    local_mocked_bindings(
+      bg_fetch_details_parallel = function(urls, max_active = 8L) {
+        requested <<- urls
+        lapply(urls, function(u) .bg_fix_eo_detail)
+      }
+    )
+    out <- planscanR:::bg_prefetch_details(
+      list(.bg_entry_ovos_21617, .bg_entry_eo_44841),
+      index
+    )
+    # Only the un-saved EO row was sent to the batched fetcher.
+    expect_length(requested, 1L)
+    expect_match(requested, "/eo/lot/44841")
+    expect_null(out[[1]]$detail_html)
+    expect_s3_class(out[[2]]$detail_html, "xml_document")
+  })
+})
+
+test_that("bg_prefetch_details downloads at most max_fetch rows", {
+  requested <- character(0)
+  local_mocked_bindings(
+    bg_fetch_details_parallel = function(urls, max_active = 8L) {
+      requested <<- urls
+      vector("list", length(urls))
+    }
+  )
+  empty_index <- stats::setNames(character(0), character(0))
+  planscanR:::bg_prefetch_details(
+    list(.bg_entry_ovos_21617, .bg_entry_eo_44841),
+    empty_index,
+    max_fetch = 1
+  )
+  expect_length(requested, 1L)
+})
+
+test_that("bg_prefetch_details leaves an empty page untouched", {
+  empty_index <- stats::setNames(character(0), character(0))
+  expect_identical(
+    planscanR:::bg_prefetch_details(list(), empty_index),
+    list()
+  )
+  expect_null(planscanR:::bg_prefetch_details(NULL, empty_index))
+})
+
+test_that("get_assessments_bg falls back to a serial fetch when prefetch is empty", {
+  withr::with_tempdir({
+    cache <- file.path(getwd(), "cache")
+    options(planscanR.cache_dir = cache)
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+
+    local_mocked_bindings(
+      # Prefetch returns no HTML (e.g. every batched request failed) ...
+      bg_fetch_details_parallel = function(urls, max_active = 8L) {
+        vector("list", length(urls))
+      },
+      # ... so each record must be fetched the one-at-a-time way instead.
+      perform_html = bg_mock_perform_html_two_records(),
+      bg_fetch_search = function(register, ...) {
+        emitted <- FALSE
+        function() {
+          if (emitted) {
+            return(NULL)
+          }
+          emitted <<- TRUE
+          if (register == "OVOS") {
+            list(.bg_entry_ovos_21617)
+          } else {
+            list(.bg_entry_eo_44841)
+          }
+        }
+      }
+    )
+
+    res <- get_assessments_bg(limit = 5, download = FALSE)
+    expect_identical(nrow(res), 2L)
+    expect_setequal(res$document_id, c("OVOS-21617", "EO-44841"))
+  })
+})
+
 test_that("get_assessments_bg end-to-end on fixtures (sidecar-first)", {
   withr::with_tempdir({
     cache <- file.path(getwd(), "cache")
@@ -192,6 +314,7 @@ test_that("get_assessments_bg end-to-end on fixtures (sidecar-first)", {
 
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
+      bg_fetch_details_parallel = bg_mock_fetch_details_parallel(),
       bg_fetch_search = function(register, ...) {
         # Page generator: yield the one canned entry once, then signal exhausted.
         emitted <- FALSE
@@ -244,6 +367,7 @@ test_that("get_assessments_bg honours the assessment_type filter", {
 
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
+      bg_fetch_details_parallel = bg_mock_fetch_details_parallel(),
       bg_fetch_search = function(register, ...) {
         # Page generator: yield the one canned entry once, then signal exhausted.
         emitted <- FALSE
@@ -281,6 +405,7 @@ test_that("get_assessments_bg respects date_range filter", {
 
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
+      bg_fetch_details_parallel = bg_mock_fetch_details_parallel(),
       bg_fetch_search = function(register, ...) {
         # Page generator: yield the one canned entry once, then signal exhausted.
         emitted <- FALSE
@@ -317,6 +442,7 @@ test_that("BG -> sidecar round-trip preserves the country-specific extras", {
 
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
+      bg_fetch_details_parallel = bg_mock_fetch_details_parallel(),
       bg_fetch_search = function(register, ...) {
         # Page generator: yield the one canned entry once, then signal exhausted.
         emitted <- FALSE
@@ -359,6 +485,7 @@ test_that("get_assessments_bg scores topics and adds relevance_score_<slug> colu
 
     local_mocked_bindings(
       perform_html = bg_mock_perform_html_two_records(),
+      bg_fetch_details_parallel = bg_mock_fetch_details_parallel(),
       bg_fetch_search = function(register, ...) {
         # Page generator: yield the one canned entry once, then signal exhausted.
         emitted <- FALSE
