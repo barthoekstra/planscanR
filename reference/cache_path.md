@@ -61,5 +61,5 @@ cache_path(
   document_id = "3619",
   cache_dir = tempdir()
 )
-#> [1] "/tmp/RtmpsvtuGV/files/nl/3619/nl_3619_a3619ts.pdf"
+#> [1] "/tmp/RtmpI3prFF/files/nl/3619/nl_3619_a3619ts.pdf"
 ```
