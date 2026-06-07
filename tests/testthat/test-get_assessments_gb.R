@@ -65,6 +65,61 @@ test_that("gb_parse_attachments collects published-document PDF urls", {
   expect_identical(planscanR:::gb_parse_attachments(blank), character(0))
 })
 
+test_that("gb_has_next_page detects the pagination Next control", {
+  p1 <- rvest::read_html(fixture_path("gb", "documents-p1.html"))
+  p2 <- rvest::read_html(fixture_path("gb", "documents-p2.html"))
+  expect_true(planscanR:::gb_has_next_page(p1))
+  # Last page has no `--next` item.
+  expect_false(planscanR:::gb_has_next_page(p2))
+  # A page with no pagination nav at all -> no next page.
+  bare <- rvest::read_html("<html><body><p>single page</p></body></html>")
+  expect_false(planscanR:::gb_has_next_page(bare))
+})
+
+test_that("gb_fetch_attachments paginates the full ES list and dedupes across pages", {
+  pages <- list(
+    rvest::read_html(fixture_path("gb", "documents-p1.html")),
+    rvest::read_html(fixture_path("gb", "documents-p2.html"))
+  )
+  calls <- 0L
+  local_mocked_bindings(
+    perform_html = function(req) {
+      calls <<- calls + 1L
+      if (calls > length(pages)) {
+        stop("gb_fetch_attachments requested a page past the last one")
+      }
+      pages[[calls]]
+    }
+  )
+  urls <- planscanR:::gb_fetch_attachments("EN010098")
+  # p1: Doc A, B, C ; p2: Doc C (duplicate), D -> union of 4, deduped.
+  expect_length(urls, 4L)
+  # Stopped after the last page (no Next link) -> exactly two page fetches.
+  expect_identical(calls, 2L)
+  expect_true(all(startsWith(
+    urls,
+    "https://nsip-documents.planninginspectorate.gov.uk/published-documents/"
+  )))
+  expect_true(any(grepl("Doc D", urls)))
+})
+
+test_that("gb_fetch_attachments returns hrefs gathered so far when a later page fails", {
+  page1 <- rvest::read_html(fixture_path("gb", "documents-p1.html"))
+  calls <- 0L
+  local_mocked_bindings(
+    perform_html = function(req) {
+      calls <<- calls + 1L
+      if (calls == 1L) {
+        return(page1)
+      }
+      stop("simulated network failure on page 2")
+    }
+  )
+  urls <- planscanR:::gb_fetch_attachments("EN010098")
+  # Page 1 advertised a Next link, but page 2 failed: keep page-1 hrefs.
+  expect_length(urls, 3L)
+})
+
 test_that("gb_build_record maps a CSV row to a record incl. coords/dates/extras", {
   parsed <- planscanR:::gb_build_record(
     planscanR:::gb_canonical_url(.gb_entry_1$reference),

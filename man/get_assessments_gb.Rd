@@ -69,9 +69,12 @@ Environmental Statement document list
 (\verb{…/projects/\{REF\}/documents?type=Environmental Statement}) and scrapes the
 published-document PDF hrefs, which live on
 \verb{https://nsip-documents.planninginspectorate.gov.uk/published-documents/\{REF\}-\{NNNNNN\}-\{title\}.pdf}.
-These become \code{attachment_urls} (a flat list — no per-section split). A
-project with no ES documents yet yields an empty \code{attachment_urls} vector,
-which is valid.
+The list is \strong{server-paginated}, so the handler walks every page
+(\code{itemsPerPage = 100}, the portal maximum) and returns the deduplicated union
+of hrefs — a large project (e.g. \code{EN010098} with >1,000 ES documents) yields
+all of them, not just the first page. These become \code{attachment_urls} (a flat
+list — no per-section split). A project with no ES documents yet yields an
+empty \code{attachment_urls} vector, which is valid.
 }
 
 \section{Geometry (point)}{
@@ -102,10 +105,12 @@ Every filter is applied \strong{client-side} (the bulk export is unfiltered):
 
 \section{Performance}{
 
-Enumeration is a single bulk-CSV GET plus one document-list fetch per record
-(sidecar-first, so repeat runs are fast). To honour the portal's
-\code{robots.txt} \code{Crawl-delay: 10}, GB requests are throttled to 0.1 requests
-per second by default (one request every 10 s); override via
+Enumeration is a single bulk-CSV GET plus, per record, one document-list GET
+for each page of its Environmental Statement list — at \code{itemsPerPage = 100}
+that is \code{ceil(n_ES_documents / 100)} fetches (one for most projects, ~12 for
+the largest). All are sidecar-first, so repeat runs are fast. To honour the
+portal's \code{robots.txt} \code{Crawl-delay: 10}, GB requests are throttled to 0.1
+requests per second by default (one request every 10 s); override via
 \code{getOption("planscanR.gb_throttle_rate")} (requests/sec; falsy disables).
 The package's neutral \verb{planscanR/…} User-Agent is allowed by the portal's
 \code{robots.txt} (AI-crawler agents such as ClaudeBot / GPTBot / CCBot are
