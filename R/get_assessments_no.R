@@ -43,6 +43,14 @@
 #' "konsekvensutredning" / "KU" / "melding" by filename. A case with no
 #' published files yields an empty `attachment_urls` vector, which is valid.
 #'
+#' @section Summary:
+#' The detail page renders a human-readable case summary in the main content
+#' column (`div.n-col-7`) as a `div.n-mb-5` block. The handler extracts it into
+#' the conventional `summary` column (whitespace-collapsed). The `n-mb-5`
+#' utility class is reused by the sidebar and the file list, but those sit in the
+#' sidebar column (`div.n-col-5`), so the selector is scoped to `div.n-col-7` to
+#' isolate the summary. Cases that render no summary yield `NA` (valid).
+#'
 #' @section Filter coverage (v0.1):
 #' * `query` — forwarded **server-side** as the API `filterText` parameter (the
 #'    getall API matches it against the case title/proponent and returns a
@@ -302,7 +310,8 @@ no_load_or_fetch <- function(url, entry, sidecar_index) {
   }
   html <- tryCatch(no_fetch_detail(url), error = function(e) NULL)
   per_section <- if (is.null(html)) list() else no_parse_documents(html)
-  no_build_record(url, entry$raw, per_section)
+  summary <- if (is.null(html)) NA_character_ else no_parse_summary(html)
+  no_build_record(url, entry$raw, per_section, summary = summary)
 }
 
 #' Fetch one case detail page as parsed HTML.
@@ -348,13 +357,41 @@ no_parse_documents <- function(html) {
   per_section
 }
 
+#' Parse the case summary (sammendrag) from the detail page.
+#'
+#' On the NVE detail page the human-readable summary is rendered in the main
+#' content column (`div.n-col-7`), after the metadata table and map, as up to two
+#' sibling blocks inside a `div.n-mt-6` wrapper: a bold lead paragraph in a
+#' `div.n-mb-5` and the body text in a `div.n-rte` rich-text block — either of
+#' which may be absent — each trailed by empty `<p>&nbsp;</p>` spacer paragraphs.
+#' Both blocks are collected (in document order) and joined. The `n-mb-5` utility
+#' class is reused on the sidebar (`section.n-right-menu-content`) and the file
+#' list (`div.n-filelist`), but those live in the sidebar column `div.n-col-5`,
+#' so scoping the selectors to `div.n-col-7` isolates the summary. Runs of
+#' whitespace (including non-breaking spaces from the `&nbsp;` spacers) are
+#' collapsed to single spaces; a missing or empty summary yields `NA_character_`.
+#' @noRd
+no_parse_summary <- function(html) {
+  nodes <- rvest::html_elements(
+    html,
+    "div.n-col-7 div.n-mb-5, div.n-col-7 div.n-rte"
+  )
+  if (length(nodes) == 0L) {
+    return(NA_character_)
+  }
+  parts <- rvest::html_text2(nodes)
+  parts <- parts[!is.na(parts) & nzchar(trimws(parts))]
+  txt <- trimws(gsub("[[:space:]\u00a0]+", " ", paste(parts, collapse = " ")))
+  if (!nzchar(txt)) NA_character_ else txt
+}
+
 #' Build a 1-row record tibble from a license record object + parsed documents.
 #'
 #' Conventional planscanR columns are filled from the API fields; English
 #' snake_case extras keep Norwegian values verbatim. Per-section attachment
 #' columns come from the detail page's `div.n-filelist` sections.
 #' @noRd
-no_build_record <- function(url, raw, per_section = list()) {
+no_build_record <- function(url, raw, per_section = list(), summary = NA_character_) {
   soknad_id <- no_field(raw, "SoknadId") %||% "record"
   document_id <- no_document_id(soknad_id)
 
@@ -369,7 +406,7 @@ no_build_record <- function(url, raw, per_section = list()) {
     attachment_urls = list(union_urls),
     local_path = list(character(0)),
     title = no_field(raw, "Tittel") %||% NA_character_,
-    summary = NA_character_,
+    summary = summary %||% NA_character_,
     competent_authority = no_competent_authority(),
     proponent = no_field(raw, "Tiltakshaver") %||% NA_character_,
     date_published = parse_iso_date(no_field(raw, "Dato")),

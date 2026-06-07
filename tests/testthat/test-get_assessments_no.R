@@ -94,6 +94,56 @@ test_that("no_parse_documents scrapes webfileservice PDF urls grouped by section
   )
 })
 
+# -- summary parsing ---------------------------------------------------------
+
+test_that("no_parse_summary extracts the main-column summary, whitespace-collapsed", {
+  summary <- planscanR:::no_parse_summary(.no_detail_html)
+  expect_type(summary, "character")
+  expect_length(summary, 1L)
+  expect_false(is.na(summary))
+  # The summary spans two main-column blocks: the bold lead (div.n-mb-5) and
+  # the rich-text body (div.n-rte); both are captured, in document order.
+  expect_match(summary, "Opplandskraft DA har søkt om endring")
+  expect_match(summary, "vassdragsreguleringsloven § 28")
+  expect_match(summary, "Harpefoss kraftverk ligger i Gudbrandsdalslågen")
+  # Lead precedes body in the joined text.
+  expect_lt(
+    regexpr("Opplandskraft DA", summary, fixed = TRUE),
+    regexpr("Harpefoss kraftverk ligger", summary, fixed = TRUE)
+  )
+  # Whitespace is collapsed: no runs of spaces, no stray non-breaking spaces,
+  # no leading/trailing whitespace, and the trailing empty <p>&nbsp;</p> nodes
+  # are squeezed away rather than appended as blank lines.
+  expect_false(grepl(" ", summary, fixed = TRUE))
+  expect_false(grepl("  ", summary, fixed = TRUE))
+  expect_false(grepl("\n", summary, fixed = TRUE))
+  expect_identical(summary, trimws(summary))
+})
+
+test_that("no_parse_summary returns NA when there is no main-column summary block", {
+  # The sidebar/file-list n-mb-5 blocks live in div.n-col-5, so a page with no
+  # div.n-col-7 summary must yield NA rather than picking those up.
+  no_summary <- rvest::read_html(
+    "<html><body><div class=\"n-col-5\"><div class=\"n-mb-5\">sidebar</div></div></body></html>"
+  )
+  expect_identical(planscanR:::no_parse_summary(no_summary), NA_character_)
+  # Empty document is safe too.
+  expect_identical(
+    planscanR:::no_parse_summary(rvest::read_html("<html><body></body></html>")),
+    NA_character_
+  )
+})
+
+test_that("no_build_record sets summary from the parsed value (default NA)", {
+  raw <- .no_licenses[[1]]
+  url <- planscanR:::no_canonical_url(raw$SoknadId, raw$Type)
+  # Default (no summary supplied) stays NA.
+  expect_true(is.na(planscanR:::no_build_record(url, raw)$summary))
+  # A supplied summary lands on the record.
+  rec <- planscanR:::no_build_record(url, raw, summary = "Sammendrag av saken.")
+  expect_identical(rec$summary, "Sammendrag av saken.")
+})
+
 # -- filters -----------------------------------------------------------------
 
 test_that("no_record_matches honours date_range", {
@@ -158,6 +208,9 @@ test_that("get_assessments_no end-to-end on fixtures (sidecar-first)", {
     expect_true(all(res$country == "no"))
     # Every record picked up the 14 webfileservice PDFs from the detail fixture.
     expect_true(all(vapply(res$attachment_urls, length, integer(1)) == 14L))
+    # Every record incorporates the detail-page summary (issue #5).
+    expect_true(all(!is.na(res$summary)))
+    expect_true(all(grepl("Opplandskraft DA har søkt om endring", res$summary)))
 
     # Sidecars on disk.
     sidecars <- list.files(

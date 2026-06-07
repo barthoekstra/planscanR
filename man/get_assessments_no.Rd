@@ -81,6 +81,16 @@ every case document is collected; the document label/title is kept verbatim
 published files yields an empty \code{attachment_urls} vector, which is valid.
 }
 
+\section{Summary}{
+
+The detail page renders a human-readable case summary in the main content
+column (\code{div.n-col-7}) as a \code{div.n-mb-5} block. The handler extracts it into
+the conventional \code{summary} column (whitespace-collapsed). The \code{n-mb-5}
+utility class is reused by the sidebar and the file list, but those sit in the
+sidebar column (\code{div.n-col-5}), so the selector is scoped to \code{div.n-col-7} to
+isolate the summary. Cases that render no summary yield \code{NA} (valid).
+}
+
 \section{Filter coverage (v0.1)}{
 
 \itemize{
