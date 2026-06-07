@@ -198,6 +198,18 @@ via <code>getOption("planscanR.nl_throttle_rate")</code> (requests/sec); set it 
 falsy value to disable. The throttle is scoped to NL only.</p>
     </div>
     <div class="section level2">
+    <h2 id="summary-extraction">Summary extraction<a class="anchor" aria-label="anchor" href="#summary-extraction"></a></h2>
+
+
+<p>The <code>summary</code> is the project description parsed from the detail page. Most
+pages carry it in the intro block (<code>div.intro</code>); the first non-empty
+paragraph is taken (some pages open that block with an empty placeholder
+paragraph). Older pages render no intro block, in which case the summary
+falls back to the first non-empty paragraph of the main content block
+(<code>div.text</code>, under the "Hoofdpunten uit het advies" heading). Pages with no
+descriptive prose yield <code>NA</code>.</p>
+    </div>
+    <div class="section level2">
     <h2 id="attachments">Attachments<a class="anchor" aria-label="anchor" href="#attachments"></a></h2>
     <p>per-page split:
 Each advice detail page on commissiemer.nl groups PDFs into two on-page

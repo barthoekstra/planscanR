@@ -215,3 +215,10 @@ Assessments, and related advice) from European government portals.
   (`.page-content__content .text-long`), excluding the footer
   boilerplate
   ([\#11](https://github.com/barthoekstra/planscanR/issues/11)).
+- [`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md)
+  now captures the `summary` on commissiemer.nl detail pages whose intro
+  block opens with an empty placeholder paragraph, and on older pages
+  that render no intro block at all (falling back to the main content
+  block). These layouts previously yielded `summary = NA` even though
+  the portal showed a project description
+  ([\#12](https://github.com/barthoekstra/planscanR/issues/12)).
