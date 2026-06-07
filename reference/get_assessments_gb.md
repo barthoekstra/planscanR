@@ -84,9 +84,13 @@ project's Environmental Statement document list
 (`…/projects/{REF}/documents?type=Environmental Statement`) and scrapes
 the published-document PDF hrefs, which live on
 `https://nsip-documents.planninginspectorate.gov.uk/published-documents/{REF}-{NNNNNN}-{title}.pdf`.
-These become `attachment_urls` (a flat list — no per-section split). A
-project with no ES documents yet yields an empty `attachment_urls`
-vector, which is valid.
+The list is **server-paginated**, so the handler walks every page
+(`itemsPerPage = 100`, the portal maximum) and returns the deduplicated
+union of hrefs — a large project (e.g. `EN010098` with \>1,000 ES
+documents) yields all of them, not just the first page. These become
+`attachment_urls` (a flat list — no per-section split). A project with
+no ES documents yet yields an empty `attachment_urls` vector, which is
+valid.
 
 ## Geometry (point)
 
@@ -118,10 +122,13 @@ Every filter is applied **client-side** (the bulk export is unfiltered):
 
 ## Performance
 
-Enumeration is a single bulk-CSV GET plus one document-list fetch per
-record (sidecar-first, so repeat runs are fast). To honour the portal's
-`robots.txt` `Crawl-delay: 10`, GB requests are throttled to 0.1
-requests per second by default (one request every 10 s); override via
+Enumeration is a single bulk-CSV GET plus, per record, one document-list
+GET for each page of its Environmental Statement list — at
+`itemsPerPage = 100` that is `ceil(n_ES_documents / 100)` fetches (one
+for most projects, ~12 for the largest). All are sidecar-first, so
+repeat runs are fast. To honour the portal's `robots.txt`
+`Crawl-delay: 10`, GB requests are throttled to 0.1 requests per second
+by default (one request every 10 s); override via
 `getOption("planscanR.gb_throttle_rate")` (requests/sec; falsy
 disables). The package's neutral `planscanR/…` User-Agent is allowed by
 the portal's `robots.txt` (AI-crawler agents such as ClaudeBot / GPTBot

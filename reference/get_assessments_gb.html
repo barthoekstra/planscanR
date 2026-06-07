@@ -137,9 +137,12 @@ Environmental Statement document list
 (<code>…/projects/{REF}/documents?type=Environmental Statement</code>) and scrapes the
 published-document PDF hrefs, which live on
 <code>https://nsip-documents.planninginspectorate.gov.uk/published-documents/{REF}-{NNNNNN}-{title}.pdf</code>.
-These become <code>attachment_urls</code> (a flat list — no per-section split). A
-project with no ES documents yet yields an empty <code>attachment_urls</code> vector,
-which is valid.</p>
+The list is <strong>server-paginated</strong>, so the handler walks every page
+(<code>itemsPerPage = 100</code>, the portal maximum) and returns the deduplicated union
+of hrefs — a large project (e.g. <code>EN010098</code> with &gt;1,000 ES documents) yields
+all of them, not just the first page. These become <code>attachment_urls</code> (a flat
+list — no per-section split). A project with no ES documents yet yields an
+empty <code>attachment_urls</code> vector, which is valid.</p>
     </div>
     <div class="section level2">
     <h2 id="geometry-point-">Geometry (point)<a class="anchor" aria-label="anchor" href="#geometry-point-"></a></h2>
@@ -170,10 +173,12 @@ are also surfaced as extras.</p>
     <h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a></h2>
 
 
-<p>Enumeration is a single bulk-CSV GET plus one document-list fetch per record
-(sidecar-first, so repeat runs are fast). To honour the portal's
-<code>robots.txt</code> <code>Crawl-delay: 10</code>, GB requests are throttled to 0.1 requests
-per second by default (one request every 10 s); override via
+<p>Enumeration is a single bulk-CSV GET plus, per record, one document-list GET
+for each page of its Environmental Statement list — at <code>itemsPerPage = 100</code>
+that is <code>ceil(n_ES_documents / 100)</code> fetches (one for most projects, ~12 for
+the largest). All are sidecar-first, so repeat runs are fast. To honour the
+portal's <code>robots.txt</code> <code>Crawl-delay: 10</code>, GB requests are throttled to 0.1
+requests per second by default (one request every 10 s); override via
 <code>getOption("planscanR.gb_throttle_rate")</code> (requests/sec; falsy disables).
 The package's neutral <code>planscanR/…</code> User-Agent is allowed by the portal's
 <code>robots.txt</code> (AI-crawler agents such as ClaudeBot / GPTBot / CCBot are

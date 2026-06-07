@@ -189,3 +189,14 @@ Assessments, and related advice) from European government portals.
   finds and validates attachment PDFs for portals that do not expose
   them directly, through a pluggable web-search backend
   ([`search_backend_tavily()`](https://barthoekstra.github.io/planscanR/reference/search_backend_tavily.md)).
+
+### Bug fixes
+
+- [`get_assessments_gb()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_gb.md)
+  now paginates the full Environmental Statement document list for each
+  UK NSIP project instead of capturing only the first page. Large
+  projects (e.g. `EN010098`, with over a thousand ES documents)
+  previously yielded only a handful of `attachment_urls`; the handler
+  now walks every page (`itemsPerPage = 100`) and returns the
+  deduplicated union
+  ([\#6](https://github.com/barthoekstra/planscanR/issues/6)).
