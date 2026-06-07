@@ -166,6 +166,19 @@ becomes one <code>attachment_urls_&lt;slug&gt;</code> / <code>local_path_&lt;slu
 the schema).</p>
     </div>
     <div class="section level2">
+    <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a></h2>
+
+
+<p><code>summary</code> is taken from the Elasticsearch index <code>description</code> when present.
+Some records leave that field blank even though the landing page renders a
+project description; for those the handler falls back to the prose in
+<code>div.page-content__content div.text-long</code> on the same detail fetch already
+made for attachments (issue #11). A <em>second</em> <code>div.text-long</code> in the page
+footer holds site boilerplate and is deliberately excluded by scoping the
+selector to the content region. Records with neither an index <code>description</code>
+nor a landing-page description keep <code>summary = NA</code> (valid).</p>
+    </div>
+    <div class="section level2">
     <h2 id="filter-coverage-v-">Filter coverage (v0.1)<a class="anchor" aria-label="anchor" href="#filter-coverage-v-"></a></h2>
 
 

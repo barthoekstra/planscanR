@@ -112,6 +112,18 @@ discovered type becomes one `attachment_urls_<slug>` /
 `local_path_<slug>` list-column. `attachment_urls` / `local_path` remain
 the deduplicated union (required by the schema).
 
+## Summary
+
+`summary` is taken from the Elasticsearch index `description` when
+present. Some records leave that field blank even though the landing
+page renders a project description; for those the handler falls back to
+the prose in `div.page-content__content div.text-long` on the same
+detail fetch already made for attachments (issue \#11). A *second*
+`div.text-long` in the page footer holds site boilerplate and is
+deliberately excluded by scoping the selector to the content region.
+Records with neither an index `description` nor a landing-page
+description keep `summary = NA` (valid).
+
 ## Filter coverage (v0.1)
 
 - `query` — server-side free-text (`bool.must` `match` on `content` +
