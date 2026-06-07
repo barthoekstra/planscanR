@@ -158,6 +158,12 @@ and related advice) from European government portals.
   the `summary` column. Norwegian records previously always carried
   `summary = NA` even when the `konsesjonssak` page rendered a summary; the
   handler now extracts it from the main content column (#5).
+* `get_assessments_fi()` now falls back to the ymparisto.fi landing-page project
+  description for `summary` when the Elasticsearch index omits it. Records whose
+  index `description` was blank (e.g. `YVA-1013`) previously carried
+  `summary = NA` even though the portal rendered a description; the handler now
+  reads it from the page content region (`.page-content__content .text-long`),
+  excluding the footer boilerplate (#11).
 * `get_assessments_nl()` now captures the `summary` on commissiemer.nl detail
   pages whose intro block opens with an empty placeholder paragraph, and on
   older pages that render no intro block at all (falling back to the main
