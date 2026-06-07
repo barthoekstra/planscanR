@@ -200,3 +200,9 @@ Assessments, and related advice) from European government portals.
   now walks every page (`itemsPerPage = 100`) and returns the
   deduplicated union
   ([\#6](https://github.com/barthoekstra/planscanR/issues/6)).
+- [`get_assessments_no()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_no.md)
+  now incorporates the NVE detail-page case summary into the `summary`
+  column. Norwegian records previously always carried `summary = NA`
+  even when the `konsesjonssak` page rendered a summary; the handler now
+  extracts it from the main content column
+  ([\#5](https://github.com/barthoekstra/planscanR/issues/5)).

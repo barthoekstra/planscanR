@@ -94,6 +94,16 @@ identify "konsekvensutredning" / "KU" / "melding" by filename. A case
 with no published files yields an empty `attachment_urls` vector, which
 is valid.
 
+## Summary
+
+The detail page renders a human-readable case summary in the main
+content column (`div.n-col-7`) as a `div.n-mb-5` block. The handler
+extracts it into the conventional `summary` column
+(whitespace-collapsed). The `n-mb-5` utility class is reused by the
+sidebar and the file list, but those sit in the sidebar column
+(`div.n-col-5`), so the selector is scoped to `div.n-col-7` to isolate
+the summary. Cases that render no summary yield `NA` (valid).
+
 ## Filter coverage (v0.1)
 
 - `query` — forwarded **server-side** as the API `filterText` parameter

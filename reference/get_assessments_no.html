@@ -147,6 +147,17 @@ every case document is collected; the document label/title is kept verbatim
 published files yields an empty <code>attachment_urls</code> vector, which is valid.</p>
     </div>
     <div class="section level2">
+    <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a></h2>
+
+
+<p>The detail page renders a human-readable case summary in the main content
+column (<code>div.n-col-7</code>) as a <code>div.n-mb-5</code> block. The handler extracts it into
+the conventional <code>summary</code> column (whitespace-collapsed). The <code>n-mb-5</code>
+utility class is reused by the sidebar and the file list, but those sit in the
+sidebar column (<code>div.n-col-5</code>), so the selector is scoped to <code>div.n-col-7</code> to
+isolate the summary. Cases that render no summary yield <code>NA</code> (valid).</p>
+    </div>
+    <div class="section level2">
     <h2 id="filter-coverage-v-">Filter coverage (v0.1)<a class="anchor" aria-label="anchor" href="#filter-coverage-v-"></a></h2>
 
 
