@@ -154,3 +154,7 @@ and related advice) from European government portals.
   projects (e.g. `EN010098`, with over a thousand ES documents) previously
   yielded only a handful of `attachment_urls`; the handler now walks every page
   (`itemsPerPage = 100`) and returns the deduplicated union (#6).
+* `get_assessments_no()` now incorporates the NVE detail-page case summary into
+  the `summary` column. Norwegian records previously always carried
+  `summary = NA` even when the `konsesjonssak` page rendered a summary; the
+  handler now extracts it from the main content column (#5).
