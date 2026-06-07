@@ -29,9 +29,12 @@
 #' (`…/projects/{REF}/documents?type=Environmental Statement`) and scrapes the
 #' published-document PDF hrefs, which live on
 #' `https://nsip-documents.planninginspectorate.gov.uk/published-documents/{REF}-{NNNNNN}-{title}.pdf`.
-#' These become `attachment_urls` (a flat list — no per-section split). A
-#' project with no ES documents yet yields an empty `attachment_urls` vector,
-#' which is valid.
+#' The list is **server-paginated**, so the handler walks every page
+#' (`itemsPerPage = 100`, the portal maximum) and returns the deduplicated union
+#' of hrefs — a large project (e.g. `EN010098` with >1,000 ES documents) yields
+#' all of them, not just the first page. These become `attachment_urls` (a flat
+#' list — no per-section split). A project with no ES documents yet yields an
+#' empty `attachment_urls` vector, which is valid.
 #'
 #' @section Geometry (point):
 #' Each row carries an Ordnance Survey National Grid point (*Grid reference -
@@ -55,10 +58,12 @@
 #' * `limit` — caps the total number of records returned.
 #'
 #' @section Performance:
-#' Enumeration is a single bulk-CSV GET plus one document-list fetch per record
-#' (sidecar-first, so repeat runs are fast). To honour the portal's
-#' `robots.txt` `Crawl-delay: 10`, GB requests are throttled to 0.1 requests
-#' per second by default (one request every 10 s); override via
+#' Enumeration is a single bulk-CSV GET plus, per record, one document-list GET
+#' for each page of its Environmental Statement list — at `itemsPerPage = 100`
+#' that is `ceil(n_ES_documents / 100)` fetches (one for most projects, ~12 for
+#' the largest). All are sidecar-first, so repeat runs are fast. To honour the
+#' portal's `robots.txt` `Crawl-delay: 10`, GB requests are throttled to 0.1
+#' requests per second by default (one request every 10 s); override via
 #' `getOption("planscanR.gb_throttle_rate")` (requests/sec; falsy disables).
 #' The package's neutral `planscanR/…` User-Agent is allowed by the portal's
 #' `robots.txt` (AI-crawler agents such as ClaudeBot / GPTBot / CCBot are
@@ -216,12 +221,21 @@ gb_canonical_url <- function(reference) {
   sprintf("%s/projects/%s", gb_portal_base(), reference)
 }
 
-#' Document-list URL for a project's Environmental Statement documents.
+#' Document-list URL for one page of a project's Environmental Statement docs.
+#'
+#' The list is server-paginated; `itemsPerPage = 100` (the portal's maximum)
+#' minimises the number of throttled requests, and `page` selects the 1-based
+#' page. Defaults reproduce the first page at the largest page size.
 #' @noRd
-gb_documents_url <- function(reference) {
+gb_documents_url <- function(reference, page = 1L, items_per_page = 100L) {
   req <- req_planscanr(gb_portal_base())
   req <- httr2::req_url_path_append(req, "projects", reference, "documents")
-  req <- httr2::req_url_query(req, type = "Environmental Statement")
+  req <- httr2::req_url_query(
+    req,
+    type = "Environmental Statement",
+    itemsPerPage = items_per_page,
+    page = page
+  )
   req$url
 }
 
@@ -325,15 +339,50 @@ gb_load_or_fetch <- function(url, entry, sidecar_index, write_sidecar) {
   rec
 }
 
+#' Hard cap on ES document-list pages fetched per project.
+#'
+#' At `itemsPerPage = 100` this bounds the crawl to 10,000 documents — far above
+#' the largest real NSIP library — and prevents a runaway loop should the portal
+#' ever clamp out-of-range pages to the last page instead of ending pagination.
+#' @noRd
+gb_max_doc_pages <- function() 100L
+
+#' Does an ES document-list page advertise a *Next* page?
+#'
+#' Detects the `moj-pagination` "Next" control; absent on the last (or only)
+#' page.
+#' @noRd
+gb_has_next_page <- function(html) {
+  length(rvest::html_elements(html, "li.moj-pagination__item--next a")) > 0L
+}
+
 #' Fetch a project's ES document list and scrape its published-document PDFs.
+#'
+#' The list is server-paginated, so this walks every page (`itemsPerPage = 100`)
+#' and returns the deduplicated union of published-document PDF hrefs. Paging
+#' stops at the last page (no *Next* control), when a page adds no new href
+#' (a defensive guard against the portal clamping out-of-range pages), or at the
+#' `gb_max_doc_pages()` cap. A failed page fetch ends the walk and returns
+#' whatever was gathered so far rather than dropping the whole record.
 #' @noRd
 gb_fetch_attachments <- function(reference) {
-  req <- req_planscanr(gb_documents_url(reference))
-  html <- tryCatch(perform_html(req), error = function(e) NULL)
-  if (is.null(html)) {
-    return(character(0))
+  urls <- character(0)
+  page <- 1L
+  max_pages <- gb_max_doc_pages()
+  repeat {
+    req <- req_planscanr(gb_documents_url(reference, page = page))
+    html <- tryCatch(perform_html(req), error = function(e) NULL)
+    if (is.null(html)) {
+      break
+    }
+    new_urls <- setdiff(gb_parse_attachments(html), urls)
+    urls <- c(urls, new_urls)
+    if (!gb_has_next_page(html) || length(new_urls) == 0L || page >= max_pages) {
+      break
+    }
+    page <- page + 1L
   }
-  gb_parse_attachments(html)
+  urls
 }
 
 #' Parse published-document PDF hrefs from an ES document-list page.
