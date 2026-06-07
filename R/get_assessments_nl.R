@@ -42,6 +42,15 @@
 #' via `getOption("planscanR.nl_throttle_rate")` (requests/sec); set it to a
 #' falsy value to disable. The throttle is scoped to NL only.
 #'
+#' @section Summary extraction:
+#' The `summary` is the project description parsed from the detail page. Most
+#' pages carry it in the intro block (`div.intro`); the first non-empty
+#' paragraph is taken (some pages open that block with an empty placeholder
+#' paragraph). Older pages render no intro block, in which case the summary
+#' falls back to the first non-empty paragraph of the main content block
+#' (`div.text`, under the "Hoofdpunten uit het advies" heading). Pages with no
+#' descriptive prose yield `NA`.
+#'
 #' @param date_range Length-2 vector `c(from, to)` of dates or parseable strings.
 #'   Filters by `date_decision`. `NULL` (default) returns all dates.
 #' @param limit Integer. Maximum records to return. Defaults to `Inf`; you
@@ -340,14 +349,21 @@ nl_parse_detail <- function(url) {
   title <- rvest::html_text(rvest::html_element(html, "title")) %||% NA_character_
   title <- sub("\\s*-\\s*Commissie\\s+mer\\s*$", "", title)
 
-  # Project description (the "intro" paragraph after the H1, e.g.
-  # "Plastics Conversion Plant B.V. wil een nieuwe fabriek ...").
-  intro <- rvest::html_element(html, "div.intro p")
-  summary <- if (inherits(intro, "xml_missing")) {
-    NA_character_
-  } else {
-    s <- trimws(rvest::html_text(intro))
-    if (nzchar(s)) s else NA_character_
+  # Project description. Two real commissiemer.nl layouts have to be handled
+  # (issue #12):
+  #   1. Most pages put it in the "intro" block (`div.intro`). Some of those
+  #      open with a malformed empty `<p align=justify>` before the real prose
+  #      `<p>` (libxml2 auto-closes the empty one), so taking the *first* `<p>`
+  #      unconditionally yields an empty string. We take the first NON-EMPTY
+  #      paragraph instead.
+  #   2. Older pages render no `div.intro` at all; the descriptive prose lives
+  #      in the main content block (`div.text`) under an
+  #      "Hoofdpunten uit het advies" heading. We fall back to its first
+  #      non-empty paragraph. `div.text` matches only the main content column;
+  #      footer/sidebar widgets use the distinct `div.textwidget` class.
+  summary <- nl_first_nonempty_p(rvest::html_element(html, "div.intro"))
+  if (is.na(summary)) {
+    summary <- nl_first_nonempty_p(rvest::html_element(html, "div.text"))
   }
 
   # Sidebar label-value pairs (Bevoegd gezag / Initiatiefnemer / Laatste advies uitgebracht op)
@@ -420,6 +436,23 @@ nl_section_pdfs <- function(html, section_title) {
   hrefs <- rvest::html_attr(nodes, "href")
   hrefs <- hrefs[!is.na(hrefs) & nzchar(hrefs)]
   unique(hrefs)
+}
+
+#' First non-empty paragraph text within a node.
+#'
+#' Returns the trimmed text of the first `<p>` descendant whose text is not
+#' blank, or `NA_character_` when the node is missing or holds no prose. Used to
+#' tolerate the empty leading `<p>` that some commissiemer.nl `div.intro` blocks
+#' carry (issue #12).
+#'
+#' @noRd
+nl_first_nonempty_p <- function(node) {
+  if (inherits(node, "xml_missing")) {
+    return(NA_character_)
+  }
+  txt <- trimws(rvest::html_text(rvest::html_elements(node, "p")))
+  txt <- txt[nzchar(txt)]
+  if (length(txt) > 0L) txt[1] else NA_character_
 }
 
 #' Safe lookup in a named vector, returning NA when absent or empty.

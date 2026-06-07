@@ -118,6 +118,17 @@ via \code{getOption("planscanR.nl_throttle_rate")} (requests/sec); set it to a
 falsy value to disable. The throttle is scoped to NL only.
 }
 
+\section{Summary extraction}{
+
+The \code{summary} is the project description parsed from the detail page. Most
+pages carry it in the intro block (\code{div.intro}); the first non-empty
+paragraph is taken (some pages open that block with an empty placeholder
+paragraph). Older pages render no intro block, in which case the summary
+falls back to the first non-empty paragraph of the main content block
+(\code{div.text}, under the "Hoofdpunten uit het advies" heading). Pages with no
+descriptive prose yield \code{NA}.
+}
+
 \section{Attachments}{
  per-page split:
 Each advice detail page on commissiemer.nl groups PDFs into two on-page

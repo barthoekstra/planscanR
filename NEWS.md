@@ -158,3 +158,8 @@ and related advice) from European government portals.
   the `summary` column. Norwegian records previously always carried
   `summary = NA` even when the `konsesjonssak` page rendered a summary; the
   handler now extracts it from the main content column (#5).
+* `get_assessments_nl()` now captures the `summary` on commissiemer.nl detail
+  pages whose intro block opens with an empty placeholder paragraph, and on
+  older pages that render no intro block at all (falling back to the main
+  content block). These layouts previously yielded `summary = NA` even though
+  the portal showed a project description (#12).
