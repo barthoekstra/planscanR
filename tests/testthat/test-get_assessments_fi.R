@@ -23,6 +23,9 @@ fi_read_detail <- function(name) {
 .fi_fix_listing <- fi_read_listing()
 .fi_fix_detail_1498 <- fi_read_detail("detail-1498.html")
 .fi_fix_detail_1600 <- fi_read_detail("detail-1600.html")
+# Landing page that renders a project description in `.page-content__content
+# .text-long`, plus a decoy `.text-long` in the footer (issue #11).
+.fi_fix_detail_summary <- fi_read_detail("detail-summary.html")
 
 # Empty ES envelope to terminate from-paging cleanly.
 .fi_fix_listing_empty <- list(
@@ -130,6 +133,78 @@ test_that("fi_build_record exposes per-section attachment columns", {
   section_cols <- grep("^attachment_urls_", names(rec), value = TRUE)
   pieces <- unlist(lapply(section_cols, function(cn) rec[[cn]][[1]]), use.names = FALSE)
   expect_setequal(rec$attachment_urls[[1]], unique(pieces))
+})
+
+# ---------------------------------------------------------------------------
+# Detail-page summary fallback (issue #11)
+# ---------------------------------------------------------------------------
+
+test_that("fi_parse_summary extracts the content-region prose, not the footer", {
+  summary <- planscanR:::fi_parse_summary(.fi_fix_detail_summary)
+  expect_match(summary, "^Australialaisyhtiö Critical Metals Ltd")
+  # Multiple <p> are joined and runs of whitespace (incl. newlines) collapsed.
+  expect_match(summary, "Hankkeen tarkoituksena on vanadiinipentoksidin")
+  expect_false(grepl("\n", summary))
+  expect_false(grepl("  ", summary))
+  # The footer .text-long boilerplate must NOT leak into the summary.
+  expect_false(grepl("Julkaisemme ymparisto", summary))
+})
+
+test_that("fi_parse_summary returns NA when the content region has no text-long", {
+  # The 1498 fixture has document anchors but no `.page-content__content
+  # .text-long` block.
+  expect_true(is.na(planscanR:::fi_parse_summary(.fi_fix_detail_1498)))
+})
+
+test_that("fi_build_record falls back to the detail summary only when the index description is empty", {
+  src <- .fi_src_by_id[["1498"]]
+  url <- planscanR:::fi_canonical_url(src$link)
+  per_section <- planscanR:::fi_parse_detail(.fi_fix_detail_1498)
+  detail_summary <- "Detail-page project description."
+
+  # Index description present -> it wins; detail summary is ignored.
+  rec_idx <- planscanR:::fi_build_record(url, src, per_section, detail_summary = detail_summary)
+  expect_match(rec_idx$summary, "Tarkoituksena on aloittaa tuotanto")
+
+  # Index description empty -> fall back to the detail-page summary.
+  src_empty <- src
+  src_empty$description <- ""
+  rec_fb <- planscanR:::fi_build_record(url, src_empty, per_section, detail_summary = detail_summary)
+  expect_identical(rec_fb$summary, detail_summary)
+
+  # Neither index description nor detail summary -> NA (valid).
+  rec_na <- planscanR:::fi_build_record(url, src_empty, per_section, detail_summary = NA_character_)
+  expect_true(is.na(rec_na$summary))
+})
+
+test_that("get_assessments_fi backfills summary from the detail page when the index omits it", {
+  withr::with_tempdir({
+    cache <- file.path(getwd(), "cache")
+    options(planscanR.cache_dir = cache)
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+
+    # One record whose ES index `description` is empty; the detail page renders
+    # the project prose in `.page-content__content .text-long`.
+    src_empty <- .fi_src_by_id[["1498"]]
+    src_empty$description <- ""
+    local_mocked_bindings(
+      fi_es_search = function(body) {
+        if (identical(as.integer(body$from %||% 0L), 0L)) {
+          hit <- list(`_index` = "search-fi", `_id` = "1498", `_source` = src_empty)
+          return(list(
+            took = 0L,
+            hits = list(total = list(value = 1L, relation = "eq"), hits = list(hit))
+          ))
+        }
+        .fi_fix_listing_empty
+      },
+      perform_html = function(req) .fi_fix_detail_summary
+    )
+
+    res <- get_assessments_fi(limit = 1, download = FALSE)
+    expect_identical(nrow(res), 1L)
+    expect_match(res$summary, "^Australialaisyhtiö Critical Metals Ltd")
+  })
 })
 
 test_that("fi_section_slug uses the curated keyword map + auto-slug fallback", {

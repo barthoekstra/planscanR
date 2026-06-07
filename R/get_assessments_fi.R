@@ -55,6 +55,16 @@
 #' `attachment_urls` / `local_path` remain the deduplicated union (required by
 #' the schema).
 #'
+#' @section Summary:
+#' `summary` is taken from the Elasticsearch index `description` when present.
+#' Some records leave that field blank even though the landing page renders a
+#' project description; for those the handler falls back to the prose in
+#' `div.page-content__content div.text-long` on the same detail fetch already
+#' made for attachments (issue #11). A *second* `div.text-long` in the page
+#' footer holds site boilerplate and is deliberately excluded by scoping the
+#' selector to the content region. Records with neither an index `description`
+#' nor a landing-page description keep `summary = NA` (valid).
+#'
 #' @section Filter coverage (v0.1):
 #' * `query` — server-side free-text (`bool.must` `match` on `content` +
 #'    `title` in the ES body).
@@ -407,7 +417,8 @@ fi_load_or_fetch <- function(url, entry, sidecar_index, write_sidecar) {
   }
   html <- fi_fetch_detail(url)
   per_section <- fi_parse_detail(html)
-  fi_build_record(url, entry, per_section)
+  detail_summary <- fi_parse_summary(html)
+  fi_build_record(url, entry, per_section, detail_summary = detail_summary)
 }
 
 #' Fetch one YVA landing page as parsed HTML.
@@ -450,6 +461,31 @@ fi_parse_detail <- function(html) {
     per_section[[slug]] <- unique(c(per_section[[slug]], url))
   }
   per_section
+}
+
+#' Parse the project description (summary) from a landing page.
+#'
+#' The portal renders the human-readable project description as one or more
+#' `<p>` paragraphs inside `div.text-long`, within the main content region
+#' `div.page-content__content`. A *second* `div.text-long` lives in the page
+#' footer (`div.footer__description`) and holds site boilerplate, so the
+#' selector is scoped to `.page-content__content` to exclude it. Paragraphs are
+#' joined and runs of whitespace (including newlines and the `&nbsp;` of the
+#' trailing empty paragraph) collapsed to single spaces. Returns
+#' `NA_character_` when the content region renders no `text-long` (a valid,
+#' summary-less record). This is the fallback the ES index `description` is
+#' preferred over (see [fi_build_record()]).
+#' @noRd
+fi_parse_summary <- function(html) {
+  node <- rvest::html_element(html, ".page-content__content .text-long")
+  if (length(node) == 0L || inherits(node, "xml_missing")) {
+    return(NA_character_)
+  }
+  text <- rvest::html_text2(node)
+  # Collapse all whitespace, incl. newlines between <p> and the trailing nbsp.
+  text <- gsub("[[:space:]\\x{00a0}]+", " ", text, perl = TRUE)
+  text <- trimws(text)
+  if (!nzchar(text)) NA_character_ else text
 }
 
 #' Curated anchor-text keyword → stable slug map.
@@ -541,8 +577,14 @@ fi_absolute_url <- function(href) {
 #' from `per_section` (the curated/auto-slugged scrape of the landing page).
 #' `document_id` is prefixed `YVA-<id>` (the id space is shared across content
 #' types, so the prefix + the `type` filter prevent cross-type collisions).
+#'
+#' `detail_summary` is the landing-page project description parsed by
+#' [fi_parse_summary()]. The ES index `description` is preferred for `summary`;
+#' `detail_summary` is only the fallback for records the index leaves blank
+#' (issue #11). Pass `NA_character_` when there is no detail page (e.g. a cached
+#' or summary-less record).
 #' @noRd
-fi_build_record <- function(url, entry, per_section) {
+fi_build_record <- function(url, entry, per_section, detail_summary = NA_character_) {
   raw_id <- as.character(entry$id %||% NA_character_)
   document_id <- if (is.na(raw_id) || !nzchar(raw_id)) {
     paste0("YVA-", fi_id_from_url(url))
@@ -552,8 +594,9 @@ fi_build_record <- function(url, entry, per_section) {
 
   title <- fi_text(entry$title) %||% NA_character_
   # `description` is the short abstract; `content` is the full (often long)
-  # narrative. Prefer description for `summary`.
-  summary_text <- fi_text(entry$description) %||% NA_character_
+  # narrative. Prefer the index description for `summary`; when the index omits
+  # it, fall back to the landing-page project description (issue #11).
+  summary_text <- fi_text(entry$description) %||% detail_summary %||% NA_character_
 
   date_published <- fi_epoch_to_date(entry$publishTime)
 
