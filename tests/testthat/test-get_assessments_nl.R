@@ -46,6 +46,51 @@ test_that("nl_parse_detail extracts expected fields from a real detail page", {
   expect_identical(rec$local_path_advice[[1]], character(0))
 })
 
+test_that("nl_parse_detail recovers the summary when div.intro has an empty lead <p> (issue #12)", {
+  # Live layout (records 1690 / 1643): div.intro opens with a malformed empty
+  # <p align=justify> before the real prose <p>. The old single-element selector
+  # grabbed the empty node and produced NA.
+  local_mocked_bindings(
+    perform_html = function(req) read_fixture_html("advice-detail-empty-lead-intro.html"),
+    req_planscanr = function(base_url, path = NULL) base_url
+  )
+  rec <- planscanR:::nl_parse_detail(
+    "https://www.commissiemer.nl/advies/peilbesluit-veerse-meer/"
+  )
+  expect_match(rec$summary, "^Rijkswaterstaat Zeeland en de Provincie Zeeland")
+  # The trailing/decoy text must not leak in.
+  expect_false(grepl("Decoy", rec$summary))
+  expect_false(grepl("Hoofdpunten", rec$summary))
+})
+
+test_that("nl_parse_detail falls back to the content block when there is no div.intro (issue #12)", {
+  # Older layout (record 1159): no div.intro; the prose lives in the main-column
+  # div.text under the "Hoofdpunten uit het advies" heading.
+  local_mocked_bindings(
+    perform_html = function(req) read_fixture_html("advice-detail-no-intro.html"),
+    req_planscanr = function(base_url, path = NULL) base_url
+  )
+  rec <- planscanR:::nl_parse_detail(
+    "https://www.commissiemer.nl/advies/integrale-effectrapportage-deltametropool/"
+  )
+  expect_match(rec$summary, "^Vanwege het krappe tijdschema")
+  # The sidebar/footer decoy lives outside the main content block.
+  expect_false(grepl("Decoy", rec$summary))
+})
+
+test_that("nl_parse_detail returns NA summary when no intro or content prose exists (issue #12)", {
+  local_mocked_bindings(
+    perform_html = function(req) {
+      rvest::read_html(
+        "<html><head><title>Leeg - Commissie mer</title></head><body></body></html>"
+      )
+    },
+    req_planscanr = function(base_url, path = NULL) base_url
+  )
+  rec <- planscanR:::nl_parse_detail("https://www.commissiemer.nl/advies/leeg/")
+  expect_true(is.na(rec$summary))
+})
+
 test_that("nl_section_pdfs returns empty character() for a missing section", {
   html <- read_fixture_html("advice-detail-aromaten-delfzijl.html")
   expect_identical(
