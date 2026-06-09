@@ -119,11 +119,13 @@
 <td>list<chr> (parallel to <code>attachment_urls</code>; <code>character(0)</code> if <code>download = FALSE</code>)</chr></td>
 </tr></tbody></table><p><strong>Conventional columns</strong> (use these names when the portal exposes the concept, so cross-country tibbles can be <code>bind_rows()</code>-ed cleanly):</p>
 <p><code>title</code>, <code>summary</code>, <code>native_type</code>, <code>jurisdiction</code>, <code>status</code>, <code>date_published</code>, <code>date_decision</code>, <code>competent_authority</code>, <code>proponent</code>, <code>file_sha256</code>, <code>relevance_score</code>, <code>relevance_model</code>, <code>download_status</code>.</p>
-<p><strong>Per-handler attachment splits.</strong> A portal that groups its attachments into named sections may add parallel list-columns. NL uses two:</p>
+<p><strong>Per-handler attachment splits.</strong> A portal that groups its attachments into named sections may add parallel list-columns. NL uses three:</p>
 <ul><li>
-<code>attachment_urls_source</code> / <code>local_path_source</code> — files in <em>“Documenten waarop het advies is gebaseerd”</em> (the underlying EIA/SEA reports — the substantive documents for downstream analysis).</li>
+<code>attachment_urls_source</code> / <code>local_path_source</code> — files under a heading like <em>“Documenten waarop het advies is gebaseerd”</em> (the underlying EIA/SEA reports — the substantive documents for downstream analysis).</li>
 <li>
-<code>attachment_urls_advice</code> / <code>local_path_advice</code> — files in <em>“Adviezen en persberichten”</em> (Commissie advice + press releases).</li>
+<code>attachment_urls_advice</code> / <code>local_path_advice</code> — files under the advice card (Commissie advice + press releases). The heading text varies across template generations — <em>“Adviezen en persberichten”</em> (older pages) and <em>“Advies en persbericht”</em> (newer card layout) — so the handler classifies by a tolerant <em>contains</em> match, not an exact heading literal, and tests <code>source</code> <strong>before</strong> <code>advice</code> (the source heading itself contains the word “advies”).</li>
+<li>
+<code>attachment_urls_other</code> / <code>local_path_other</code> — catch-all for any <code>pas.commissiemer.nl/files/</code> document link whose enclosing section heading isn’t recognised (or is absent). This upholds the §4c capture-fidelity invariant: a future heading-wording drift degrades a document to <code>other</code> rather than silently dropping it. (Regression: the exact-literal match dropped every advice PDF on the new card layout — issue NL/#10.)</li>
 </ul><p>DE uses four:</p>
 <ul><li>
 <code>attachment_urls_uvp_bericht</code> / <code>local_path_uvp_bericht</code> — <em>“UVP-Bericht, ggf. Antragsunterlagen”</em> (substantive UVP report + applicant docs).</li>
@@ -166,6 +168,19 @@
 <blockquote>
 <p><strong>Yoda / iRODS sync moved out.</strong> Pushing the cache to a Yoda iRODS server (<code>sync_cache_to_yoda()</code>, <code>fetch_attachments_via_yoda()</code>, the cache-resident <code>yoda/</code> config, and the <code>keyring</code>-based credential resolution) now lives in <strong>planscanR.biogain</strong>. It is a consumer of this package’s cache layout — the local sidecars remain the authoritative index here. See <a href="../planscanR.biogain/AGENTS.html">../planscanR.biogain/AGENTS.md</a>.</p>
 </blockquote>
+</div>
+<div class="section level2">
+<h2 id="id_4c-sidecar-capture-fidelity-invariant">4c. Sidecar capture-fidelity invariant<a class="anchor" aria-label="anchor" href="#id_4c-sidecar-capture-fidelity-invariant"></a></h2>
+<p>A sidecar MUST capture every piece of record-relevant information the portal exposes for that record. This is a <strong>general</strong> contract, not a fixed field list:</p>
+<ul><li>
+<strong>Summary when present.</strong> If the portal’s detail page shows a project summary / abstract / description, the sidecar’s <code>summary</code> must carry it (regression: NO / NVE dropped it — issue #5).</li>
+<li>
+<strong>Every document listed.</strong> The <code>files[]</code> / <code>attachment_urls_*</code> arrays must enumerate <em>all</em> documents the portal lists for the record, following any pagination or lazy-loading (regression: GB / NSIP captured ~10 of &gt;1000 — issue #6).</li>
+<li>
+<strong>All exposed metadata.</strong> Title, competent authority, proponent, decision / publication dates, location / geometry, status, type, and any per-record identifiers the portal surfaces must be captured when present.</li>
+<li>
+<strong>Future fields too.</strong> The invariant is open-ended: when a portal exposes a field the schema doesn’t yet name, the gap is still a capture defect.</li>
+</ul><p>The companion audit (<code>inst/audit/</code>, see its <code>README.md</code>) checks this invariant across countries by diffing a generic, portal-agnostic probe of the live source against the on-disk sidecars. The two named regressions are exemplars; the audit is designed to surface unanticipated gap classes as well. GB, NO and BG are deferred from the active audit run while they are being re-ingested (a single <code>AUDIT_DEFERRED</code> list, re-enableable later).</p>
 </div>
 <div class="section level2">
 <h2 id="id_5-adding-a-country">5. Adding a country<a class="anchor" aria-label="anchor" href="#id_5-adding-a-country"></a></h2>

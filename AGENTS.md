@@ -589,13 +589,25 @@ concept, so cross-country tibbles can be `bind_rows()`-ed cleanly):
 `file_sha256`, `relevance_score`, `relevance_model`, `download_status`.
 
 **Per-handler attachment splits.** A portal that groups its attachments
-into named sections may add parallel list-columns. NL uses two:
+into named sections may add parallel list-columns. NL uses three:
 
-- `attachment_urls_source` / `local_path_source` — files in *“Documenten
-  waarop het advies is gebaseerd”* (the underlying EIA/SEA reports — the
-  substantive documents for downstream analysis).
-- `attachment_urls_advice` / `local_path_advice` — files in *“Adviezen
-  en persberichten”* (Commissie advice + press releases).
+- `attachment_urls_source` / `local_path_source` — files under a heading
+  like *“Documenten waarop het advies is gebaseerd”* (the underlying
+  EIA/SEA reports — the substantive documents for downstream analysis).
+- `attachment_urls_advice` / `local_path_advice` — files under the
+  advice card (Commissie advice + press releases). The heading text
+  varies across template generations — *“Adviezen en persberichten”*
+  (older pages) and *“Advies en persbericht”* (newer card layout) — so
+  the handler classifies by a tolerant *contains* match, not an exact
+  heading literal, and tests `source` **before** `advice` (the source
+  heading itself contains the word “advies”).
+- `attachment_urls_other` / `local_path_other` — catch-all for any
+  `pas.commissiemer.nl/files/` document link whose enclosing section
+  heading isn’t recognised (or is absent). This upholds the §4c
+  capture-fidelity invariant: a future heading-wording drift degrades a
+  document to `other` rather than silently dropping it. (Regression: the
+  exact-literal match dropped every advice PDF on the new card layout —
+  issue NL/#10.)
 
 DE uses four:
 
@@ -757,6 +769,35 @@ safe).
 > this package’s cache layout — the local sidecars remain the
 > authoritative index here. See
 > [../planscanR.biogain/AGENTS.md](https://barthoekstra.github.io/planscanR.biogain/AGENTS.md).
+
+## 4c. Sidecar capture-fidelity invariant
+
+A sidecar MUST capture every piece of record-relevant information the
+portal exposes for that record. This is a **general** contract, not a
+fixed field list:
+
+- **Summary when present.** If the portal’s detail page shows a project
+  summary / abstract / description, the sidecar’s `summary` must carry
+  it (regression: NO / NVE dropped it — issue \#5).
+- **Every document listed.** The `files[]` / `attachment_urls_*` arrays
+  must enumerate *all* documents the portal lists for the record,
+  following any pagination or lazy-loading (regression: GB / NSIP
+  captured ~10 of \>1000 — issue \#6).
+- **All exposed metadata.** Title, competent authority, proponent,
+  decision / publication dates, location / geometry, status, type, and
+  any per-record identifiers the portal surfaces must be captured when
+  present.
+- **Future fields too.** The invariant is open-ended: when a portal
+  exposes a field the schema doesn’t yet name, the gap is still a
+  capture defect.
+
+The companion audit (`inst/audit/`, see its `README.md`) checks this
+invariant across countries by diffing a generic, portal-agnostic probe
+of the live source against the on-disk sidecars. The two named
+regressions are exemplars; the audit is designed to surface
+unanticipated gap classes as well. GB, NO and BG are deferred from the
+active audit run while they are being re-ingested (a single
+`AUDIT_DEFERRED` list, re-enableable later).
 
 ## 5. Adding a country
 

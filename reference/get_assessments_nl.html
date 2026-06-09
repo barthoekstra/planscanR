@@ -212,18 +212,27 @@ descriptive prose yield <code>NA</code>.</p>
     <div class="section level2">
     <h2 id="attachments">Attachments<a class="anchor" aria-label="anchor" href="#attachments"></a></h2>
     <p>per-page split:
-Each advice detail page on commissiemer.nl groups PDFs into two on-page
-sections, which this handler exposes as separate list-columns:</p><ul><li><p><code>attachment_urls_source</code> / <code>local_path_source</code> — files in the
-<strong>"Documenten waarop het advies is gebaseerd"</strong> section. These are the
+Each advice detail page on commissiemer.nl groups files into on-page
+section cards, which this handler exposes as separate list-columns.
+Classification is tolerant: every <code>pas.commissiemer.nl/files/</code> anchor is
+captured and assigned to a section based on the normalised text of its
+nearest ancestor card's <code>&lt;h2&gt;</code> heading — so heading wording changes (e.g.
+the switch from "Adviezen en persberichten" to "Advies en persbericht") do
+not silently drop documents.</p><ul><li><p><code>attachment_urls_source</code> / <code>local_path_source</code> — files whose section
+heading contains "gebaseerd" or "documenten waarop". These are the
 underlying EIA/SEA reports submitted by the proponent and reviewed by the
 Commissie. <strong>These are the substantive documents for downstream analysis</strong>
 (e.g. the classification pipeline in <span class="pkg">planscanR.screen</span>).</p></li>
-<li><p><code>attachment_urls_advice</code> / <code>local_path_advice</code> — files in the
-<strong>"Adviezen en persberichten"</strong> section: the Commissie's own advisory
-reports and press releases.</p></li>
-<li><p><code>attachment_urls</code> / <code>local_path</code> — the union of both (deduplicated),
-ordered with source documents first. Required by the planscanR schema.</p></li>
-</ul><p>When <code>download = TRUE</code>, all files in both sections are fetched.</p>
+<li><p><code>attachment_urls_advice</code> / <code>local_path_advice</code> — files whose section
+heading contains "persbericht" or "advies" (covers both "advies" and
+"adviezen", both singular and plural layouts).</p></li>
+<li><p><code>attachment_urls_other</code> / <code>local_path_other</code> — files that do not match
+either of the above, including any anchor without a recognisable enclosing
+<code>&lt;h2&gt;</code>. This catch-all ensures no document is silently dropped.</p></li>
+<li><p><code>attachment_urls</code> / <code>local_path</code> — the deduplicated union of all three,
+ordered source-first, then advice, then other. Required by the planscanR
+schema.</p></li>
+</ul><p>When <code>download = TRUE</code>, all files in all sections are fetched.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
