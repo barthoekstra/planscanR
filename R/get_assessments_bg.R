@@ -443,10 +443,7 @@ bg_fetch_details_parallel <- function(urls, max_active = 8L) {
 #'   pull a whole page we will not use.
 #' @return `entries`, with `detail_html` attached to the rows we downloaded.
 #' @noRd
-bg_prefetch_details <- function(entries,
-                                sidecar_index,
-                                max_active = 8L,
-                                max_fetch = Inf) {
+bg_prefetch_details <- function(entries, sidecar_index, max_active = 8L, max_fetch = Inf) {
   if (length(entries) == 0L) {
     return(entries)
   }

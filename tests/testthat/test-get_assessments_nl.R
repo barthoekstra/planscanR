@@ -35,15 +35,18 @@ test_that("nl_parse_detail extracts expected fields from a real detail page", {
   # Section-scoped attachment columns
   src <- rec$attachment_urls_source[[1]]
   adv <- rec$attachment_urls_advice[[1]]
+  oth <- rec$attachment_urls_other[[1]]
   expect_true(length(src) > length(adv))
   expect_identical(length(src), 40L)
   expect_identical(length(adv), 7L)
+  expect_length(oth, 0L)
   expect_length(intersect(src, adv), 0L)
-  # Union (deduped) equals attachment_urls
-  expect_setequal(rec$attachment_urls[[1]], unique(c(src, adv)))
+  # Union (deduped) equals attachment_urls — include the `other` catch-all bucket
+  expect_setequal(rec$attachment_urls[[1]], unique(c(src, adv, oth)))
   # local_path_* parallel columns initialised empty when download=FALSE
   expect_identical(rec$local_path_source[[1]], character(0))
   expect_identical(rec$local_path_advice[[1]], character(0))
+  expect_identical(rec$local_path_other[[1]], character(0))
 })
 
 test_that("nl_parse_detail recovers the summary when div.intro has an empty lead <p> (issue #12)", {
@@ -337,6 +340,49 @@ test_that("sidecar_url_index reads only valid JSON sidecars", {
     )
     expect_true(all(grepl("^https://www\\.commissiemer\\.nl/advies/idx-", names(idx))))
   })
+})
+
+test_that("nl_parse_detail handles new card-layout with singular heading (issue #10.1)", {
+  # New-layout page: advice heading is "Advies en persbericht" (SINGULAR).
+  # Expected: advice (2 PDFs), source (1 PDF nested in <details>).
+  local_mocked_bindings(
+    perform_html = function(req) {
+      read_fixture_html("advice-detail-card-layout.html")
+    },
+    req_planscanr = function(base_url, path = NULL) base_url
+  )
+  rec <- planscanR:::nl_parse_detail(
+    "https://www.commissiemer.nl/advies/windpark-papenslagweg-lochem/"
+  )
+  expect_s3_class(rec, "tbl_df")
+  expect_identical(nrow(rec), 1L)
+  expect_identical(rec$document_id, "3960")
+
+  adv <- rec$attachment_urls_advice[[1]]
+  src <- rec$attachment_urls_source[[1]]
+  oth <- rec$attachment_urls_other[[1]]
+
+  # 2 advice PDFs
+  expect_identical(length(adv), 2L)
+  expect_true(any(grepl("a3960rd\\.pdf", adv)))
+  expect_true(any(grepl("persbericht_windpark_papenslagweg", adv)))
+
+  # 1 source PDF (nested inside <details>)
+  expect_identical(length(src), 1L)
+  expect_true(any(grepl("04521155-cnrd\\.pdf", src)))
+
+  # No unclassified docs on this page
+  expect_length(oth, 0L)
+
+  # Union of all 3 — must equal source + advice + other (catch-all)
+  all_urls <- rec$attachment_urls[[1]]
+  expect_identical(length(all_urls), 3L)
+  expect_setequal(all_urls, unique(c(src, adv, oth)))
+
+  # local_path_* initialised empty (download=FALSE)
+  expect_identical(rec$local_path_source[[1]], character(0))
+  expect_identical(rec$local_path_advice[[1]], character(0))
+  expect_identical(rec$local_path_other[[1]], character(0))
 })
 
 # -- Live integration test ---------------------------------------------------
