@@ -131,22 +131,31 @@ descriptive prose yield \code{NA}.
 
 \section{Attachments}{
  per-page split:
-Each advice detail page on commissiemer.nl groups PDFs into two on-page
-sections, which this handler exposes as separate list-columns:
+Each advice detail page on commissiemer.nl groups files into on-page
+section cards, which this handler exposes as separate list-columns.
+Classification is tolerant: every \verb{pas.commissiemer.nl/files/} anchor is
+captured and assigned to a section based on the normalised text of its
+nearest ancestor card's \verb{<h2>} heading — so heading wording changes (e.g.
+the switch from "Adviezen en persberichten" to "Advies en persbericht") do
+not silently drop documents.
 \itemize{
-\item \code{attachment_urls_source} / \code{local_path_source} — files in the
-\strong{"Documenten waarop het advies is gebaseerd"} section. These are the
+\item \code{attachment_urls_source} / \code{local_path_source} — files whose section
+heading contains "gebaseerd" or "documenten waarop". These are the
 underlying EIA/SEA reports submitted by the proponent and reviewed by the
 Commissie. \strong{These are the substantive documents for downstream analysis}
 (e.g. the classification pipeline in \pkg{planscanR.screen}).
-\item \code{attachment_urls_advice} / \code{local_path_advice} — files in the
-\strong{"Adviezen en persberichten"} section: the Commissie's own advisory
-reports and press releases.
-\item \code{attachment_urls} / \code{local_path} — the union of both (deduplicated),
-ordered with source documents first. Required by the planscanR schema.
+\item \code{attachment_urls_advice} / \code{local_path_advice} — files whose section
+heading contains "persbericht" or "advies" (covers both "advies" and
+"adviezen", both singular and plural layouts).
+\item \code{attachment_urls_other} / \code{local_path_other} — files that do not match
+either of the above, including any anchor without a recognisable enclosing
+\verb{<h2>}. This catch-all ensures no document is silently dropped.
+\item \code{attachment_urls} / \code{local_path} — the deduplicated union of all three,
+ordered source-first, then advice, then other. Required by the planscanR
+schema.
 }
 
-When \code{download = TRUE}, all files in both sections are fetched.
+When \code{download = TRUE}, all files in all sections are fetched.
 }
 
 \examples{

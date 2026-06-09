@@ -528,13 +528,23 @@ so cross-country tibbles can be `bind_rows()`-ed cleanly):
 `relevance_score`, `relevance_model`, `download_status`.
 
 **Per-handler attachment splits.** A portal that groups its attachments into
-named sections may add parallel list-columns. NL uses two:
+named sections may add parallel list-columns. NL uses three:
 
-- `attachment_urls_source` / `local_path_source` — files in
+- `attachment_urls_source` / `local_path_source` — files under a heading like
   *"Documenten waarop het advies is gebaseerd"* (the underlying EIA/SEA
   reports — the substantive documents for downstream analysis).
-- `attachment_urls_advice` / `local_path_advice` — files in
-  *"Adviezen en persberichten"* (Commissie advice + press releases).
+- `attachment_urls_advice` / `local_path_advice` — files under the advice card
+  (Commissie advice + press releases). The heading text varies across template
+  generations — *"Adviezen en persberichten"* (older pages) and *"Advies en
+  persbericht"* (newer card layout) — so the handler classifies by a tolerant
+  *contains* match, not an exact heading literal, and tests `source` **before**
+  `advice` (the source heading itself contains the word "advies").
+- `attachment_urls_other` / `local_path_other` — catch-all for any
+  `pas.commissiemer.nl/files/` document link whose enclosing section heading
+  isn't recognised (or is absent). This upholds the §4c capture-fidelity
+  invariant: a future heading-wording drift degrades a document to `other`
+  rather than silently dropping it. (Regression: the exact-literal match dropped
+  every advice PDF on the new card layout — issue NL/#10.)
 
 DE uses four:
 

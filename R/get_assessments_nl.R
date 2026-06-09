@@ -83,21 +83,30 @@
 #' @param ... Reserved for future extensions; unused arguments are warned about.
 #'
 #' @section Attachments: per-page split:
-#' Each advice detail page on commissiemer.nl groups PDFs into two on-page
-#' sections, which this handler exposes as separate list-columns:
+#' Each advice detail page on commissiemer.nl groups files into on-page
+#' section cards, which this handler exposes as separate list-columns.
+#' Classification is tolerant: every `pas.commissiemer.nl/files/` anchor is
+#' captured and assigned to a section based on the normalised text of its
+#' nearest ancestor card's `<h2>` heading — so heading wording changes (e.g.
+#' the switch from "Adviezen en persberichten" to "Advies en persbericht") do
+#' not silently drop documents.
 #'
-#' * `attachment_urls_source` / `local_path_source` — files in the
-#'   **"Documenten waarop het advies is gebaseerd"** section. These are the
+#' * `attachment_urls_source` / `local_path_source` — files whose section
+#'   heading contains "gebaseerd" or "documenten waarop". These are the
 #'   underlying EIA/SEA reports submitted by the proponent and reviewed by the
 #'   Commissie. **These are the substantive documents for downstream analysis**
 #'   (e.g. the classification pipeline in \pkg{planscanR.screen}).
-#' * `attachment_urls_advice` / `local_path_advice` — files in the
-#'   **"Adviezen en persberichten"** section: the Commissie's own advisory
-#'   reports and press releases.
-#' * `attachment_urls` / `local_path` — the union of both (deduplicated),
-#'   ordered with source documents first. Required by the planscanR schema.
+#' * `attachment_urls_advice` / `local_path_advice` — files whose section
+#'   heading contains "persbericht" or "advies" (covers both "advies" and
+#'   "adviezen", both singular and plural layouts).
+#' * `attachment_urls_other` / `local_path_other` — files that do not match
+#'   either of the above, including any anchor without a recognisable enclosing
+#'   `<h2>`. This catch-all ensures no document is silently dropped.
+#' * `attachment_urls` / `local_path` — the deduplicated union of all three,
+#'   ordered source-first, then advice, then other. Required by the planscanR
+#'   schema.
 #'
-#' When `download = TRUE`, all files in both sections are fetched.
+#' When `download = TRUE`, all files in all sections are fetched.
 #'
 #' @return A tibble; see [get_assessments()] for the schema.
 #' @seealso [get_assessments()], [get_assessments_coverage()].
@@ -240,6 +249,7 @@ nl_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
   urls <- get_section("attachment_urls")
   src_urls <- get_section("attachment_urls_source")
   adv_urls <- get_section("attachment_urls_advice")
+  oth_urls <- get_section("attachment_urls_other")
   if (download) {
     if (length(urls) > 0L) {
       inform_download(length(urls), cache_dir(file.path("files", "nl"), create = TRUE))
@@ -260,6 +270,7 @@ nl_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
   rec$local_path <- list(ds$local_path)
   rec$local_path_source <- list(ds$local_path[match(src_urls, ds$url)])
   rec$local_path_advice <- list(ds$local_path[match(adv_urls, ds$url)])
+  rec$local_path_other <- list(ds$local_path[match(oth_urls, ds$url)])
   rec$file_sha256 <- list(ds$sha256)
   if (write_sidecar) {
     tryCatch(
@@ -378,18 +389,22 @@ nl_parse_detail <- function(url) {
   proponent <- nl_lookup(sidebar, "Initiatiefnemer")
   date_decision <- parse_dutch_date(nl_lookup(sidebar, "Laatste advies uitgebracht op"))
 
-  # PDFs are split between two on-page sections:
-  #   * "Adviezen en persberichten" — the Commissie's own advice + press releases.
-  #   * "Documenten waarop het advies is gebaseerd" — the underlying EIA/SEA
-  #     documents the Commissie reviewed. These are the substantive documents
-  #     for downstream analysis (BIOGAIN / planscanR.screen classification).
-  pdf_advice <- nl_section_pdfs(html, "Adviezen en persberichten")
-  pdf_source <- nl_section_pdfs(html, "Documenten waarop het advies is gebaseerd")
-  # `attachment_urls` is the required-schema union; ordered with source docs
-  # first since those are the high-value ones.
-  pdf_urls <- unique(c(pdf_source, pdf_advice))
+  # Capture every anchor pointing to pas.commissiemer.nl/files/ and classify
+  # each by the normalised text of its nearest ancestor card's <h2> heading.
+  # This is tolerant of heading wording drift (e.g. "Adviezen en persberichten"
+  # → "Advies en persbericht") and layout changes (card vs. sibling-div).
+  # Classification order is critical: the source heading "Documenten waarop het
+  # advies is gebaseerd" contains the substring "advies", so we test for source
+  # BEFORE advice to avoid misclassifying source docs as advice.
+  sections <- nl_classify_document_urls(html)
+  pdf_source <- sections$source
+  pdf_advice <- sections$advice
+  pdf_other <- sections$other
+  # `attachment_urls` is the required-schema union; ordered source-first (high-
+  # value substantive docs), then advice, then other catch-all.
+  pdf_urls <- unique(c(pdf_source, pdf_advice, pdf_other))
 
-  # Document ID: the Commissie m.e.r. project number embedded in the PDF URL path
+  # Document ID: the Commissie m.e.r. project number embedded in the URL path
   # pattern, e.g. https://pas.commissiemer.nl/files/nl/3619/...
   doc_id <- nl_extract_project_id(pdf_urls, html)
 
@@ -402,9 +417,11 @@ nl_parse_detail <- function(url) {
     attachment_urls = list(pdf_urls),
     attachment_urls_source = list(pdf_source),
     attachment_urls_advice = list(pdf_advice),
+    attachment_urls_other = list(pdf_other),
     local_path = list(character(0)),
     local_path_source = list(character(0)),
     local_path_advice = list(character(0)),
+    local_path_other = list(character(0)),
     title = title,
     summary = summary,
     competent_authority = competent_authority %||% NA_character_,
@@ -414,11 +431,76 @@ nl_parse_detail <- function(url) {
   )
 }
 
+#' Classify all commissiemer.nl document anchors by their enclosing section.
+#'
+#' Finds every `<a>` whose href contains `pas.commissiemer.nl/files/` (the
+#' real document host), looks up the nearest ancestor `<div>` that has a
+#' direct child `<h2>`, reads that `<h2>` text, and assigns the URL to one of
+#' three buckets based on normalised (lowercase) heading text:
+#'
+#' 1. **source** — heading contains "gebaseerd" or "documenten waarop"
+#' 2. **advice** — heading contains "persbericht" or "advies"
+#'    (covers "advies" / "adviezen", singular / plural, both known layouts)
+#' 3. **other** — anything else, including anchors with no recognisable `<h2>`
+#'
+#' The source rule is tested BEFORE the advice rule because the source heading
+#' "Documenten waarop het **advies** is gebaseerd" contains the substring
+#' "advies"; swapping the order would misclassify source documents as advice.
+#'
+#' @return Named list with elements `source`, `advice`, and `other`, each a
+#'   deduplicated character vector of URLs.
+#' @noRd
+nl_classify_document_urls <- function(html) {
+  # Collect every anchor that points to the real document storage host.
+  xp_anchors <- "//a[contains(@href, 'pas.commissiemer.nl/files/')]"
+  nodes <- rvest::html_elements(html, xpath = xp_anchors)
+
+  source_urls <- character(0)
+  advice_urls <- character(0)
+  other_urls <- character(0)
+
+  if (length(nodes) == 0L) {
+    return(list(source = source_urls, advice = advice_urls, other = other_urls))
+  }
+
+  for (node in nodes) {
+    href <- rvest::html_attr(node, "href")
+    if (is.na(href) || !nzchar(href)) {
+      next
+    }
+
+    # Walk up to the nearest ancestor div that has a direct-child h2.
+    # ancestor::div[./h2][1] works for both card layout (h2 + flex-div inside
+    # one bg-white wrapper div) and old sibling layout.
+    h2_nodes <- rvest::html_elements(node, xpath = "ancestor::div[./h2][1]/h2")
+    if (length(h2_nodes) == 0L) {
+      other_urls <- c(other_urls, href)
+      next
+    }
+    heading <- tolower(trimws(rvest::html_text(h2_nodes[[1]])))
+
+    # Classification order: source BEFORE advice (see function note above).
+    if (grepl("gebaseerd", heading, fixed = TRUE) || grepl("documenten waarop", heading, fixed = TRUE)) {
+      source_urls <- c(source_urls, href)
+    } else if (grepl("persbericht", heading, fixed = TRUE) || grepl("advies", heading, fixed = TRUE)) {
+      advice_urls <- c(advice_urls, href)
+    } else {
+      other_urls <- c(other_urls, href)
+    }
+  }
+
+  list(
+    source = unique(source_urls),
+    advice = unique(advice_urls),
+    other = unique(other_urls)
+  )
+}
+
 #' Extract PDF URLs that live under a specific H2 section on a detail page.
 #'
-#' Uses an XPath that takes the first sibling div after the matching H2 and
-#' selects all `.pdf` anchors within it. Returns a deduplicated character
-#' vector (possibly empty).
+#' Legacy helper kept for backward compatibility with any code that calls it
+#' directly (e.g. existing tests for the old exact-heading path). New code
+#' should use `nl_classify_document_urls()` instead.
 #'
 #' @noRd
 nl_section_pdfs <- function(html, section_title) {
