@@ -674,6 +674,31 @@ calls. Use it to:
 > local sidecars remain the authoritative index here. See
 > [../planscanR.biogain/AGENTS.md](../planscanR.biogain/AGENTS.md).
 
+## 4c. Sidecar capture-fidelity invariant
+
+A sidecar MUST capture every piece of record-relevant information the portal
+exposes for that record. This is a **general** contract, not a fixed field list:
+
+- **Summary when present.** If the portal's detail page shows a project
+  summary / abstract / description, the sidecar's `summary` must carry it
+  (regression: NO / NVE dropped it — issue #5).
+- **Every document listed.** The `files[]` / `attachment_urls_*` arrays must
+  enumerate *all* documents the portal lists for the record, following any
+  pagination or lazy-loading (regression: GB / NSIP captured ~10 of >1000 —
+  issue #6).
+- **All exposed metadata.** Title, competent authority, proponent, decision /
+  publication dates, location / geometry, status, type, and any per-record
+  identifiers the portal surfaces must be captured when present.
+- **Future fields too.** The invariant is open-ended: when a portal exposes a
+  field the schema doesn't yet name, the gap is still a capture defect.
+
+The companion audit (`inst/audit/`, see its `README.md`) checks this invariant
+across countries by diffing a generic, portal-agnostic probe of the live source
+against the on-disk sidecars. The two named regressions are exemplars; the audit
+is designed to surface unanticipated gap classes as well. GB, NO and BG are
+deferred from the active audit run while they are being re-ingested (a single
+`AUDIT_DEFERRED` list, re-enableable later).
+
 ## 5. Adding a country
 
 1. Create `R/get_assessments_<cc>.R` with the same signature surface as
