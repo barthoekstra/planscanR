@@ -5,12 +5,18 @@
 #'
 #' @param base_url Base URL string.
 #' @param path Optional path segment to append.
+#' @param referer Optional `Referer` request header. Some portals gate their
+#'   endpoints on it (e.g. APA's SNIAMB ArcGIS service returns 403 without a
+#'   `Referer` matching the public geoviewer page).
 #' @return An `httr2_request`.
 #' @noRd
-req_planscanr <- function(base_url, path = NULL) {
+req_planscanr <- function(base_url, path = NULL, referer = NULL) {
   req <- httr2::request(base_url)
   if (!is.null(path)) {
     req <- httr2::req_url_path_append(req, path)
+  }
+  if (!is.null(referer) && nzchar(referer)) {
+    req <- httr2::req_headers(req, Referer = referer)
   }
   req <- req_user_agent_planscanr(req)
   req <- req_retry_planscanr(req)

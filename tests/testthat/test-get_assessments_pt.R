@@ -173,7 +173,9 @@ test_that("get_assessments_pt end-to-end on fixtures (sidecar-first)", {
     local_mocked_bindings(
       pt_fetch_search = pt_mock_search(),
       pt_fetch_detail = function(url) .pt_fix_detail,
-      pt_fetch_documents = function(pro_id) .pt_fix_documentos
+      pt_fetch_documents = function(pro_id) .pt_fix_documentos,
+      # Keep the geometry network seam offline (asserted separately below).
+      pt_arcgis_get = function(idfc, value) NULL
     )
 
     res <- get_assessments_pt(limit = 5, download = FALSE)
@@ -214,7 +216,9 @@ test_that("get_assessments_pt honours query, date_range and limit", {
     local_mocked_bindings(
       pt_fetch_search = pt_mock_search(),
       pt_fetch_detail = function(url) .pt_fix_detail,
-      pt_fetch_documents = function(pro_id) .pt_fix_documentos
+      pt_fetch_documents = function(pro_id) .pt_fix_documentos,
+      # Keep the geometry network seam offline (asserted separately below).
+      pt_arcgis_get = function(idfc, value) NULL
     )
 
     # query: positive matches the project designation.
@@ -246,7 +250,9 @@ test_that("PT -> sidecar round-trip preserves the country-specific extras", {
     local_mocked_bindings(
       pt_fetch_search = pt_mock_search(),
       pt_fetch_detail = function(url) .pt_fix_detail,
-      pt_fetch_documents = function(pro_id) .pt_fix_documentos
+      pt_fetch_documents = function(pro_id) .pt_fix_documentos,
+      # Keep the geometry network seam offline (asserted separately below).
+      pt_arcgis_get = function(idfc, value) NULL
     )
 
     res <- get_assessments_pt(limit = 5, download = FALSE)
@@ -277,7 +283,9 @@ test_that("get_assessments_pt scores topics and adds relevance_score_<slug> colu
     local_mocked_bindings(
       pt_fetch_search = pt_mock_search(),
       pt_fetch_detail = function(url) .pt_fix_detail,
-      pt_fetch_documents = function(pro_id) .pt_fix_documentos
+      pt_fetch_documents = function(pro_id) .pt_fix_documentos,
+      # Keep the geometry network seam offline (asserted separately below).
+      pt_arcgis_get = function(idfc, value) NULL
     )
 
     res <- get_assessments_pt(
@@ -375,6 +383,8 @@ test_that("pt_parse_geo_link returns NULL when no georeferenced anchor is presen
 })
 
 test_that("get_assessments_pt persists ArcGIS geometry as an EPSG:4326 geojson sidecar", {
+  # Resolve the fixture before with_tempdir changes the working directory.
+  geo_rings <- pt_geo_rings_fixture()
   withr::with_tempdir({
     cache <- file.path(getwd(), "cache")
     options(planscanR.cache_dir = cache)
@@ -387,7 +397,7 @@ test_that("get_assessments_pt persists ArcGIS geometry as an EPSG:4326 geojson s
       pt_fetch_search = pt_mock_search(),
       pt_fetch_detail = function(url) .pt_fix_detail,
       pt_fetch_documents = function(pro_id) .pt_fix_documentos,
-      pt_arcgis_get = function(idfc, value) pt_geo_rings_fixture()
+      pt_arcgis_get = function(idfc, value) geo_rings
     )
 
     res <- get_assessments_pt(limit = 5, download = FALSE)
@@ -410,6 +420,7 @@ test_that("get_assessments_pt persists ArcGIS geometry as an EPSG:4326 geojson s
 })
 
 test_that("get_assessments_pt writes no geometry when ArcGIS returns none", {
+  empty_rings <- pt_geo_empty_rings_fixture()
   withr::with_tempdir({
     cache <- file.path(getwd(), "cache")
     options(planscanR.cache_dir = cache)
@@ -419,7 +430,7 @@ test_that("get_assessments_pt writes no geometry when ArcGIS returns none", {
       pt_fetch_search = pt_mock_search(),
       pt_fetch_detail = function(url) .pt_fix_detail,
       pt_fetch_documents = function(pro_id) .pt_fix_documentos,
-      pt_arcgis_get = function(idfc, value) pt_geo_empty_rings_fixture()
+      pt_arcgis_get = function(idfc, value) empty_rings
     )
 
     res <- get_assessments_pt(limit = 5, download = FALSE)
