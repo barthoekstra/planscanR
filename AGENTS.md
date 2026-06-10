@@ -225,8 +225,16 @@ Python, no Shiny, no project-specific scoring config.
   type label is classified into a coarse **phase** (`dia` / `eia` /
   `consulta_publica` / `parecer` / `outros`) and grouped into per-phase
   `attachment_urls_<slug>` / `local_path_<slug>` columns, with `attachment_urls`
-  the deduplicated union. No geometry (location is concelho text in
-  `municipalities`). `decision_sense` (the *Sentido de Decisão*) is also the
+  the deduplicated union. Per-record **polygon geometry** is captured from
+  APA's SNIAMB ArcGIS *ZoomToApp* service (`sniambgeoext.apambiente.pt`, seam
+  `pt_arcgis_get()`, `Referer`-gated, queried `f=json&outSR=4326` with Esri
+  rings → GeoJSON converted in-house since the service's `f=geojson` is broken):
+  when the *Localização* anchor resolves to a footprint it is saved as a sibling
+  `<document_id>.geometry.geojson` in **EPSG:4326** with `geometry_path` /
+  `geometry_crs` (both `NA` otherwise); the concelho text stays in
+  `municipalities`. This second host is throttled independently via
+  `getOption("planscanR.pt_geo_throttle_rate")` (default 5).
+  `decision_sense` (the *Sentido de Decisão*) is also the
   `native_type`. `date_decision` parses `"DD/MM/YYYY"`; `query` and `date_range`
   are matched client-side. Portuguese language. Throttled to 5 req/s
   (`getOption("planscanR.pt_throttle_rate")`). Reflected in
