@@ -66,8 +66,11 @@ and related advice) from European government portals.
   (`konsesjonssaker`) at **nve.no** — a plain JSON list API plus
   server-rendered detail HTML, reached with pure `httr2`. The getall list
   endpoint returns a `Licenses` array (and inline filter-vocab facets); the
-  handler paginates `pageNumber` until a page returns no records. There is one
-  concession register (no `assessment_type` split — every case carries the
+  handler sends `type=0` ("Alle typer") so the crawl spans **all** licensed
+  technologies — hydropower, wind, solar, offshore wind, grid, district heating
+  and others (a record's code is kept in `case_type_code`) — and paginates a
+  wide `pageSize` until a page returns no records. There is one concession
+  register (no `assessment_type` split — every case carries the
   *konsekvensutredning* EIA among its documents). Attachments are scraped from
   the detail page's `div.n-filelist` sections — `webfileservice.nve.no` PDFs
   grouped by section heading into per-section `attachment_urls_<slug>` columns;

@@ -45,21 +45,36 @@ API and server-rendered detail HTML directly (pure \code{httr2}, no browser).
 \details{
 NVE publishes a single concession-case register (there is no separate
 EIA/SEA split), so there is no \code{assessment_type} argument — these are
-energy-concession cases that carry EIA documents. \code{document_id} is the
-globally unique numeric \code{SoknadId}, prefixed \code{"NVE-"} (e.g. \code{"NVE-8934"}), so
-records never collide on disk.
+energy-concession cases that carry EIA documents. The register spans \strong{all}
+the energy/water technologies NVE licenses — hydropower (vannkraft), wind
+(vindkraft), solar (solkraft), offshore wind (havvind), grid (nett), district
+heating (fjernvarme) and others — and the handler fetches \strong{all} of them by
+default (see \emph{URL enumeration}); it does not restrict to hydropower.
+\code{document_id} is the globally unique numeric \code{SoknadId}, prefixed \code{"NVE-"}
+(e.g. \code{"NVE-8934"}), so records never collide on disk.
 }
 \section{URL enumeration}{
 
 The list endpoint is
-\verb{GET /umbraco/api/license/getall?caseType=00&county=00&filterText=&municipality=00&pageNumber=N}
+\verb{GET /umbraco/api/license/getall?type=0&caseType=00&county=00&filterText=&municipality=00&pageNumber=N&pageSize=M}
 (JSON). Its \code{Licenses} array carries the case records; \code{Counties},
 \code{Municipalities}, \code{CaseTypes}, and \code{LicenseStatuses} are filter-vocab facets
-returned inline, and \code{TotalCount} is the unfiltered count. The defaults
-\verb{caseType=00&county=00&municipality=00&filterText=} mean "all". The page
-generator (\code{no_fetch_search()}) paginates \verb{pageNumber = 1, 2, …} until a page
-returns no \code{Licenses} (parsed with \code{perform_json}). The canonical detail URL
-for each record is the human page
+returned inline, and \code{TotalCount} is the count for the requested filter.
+\strong{\code{type=0} ("Alle typer") is load-bearing}: the API's server-side default for
+a \emph{missing} \code{type} is \code{V-1} (Vannkraft / hydro), so omitting it would crawl
+only the ~7 300 hydro cases. Sending \code{type=0} returns all ~11 000+ cases
+across every technology. The other technology codes are \code{V-1} Vannkraft,
+\code{A-6} Vindkraft, \code{A-8} Solkraft, \code{A-9} Havvind, \code{A-1} Nett, \code{A-7} Fjernvarme,
+\code{A-5} Andre energianlegg, plus \code{V-9}/\code{V-19}; a record's own code(s) are kept
+in \code{case_type_code} (occasionally comma-joined, e.g. \code{"A-1,A-8"}) for
+downstream narrowing. The other defaults \verb{caseType=00&county=00&municipality=00&filterText=}
+mean "all". \code{pageSize} (default 200, overridable via
+\code{getOption("planscanR.no_page_size")}) batches the listing so the crawl makes
+a few dozen list GETs rather than ~1 150 at the 10-row server default — a real
+saving under the 20 s crawl-delay. The page generator (\code{no_fetch_search()})
+paginates \verb{pageNumber = 1, 2, …} until a page returns no \code{Licenses} (parsed
+with \code{perform_json}). The canonical detail URL for each record is the human
+page
 \verb{https://www.nve.no/konsesjon/konsesjonssaker/konsesjonssak?id=\{SoknadId\}&type=\{Type\}}.
 }
 
@@ -103,10 +118,14 @@ decision date).
 \item \code{limit} — caps the total number of records returned.
 }
 
-The getall API also accepts server-side \code{caseType} / \code{county} /
-\code{municipality} filters (via the facet codes in \code{CaseTypes} / \code{Counties} /
-\code{Municipalities}, returned inline by the API); these are documented for
-reference but are not first-class arguments in v0.1.
+The handler pins the getall \code{type} facet to \code{0} (all technologies) — there is
+deliberately no technology argument; to restrict to one technology (e.g.
+hydropower only), filter the returned tibble on \code{case_type_code} (e.g.
+\code{grepl("V-1", case_type_code)}) downstream. The getall API also accepts
+server-side \code{caseType} / \code{county} / \code{municipality} filters (via the facet
+codes in \code{CaseTypes} / \code{Counties} / \code{Municipalities}, returned inline by the
+API); these are documented for reference but are not first-class arguments in
+v0.1.
 }
 
 \section{Geometry}{
@@ -117,14 +136,16 @@ separate keyed ArcGIS service that is out of scope for this handler.
 
 \section{Performance}{
 
-The register is ~7 300 cases (~730 pages of 10). A cold crawl is one list GET
-per page plus one detail GET per record (sidecar-first, so repeat runs are
-fast). A \code{limit} keeps exploratory runs bounded. NVE's \code{robots.txt} requests
-a \code{Crawl-delay: 20}, so NO requests are throttled to \strong{0.05 requests per
-second (~20 s between requests)} by default — intentionally conservative.
-Override via \code{getOption("planscanR.no_throttle_rate")} (requests/sec; falsy
-disables). The \emph{konsekvensutredning} (EIA) documents are identified by their
-filename / label, not a type flag.
+With \code{type=0} the register is ~11 000+ cases across all technologies. A cold
+crawl is one list GET per \code{pageSize}-row page (default 200, so a few dozen
+GETs) plus one detail GET per record (sidecar-first, so repeat runs are fast
+and a re-crawl only fetches newly-appeared cases). A \code{limit} keeps exploratory
+runs bounded. NVE's \code{robots.txt} requests a \code{Crawl-delay: 20}, so NO requests
+are throttled to \strong{0.05 requests per second (~20 s between requests)} by
+default — intentionally conservative. Override via
+\code{getOption("planscanR.no_throttle_rate")} (requests/sec; falsy disables). The
+\emph{konsekvensutredning} (EIA) documents are identified by their filename /
+label, not a type flag.
 }
 
 \examples{

@@ -169,6 +169,67 @@ test_that("no_fetch_search forwards query as the getall filterText param", {
   expect_match(captured$url, "getall")
 })
 
+test_that("no_fetch_search requests all technologies (type=0), not just hydro", {
+  # NVE's getall API defaults a missing `type` to V-1 (Vannkraft/hydro). The
+  # handler must send type=0 ("Alle typer") so the crawl sees wind/solar/grid/
+  # etc. cases too, not only hydro (regression guard).
+  captured <- new.env()
+  local_mocked_bindings(
+    perform_json = function(req) {
+      captured$url <- req$url
+      list(Licenses = list())
+    }
+  )
+  gen <- planscanR:::no_fetch_search()
+  invisible(gen())
+  expect_match(captured$url, "type=0")
+})
+
+test_that("no_fetch_search batches enumeration with a large pageSize", {
+  # Fewer throttled list GETs: NVE honours pageSize, so the generator requests
+  # a wide page rather than the 10-row server default.
+  captured <- new.env()
+  local_mocked_bindings(
+    perform_json = function(req) {
+      captured$url <- req$url
+      list(Licenses = list())
+    }
+  )
+  gen <- planscanR:::no_fetch_search()
+  invisible(gen())
+  expect_match(captured$url, "pageSize=[0-9]+")
+  ps <- as.integer(sub(".*[?&]pageSize=([0-9]+).*", "\\1", captured$url))
+  expect_gt(ps, 10L)
+})
+
+test_that("no_fetch_search paginates and stops on the first empty page", {
+  pages <- new.env()
+  pages$seen <- integer(0)
+  local_mocked_bindings(
+    perform_json = function(req) {
+      pn <- as.integer(sub(".*[?&]pageNumber=([0-9]+).*", "\\1", req$url))
+      pages$seen <- c(pages$seen, pn)
+      # Two data pages, then an empty page that ends the crawl.
+      if (pn <= 2L) {
+        list(Licenses = list(list(SoknadId = pn, Type = "A-6")))
+      } else {
+        list(Licenses = list())
+      }
+    }
+  )
+  gen <- planscanR:::no_fetch_search()
+  p1 <- gen()
+  p2 <- gen()
+  p3 <- gen()
+  p4 <- gen()
+  expect_length(p1, 1L)
+  expect_length(p2, 1L)
+  expect_null(p3)
+  # Once exhausted the generator keeps returning NULL without re-fetching.
+  expect_null(p4)
+  expect_identical(pages$seen, c(1L, 2L, 3L))
+})
+
 # -- end-to-end on fixtures (mocked network seams) ---------------------------
 
 # A reusable mock pair: the list-page generator yields the fixture licenses
