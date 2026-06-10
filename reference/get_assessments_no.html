@@ -108,23 +108,38 @@ about.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>NVE publishes a single concession-case register (there is no separate
 EIA/SEA split), so there is no <code>assessment_type</code> argument — these are
-energy-concession cases that carry EIA documents. <code>document_id</code> is the
-globally unique numeric <code>SoknadId</code>, prefixed <code>"NVE-"</code> (e.g. <code>"NVE-8934"</code>), so
-records never collide on disk.</p>
+energy-concession cases that carry EIA documents. The register spans <strong>all</strong>
+the energy/water technologies NVE licenses — hydropower (vannkraft), wind
+(vindkraft), solar (solkraft), offshore wind (havvind), grid (nett), district
+heating (fjernvarme) and others — and the handler fetches <strong>all</strong> of them by
+default (see <em>URL enumeration</em>); it does not restrict to hydropower.
+<code>document_id</code> is the globally unique numeric <code>SoknadId</code>, prefixed <code>"NVE-"</code>
+(e.g. <code>"NVE-8934"</code>), so records never collide on disk.</p>
     </div>
     <div class="section level2">
     <h2 id="url-enumeration">URL enumeration<a class="anchor" aria-label="anchor" href="#url-enumeration"></a></h2>
 
 
 <p>The list endpoint is
-<code>GET /umbraco/api/license/getall?caseType=00&amp;county=00&amp;filterText=&amp;municipality=00&amp;pageNumber=N</code>
+<code>GET /umbraco/api/license/getall?type=0&amp;caseType=00&amp;county=00&amp;filterText=&amp;municipality=00&amp;pageNumber=N&amp;pageSize=M</code>
 (JSON). Its <code>Licenses</code> array carries the case records; <code>Counties</code>,
 <code>Municipalities</code>, <code>CaseTypes</code>, and <code>LicenseStatuses</code> are filter-vocab facets
-returned inline, and <code>TotalCount</code> is the unfiltered count. The defaults
-<code>caseType=00&amp;county=00&amp;municipality=00&amp;filterText=</code> mean "all". The page
-generator (<code>no_fetch_search()</code>) paginates <code>pageNumber = 1, 2, …</code> until a page
-returns no <code>Licenses</code> (parsed with <code>perform_json</code>). The canonical detail URL
-for each record is the human page
+returned inline, and <code>TotalCount</code> is the count for the requested filter.
+<strong><code>type=0</code> ("Alle typer") is load-bearing</strong>: the API's server-side default for
+a <em>missing</em> <code>type</code> is <code>V-1</code> (Vannkraft / hydro), so omitting it would crawl
+only the ~7 300 hydro cases. Sending <code>type=0</code> returns all ~11 000+ cases
+across every technology. The other technology codes are <code>V-1</code> Vannkraft,
+<code>A-6</code> Vindkraft, <code>A-8</code> Solkraft, <code>A-9</code> Havvind, <code>A-1</code> Nett, <code>A-7</code> Fjernvarme,
+<code>A-5</code> Andre energianlegg, plus <code>V-9</code>/<code>V-19</code>; a record's own code(s) are kept
+in <code>case_type_code</code> (occasionally comma-joined, e.g. <code>"A-1,A-8"</code>) for
+downstream narrowing. The other defaults <code>caseType=00&amp;county=00&amp;municipality=00&amp;filterText=</code>
+mean "all". <code>pageSize</code> (default 200, overridable via
+<code>getOption("planscanR.no_page_size")</code>) batches the listing so the crawl makes
+a few dozen list GETs rather than ~1 150 at the 10-row server default — a real
+saving under the 20 s crawl-delay. The page generator (<code>no_fetch_search()</code>)
+paginates <code>pageNumber = 1, 2, …</code> until a page returns no <code>Licenses</code> (parsed
+with <code>perform_json</code>). The canonical detail URL for each record is the human
+page
 <code>https://www.nve.no/konsesjon/konsesjonssaker/konsesjonssak?id={SoknadId}&amp;type={Type}</code>.</p>
     </div>
     <div class="section level2">
@@ -168,10 +183,14 @@ filtered list + <code>TotalCount</code>).</p></li>
 <code>Dato</code>). <code>date_decision</code> is always <code>NA</code> (the API exposes no separate
 decision date).</p></li>
 <li><p><code>limit</code> — caps the total number of records returned.</p></li>
-</ul><p>The getall API also accepts server-side <code>caseType</code> / <code>county</code> /
-<code>municipality</code> filters (via the facet codes in <code>CaseTypes</code> / <code>Counties</code> /
-<code>Municipalities</code>, returned inline by the API); these are documented for
-reference but are not first-class arguments in v0.1.</p>
+</ul><p>The handler pins the getall <code>type</code> facet to <code>0</code> (all technologies) — there is
+deliberately no technology argument; to restrict to one technology (e.g.
+hydropower only), filter the returned tibble on <code>case_type_code</code> (e.g.
+<code>grepl("V-1", case_type_code)</code>) downstream. The getall API also accepts
+server-side <code>caseType</code> / <code>county</code> / <code>municipality</code> filters (via the facet
+codes in <code>CaseTypes</code> / <code>Counties</code> / <code>Municipalities</code>, returned inline by the
+API); these are documented for reference but are not first-class arguments in
+v0.1.</p>
     </div>
     <div class="section level2">
     <h2 id="geometry">Geometry<a class="anchor" aria-label="anchor" href="#geometry"></a></h2>
@@ -184,14 +203,16 @@ separate keyed ArcGIS service that is out of scope for this handler.</p>
     <h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a></h2>
 
 
-<p>The register is ~7 300 cases (~730 pages of 10). A cold crawl is one list GET
-per page plus one detail GET per record (sidecar-first, so repeat runs are
-fast). A <code>limit</code> keeps exploratory runs bounded. NVE's <code>robots.txt</code> requests
-a <code>Crawl-delay: 20</code>, so NO requests are throttled to <strong>0.05 requests per
-second (~20 s between requests)</strong> by default — intentionally conservative.
-Override via <code>getOption("planscanR.no_throttle_rate")</code> (requests/sec; falsy
-disables). The <em>konsekvensutredning</em> (EIA) documents are identified by their
-filename / label, not a type flag.</p>
+<p>With <code>type=0</code> the register is ~11 000+ cases across all technologies. A cold
+crawl is one list GET per <code>pageSize</code>-row page (default 200, so a few dozen
+GETs) plus one detail GET per record (sidecar-first, so repeat runs are fast
+and a re-crawl only fetches newly-appeared cases). A <code>limit</code> keeps exploratory
+runs bounded. NVE's <code>robots.txt</code> requests a <code>Crawl-delay: 20</code>, so NO requests
+are throttled to <strong>0.05 requests per second (~20 s between requests)</strong> by
+default — intentionally conservative. Override via
+<code>getOption("planscanR.no_throttle_rate")</code> (requests/sec; falsy disables). The
+<em>konsekvensutredning</em> (EIA) documents are identified by their filename /
+label, not a type flag.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

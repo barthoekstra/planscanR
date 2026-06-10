@@ -85,17 +85,20 @@ Assessments, and related advice) from European government portals.
   energy/water concession-case register (`konsesjonssaker`) at
   **nve.no** — a plain JSON list API plus server-rendered detail HTML,
   reached with pure `httr2`. The getall list endpoint returns a
-  `Licenses` array (and inline filter-vocab facets); the handler
-  paginates `pageNumber` until a page returns no records. There is one
-  concession register (no `assessment_type` split — every case carries
-  the *konsekvensutredning* EIA among its documents). Attachments are
-  scraped from the detail page’s `div.n-filelist` sections —
-  `webfileservice.nve.no` PDFs grouped by section heading into
-  per-section `attachment_urls_<slug>` columns; EIA docs are identified
-  by filename. No geometry; `query` is forwarded server-side as the API
-  `filterText` param, `date_range` matched client-side. Conservatively
-  throttled to ~20 s between requests, honouring NVE’s `robots.txt`
-  crawl-delay (overridable via
+  `Licenses` array (and inline filter-vocab facets); the handler sends
+  `type=0` (“Alle typer”) so the crawl spans **all** licensed
+  technologies — hydropower, wind, solar, offshore wind, grid, district
+  heating and others (a record’s code is kept in `case_type_code`) — and
+  paginates a wide `pageSize` until a page returns no records. There is
+  one concession register (no `assessment_type` split — every case
+  carries the *konsekvensutredning* EIA among its documents).
+  Attachments are scraped from the detail page’s `div.n-filelist`
+  sections — `webfileservice.nve.no` PDFs grouped by section heading
+  into per-section `attachment_urls_<slug>` columns; EIA docs are
+  identified by filename. No geometry; `query` is forwarded server-side
+  as the API `filterText` param, `date_range` matched client-side.
+  Conservatively throttled to ~20 s between requests, honouring NVE’s
+  `robots.txt` crawl-delay (overridable via
   `getOption("planscanR.no_throttle_rate")`).
 - Latvia
   ([`get_assessments_lv()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lv.md)):

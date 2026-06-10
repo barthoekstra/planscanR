@@ -58,22 +58,38 @@ for the required schema.
 
 NVE publishes a single concession-case register (there is no separate
 EIA/SEA split), so there is no `assessment_type` argument — these are
-energy-concession cases that carry EIA documents. `document_id` is the
-globally unique numeric `SoknadId`, prefixed `"NVE-"` (e.g.
-`"NVE-8934"`), so records never collide on disk.
+energy-concession cases that carry EIA documents. The register spans
+**all** the energy/water technologies NVE licenses — hydropower
+(vannkraft), wind (vindkraft), solar (solkraft), offshore wind
+(havvind), grid (nett), district heating (fjernvarme) and others — and
+the handler fetches **all** of them by default (see *URL enumeration*);
+it does not restrict to hydropower. `document_id` is the globally unique
+numeric `SoknadId`, prefixed `"NVE-"` (e.g. `"NVE-8934"`), so records
+never collide on disk.
 
 ## URL enumeration
 
 The list endpoint is
-`GET /umbraco/api/license/getall?caseType=00&county=00&filterText=&municipality=00&pageNumber=N`
+`GET /umbraco/api/license/getall?type=0&caseType=00&county=00&filterText=&municipality=00&pageNumber=N&pageSize=M`
 (JSON). Its `Licenses` array carries the case records; `Counties`,
 `Municipalities`, `CaseTypes`, and `LicenseStatuses` are filter-vocab
-facets returned inline, and `TotalCount` is the unfiltered count. The
-defaults `caseType=00&county=00&municipality=00&filterText=` mean "all".
-The page generator (`no_fetch_search()`) paginates
-`pageNumber = 1, 2, …` until a page returns no `Licenses` (parsed with
-`perform_json`). The canonical detail URL for each record is the human
-page
+facets returned inline, and `TotalCount` is the count for the requested
+filter. **`type=0` ("Alle typer") is load-bearing**: the API's
+server-side default for a *missing* `type` is `V-1` (Vannkraft / hydro),
+so omitting it would crawl only the ~7 300 hydro cases. Sending `type=0`
+returns all ~11 000+ cases across every technology. The other technology
+codes are `V-1` Vannkraft, `A-6` Vindkraft, `A-8` Solkraft, `A-9`
+Havvind, `A-1` Nett, `A-7` Fjernvarme, `A-5` Andre energianlegg, plus
+`V-9`/`V-19`; a record's own code(s) are kept in `case_type_code`
+(occasionally comma-joined, e.g. `"A-1,A-8"`) for downstream narrowing.
+The other defaults `caseType=00&county=00&municipality=00&filterText=`
+mean "all". `pageSize` (default 200, overridable via
+`getOption("planscanR.no_page_size")`) batches the listing so the crawl
+makes a few dozen list GETs rather than ~1 150 at the 10-row server
+default — a real saving under the 20 s crawl-delay. The page generator
+(`no_fetch_search()`) paginates `pageNumber = 1, 2, …` until a page
+returns no `Licenses` (parsed with `perform_json`). The canonical detail
+URL for each record is the human page
 `https://www.nve.no/konsesjon/konsesjonssaker/konsesjonssak?id={SoknadId}&type={Type}`.
 
 ## Attachments
@@ -116,7 +132,11 @@ the summary. Cases that render no summary yield `NA` (valid).
 
 - `limit` — caps the total number of records returned.
 
-The getall API also accepts server-side `caseType` / `county` /
+The handler pins the getall `type` facet to `0` (all technologies) —
+there is deliberately no technology argument; to restrict to one
+technology (e.g. hydropower only), filter the returned tibble on
+`case_type_code` (e.g. `grepl("V-1", case_type_code)`) downstream. The
+getall API also accepts server-side `caseType` / `county` /
 `municipality` filters (via the facet codes in `CaseTypes` / `Counties`
 / `Municipalities`, returned inline by the API); these are documented
 for reference but are not first-class arguments in v0.1.
@@ -128,15 +148,16 @@ a separate keyed ArcGIS service that is out of scope for this handler.
 
 ## Performance
 
-The register is ~7 300 cases (~730 pages of 10). A cold crawl is one
-list GET per page plus one detail GET per record (sidecar-first, so
-repeat runs are fast). A `limit` keeps exploratory runs bounded. NVE's
-`robots.txt` requests a `Crawl-delay: 20`, so NO requests are throttled
-to **0.05 requests per second (~20 s between requests)** by default —
-intentionally conservative. Override via
-`getOption("planscanR.no_throttle_rate")` (requests/sec; falsy
-disables). The *konsekvensutredning* (EIA) documents are identified by
-their filename / label, not a type flag.
+With `type=0` the register is ~11 000+ cases across all technologies. A
+cold crawl is one list GET per `pageSize`-row page (default 200, so a
+few dozen GETs) plus one detail GET per record (sidecar-first, so repeat
+runs are fast and a re-crawl only fetches newly-appeared cases). A
+`limit` keeps exploratory runs bounded. NVE's `robots.txt` requests a
+`Crawl-delay: 20`, so NO requests are throttled to **0.05 requests per
+second (~20 s between requests)** by default — intentionally
+conservative. Override via `getOption("planscanR.no_throttle_rate")`
+(requests/sec; falsy disables). The *konsekvensutredning* (EIA)
+documents are identified by their filename / label, not a type flag.
 
 ## See also
 
