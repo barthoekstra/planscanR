@@ -294,6 +294,148 @@ test_that("get_assessments_pt scores topics and adds relevance_score_<slug> colu
   })
 })
 
+# -- Geometry capture (SNIAMB ArcGIS) ---------------------------------------
+#
+# TDD-red tests for Phase 11 (PT per-record geometry). They pin the API the
+# implementation tasks (11.2-11.4) must provide and FAIL on current code:
+#   - pt_esri_rings_to_geojson(rings)  -> GeoJSON Polygon/MultiPolygon | NULL  (11.2)
+#   - pt_parse_geo_link(html)          -> list(idfc, value) | NULL             (11.4)
+#   - pt_arcgis_get(idfc, value)       -> Esri rings | NULL  (network seam)    (11.3)
+# Fixtures captured live 2026-06-10 from the SNIAMB ArcGIS ZoomToApp MapServer
+# (layer 0, n_aia, f=json&outSR=4326): geo_query_31.json is the real n_aia=31
+# polygon; geo_query_empty.json is a real 0-feature response.
+
+# Rings exactly as production pt_arcgis_get() will extract them from the f=json
+# response. n_aia=31 is a single-ring polygon near Lisbon.
+pt_geo_rings_fixture <- function() {
+  raw <- jsonlite::fromJSON(fixture_path("pt", "geo_query_31.json"), simplifyVector = FALSE)
+  raw$features[[1]]$geometry$rings
+}
+
+# The empty (0-feature) response collapses to NULL rings, like the real seam.
+pt_geo_empty_rings_fixture <- function() {
+  raw <- jsonlite::fromJSON(fixture_path("pt", "geo_query_empty.json"), simplifyVector = FALSE)
+  if (length(raw$features) == 0L) NULL else raw$features[[1]]$geometry$rings
+}
+
+test_that("pt_esri_rings_to_geojson groups exterior rings and holes (terraformer rules)", {
+  # ArcGIS winding: exterior rings clockwise, holes counter-clockwise.
+  outer_a <- list(list(0, 0), list(0, 10), list(10, 10), list(10, 0), list(0, 0)) # CW exterior
+  hole <- list(list(3, 3), list(6, 3), list(6, 6), list(3, 6), list(3, 3)) # CCW hole, inside A
+  outer_b <- list(list(20, 20), list(20, 30), list(30, 30), list(30, 20), list(20, 20)) # CW exterior, disjoint
+  rings <- list(outer_a, hole, outer_b)
+
+  geom <- planscanR:::pt_esri_rings_to_geojson(rings)
+  expect_identical(geom$type, "MultiPolygon")
+  expect_length(geom$coordinates, 2L)
+
+  # Compare rings as winding/closure-agnostic point sets.
+  ring_key <- function(ring) {
+    sort(unique(vapply(ring, function(p) sprintf("%g,%g", p[[1]], p[[2]]), character(1))))
+  }
+  ring_counts <- vapply(geom$coordinates, length, integer(1))
+  expect_setequal(ring_counts, c(1L, 2L))
+
+  holed <- geom$coordinates[[which(ring_counts == 2L)]]
+  lone <- geom$coordinates[[which(ring_counts == 1L)]]
+  # The holed polygon is square A carrying the hole as its second ring.
+  expect_identical(ring_key(holed[[1]]), ring_key(outer_a))
+  expect_identical(ring_key(holed[[2]]), ring_key(hole))
+  # The disjoint square B stands alone; the hole is not attached to it.
+  expect_identical(ring_key(lone[[1]]), ring_key(outer_b))
+})
+
+test_that("pt_esri_rings_to_geojson yields a Polygon for one ring and NULL for empty input", {
+  square <- list(list(0, 0), list(0, 10), list(10, 10), list(10, 0), list(0, 0))
+  g <- planscanR:::pt_esri_rings_to_geojson(list(square))
+  expect_identical(g$type, "Polygon")
+  expect_length(g$coordinates, 1L)
+  expect_null(planscanR:::pt_esri_rings_to_geojson(list()))
+  expect_null(planscanR:::pt_esri_rings_to_geojson(NULL))
+})
+
+test_that("pt_parse_geo_link extracts idfc + value from the SNIAMB anchor", {
+  html <- rvest::read_html(
+    '<html><body><a href="https://sniambgeoviewer.apambiente.pt/ZoomTo/Default.htm?idfc=0&amp;value=31">Localiza&ccedil;&atilde;o</a></body></html>'
+  )
+  link <- planscanR:::pt_parse_geo_link(html)
+  expect_identical(link$idfc, "0")
+  expect_identical(link$value, "31")
+})
+
+test_that("pt_parse_geo_link reads the georeferenced anchor from the real detail fixture", {
+  link <- planscanR:::pt_parse_geo_link(.pt_fix_detail)
+  expect_identical(link$idfc, "0")
+  expect_identical(link$value, "3892")
+})
+
+test_that("pt_parse_geo_link returns NULL when no georeferenced anchor is present", {
+  blank <- rvest::read_html("<html><body><div>no geo link</div></body></html>")
+  expect_null(planscanR:::pt_parse_geo_link(blank))
+})
+
+test_that("get_assessments_pt persists ArcGIS geometry as an EPSG:4326 geojson sidecar", {
+  withr::with_tempdir({
+    cache <- file.path(getwd(), "cache")
+    options(planscanR.cache_dir = cache)
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+
+    # The detail fixture's anchor is value=3892; the stub stands in for the
+    # network seam and returns a real polygon's rings (the seam is the test
+    # boundary, so the n_aia mismatch is intentional and invisible here).
+    local_mocked_bindings(
+      pt_fetch_search = pt_mock_search(),
+      pt_fetch_detail = function(url) .pt_fix_detail,
+      pt_fetch_documents = function(pro_id) .pt_fix_documentos,
+      pt_arcgis_get = function(idfc, value) pt_geo_rings_fixture()
+    )
+
+    res <- get_assessments_pt(limit = 5, download = FALSE)
+    expect_identical(nrow(res), 1L)
+    expect_identical(res$document_id, "AIA-3892")
+
+    # Geometry tags on the record + the file alongside the sidecar, in WGS84.
+    expect_identical(res$geometry_crs, "EPSG:4326")
+    expect_true(file.exists(res$geometry_path))
+    expect_identical(basename(res$geometry_path), "AIA-3892.geometry.geojson")
+    expect_true(file.exists(
+      file.path(cache, "files", "pt", "AIA-3892", "AIA-3892.geometry.geojson")
+    ))
+
+    geo <- jsonlite::fromJSON(res$geometry_path, simplifyVector = FALSE)
+    expect_identical(geo$type, "FeatureCollection")
+    expect_match(geo$crs$properties$name, "EPSG::4326")
+    expect_true(geo$features[[1]]$geometry$type %in% c("Polygon", "MultiPolygon"))
+  })
+})
+
+test_that("get_assessments_pt writes no geometry when ArcGIS returns none", {
+  withr::with_tempdir({
+    cache <- file.path(getwd(), "cache")
+    options(planscanR.cache_dir = cache)
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+
+    local_mocked_bindings(
+      pt_fetch_search = pt_mock_search(),
+      pt_fetch_detail = function(url) .pt_fix_detail,
+      pt_fetch_documents = function(pro_id) .pt_fix_documentos,
+      pt_arcgis_get = function(idfc, value) pt_geo_empty_rings_fixture()
+    )
+
+    res <- get_assessments_pt(limit = 5, download = FALSE)
+    expect_identical(nrow(res), 1L)
+
+    geom_files <- list.files(
+      file.path(cache, "files", "pt"),
+      pattern = "\\.geometry\\.geojson$",
+      recursive = TRUE
+    )
+    expect_length(geom_files, 0L)
+    expect_true(is.na(res$geometry_path))
+    expect_true(is.na(res$geometry_crs))
+  })
+})
+
 # -- Live integration test --------------------------------------------------
 
 test_that("get_assessments_pt() fetches a real record end-to-end", {
