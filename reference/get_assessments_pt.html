@@ -99,9 +99,19 @@ about.</p></dd>
 application; it is <strong>not</strong> covered here, so there is no <code>assessment_type</code>
 argument (this is a single-register handler). Every row is therefore an
 EIA-equivalent procedure.</p>
-<p>SIAIA exposes the project location only as free-text <em>concelho</em> (municipal)
-names — there is no machine-readable geometry — so no GeoJSON sidecar is
-written (unlike the Estonian handler).</p>
+<p>Besides the free-text <em>concelho</em> names in <code>municipalities</code>, SIAIA also
+exposes a machine-readable project footprint: each detail page links its
+<em>Localização</em> to APA's SNIAMB geoviewer, whose ArcGIS <em>ZoomToApp</em> MapServer
+(<code>sniambgeoext.apambiente.pt</code>, layer 0 keyed on <code>n_aia</code>) serves the polygon.
+The handler queries it in <code>outSR=4326</code> and converts the Esri rings to GeoJSON
+in-package — the service's own <code>f=geojson</code> is broken for these polygons. The
+access gate is a <code>Referer</code> matching the public geoviewer, which the handler
+sends. When a footprint exists it is saved next to the sidecar as
+<code>&lt;document_id&gt;.geometry.geojson</code> in <strong>EPSG:4326</strong> (WGS84) with <code>geometry_path</code>
+/ <code>geometry_crs</code> set (both <code>NA</code> otherwise). This second host is throttled
+independently via <code>getOption("planscanR.pt_geo_throttle_rate")</code> (default 5
+req/s); the fetch is best-effort, so a missing anchor, an empty result, or
+any error simply leaves the record geometry-less.</p>
     </div>
     <div class="section level2">
     <h2 id="url-enumeration">URL enumeration<a class="anchor" aria-label="anchor" href="#url-enumeration"></a></h2>

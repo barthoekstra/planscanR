@@ -1244,9 +1244,17 @@ decision, <em>Declaração de Impacte Ambiental</em>), <code>eia</code>
 <code>attachment_urls</code> is the deduplicated union across
 phases.</li>
 <li>
-<strong>No geometry.</strong> SIAIA exposes the location only as
-free-text <em>concelho</em> (municipal) names, so no spatial geometry is
-written.</li>
+<strong>Geometry.</strong> Beyond the free-text <em>concelho</em>
+names in <code>municipalities</code>, each detail page’s
+<em>Localização</em> links to APA’s SNIAMB geoviewer, whose ArcGIS
+<em>ZoomToApp</em> service serves the project polygon. The handler
+queries it (<code>Referer</code>-gated, <code>outSR=4326</code>, Esri
+rings converted to GeoJSON in-package) and writes a sibling
+<code>&lt;document_id&gt;.geometry.geojson</code> in
+<strong>EPSG:4326</strong> (WGS84) with <code>geometry_path</code> /
+<code>geometry_crs</code> when a footprint exists. The geometry host is
+throttled separately via
+<code>getOption("planscanR.pt_geo_throttle_rate")</code>.</li>
 <li>
 <strong>Filters (client-side).</strong> <code>query</code> is a
 case-insensitive substring match on the project title;

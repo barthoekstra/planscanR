@@ -58,9 +58,20 @@ different application; it is **not** covered here, so there is no
 `assessment_type` argument (this is a single-register handler). Every
 row is therefore an EIA-equivalent procedure.
 
-SIAIA exposes the project location only as free-text *concelho*
-(municipal) names — there is no machine-readable geometry — so no
-GeoJSON sidecar is written (unlike the Estonian handler).
+Besides the free-text *concelho* names in `municipalities`, SIAIA also
+exposes a machine-readable project footprint: each detail page links its
+*Localização* to APA's SNIAMB geoviewer, whose ArcGIS *ZoomToApp*
+MapServer (`sniambgeoext.apambiente.pt`, layer 0 keyed on `n_aia`)
+serves the polygon. The handler queries it in `outSR=4326` and converts
+the Esri rings to GeoJSON in-package — the service's own `f=geojson` is
+broken for these polygons. The access gate is a `Referer` matching the
+public geoviewer, which the handler sends. When a footprint exists it is
+saved next to the sidecar as `<document_id>.geometry.geojson` in
+**EPSG:4326** (WGS84) with `geometry_path` / `geometry_crs` set (both
+`NA` otherwise). This second host is throttled independently via
+`getOption("planscanR.pt_geo_throttle_rate")` (default 5 req/s); the
+fetch is best-effort, so a missing anchor, an empty result, or any error
+simply leaves the record geometry-less.
 
 ## URL enumeration
 
