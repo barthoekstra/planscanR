@@ -1,0 +1,38 @@
+[
+  {
+    "Title": "Občinski prostorski načrt Občine Alfa",
+    "URLSegment": "obcinski-prostorski-nacrt-obcine-alfa",
+    "Naziv": "Občinski prostorski načrt Občine Alfa",
+    "Občina": "Alfa",
+    "Datum": "10. 01. 2026",
+    "Datoteka": [101],
+    "Odločitev": "CPVO je treba izvesti"
+  },
+  {
+    "Title": "Spremembe in dopolnitve občinskega prostorskega načrta Občine Beta za umestitev nove obvoznice in kolesarske povezave",
+    "URLSegment": "sd-opn-beta",
+    "Naziv": "Spremembe in dopolnitve občinskega prostorskega načrta Občine Beta za umestitev nove obvoznice in ko",
+    "Občina": "Beta",
+    "Datum": "11. 01. 2026",
+    "Datoteka": [102],
+    "Odločitev": "CPVO ni treba izvesti"
+  },
+  {
+    "Title": "Tretje spremembe OPN Mestne občine Gama",
+    "URLSegment": "opn-gama",
+    "Naziv": "Tretje spremembe OPN Mestne občine Gama",
+    "Občina": "Gama",
+    "Datum": "12. 01. 2026",
+    "Datoteka": [103],
+    "Odločitev": "CPVO je treba izvesti"
+  },
+  {
+    "Title": "Občinski prostorski načrt Občine Delta",
+    "URLSegment": "opn-delta",
+    "Naziv": "Občinski prostorski načrt Občine Delta",
+    "Občina": "Delta",
+    "Datum": "13. 01. 2026",
+    "Datoteka": [104],
+    "Odločitev": "CPVO je treba izvesti"
+  }
+]

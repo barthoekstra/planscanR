@@ -28,12 +28,30 @@
 #' canonical detail URL for each record is `<list base URL><URLSegment>/`.
 #'
 #' @section Attachments:
-#' The bulk-export document ids do not map to filenames, so attachments are
-#' scraped from each record's detail page (sidecar-first via the cache).
-#' The handler fetches the detail HTML, collects every `a[href^="/assets/seznami/"]`
-#' link, and absolutises it against `https://www.gov.si`. These become
-#' `attachment_urls` (a flat list — no per-section split). A record with no
-#' such links yields an empty `attachment_urls` vector, which is valid.
+#' The two register shapes resolve attachments differently:
+#'
+#' * **EIA** (`predhodni-postopek`) records have a real per-record detail page.
+#'   The handler fetches the detail HTML (sidecar-first via the cache), collects
+#'   every `a[href^="/assets/seznami/"]` link, and absolutises it against
+#'   `https://www.gov.si`.
+#' * **SEA / CPVO** (`cpvo-drzavni`, `cpvo-obcinski`) records have NO detail
+#'   page — the per-record URL 302-redirects to the register's listing, which is
+#'   a single HTML table paginated by a `?start=` offset (10 rows/page) whose
+#'   `Datoteka` cell holds the download links. The handler crawls every listing
+#'   page once per register, then joins each bulk-export record to its row by
+#'   normalised title (with a prefix fallback for listing-side title
+#'   truncation). The bulk export's own `Datoteka` field is a list of opaque
+#'   internal file ids that never appear in the public HTML, so it cannot
+#'   resolve attachment URLs on its own. A CPVO record with no confident title
+#'   match keeps an empty `attachment_urls` rather than risk another row's
+#'   files.
+#'
+#' Either way `attachment_urls` is a flat list (no per-section split); an empty
+#' vector is valid. Because the listing crawl is sidecar-first, a warm re-run
+#' performs no listing-page network at all. NOTE: caches written before this
+#' fix hold incomplete/incorrect CPVO `attachment_urls`; re-run the affected
+#' records once with `refresh = TRUE` to heal them (downloads are not required —
+#' the URLs are persisted to the sidecar even at `download = FALSE`).
 #'
 #' @section Filter coverage (v0.1):
 #' * `assessment_type` — selects which register(s) to crawl: `"All"`
@@ -47,10 +65,13 @@
 #'
 #' @section Performance:
 #' The registers are small (a few hundred screening records, a few dozen CPVO
-#' records). A cold crawl is one bulk-export GET per register plus one
-#' detail-page fetch per record (sidecar-first, so repeat runs are fast). To
-#' be polite to the shared government portal, SI requests are throttled to 5
-#' requests per second by default; override via
+#' records). A cold crawl is one bulk-export GET per register, plus — for EIA —
+#' one detail-page fetch per record, or — for CPVO — one pass over the register's
+#' paginated listing (a handful of pages, crawled once and shared across all of
+#' that register's records). Everything is sidecar-first, so repeat runs are
+#' fast and a fully-cached register fetches nothing. To be polite to the shared
+#' government portal, SI requests are throttled to 5 requests per second by
+#' default (with transient-error retry/backoff); override via
 #' `getOption("planscanR.si_throttle_rate")` (requests/sec; falsy disables).
 #' The register covers roughly 2021 onward.
 #'
@@ -124,12 +145,14 @@ get_assessments_si <- function(
     SEA = c("cpvo-drzavni", "cpvo-obcinski")
   )
 
-  # Per-entry processing: sidecar-first detail fetch (for attachments),
+  # Per-entry processing: sidecar-first attachment resolution (CPVO records join
+  # to their paginated listing-table row; EIA records scrape their detail page),
   # client-side date filter, relevance scoring, optional download, and the
   # sidecar write. Returns the 1-row record or NULL to drop the entry.
-  process_entry <- function(entry) {
+  # `get_cpvo_index` is NULL for EIA and a lazy listing-index accessor for CPVO.
+  process_entry <- function(entry, get_cpvo_index) {
     rec <- tryCatch(
-      si_load_or_fetch(entry, sidecar_index),
+      si_load_or_fetch(entry, sidecar_index, get_cpvo_index),
       error = function(e) {
         warn_partial("Failed to load/parse {.url {entry$url}}: {conditionMessage(e)}")
         NULL
@@ -171,7 +194,16 @@ get_assessments_si <- function(
         function() NULL
       }
     )
-    block <- stream_crawl(gen, process_entry, limit = remaining, label = "si")
+    # CPVO registers have no detail pages; attachments come from the paginated
+    # listing table, crawled once per register and looked up by title. EIA gets
+    # a NULL accessor and keeps its per-record detail-page scrape.
+    get_cpvo_index <- si_make_cpvo_index_accessor(reg)
+    block <- stream_crawl(
+      gen,
+      function(entry) process_entry(entry, get_cpvo_index),
+      limit = remaining,
+      label = "si"
+    )
     records <- c(records, block)
   }
 
@@ -345,16 +377,258 @@ si_map_entries <- function(arr, register) {
 }
 
 # -----------------------------------------------------------------------------
+# CPVO listing-table crawl + title join (issue #17)
+#
+# The two CPVO/SEA registers have no per-record detail page: every record is a
+# row in a single HTML table that paginates by a `?start=` offset (10 rows per
+# page), and the download links live in that row's "Datoteka" cell. We crawl
+# the whole table once per register and join each bulk-export record to its row
+# by normalised title. (The bulk export's own "Datoteka" field is a list of
+# opaque internal file ids that never appear in the public HTML, so it cannot
+# resolve attachment URLs on its own.)
+# -----------------------------------------------------------------------------
+
+#' Is this register one of the listing-table (CPVO/SEA) registers?
+#' @noRd
+si_register_is_cpvo <- function(register) {
+  register %in% c("cpvo-drzavni", "cpvo-obcinski")
+}
+
+#' Normalise a title for the CPVO listing-table join.
+#'
+#' Lower-cases (locale-correct for Slovenian diacritics), turns non-breaking
+#' spaces into ordinary ones, collapses internal whitespace, and trims. Returns
+#' `NA_character_` for NULL / NA / empty so callers can treat "no key" uniformly.
+#' @noRd
+si_normalise_title <- function(x) {
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return(NA_character_)
+  }
+  s <- gsub("\u00a0", " ", as.character(x), fixed = TRUE)
+  s <- tolower(s)
+  s <- trimws(gsub("\\s+", " ", s))
+  if (!nzchar(s)) NA_character_ else s
+}
+
+#' Absolutise gov.si `/assets/...` attachment hrefs (order-preserving, unique).
+#' @noRd
+si_absolutise_assets <- function(hrefs) {
+  hrefs <- hrefs[!is.na(hrefs) & nzchar(hrefs)]
+  if (length(hrefs) == 0L) {
+    return(character(0))
+  }
+  abs_urls <- ifelse(
+    grepl("^https?://", hrefs),
+    hrefs,
+    paste0(si_portal_base(), hrefs)
+  )
+  unique(abs_urls)
+}
+
+#' Parse one CPVO listing page's table into per-row records.
+#'
+#' Columns are located by HEADER NAME, not position: the drzavni register has no
+#' `Občina` column, so its `Datoteka` cell sits one column to the left of the
+#' obcinski register's. Attachment capture is scoped to each row's `Datoteka`
+#' cell so page chrome (logos, stylesheets) is never mistaken for an attachment.
+#' Returns a list of `list(title, title_norm, datum, attachment_urls)`.
+#' @noRd
+si_parse_listing_table <- function(html) {
+  tbl <- rvest::html_element(html, "table")
+  if (inherits(tbl, "xml_missing") || length(tbl) == 0L) {
+    return(list())
+  }
+  rows <- rvest::html_elements(tbl, "tr")
+  if (length(rows) < 2L) {
+    return(list())
+  }
+  header <- trimws(rvest::html_text2(rvest::html_elements(rows[[1]], "th, td")))
+  col_of <- function(name) {
+    hit <- which(tolower(header) == tolower(name))
+    if (length(hit) == 0L) NA_integer_ else hit[[1]]
+  }
+  i_title <- col_of("Naziv")
+  i_datum <- col_of("Datum")
+  i_dat <- col_of("Datoteka")
+  if (is.na(i_title) || is.na(i_dat)) {
+    return(list())
+  }
+  out <- list()
+  for (r in rows[-1]) {
+    cells <- rvest::html_elements(r, "td")
+    if (length(cells) < max(i_title, i_dat)) {
+      next
+    }
+    title <- trimws(rvest::html_text2(cells[[i_title]]))
+    if (!nzchar(title)) {
+      next
+    }
+    datum <- as.Date(NA)
+    if (!is.na(i_datum) && length(cells) >= i_datum) {
+      raw_datum <- gsub(
+        "\u00a0",
+        " ",
+        rvest::html_text2(cells[[i_datum]]),
+        fixed = TRUE
+      )
+      datum <- si_parse_date(raw_datum)
+    }
+    hrefs <- rvest::html_attr(rvest::html_elements(cells[[i_dat]], "a"), "href")
+    hrefs <- hrefs[!is.na(hrefs) & grepl("/assets/", hrefs, fixed = TRUE)]
+    out[[length(out) + 1L]] <- list(
+      title = title,
+      title_norm = si_normalise_title(title),
+      datum = datum,
+      attachment_urls = si_absolutise_assets(hrefs)
+    )
+  }
+  out
+}
+
+#' Fetch one CPVO listing page at its `?start=` offset, or NULL on error.
+#'
+#' The dedicated seam keeps the network boundary mockable in tests.
+#' @noRd
+si_fetch_listing_page <- function(base_url, start) {
+  req <- req_planscanr(base_url)
+  req <- httr2::req_url_query(req, start = start)
+  tryCatch(perform_html(req), error = function(e) NULL)
+}
+
+#' Crawl every page of a CPVO register's listing table and parse its rows.
+#'
+#' Walks the `?start=` offsets (10 rows/page) until a page yields no NEW rows,
+#' deduplicating by normalised title so a clamped last page cannot loop forever.
+#' Politeness throttle + transient-retry come from [req_planscanr()].
+#' @noRd
+si_build_cpvo_listing_index <- function(register) {
+  base_url <- si_register_base_url(register)
+  rows <- list()
+  seen <- character(0)
+  start <- 0L
+  repeat {
+    html <- si_fetch_listing_page(base_url, start)
+    if (is.null(html)) {
+      break
+    }
+    page_rows <- si_parse_listing_table(html)
+    fresh <- Filter(
+      function(r) !is.na(r$title_norm) && !(r$title_norm %in% seen),
+      page_rows
+    )
+    if (length(fresh) == 0L) {
+      break
+    }
+    seen <- c(seen, vapply(fresh, function(r) r$title_norm, character(1)))
+    rows <- c(rows, fresh)
+    start <- start + 10L
+    if (start > 100000L) {
+      break
+    }
+  }
+  rows
+}
+
+#' Build a lazy, memoised accessor for a CPVO register's listing index.
+#'
+#' Returns NULL for the EIA register (which has real per-record detail pages).
+#' For a CPVO register, returns a zero-arg closure that builds the listing index
+#' on first call and caches it — so a fully sidecar-cached (warm) run, which
+#' never reaches the closure, performs no listing-page network at all.
+#' @noRd
+si_make_cpvo_index_accessor <- function(register) {
+  if (!si_register_is_cpvo(register)) {
+    return(NULL)
+  }
+  built <- FALSE
+  cached <- NULL
+  function() {
+    if (!built) {
+      cached <<- si_build_cpvo_listing_index(register)
+      built <<- TRUE
+    }
+    cached
+  }
+}
+
+#' Look up a record's attachments in the CPVO listing index by title.
+#'
+#' Tier 1 is an exact normalised-title match. Tier 2 handles listing-side
+#' truncation: the listing cell clips long titles, but the bulk-export `Title`
+#' is full, so a sufficiently long (>= 60 char) listing title that prefixes the
+#' record title is a confident match. Ambiguity is broken by `datum`. Returns
+#' the attachment URL vector, or NULL when there is no confident match — the
+#' caller then leaves the record's attachments empty rather than risk
+#' mis-attributing another row's files (abbreviated listing titles land here).
+#' @noRd
+si_lookup_cpvo_attachments <- function(rows, title, datum = as.Date(NA)) {
+  tn <- si_normalise_title(title)
+  if (is.na(tn) || length(rows) == 0L) {
+    return(NULL)
+  }
+  resolve <- function(cands) {
+    if (length(cands) == 1L) {
+      return(cands[[1]]$attachment_urls)
+    }
+    if (!is.na(datum)) {
+      byd <- Filter(function(r) !is.na(r$datum) && r$datum == datum, cands)
+      if (length(byd) == 1L) {
+        return(byd[[1]]$attachment_urls)
+      }
+    }
+    unique(unlist(lapply(cands, function(r) r$attachment_urls)))
+  }
+  exact <- Filter(function(r) identical(r$title_norm, tn), rows)
+  if (length(exact) >= 1L) {
+    return(resolve(exact))
+  }
+  pref <- Filter(
+    function(r) {
+      !is.na(r$title_norm) &&
+        nchar(r$title_norm) >= 60L &&
+        startsWith(tn, r$title_norm)
+    },
+    rows
+  )
+  if (length(pref) >= 1L) {
+    return(resolve(pref))
+  }
+  NULL
+}
+
+# -----------------------------------------------------------------------------
 # Detail-record building
 # -----------------------------------------------------------------------------
 
-#' Sidecar-first wrapper: read the sidecar if present, else build + scrape.
+#' Sidecar-first wrapper: read the sidecar if present, else build attachments.
+#'
+#' EIA records scrape their per-record detail page. CPVO records have no detail
+#' page (the per-record URL 302-redirects to the listing), so their attachments
+#' are joined from the register's paginated listing index via `get_cpvo_index`
+#' (a lazy accessor; NULL for EIA). A CPVO record with no confident title match
+#' keeps an empty attachment list rather than risk another row's files.
 #' @noRd
-si_load_or_fetch <- function(entry, sidecar_index) {
+si_load_or_fetch <- function(entry, sidecar_index, get_cpvo_index = NULL) {
   url <- entry$url
   hit <- sidecar_index[url]
   if (length(hit) == 1L && !is.na(hit) && nzchar(hit) && file.exists(hit)) {
     return(read_record_sidecar(hit))
+  }
+  if (!is.null(get_cpvo_index)) {
+    rows <- get_cpvo_index()
+    title <- si_field(entry$raw, "Title") %||% si_field(entry$raw, "Naziv")
+    datum <- si_parse_date(si_field(entry$raw, "Datum"))
+    attachments <- si_lookup_cpvo_attachments(rows, title, datum)
+    if (is.null(attachments)) {
+      warn_partial(
+        paste0(
+          "No gov.si listing-table match for CPVO record ",
+          "{.val {entry$url_segment}}; attachments left empty"
+        )
+      )
+      attachments <- character(0)
+    }
+    return(si_build_record(entry, attachments))
   }
   attachments <- si_fetch_attachments(url)
   si_build_record(entry, attachments)
