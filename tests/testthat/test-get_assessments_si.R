@@ -106,8 +106,18 @@ test_that("si_record_matches honours the date_range filter", {
   ))
 })
 
-# A reusable mock pair: bulk-export generator yields the first entry of each
-# register once; the attachment fetch returns the one fixture attachment.
+# A reusable mock trio: the bulk-export generator yields the first entry of
+# each register once; the EIA attachment fetch returns the one fixture
+# attachment; the CPVO listing index returns a single row whose title matches
+# the cpvo-drzavni fixture so the title-join resolves offline (issue #17 routes
+# CPVO attachments through the listing index, not the per-record detail page).
+.si_cpvo_listing_row <- list(
+  title = .si_cpvo[[1]]$Title,
+  title_norm = planscanR:::si_normalise_title(.si_cpvo[[1]]$Title),
+  datum = planscanR:::si_parse_date(.si_cpvo[[1]]$Datum),
+  attachment_urls = "https://www.gov.si/assets/seznami/cpvo-drzavni/odlocba.pdf"
+)
+
 si_mock_bindings <- function() {
   list(
     si_fetch_search = function(register) {
@@ -127,6 +137,9 @@ si_mock_bindings <- function() {
     },
     si_fetch_attachments = function(url) {
       planscanR:::si_parse_attachments(.si_detail)
+    },
+    si_build_cpvo_listing_index = function(register) {
+      if (register == "cpvo-drzavni") list(.si_cpvo_listing_row) else list()
     }
   )
 }
@@ -140,7 +153,8 @@ test_that("get_assessments_si end-to-end on fixtures (sidecar-first)", {
     mb <- si_mock_bindings()
     local_mocked_bindings(
       si_fetch_search = mb$si_fetch_search,
-      si_fetch_attachments = mb$si_fetch_attachments
+      si_fetch_attachments = mb$si_fetch_attachments,
+      si_build_cpvo_listing_index = mb$si_build_cpvo_listing_index
     )
 
     res <- get_assessments_si(limit = 5, download = FALSE)
@@ -176,7 +190,8 @@ test_that("get_assessments_si honours the assessment_type filter", {
     mb <- si_mock_bindings()
     local_mocked_bindings(
       si_fetch_search = mb$si_fetch_search,
-      si_fetch_attachments = mb$si_fetch_attachments
+      si_fetch_attachments = mb$si_fetch_attachments,
+      si_build_cpvo_listing_index = mb$si_build_cpvo_listing_index
     )
 
     # EIA-only -> only the screening register.
@@ -202,7 +217,8 @@ test_that("get_assessments_si honours date_range and limit", {
     mb <- si_mock_bindings()
     local_mocked_bindings(
       si_fetch_search = mb$si_fetch_search,
-      si_fetch_attachments = mb$si_fetch_attachments
+      si_fetch_attachments = mb$si_fetch_attachments,
+      si_build_cpvo_listing_index = mb$si_build_cpvo_listing_index
     )
 
     # Positive window: both records fall in 2021.
@@ -234,7 +250,8 @@ test_that("SI -> sidecar round-trip preserves country-specific extras", {
     mb <- si_mock_bindings()
     local_mocked_bindings(
       si_fetch_search = mb$si_fetch_search,
-      si_fetch_attachments = mb$si_fetch_attachments
+      si_fetch_attachments = mb$si_fetch_attachments,
+      si_build_cpvo_listing_index = mb$si_build_cpvo_listing_index
     )
 
     res <- get_assessments_si(limit = 5, download = FALSE)
@@ -261,7 +278,8 @@ test_that("get_assessments_si scores topics and adds relevance_score_<slug> colu
     mb <- si_mock_bindings()
     local_mocked_bindings(
       si_fetch_search = mb$si_fetch_search,
-      si_fetch_attachments = mb$si_fetch_attachments
+      si_fetch_attachments = mb$si_fetch_attachments,
+      si_build_cpvo_listing_index = mb$si_build_cpvo_listing_index
     )
 
     res <- get_assessments_si(

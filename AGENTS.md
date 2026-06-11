@@ -201,11 +201,23 @@ Python, no Shiny, no project-specific scoring config.
   vs. two SEA/CPVO registers — state plans `cpvo-drzavni` (`CPVO-DRZ-`) and
   municipal plans `cpvo-obcinski` (`CPVO-OBC-`). Field maps differ per register
   (screening: `Poseg`/`Datum objave`/`Naziv`/`Naslov`/`Številka zadeve`/
-  `Oznaka posega`; CPVO: `Title`/`Naziv`/`Datum`/`Odločitev`). Export ids don't
-  map to filenames, so attachments are scraped from each detail page
-  (sidecar-first; seam `si_fetch_attachments(url)`): `a[href^="/assets/seznami/"]`
-  absolutised against `https://www.gov.si`, flat `attachment_urls` (no sections;
-  may be empty). No geometry. `competent_authority` fixed to *Ministrstvo za
+  `Oznaka posega`; CPVO: `Title`/`Naziv`/`Datum`/`Datoteka`/`Odločitev`).
+  **Attachments differ by register shape** (issue #17): EIA records have a real
+  detail page, scraped via seam `si_fetch_attachments(url)`
+  (`a[href^="/assets/seznami/"]`). CPVO records have **no** detail page — the
+  per-record URL 302-redirects to the register's listing, a single HTML table
+  paginated by `?start=` (10 rows/page) whose `Datoteka` cell holds the links;
+  the handler crawls every page once per register (`si_build_cpvo_listing_index`,
+  page seam `si_fetch_listing_page`, header-mapped `si_parse_listing_table`),
+  then joins each export record to its row by normalised title
+  (`si_lookup_cpvo_attachments`: exact → prefix-for-truncation → else empty, no
+  fuzzy mis-attribution). The export's own `Datoteka` ids are opaque and never
+  appear in HTML, so they cannot resolve URLs. All links absolutised against
+  `https://www.gov.si`, flat `attachment_urls` (no sections; may be empty).
+  Listing crawl is sidecar-first, so warm runs do no listing network. **Caches
+  predating this fix hold wrong CPVO `attachment_urls`; re-run with
+  `refresh = TRUE` to heal (no download needed — URLs persist even at
+  `download = FALSE`).** No geometry. `competent_authority` fixed to *Ministrstvo za
   okolje, podnebje in energijo*. `date_published` parses `"DD. MM. YYYY"`;
   `date_decision` always `NA`; `date_range` matched client-side. Record language
   Slovenian (`sl`). Throttled to 5 req/s
