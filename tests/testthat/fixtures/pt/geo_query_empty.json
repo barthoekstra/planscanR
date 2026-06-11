@@ -1,0 +1,19 @@
+{
+  "displayFieldName": "projecto",
+  "fieldAliases": {
+    "n_aia": "n_aia"
+  },
+  "geometryType": "esriGeometryPolygon",
+  "spatialReference": {
+    "wkid": 4326,
+    "latestWkid": 4326
+  },
+  "fields": [
+    {
+      "name": "n_aia",
+      "type": "esriFieldTypeInteger",
+      "alias": "n_aia"
+    }
+  ],
+  "features": []
+}

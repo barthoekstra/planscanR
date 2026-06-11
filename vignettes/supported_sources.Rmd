@@ -910,8 +910,13 @@ get_assessments_si(assessment_type = "SEA", limit = 10, download = FALSE)
   (the substantive dossier), `consulta_publica`, `parecer`, or `outros` — and
   grouped into its own `attachment_urls_<slug>` / `local_path_<slug>` list
   column. `attachment_urls` is the deduplicated union across phases.
-* **No geometry.** SIAIA exposes the location only as free-text *concelho*
-  (municipal) names, so no spatial geometry is written.
+* **Geometry.** Beyond the free-text *concelho* names in `municipalities`, each
+  detail page's *Localização* links to APA's SNIAMB geoviewer, whose ArcGIS
+  *ZoomToApp* service serves the project polygon. The handler queries it
+  (`Referer`-gated, `outSR=4326`, Esri rings converted to GeoJSON in-package) and
+  writes a sibling `<document_id>.geometry.geojson` in **EPSG:4326** (WGS84) with
+  `geometry_path` / `geometry_crs` when a footprint exists. The geometry host is
+  throttled separately via `getOption("planscanR.pt_geo_throttle_rate")`.
 * **Filters (client-side).** `query` is a case-insensitive substring match on
   the project title; `date_range` is matched against `date_decision` when the
   detail page exposes a full decision date, otherwise against the `decision_year`
