@@ -29,7 +29,24 @@ Assessments, and related advice) from European government portals.
   fetches from the gov.si environmental-assessment registers via their
   bulk JSON exports — the EIA screening register plus the two SEA (CPVO)
   registers, merged with an `assessment_type` / `register` dual-register
-  tag; attachments are scraped from each record’s detail page.
+  tag. EIA attachments are scraped from each record’s detail page;
+  SEA/CPVO attachments are joined from the register’s paginated listing
+  table (see Bug fixes).
+
+### Bug fixes
+
+- Slovenia SEA/CPVO attachments are now complete
+  ([\#17](https://github.com/barthoekstra/planscanR/issues/17)). The two
+  CPVO registers have no per-record detail page — every record is a row
+  in a listing table paginated by `?start=` — so the previous code only
+  ever read listing page 1 and stapled the same page-1 files onto every
+  record. CPVO attachments are now crawled across all listing pages and
+  joined to each record by title, so every record gets its own files
+  (`/assets/seznami/` **and** `/assets/ministrstva/`). Caches built
+  before this fix hold incorrect CPVO `attachment_urls`; re-run the
+  affected records once with `refresh = TRUE` to heal them — no download
+  is needed, since the corrected URLs are written to the sidecar even at
+  `download = FALSE`.
 - Portugal
   ([`get_assessments_pt()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_pt.md)):
   fetches from the APA SIAIA register at `siaia.apambiente.pt` — the

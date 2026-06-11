@@ -80,13 +80,32 @@ The canonical detail URL for each record is
 
 ## Attachments
 
-The bulk-export document ids do not map to filenames, so attachments are
-scraped from each record's detail page (sidecar-first via the cache).
-The handler fetches the detail HTML, collects every
-`a[href^="/assets/seznami/"]` link, and absolutises it against
-`https://www.gov.si`. These become `attachment_urls` (a flat list — no
-per-section split). A record with no such links yields an empty
-`attachment_urls` vector, which is valid.
+The two register shapes resolve attachments differently:
+
+- **EIA** (`predhodni-postopek`) records have a real per-record detail
+  page. The handler fetches the detail HTML (sidecar-first via the
+  cache), collects every `a[href^="/assets/seznami/"]` link, and
+  absolutises it against `https://www.gov.si`.
+
+- **SEA / CPVO** (`cpvo-drzavni`, `cpvo-obcinski`) records have NO
+  detail page — the per-record URL 302-redirects to the register's
+  listing, which is a single HTML table paginated by a `?start=` offset
+  (10 rows/page) whose `Datoteka` cell holds the download links. The
+  handler crawls every listing page once per register, then joins each
+  bulk-export record to its row by normalised title (with a prefix
+  fallback for listing-side title truncation). The bulk export's own
+  `Datoteka` field is a list of opaque internal file ids that never
+  appear in the public HTML, so it cannot resolve attachment URLs on its
+  own. A CPVO record with no confident title match keeps an empty
+  `attachment_urls` rather than risk another row's files.
+
+Either way `attachment_urls` is a flat list (no per-section split); an
+empty vector is valid. Because the listing crawl is sidecar-first, a
+warm re-run performs no listing-page network at all. NOTE: caches
+written before this fix hold incomplete/incorrect CPVO
+`attachment_urls`; re-run the affected records once with
+`refresh = TRUE` to heal them (downloads are not required — the URLs are
+persisted to the sidecar even at `download = FALSE`).
 
 ## Filter coverage (v0.1)
 
@@ -104,10 +123,14 @@ per-section split). A record with no such links yields an empty
 ## Performance
 
 The registers are small (a few hundred screening records, a few dozen
-CPVO records). A cold crawl is one bulk-export GET per register plus one
-detail-page fetch per record (sidecar-first, so repeat runs are fast).
-To be polite to the shared government portal, SI requests are throttled
-to 5 requests per second by default; override via
+CPVO records). A cold crawl is one bulk-export GET per register, plus —
+for EIA — one detail-page fetch per record, or — for CPVO — one pass
+over the register's paginated listing (a handful of pages, crawled once
+and shared across all of that register's records). Everything is
+sidecar-first, so repeat runs are fast and a fully-cached register
+fetches nothing. To be polite to the shared government portal, SI
+requests are throttled to 5 requests per second by default (with
+transient-error retry/backoff); override via
 `getOption("planscanR.si_throttle_rate")` (requests/sec; falsy
 disables). The register covers roughly 2021 onward.
 
