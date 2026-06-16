@@ -208,6 +208,56 @@ test_that("download_attachments returns the empty status tibble for empty input"
   )
 })
 
+test_that("download_attachments returns an already-cached file without any request", {
+  # RO-1b idempotent resume: a file already on disk under <cache>/files/ must
+  # short-circuit to status "cached" with no HEAD probe and no GET, so an
+  # interrupted run resumes cheaply without re-fetching what it already has.
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/nl/1/report.pdf"
+    dest <- planscanR:::cache_path_internal(url, "nl", "1", root = root)
+    writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46, 0x2D, 0x31)), dest) # "%PDF-1"
+
+    requested <- FALSE
+    local_mocked_bindings(
+      req_perform = function(...) {
+        requested <<- TRUE
+        stop("no network expected for a cached file")
+      },
+      .package = "httr2"
+    )
+
+    out <- planscanR:::download_attachments(url, country = "nl", document_id = "1", root = root)
+    expect_identical(out$status, "cached")
+    expect_false(requested)
+    expect_identical(normalizePath(out$local_path), normalizePath(dest))
+  })
+})
+
+test_that("download_attachments DOES hit the network for a not-yet-cached file", {
+  # Positive control for the no-re-GET test above: a fresh URL must reach the
+  # mocked client (proving the cached-skip assertion is meaningful, not vacuous).
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    requested <- FALSE
+    local_mocked_bindings(
+      req_perform = function(...) {
+        requested <<- TRUE
+        stop("simulated network call")
+      },
+      .package = "httr2"
+    )
+    out <- planscanR:::download_attachments(
+      "https://example.org/files/nl/2/new.pdf",
+      country = "nl",
+      document_id = "2",
+      root = root
+    )
+    expect_true(requested)
+    expect_identical(out$status, "failed")
+  })
+})
+
 test_that("clear_cache is a no-op against an empty / missing root", {
   withr::with_tempdir({
     options(planscanR.cache_dir = file.path(getwd(), "doesntexist"))

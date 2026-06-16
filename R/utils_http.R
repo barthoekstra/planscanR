@@ -27,20 +27,45 @@ req_planscanr <- function(base_url, path = NULL, referer = NULL) {
 
 #' Apply a politeness throttle when one is configured.
 #'
-#' Off by default (`getOption("planscanR.throttle_rate")` is `NULL`), so the
-#' fast handlers (DE streaming crawl, AT JSON services) are unaffected. A
-#' handler that talks to a rate-limiting portal sets the option for the
-#' duration of its call — e.g. the NL handler caps itself at ~1 req/s because
-#' commissiemer.nl 429s under a sustained burst. `httr2::req_throttle()`
-#' enforces the cap with a token bucket keyed by host (`realm`), so the delay
-#' only spreads requests to the throttled host.
+#' Off by default (both throttle options are `NULL`), so the fast handlers (DE
+#' streaming crawl, AT JSON services) are unaffected. A handler — or a download
+#' run — that talks to a rate-limiting portal sets a throttle option for the
+#' duration of its call. Two options are honoured:
+#'
+#' * `planscanR.throttle_rates` — a named list mapping host -> requests/second.
+#'   The matching host's rate wins. This lets one run cap a hard-rate-limiting
+#'   portal (e.g. the German uvp-verbund) more strictly than the rest while
+#'   leaving fast hosts untouched.
+#' * `planscanR.throttle_rate` — a scalar fallback applied to any host without a
+#'   per-host entry (e.g. the NL handler caps itself at ~1 req/s because
+#'   commissiemer.nl 429s under a sustained burst).
+#'
+#' `httr2::req_throttle()` enforces each cap with a token bucket keyed by host
+#' (`realm`), so the delay only spreads requests to the throttled host.
 #' @noRd
 req_throttle_planscanr <- function(req) {
-  rate <- getOption("planscanR.throttle_rate", NULL)
+  rate <- throttle_rate_for(req$url)
   if (is.null(rate) || !is.finite(rate) || rate <= 0) {
     return(req)
   }
   httr2::req_throttle(req, rate = rate)
+}
+
+#' Resolve the throttle rate (req/s) for a URL.
+#'
+#' A per-host override from `planscanR.throttle_rates` takes precedence; any host
+#' without an entry falls back to the scalar `planscanR.throttle_rate`. Returns
+#' `NULL` when neither option configures a rate for the host.
+#' @noRd
+throttle_rate_for <- function(url) {
+  rates <- getOption("planscanR.throttle_rates", NULL)
+  if (!is.null(rates) && length(rates) > 0L && !is.null(url)) {
+    host <- tryCatch(httr2::url_parse(url)$hostname, error = function(e) NULL)
+    if (!is.null(host) && !is.na(host) && nzchar(host) && !is.null(rates[[host]])) {
+      return(rates[[host]])
+    }
+  }
+  getOption("planscanR.throttle_rate", NULL)
 }
 
 #' @noRd
