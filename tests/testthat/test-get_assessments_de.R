@@ -175,6 +175,205 @@ test_that("de_extract_uuids dedupes anchor pairs on the same record card", {
   expect_true(all(grepl("^[A-Fa-f0-9-]+$", uuids)))
 })
 
+test_that("de_search_page includes explicit page and zero-result evidence", {
+  html <- rvest::read_html(fixture_path("de", "search-windenergie-page1.html"))
+  result <- planscanR:::de_search_page_result(html)
+  expect_identical(result$page, 1L)
+  expect_false(result$zero_results)
+  expect_false(result$final_range)
+  expect_gt(length(result$uuids), 0L)
+
+  empty <- rvest::read_html(paste0(
+    "<html><body><strong class='search-result-hits'>0</strong>",
+    "<p>Keine Ergebnisse</p></body></html>"
+  ))
+  empty_result <- planscanR:::de_search_page_result(empty)
+  expect_identical(empty_result$page, 1L)
+  expect_true(empty_result$zero_results)
+  expect_false(empty_result$final_range)
+  expect_length(empty_result$uuids, 0L)
+
+  final <- rvest::read_html(paste0(
+    "<html><body><div class='paging'>",
+    "<strong class='search-result-hits'>11 - 11</strong> von <strong>11</strong>",
+    "</div></body></html>"
+  ))
+  final_result <- planscanR:::de_search_page_result(final)
+  expect_identical(final_result$page, 2L)
+  expect_false(final_result$zero_results)
+  expect_true(final_result$final_range)
+})
+
+test_that("German crawl crosses unsupported and duplicate-only pages using page evidence", {
+  fixture_html_path <- normalizePath(fixture_path("de", "detail-walldurn-windpark.html"))
+  target_uuid <- "a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
+  later_uuid <- "B8837DB3-A6E0-4AA9-B13A-C5D2735187CB"
+  pages <- list(
+    list(uuids = target_uuid, page = 1L, zero_results = FALSE, final_range = FALSE),
+    list(uuids = character(), page = 2L, zero_results = FALSE, final_range = FALSE),
+    list(uuids = target_uuid, page = 3L, zero_results = FALSE, final_range = FALSE),
+    list(uuids = later_uuid, page = 4L, zero_results = FALSE, final_range = TRUE)
+  )
+  page_calls <- integer()
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- c(page_calls, page)
+        pages[[page]]
+      },
+      perform_html = function(req) rvest::read_html(fixture_html_path)
+    )
+    res <- get_assessments_de(
+      query = "wind",
+      download = FALSE,
+      write_sidecar = FALSE
+    )
+    expect_identical(page_calls, 1:4)
+    expect_identical(res$document_id, c(target_uuid, later_uuid))
+  })
+})
+
+test_that("German crawl warns and stops when page advancement is unknown, stale, or fails", {
+  fixture_html_path <- normalizePath(fixture_path("de", "detail-walldurn-windpark.html"))
+  withr::with_tempdir({
+    options(planscanR.cache_dir = file.path(getwd(), "cache"))
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+
+    page_calls <- 0L
+    target_uuid <- "a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- page_calls + 1L
+        list(uuids = target_uuid, page = NA_integer_, zero_results = FALSE, final_range = FALSE)
+      },
+      perform_html = function(req) rvest::read_html(fixture_html_path)
+    )
+    partial <- NULL
+    expect_warning(
+      partial <- get_assessments_de(query = "wind", download = FALSE, write_sidecar = FALSE),
+      class = "planscanR_warning_partial"
+    )
+    expect_identical(page_calls, 1L)
+    expect_identical(partial$document_id, target_uuid)
+
+    page_calls <- 0L
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- page_calls + 1L
+        list(uuids = target_uuid, page = NA_integer_, zero_results = FALSE, final_range = FALSE)
+      }
+    )
+    limited <- expect_warning(
+      get_assessments_de(
+        query = "wind",
+        limit = 1,
+        download = FALSE,
+        write_sidecar = FALSE
+      ),
+      NA
+    )
+    expect_identical(page_calls, 1L)
+    expect_identical(limited$document_id, target_uuid)
+
+    page_calls <- 0L
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- page_calls + 1L
+        list(uuids = character(), page = page + 1L, zero_results = FALSE, final_range = FALSE)
+      }
+    )
+    expect_warning(
+      get_assessments_de(query = "wind", download = FALSE, write_sidecar = FALSE),
+      class = "planscanR_warning_partial"
+    )
+    expect_identical(page_calls, 1L)
+
+    page_calls <- 0L
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- page_calls + 1L
+        stop("fixture page failure")
+      }
+    )
+    expect_warning(
+      get_assessments_de(query = "wind", download = FALSE, write_sidecar = FALSE),
+      class = "planscanR_warning_partial"
+    )
+    expect_identical(page_calls, 1L)
+
+    page_calls <- 0L
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- page_calls + 1L
+        list(uuids = character(), page = 2L, zero_results = FALSE, final_range = TRUE)
+      }
+    )
+    expect_warning(
+      get_assessments_de(query = "wind", download = FALSE, write_sidecar = FALSE),
+      class = "planscanR_warning_partial"
+    )
+    expect_identical(page_calls, 1L)
+
+    page_calls <- 0L
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- page_calls + 1L
+        list(
+          uuids = character(),
+          page = page,
+          zero_results = identical(page, 2L),
+          final_range = FALSE
+        )
+      }
+    )
+    expect_warning(
+      get_assessments_de(query = "wind", download = FALSE, write_sidecar = FALSE),
+      NA
+    )
+    expect_identical(page_calls, 2L)
+
+    page_calls <- 0L
+    local_mocked_bindings(
+      de_search_page = function(query, page) {
+        page_calls <<- page_calls + 1L
+        list(uuids = character(), page = page, zero_results = FALSE, final_range = FALSE)
+      }
+    )
+    expect_warning(
+      get_assessments_de(query = "wind", download = FALSE, write_sidecar = FALSE),
+      class = "planscanR_warning_partial"
+    )
+    expect_identical(page_calls, 3000L)
+  })
+})
+
+test_that("German crawl respects a finite record limit while continuing pagination", {
+  fixture_html_path <- normalizePath(fixture_path("de", "detail-walldurn-windpark.html"))
+  page_calls <- integer()
+  uuids <- c(
+    "a8837db3-a6e0-4aa9-b13a-c5d2735187cb",
+    "B8837DB3-A6E0-4AA9-B13A-C5D2735187CB"
+  )
+  local_mocked_bindings(
+    de_search_page = function(query, page) {
+      page_calls <<- c(page_calls, page)
+      list(uuids = uuids, page = page, zero_results = FALSE, final_range = FALSE)
+    },
+    perform_html = function(req) rvest::read_html(fixture_html_path)
+  )
+  res <- get_assessments_de(
+    query = "wind",
+    limit = 1,
+    download = FALSE,
+    write_sidecar = FALSE
+  )
+  expect_identical(length(page_calls), 1L)
+  expect_identical(nrow(res), 1L)
+  expect_identical(res$document_id, uuids[[1]])
+})
+
 test_that("de_docuuid_from_url extracts the uuid from a canonical URL", {
   expect_identical(
     planscanR:::de_docuuid_from_url(
@@ -241,8 +440,10 @@ test_that("get_assessments_de end-to-end on the fixture (sidecar-first, no downl
 
     local_mocked_bindings(
       # Returning the same uuid every page makes the streaming loop see it
-      # once on page 1, then dedup-out on page 2 and terminate.
-      de_search_page = function(query, page) target_uuid,
+      # once on the explicitly final page 1.
+      de_search_page = function(query, page) {
+        list(uuids = target_uuid, page = page, zero_results = FALSE, final_range = TRUE)
+      },
       perform_html = function(req) rvest::read_html(fixture_html_path)
     )
 
@@ -286,7 +487,9 @@ test_that("get_assessments_de's relevance threshold gates PDFs only — not the 
     target_uuid <- "a8837db3-a6e0-4aa9-b13a-c5d2735187cb"
 
     local_mocked_bindings(
-      de_search_page = function(query, page) target_uuid,
+      de_search_page = function(query, page) {
+        list(uuids = target_uuid, page = page, zero_results = FALSE, final_range = TRUE)
+      },
       perform_html = function(req) rvest::read_html(fixture_html_path)
     )
 

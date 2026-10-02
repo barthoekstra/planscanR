@@ -175,15 +175,23 @@ get_assessments_de <- function(
   )
   on.exit(cli::cli_progress_done(), add = TRUE)
 
+  exhausted <- FALSE
   while (length(records) < limit && page <= max_pages) {
-    page_uuids <- tryCatch(de_search_page(query, page), error = function(e) {
+    page_result <- tryCatch(de_search_page(query, page), error = function(e) {
       warn_partial("Failed to fetch search page {page}: {conditionMessage(e)}")
-      character(0)
+      NULL
     })
-    new_uuids <- page_uuids[!tolower(page_uuids) %in% tolower(seen_uuids)]
-    if (length(new_uuids) == 0L) {
+    if (is.null(page_result)) {
       break
     }
+    page_valid <- is.list(page_result) &&
+      !is.null(page_result$page) &&
+      identical(as.integer(page_result$page), as.integer(page))
+    page_uuids <- if (is.list(page_result)) page_result$uuids else character(0)
+    if (is.null(page_uuids)) {
+      page_uuids <- character(0)
+    }
+    new_uuids <- page_uuids[!tolower(page_uuids) %in% tolower(seen_uuids)]
     seen_uuids <- c(seen_uuids, new_uuids)
     for (uuid in new_uuids) {
       if (length(records) >= limit) {
@@ -214,7 +222,29 @@ get_assessments_de <- function(
       records[[length(records) + 1L]] <- rec
       cli::cli_progress_update()
     }
+    explicit_zero <- is.list(page_result) && isTRUE(page_result$zero_results)
+    confirmed_last_range <- is.list(page_result) && isTRUE(page_result$final_range) && page_valid
+    if (explicit_zero || confirmed_last_range) {
+      exhausted <- TRUE
+      break
+    }
+    if (length(records) >= limit) {
+      break
+    }
+    if (!page_valid) {
+      warn_partial(paste0(
+        "Could not establish advancing pagination at search page {page}; ",
+        "results may be incomplete."
+      ))
+      break
+    }
     page <- page + 1L
+  }
+  if (!exhausted && page > max_pages && length(records) < limit) {
+    warn_partial(paste0(
+      "Stopped after {max_pages} German search pages without confirmed exhaustion; ",
+      "results may be incomplete."
+    ))
   }
 
   if (length(records) == 0L) {
@@ -310,7 +340,7 @@ de_warn_full_crawl <- function() {
 # URL enumeration
 # -----------------------------------------------------------------------------
 
-#' Fetch one search-result page and return its docuuids (case preserved).
+#' Fetch one search-result page with UUIDs and minimal pagination evidence.
 #'
 #' Builds the `freitextsuche?q=<...>&toggle_procedure=&ranking=score&page=<n>`
 #' request, fetches the HTML, and pulls every `?docuuid=<...>` anchor out of
@@ -322,9 +352,8 @@ de_warn_full_crawl <- function() {
 #' @param query Optional free-text query. `NULL` -> `q=*:*` (the portal's
 #'   Solr wildcard, which paginates through the full register).
 #' @param page 1-based page index.
-#' @return Character vector of docuuids found on that page (case preserved;
-#'   the portal's detail-page route is case-sensitive). Empty vector on
-#'   network failure or an empty page.
+#' @return List with `uuids` (case preserved), the observed `page`, and
+#'   separate zero-result and final-range evidence.
 #' @noRd
 de_search_page <- function(query, page) {
   base <- "https://www.uvp-verbund.de"
@@ -338,7 +367,54 @@ de_search_page <- function(query, page) {
     page = page
   )
   html <- perform_html(req)
-  de_extract_uuids(html)
+  de_search_page_result(html)
+}
+
+#' Extract only the pagination evidence needed by the streaming caller.
+#' @noRd
+de_search_page_result <- function(html) {
+  range_text <- rvest::html_text2(
+    rvest::html_elements(html, ".paging .search-result-hits")
+  )
+  range <- regmatches(
+    range_text,
+    regexpr("[0-9][0-9.]*\\s*[-\u2013]\\s*[0-9][0-9.]*", range_text)
+  )
+  range_numbers <- suppressWarnings(as.integer(gsub(
+    "[^0-9]",
+    "",
+    unlist(
+      regmatches(range, gregexpr("[0-9][0-9.]*", range))
+    )
+  )))
+  response_page <- if (length(range_numbers) >= 2L) {
+    as.integer((range_numbers[[1]] - 1L) %/% 10L + 1L)
+  } else {
+    NA_integer_
+  }
+
+  total_text <- rvest::html_text2(rvest::html_elements(html, ".paging strong"))
+  total_text <- total_text[!grepl("[-\u2013]", total_text)]
+  total_hits <- if (length(total_text)) {
+    suppressWarnings(as.integer(gsub("[^0-9]", "", total_text[[1]])))
+  } else {
+    NA_integer_
+  }
+  if (is.na(total_hits)) {
+    header_hits <- rvest::html_text2(rvest::html_elements(html, ".search-result-hits"))
+    header_hits <- header_hits[grepl("^[0-9.]+$", header_hits)]
+    if (length(header_hits)) {
+      total_hits <- suppressWarnings(as.integer(gsub("\\.", "", header_hits[[1]])))
+      if (!is.na(total_hits) && total_hits == 0L) response_page <- 1L
+    }
+  }
+
+  list(
+    uuids = de_extract_uuids(html),
+    page = response_page,
+    zero_results = !is.na(total_hits) && total_hits == 0L,
+    final_range = length(range_numbers) >= 2L && !is.na(total_hits) && range_numbers[[2]] >= total_hits
+  )
 }
 
 #' Extract docuuids from a search-results HTML page.
