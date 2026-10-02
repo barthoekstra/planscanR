@@ -601,6 +601,18 @@ read_record_sidecar <- function(path) {
 #' @param cache_dir Optional cache root. Defaults to
 #'   `tools::R_user_dir("planscanR", "cache")`.
 #' @param country Optional ISO-2 country code to filter by. `NULL` returns all.
+#' @param row_transform Optional function applied to each successfully decoded
+#'   one-row record before rows are combined. It must accept one data-frame
+#'   argument, retain the required planscanR schema columns and their types
+#'   (`country`, `source_portal`, `document_id`, and `url` as character;
+#'   `retrieved_at` as `POSIXct`; and `attachment_urls` and `local_path` as
+#'   list columns), and return exactly one data-frame row. Read errors are
+#'   still warned and skipped; transform errors and invalid returns abort the
+#'   index operation so a partial projection cannot be mistaken for a complete
+#'   cache.
+#' @param batch_size Positive integer number of decoded rows combined at a time.
+#'   Defaults to 512. It bounds the intermediate row list while preserving the
+#'   existing result schema when `row_transform = NULL`.
 #' @return A tibble in the planscanR schema, possibly with zero rows.
 #' @export
 #' @examples
@@ -611,7 +623,28 @@ read_record_sidecar <- function(path) {
 #' # Re-index just the Dutch records
 #' index_cache(country = "nl")
 #' }
-index_cache <- function(cache_dir = NULL, country = NULL) {
+index_cache <- function(
+  cache_dir = NULL,
+  country = NULL,
+  row_transform = NULL,
+  batch_size = 512L
+) {
+  if (!is.null(row_transform) && !is.function(row_transform)) {
+    cli::cli_abort(
+      "{.arg row_transform} must be NULL or a function.",
+      class = "planscanR_error_bad_input"
+    )
+  }
+  if (!is.numeric(batch_size) || length(batch_size) != 1L ||
+      is.na(batch_size) || !is.finite(batch_size) ||
+      batch_size < 1 || batch_size != trunc(batch_size) ||
+      batch_size > .Machine$integer.max) {
+    cli::cli_abort(
+      "{.arg batch_size} must be one positive integer.",
+      class = "planscanR_error_bad_input"
+    )
+  }
+  batch_size <- as.integer(batch_size)
   root <- if (is.null(cache_dir)) {
     cache_dir_default()
   } else {
@@ -644,17 +677,39 @@ index_cache <- function(cache_dir = NULL, country = NULL) {
   if (length(sidecars) == 0L) {
     return(empty_result_tibble())
   }
-  rows <- lapply(sidecars, function(p) {
-    tryCatch(read_record_sidecar(p), error = function(e) {
+  read_one <- function(p) {
+    record <- tryCatch(read_record_sidecar(p), error = function(e) {
       warn_partial("Could not read sidecar {.file {p}}: {conditionMessage(e)}")
       NULL
     })
+    if (is.null(record) || is.null(row_transform)) {
+      return(record)
+    }
+    transformed <- row_transform(record)
+    if (!is.data.frame(transformed) || nrow(transformed) != 1L) {
+      cli::cli_abort(
+        "{.arg row_transform} must return exactly one data-frame row for {.file {p}}.",
+        class = "planscanR_error_bad_input"
+      )
+    }
+    validate_result_schema(transformed)
+    transformed
+  }
+  starts <- seq.int(1L, length(sidecars), by = batch_size)
+  batches <- lapply(starts, function(start) {
+    stop <- min(length(sidecars), as.double(start) + as.double(batch_size) - 1)
+    rows <- lapply(sidecars[start:as.integer(stop)], read_one)
+    rows <- Filter(Negate(is.null), rows)
+    if (length(rows) == 0L) {
+      return(NULL)
+    }
+    bind_results(!!!rows)
   })
-  rows <- Filter(Negate(is.null), rows)
-  if (length(rows) == 0L) {
+  batches <- Filter(Negate(is.null), batches)
+  if (length(batches) == 0L) {
     return(empty_result_tibble())
   }
-  bind_results(!!!rows)
+  bind_results(!!!batches)
 }
 
 #' Upgrade every sidecar in a cache to the current schema (v3) in place.
