@@ -637,8 +637,12 @@ even there the embedding is delegated to planscanR.screen.
   want fresh fetches afterwards. The download
   layer pre-flights every URL with HEAD; files exceeding
   `getOption("planscanR.max_file_size_mb", 50)` are skipped and recorded in
-  `download_status`. Already-on-disk non-empty files become `status = "cached"`
-  unless `overwrite = TRUE`.
+  `download_status`. Each GET is written to a unique same-filesystem `.part`
+  path and is published only after a non-empty format/MIME and length check
+  plus SHA-256. A hash-keyed verification receipt is staged before the final
+  file rename; only a verified canonical file becomes `status = "cached"`
+  (or public `"exists"`). Failed attempts remove their staging bytes and keep
+  an existing verified copy. `.part` files are excluded from cache lookup.
 - **Errors** carry classed conditions (`planscanR_error_unsupported_country`,
   `planscanR_error_bad_input`, `planscanR_error_bad_schema`,
   `planscanR_warning_partial`) so tests can target them cleanly.

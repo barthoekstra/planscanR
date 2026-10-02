@@ -131,6 +131,13 @@ test_that("finalize_extension renames .x placeholders using Content-Type or magi
 test_that("resolve_cached_path finds the finalized file when only the placeholder is known", {
   withr::with_tempdir({
     writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46)), "ee_kmh-44_kmh_file_download-deadbeef.pdf")
+    planscanR:::write_download_receipt(
+      "ee_kmh-44_kmh_file_download-deadbeef.pdf",
+      "https://example.org/attachment",
+      "application/pdf",
+      file.info("ee_kmh-44_kmh_file_download-deadbeef.pdf")$size,
+      planscanR:::file_sha256("ee_kmh-44_kmh_file_download-deadbeef.pdf")
+    )
     out <- planscanR:::resolve_cached_path_internal("ee_kmh-44_kmh_file_download-deadbeef.x")
     expect_identical(basename(out), "ee_kmh-44_kmh_file_download-deadbeef.pdf")
   })
@@ -217,10 +224,17 @@ test_that("download_attachments returns an already-cached file without any reque
     url <- "https://example.org/files/nl/1/report.pdf"
     dest <- planscanR:::cache_path_internal(url, "nl", "1", root = root)
     writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46, 0x2D, 0x31)), dest) # "%PDF-1"
+    planscanR:::write_download_receipt(
+      dest,
+      url,
+      "application/pdf",
+      file.info(dest)$size,
+      planscanR:::file_sha256(dest)
+    )
 
     requested <- FALSE
     local_mocked_bindings(
-      req_perform = function(...) {
+      req_perform_stream = function(...) {
         requested <<- TRUE
         stop("no network expected for a cached file")
       },
@@ -241,7 +255,7 @@ test_that("download_attachments DOES hit the network for a not-yet-cached file",
     root <- file.path(getwd(), "cache")
     requested <- FALSE
     local_mocked_bindings(
-      req_perform = function(...) {
+      req_perform_stream = function(...) {
         requested <<- TRUE
         stop("simulated network call")
       },
@@ -345,6 +359,13 @@ test_that("cache_path (public) defaults to the resolved cache root", {
 test_that("resolve_cached_path (public) finds the finalized file behind a .x placeholder", {
   withr::with_tempdir({
     writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46)), "ee_kmh-44_dl-deadbeef.pdf")
+    planscanR:::write_download_receipt(
+      "ee_kmh-44_dl-deadbeef.pdf",
+      "https://example.org/attachment",
+      "application/pdf",
+      file.info("ee_kmh-44_dl-deadbeef.pdf")$size,
+      planscanR:::file_sha256("ee_kmh-44_dl-deadbeef.pdf")
+    )
     out <- resolve_cached_path("ee_kmh-44_dl-deadbeef.x")
     expect_identical(basename(out), "ee_kmh-44_dl-deadbeef.pdf")
     # Nothing on disk -> NA so a caller knows to download.
@@ -373,6 +394,13 @@ test_that("download_to_cache returns the cached file without a request when one 
     url <- "https://example.org/files/nl/1234/report.pdf"
     dest <- cache_path(url, "nl", "1234", cache_dir = root)
     writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46, 0x2D, 0x31)), dest)
+    planscanR:::write_download_receipt(
+      dest,
+      url,
+      "application/pdf",
+      file.info(dest)$size,
+      planscanR:::file_sha256(dest)
+    )
     out <- download_to_cache(url, "nl", "1234", cache_dir = root)
     expect_s3_class(out, "tbl_df")
     expect_identical(nrow(out), 1L)

@@ -20,11 +20,12 @@ returned, this resolves the actual file on disk:
 }
 \details{
 \itemize{
-\item the path itself when a non-empty file already exists there;
-\item the single finalized sibling (same stem, real extension) when exactly one
-exists for a \code{.x} placeholder;
-\item \code{NA_character_} when nothing is cached yet (so the caller knows to
-download) or when the match is ambiguous.
+\item the path itself when a non-empty file has a matching SHA-256 verification
+receipt;
+\item the single finalized sibling (same stem, real extension) with a matching
+receipt when exactly one exists for a \code{.x} placeholder;
+\item \code{NA_character_} when no verified copy is cached or when the match is
+ambiguous.
 }
 }
 \examples{

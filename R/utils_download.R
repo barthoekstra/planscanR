@@ -133,14 +133,17 @@ cache_path_internal <- function(url, country, document_id, root = NULL) {
 #' When a URL has no file extension, `cache_path()` returns a `.x`
 #' placeholder; the real file may have been renamed to e.g. `.pdf` after
 #' the body was fetched. This helper returns the real path when a single
-#' non-empty match exists, the original `dest` if it is already on disk,
-#' or `NA_character_` if nothing has been cached yet.
+#' receipt-backed match exists, the original `dest` when its verification
+#' receipt matches its bytes, or `NA_character_` otherwise.
 #' @noRd
 resolve_cached_path_internal <- function(dest) {
   if (length(dest) != 1L || is.na(dest) || !nzchar(dest)) {
     return(NA_character_)
   }
-  if (file.exists(dest) && file.info(dest)$size > 0L) {
+  if (grepl("\\.part$", basename(dest), ignore.case = TRUE)) {
+    return(NA_character_)
+  }
+  if (is_verified_download(dest)) {
     return(dest)
   }
   if (tools::file_ext(dest) != "x") {
@@ -153,8 +156,12 @@ resolve_cached_path_internal <- function(dest) {
   if (length(matches) == 0L) {
     return(NA_character_)
   }
+  matches <- matches[!grepl("\\.part$", basename(matches), ignore.case = TRUE)]
+  if (length(matches) == 0L) {
+    return(NA_character_)
+  }
   sizes <- file.info(matches)$size
-  matches <- matches[!is.na(sizes) & sizes > 0L]
+  matches <- matches[!is.na(sizes) & sizes > 0L & vapply(matches, is_verified_download, logical(1))]
   if (length(matches) == 1L) matches[[1]] else NA_character_
 }
 
@@ -333,7 +340,7 @@ head_content_length <- function(url) {
       req <- req_planscanr(url_encode_safe(url))
       req <- httr2::req_method(req, "HEAD")
       resp <- httr2::req_perform(req)
-      httr2::resp_header(resp, "Content-Length")
+      response_content_length(resp)
     },
     error = function(e) NULL
   )
@@ -363,17 +370,418 @@ file_sha256 <- function(path) {
   unclass(as.character(openssl::sha256(con)))
 }
 
+#' Return a filesystem-safe basename for a verification receipt.
+#' @noRd
+download_receipt_basename <- function(path, sha256) {
+  base <- basename(path)
+  suffix <- paste0(".", as.character(sha256), ".verified.json")
+  max_bytes <- 254L
+  if (nchar(base, type = "bytes") + nchar(suffix, type = "bytes") <= max_bytes) {
+    return(paste0(base, suffix))
+  }
+  base_hash <- substr(unclass(as.character(openssl::sha1(base))), 1L, 12L)
+  marker <- paste0("-", base_hash)
+  keep <- max(1L, max_bytes - nchar(suffix, type = "bytes") - nchar(marker, type = "bytes"))
+  paste0(substr(base, 1L, keep), marker, suffix)
+}
+
+#' Path of the publication proof stored beside a verified attachment.
+#' @noRd
+download_receipt_path <- function(path, sha256 = NULL) {
+  if (length(path) != 1L || is.na(path) || !nzchar(path)) {
+    return(NA_character_)
+  }
+  if (is.null(sha256)) {
+    sha256 <- file_sha256(path)
+  }
+  if (length(sha256) == 1L && !is.na(sha256) && nzchar(sha256)) {
+    return(file.path(dirname(path), download_receipt_basename(path, sha256)))
+  }
+  paste0(path, ".verified.json")
+}
+
+#' Check the immutable publication proof for a cached attachment.
+#' @noRd
+is_verified_download <- function(path) {
+  if (!file.exists(path) || file.info(path)$size <= 0) {
+    return(FALSE)
+  }
+  digest <- file_sha256(path)
+  if (is.na(digest)) {
+    return(FALSE)
+  }
+  receipt_path <- download_receipt_path(path, digest)
+  if (!file.exists(receipt_path)) {
+    return(FALSE)
+  }
+  receipt <- tryCatch(jsonlite::read_json(receipt_path, simplifyVector = TRUE), error = function(e) NULL)
+  if (!is.list(receipt) || !identical(as.integer(receipt$schema_version), 1L)) {
+    return(FALSE)
+  }
+  size <- suppressWarnings(as.numeric(receipt$size_bytes))
+  receipt_sha256 <- as.character(receipt$sha256 %||% NA_character_)
+  if (length(size) != 1L || is.na(size) || size != file.info(path)$size || length(receipt_sha256) != 1L || is.na(receipt_sha256)) {
+    return(FALSE)
+  }
+  identical(digest, receipt_sha256)
+}
+
+#' Atomically write the proof that a canonical attachment was verified.
+#' @noRd
+write_download_receipt <- function(path, url, content_type, size_bytes, sha256, publish = TRUE) {
+  if (length(sha256) != 1L || is.na(sha256) || !nzchar(sha256)) {
+    stop("a SHA-256 digest is required for a verification receipt", call. = FALSE)
+  }
+  receipt_path <- download_receipt_path(path, sha256)
+  part <- tempfile(pattern = ".planscanR-receipt-", tmpdir = dirname(receipt_path), fileext = ".part")
+  if (isTRUE(publish)) {
+    on.exit(unlink(part, force = TRUE), add = TRUE)
+  }
+  jsonlite::write_json(
+    list(
+      schema_version = 1L,
+      url = url,
+      size_bytes = as.numeric(size_bytes),
+      sha256 = sha256,
+      content_type = if (is.na(content_type)) NULL else content_type
+    ),
+    part,
+    auto_unbox = TRUE,
+    null = "null"
+  )
+  if (!isTRUE(publish)) {
+    return(list(path = receipt_path, part = part))
+  }
+  if (!isTRUE(tryCatch(rename_download_file(part, receipt_path), error = function(e) FALSE))) {
+    stop("atomic verification receipt publication failed", call. = FALSE)
+  }
+  invisible(receipt_path)
+}
+
+#' Return one response header as a scalar character value.
+#' @noRd
+response_header_value <- function(resp, name) {
+  value <- tryCatch(httr2::resp_header(resp, name), error = function(e) NULL)
+  if (is.null(value) || length(value) == 0L || is.na(value[[1]])) {
+    return(NA_character_)
+  }
+  as.character(value[[1]])
+}
+
+#' Parse a response Content-Length, returning NA for missing or invalid values.
+#' @noRd
+response_content_length <- function(resp) {
+  encoding <- response_header_value(resp, "Content-Encoding")
+  if (!is.na(encoding) && nzchar(trimws(encoding)) && tolower(trimws(encoding)) != "identity") {
+    return(NA_real_)
+  }
+  value <- response_header_value(resp, "Content-Length")
+  if (is.na(value)) {
+    return(NA_real_)
+  }
+  out <- suppressWarnings(as.numeric(trimws(value)))
+  if (is.na(out) || out < 0 || !is.finite(out)) NA_real_ else out
+}
+
+#' Create a unique staging path beside the eventual cache destination.
+#' @noRd
+download_part_path <- function(dest) {
+  tempfile(pattern = ".planscanR-", tmpdir = dirname(dest), fileext = ".part")
+}
+
+#' Validate an attachment body before it can be published.
+#' @noRd
+validate_download_body <- function(path, content_type, dest) {
+  size <- unname(file.info(path)$size)
+  if (is.na(size) || size <= 0) {
+    stop("download response body is empty", call. = FALSE)
+  }
+
+  mime <- if (is.na(content_type)) "" else tolower(trimws(sub(";.*$", "", content_type)))
+  if (mime %in% c("text/html", "application/xhtml+xml")) {
+    stop("download response is an HTML/login/error body", call. = FALSE)
+  }
+
+  con <- file(path, open = "rb")
+  on.exit(close(con), add = TRUE)
+  preview <- readBin(con, what = "raw", n = 4096L)
+  preview_ascii <- preview
+  preview_ascii[as.integer(preview_ascii) > 127L] <- as.raw(0x20)
+  preview_text <- tryCatch(tolower(trimws(rawToChar(preview_ascii))), error = function(e) "")
+  if (grepl("^(<!doctype[[:space:]]+html|<html|<head|<body|<script|<title)", preview_text)) {
+    stop("download response body looks like an HTML/login/error body", call. = FALSE)
+  }
+  if (grepl("(?s)^\\s*\\{.*(error|message|login|unauthori|not[ -]?found)", preview_text, perl = TRUE)) {
+    expected <- tolower(tools::file_ext(dest))
+    if (expected %in% c("", "x", "pdf", "zip", "doc", "docx", "xls", "xlsx", "ppt", "pptx")) {
+      stop("download response body looks like an error response", call. = FALSE)
+    }
+  }
+
+  mime_ext <- content_type_to_ext(content_type)
+  magic_ext <- sniff_magic_ext(path)
+  expected_ext <- tolower(tools::file_ext(dest))
+  binary_magic <- function(ext) {
+    switch(
+      ext,
+      pdf = "pdf",
+      zip = "zip",
+      docx = "zip",
+      xlsx = "zip",
+      pptx = "zip",
+      jpg = "jpg",
+      jpeg = "jpg",
+      png = "png",
+      tif = "tif",
+      tiff = "tif",
+      gif = "gif",
+      NA_character_
+    )
+  }
+  required_magic <- binary_magic(mime_ext)
+  if (!is.na(required_magic) && !identical(magic_ext, required_magic)) {
+    stop("download response bytes do not match the attachment MIME type", call. = FALSE)
+  }
+  expected_magic <- binary_magic(expected_ext)
+  if (!is.na(expected_magic) && !identical(magic_ext, expected_magic)) {
+    stop("download response bytes do not match the attachment filename", call. = FALSE)
+  }
+
+  if (is.na(mime_ext) && is.na(magic_ext) && !(expected_ext %in% c("txt", "csv", "json", "xml", "rtf"))) {
+    stop("download response has no recognised attachment format", call. = FALSE)
+  }
+  if (identical(mime_ext, "html")) {
+    stop("download response is an HTML/login/error body", call. = FALSE)
+  }
+
+  extension <- mime_ext
+  if (is.na(extension)) {
+    extension <- magic_ext
+  }
+  if (is.na(extension) && expected_ext != "x" && nzchar(expected_ext)) {
+    extension <- expected_ext
+  }
+  if (is.na(extension) || !nzchar(extension)) {
+    stop("download response has no recognised attachment format", call. = FALSE)
+  }
+  extension
+}
+
+#' Replace a cache file atomically while preserving it if publication fails.
+#' @noRd
+rename_download_file <- function(from, to) {
+  file.rename(from, to)
+}
+
+#' @noRd
+atomic_publish_download <- function(part, dest) {
+  published <- tryCatch(rename_download_file(part, dest), error = function(e) FALSE)
+  isTRUE(published)
+}
+
+#' Remove stale extension variants after a successful publication.
+#' @noRd
+remove_download_variants <- function(dest, keep) {
+  if (tools::file_ext(dest) != "x") {
+    return(invisible(NULL))
+  }
+  stem <- tools::file_path_sans_ext(dest)
+  paths <- Sys.glob(paste0(stem, ".*"))
+  receipts <- paths[grepl("\\.verified\\.json$", basename(paths), ignore.case = TRUE)]
+  variants <- paths[
+    !grepl("\\.part$|\\.verified\\.json$", basename(paths), ignore.case = TRUE) &
+      normalizePath(paths, mustWork = FALSE) != normalizePath(keep, mustWork = FALSE)
+  ]
+  data_paths <- paths[!grepl("\\.part$|\\.verified\\.json$", basename(paths), ignore.case = TRUE)]
+  generated_receipts <- vapply(
+    data_paths,
+    function(path) {
+      digest <- file_sha256(path)
+      if (is.na(digest)) NA_character_ else download_receipt_path(path, digest)
+    },
+    character(1)
+  )
+  receipts <- unique(c(receipts, generated_receipts[!is.na(generated_receipts)]))
+  if (length(variants) > 0L) {
+    unlink(variants, force = TRUE)
+  }
+  if (length(receipts) > 0L) {
+    keep_receipt <- normalizePath(
+      download_receipt_path(keep, file_sha256(keep)),
+      mustWork = FALSE
+    )
+    receipts <- receipts[normalizePath(receipts, mustWork = FALSE) != keep_receipt]
+    if (length(receipts) > 0L) {
+      unlink(receipts, force = TRUE)
+    }
+  }
+}
+
+#' Stream one response into a bounded staging file.
+#' @noRd
+download_stream_to_part <- function(req, part, cap) {
+  con <- file(part, open = "wb")
+  on.exit(close(con), add = TRUE)
+  bytes <- 0
+  exceeded <- FALSE
+  callback <- function(chunk) {
+    chunk <- as.raw(chunk)
+    n <- length(chunk)
+    if (is.finite(cap) && bytes + n > cap) {
+      allowed <- max(0L, floor(cap - bytes))
+      if (allowed > 0L) {
+        writeBin(chunk[seq_len(allowed)], con)
+      }
+      bytes <<- bytes + n
+      exceeded <<- TRUE
+      return(FALSE)
+    }
+    if (n > 0L) {
+      writeBin(chunk, con)
+      bytes <<- bytes + n
+    }
+    TRUE
+  }
+  resp <- httr2::req_perform_stream(req, callback = callback, round = "byte")
+  list(response = resp, size_bytes = bytes, exceeded = exceeded)
+}
+
+#' Download, validate, checksum and publish one response from a staged path.
+#' @noRd
+download_staged_response <- function(req, url, dest, cap) {
+  part <- download_part_path(dest)
+  on.exit(unlink(part, force = TRUE), add = TRUE)
+
+  tryCatch(
+    {
+      transfer <- download_stream_to_part(req, part, cap)
+      resp <- transfer$response
+      status <- tryCatch(httr2::resp_status(resp), error = function(e) NA_integer_)
+      if (length(status) == 1L && !is.na(status) && (status < 200L || status >= 300L)) {
+        stop(sprintf("download returned HTTP status %s", status), call. = FALSE)
+      }
+
+      size <- as.numeric(transfer$size_bytes)
+      if (isTRUE(transfer$exceeded)) {
+        return(list(
+          local_path = NA_character_,
+          status = "skipped_size",
+          size_bytes = size,
+          sha256 = NA_character_,
+          reason = sprintf("streamed size exceeds cap %s", format(cap))
+        ))
+      }
+      get_length <- response_content_length(resp)
+      if (!is.na(get_length) && get_length > cap) {
+        return(list(
+          local_path = NA_character_,
+          status = "skipped_size",
+          size_bytes = get_length,
+          sha256 = NA_character_,
+          reason = sprintf("GET Content-Length %s exceeds cap %s", format(get_length), format(cap))
+        ))
+      }
+      if (!is.na(size) && size > cap) {
+        return(list(
+          local_path = NA_character_,
+          status = "skipped_size",
+          size_bytes = size,
+          sha256 = NA_character_,
+          reason = sprintf("downloaded size %s exceeds cap %s", format(size), format(cap))
+        ))
+      }
+      if (!is.na(get_length) && (is.na(size) || get_length != size)) {
+        stop(
+          sprintf("GET Content-Length %s does not match downloaded size %s", format(get_length), format(size)),
+          call. = FALSE
+        )
+      }
+
+      content_type <- response_header_value(resp, "Content-Type")
+      extension <- validate_download_body(part, content_type, dest)
+      sha256 <- file_sha256(part)
+      if (is.na(sha256)) {
+        stop("could not compute SHA-256 for staged download", call. = FALSE)
+      }
+      publication_dest <- dest
+      if (tools::file_ext(dest) == "x") {
+        publication_dest <- paste0(tools::file_path_sans_ext(dest), ".", extension)
+      }
+      receipt <- write_download_receipt(
+        publication_dest,
+        url = url,
+        content_type = content_type,
+        size_bytes = size,
+        sha256 = sha256,
+        publish = FALSE
+      )
+      on.exit(unlink(receipt$part, force = TRUE), add = TRUE)
+      if (!isTRUE(tryCatch(rename_download_file(receipt$part, receipt$path), error = function(e) FALSE))) {
+        stop("atomic verification receipt publication failed", call. = FALSE)
+      }
+      if (!atomic_publish_download(part, publication_dest)) {
+        stop("atomic download publication failed", call. = FALSE)
+      }
+      remove_download_variants(dest, publication_dest)
+      list(
+        local_path = publication_dest,
+        status = "downloaded",
+        size_bytes = unname(file.info(publication_dest)$size),
+        sha256 = sha256,
+        reason = NA_character_
+      )
+    },
+    error = function(e) {
+      list(
+        local_path = NA_character_,
+        status = "failed",
+        size_bytes = NA_real_,
+        sha256 = NA_character_,
+        reason = conditionMessage(e)
+      )
+    }
+  )
+}
+
+#' Run the shared preflight and staged download path for one URL.
+#' @noRd
+download_one_attachment <- function(url, dest, cap) {
+  announced <- head_content_length(url)
+  if (!is.na(announced) && announced > cap) {
+    return(list(
+      local_path = NA_character_,
+      status = "skipped_size",
+      size_bytes = announced,
+      sha256 = NA_character_,
+      reason = sprintf("HEAD Content-Length %s exceeds cap %s", format(announced), format(cap))
+    ))
+  }
+  tryCatch(
+    download_staged_response(req_planscanr(url_encode_safe(url)), url, dest, cap),
+    error = function(e) {
+      list(
+        local_path = NA_character_,
+        status = "failed",
+        size_bytes = NA_real_,
+        sha256 = NA_character_,
+        reason = conditionMessage(e)
+      )
+    }
+  )
+}
+
 #' Download a set of attachment URLs, with size cap and structured per-file
 #' status reporting.
 #'
 #' For each URL:
-#'  * If a non-empty file already exists at the destination and
-#'    `overwrite = FALSE`, the file is treated as cached: status `"cached"`.
+#'  * If a file and matching SHA-256 verification receipt already exist at the
+#'    destination and `overwrite = FALSE`, it is treated as cached: status
+#'    `"cached"`.
 #'  * Otherwise a HEAD probe checks `Content-Length`; URLs whose announced
 #'    size exceeds `max_file_size_mb` are skipped with status `"skipped_size"`.
-#'  * If the HEAD probe fails (e.g. server doesn't support HEAD) the download
-#'    is attempted; if the resulting file then exceeds the cap, it is
-#'    discarded with status `"skipped_size"` (post-hoc).
+#'  * If the HEAD probe fails (e.g. server doesn't support HEAD), the download
+#'    is streamed into bounded staging and stops when the cap is crossed.
+#'    Completed responses are checked for length and format before publication.
 #'  * Any other failure yields status `"failed"` with the error message in `reason`.
 #'
 #' @param urls Character vector of URLs.
@@ -404,69 +812,8 @@ download_attachments <- function(urls, country, document_id, overwrite = FALSE, 
         reason = NA_character_
       ))
     }
-    if (overwrite) {
-      # Sweep any pre-existing copies (placeholder or finalized) so the
-      # new download can settle into the right name without colliding
-      # with a stale finalized extension from a previous run.
-      stem <- tools::file_path_sans_ext(dest)
-      for (p in Sys.glob(paste0(stem, ".*"))) {
-        unlink(p, force = TRUE)
-      }
-    }
-    # Pre-flight size check via HEAD
-    announced <- head_content_length(u)
-    if (!is.na(announced) && announced > cap) {
-      return(list(
-        url = u,
-        local_path = NA_character_,
-        status = "skipped_size",
-        size_bytes = announced,
-        sha256 = NA_character_,
-        reason = sprintf("HEAD Content-Length %s exceeds cap %s", format(announced), format(cap))
-      ))
-    }
-    out <- tryCatch(
-      {
-        req <- req_planscanr(url_encode_safe(u))
-        resp <- httr2::req_perform(req, path = dest)
-        size <- unname(file.info(dest)$size)
-        if (!is.na(size) && size > cap) {
-          unlink(dest, force = TRUE)
-          return(list(
-            url = u,
-            local_path = NA_character_,
-            status = "skipped_size",
-            size_bytes = size,
-            sha256 = NA_character_,
-            reason = sprintf("downloaded size %s exceeds cap %s", format(size), format(cap))
-          ))
-        }
-        ct <- tryCatch(httr2::resp_header(resp, "Content-Type"), error = function(e) NULL)
-        final_dest <- finalize_extension(dest, ct)
-        list(
-          url = u,
-          local_path = final_dest,
-          status = "downloaded",
-          size_bytes = unname(file.info(final_dest)$size),
-          sha256 = file_sha256(final_dest),
-          reason = NA_character_
-        )
-      },
-      error = function(e) {
-        if (file.exists(dest) && file.info(dest)$size == 0L) {
-          unlink(dest, force = TRUE)
-        }
-        list(
-          url = u,
-          local_path = NA_character_,
-          status = "failed",
-          size_bytes = NA_real_,
-          sha256 = NA_character_,
-          reason = conditionMessage(e)
-        )
-      }
-    )
-    out
+    out <- download_one_attachment(u, dest, cap)
+    c(list(url = u), out)
   })
   do.call(rbind, lapply(results, tibble::as_tibble_row))
 }

@@ -222,3 +222,21 @@ fix recurring patterns so they are not mistaken for out-of-pattern hacks.
    that prefix (`metadata_only_countries()`) to nudge `discover = TRUE` (Tavily).
    Such handlers return empty `attachment_urls` for the affected records;
    downstream discovery fills them.
+
+
+## ACQ-0a — Reliable download publication
+
+The single-URL and batch HTTP download paths preserve their current signatures,
+result columns and status vocabulary (`exists` publicly, `cached` internally).
+Each attempt writes a unique `.part` file on the destination filesystem. Only a
+completed successful response with nonempty, validated attachment bytes may be
+atomically renamed into the canonical cache location. Validate trustworthy GET
+lengths, attachment format/MIME, HTML/login/error responses, the configured size
+ceiling (including streaming without Content-Length), and SHA-256 before publishing.
+Failed attempts remove their staging bytes and preserve an existing verified copy.
+A nonempty file alone, or its freshly computed hash, is not evidence of completed
+transfer; downloads must not report an unverified old partial file as cached success.
+Keep filename/extension resolution compatible and exclude attempt files from cache
+lookup. Offline failure fixtures cover interruption, invalid bodies, size ceilings
+and publication failure. Durable queues, disk reservations, sidecar concurrency,
+legacy corpus reconciliation and HTTP range resume belong to later ACQ tasks.
