@@ -4,13 +4,32 @@
 \alias{index_cache}
 \title{Walk a planscanR cache and reconstruct a tibble from every sidecar.}
 \usage{
-index_cache(cache_dir = NULL, country = NULL)
+index_cache(
+  cache_dir = NULL,
+  country = NULL,
+  row_transform = NULL,
+  batch_size = 512L
+)
 }
 \arguments{
 \item{cache_dir}{Optional cache root. Defaults to
 \code{tools::R_user_dir("planscanR", "cache")}.}
 
 \item{country}{Optional ISO-2 country code to filter by. \code{NULL} returns all.}
+
+\item{row_transform}{Optional function applied to each successfully decoded
+one-row record before rows are combined. It must accept one data-frame
+argument, retain the required planscanR schema columns and their types
+(\code{country}, \code{source_portal}, \code{document_id}, and \code{url} as character;
+\code{retrieved_at} as \code{POSIXct}; and \code{attachment_urls} and \code{local_path} as
+list columns), and return exactly one data-frame row. Read errors are
+still warned and skipped; transform errors and invalid returns abort the
+index operation so a partial projection cannot be mistaken for a complete
+cache.}
+
+\item{batch_size}{Positive integer number of decoded rows combined at a time.
+Defaults to 512. It bounds the intermediate row list while preserving the
+existing result schema when \code{row_transform = NULL}.}
 }
 \value{
 A tibble in the planscanR schema, possibly with zero rows.

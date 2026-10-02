@@ -130,6 +130,179 @@ test_that("index_cache reads back every sidecar under the cache root", {
   })
 })
 
+test_that("index_cache row transforms run before bounded binding and default output is unchanged", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = getwd())
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+
+    mk_record <- function(doc_id) {
+      tibble::tibble(
+        country = "nl",
+        source_portal = "commissiemer.nl",
+        document_id = doc_id,
+        url = paste0("https://www.commissiemer.nl/advies/", doc_id, "/"),
+        retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
+        attachment_urls = list(c("https://fixture/", doc_id, ".pdf")),
+        attachment_urls_source = list(c("https://fixture/source/", doc_id, ".pdf")),
+        local_path = list(NA_character_),
+        local_path_source = list(NA_character_),
+        title = paste("Record", doc_id),
+        summary = "Fixture",
+        competent_authority = NA_character_,
+        proponent = NA_character_,
+        date_decision = as.Date(NA)
+      )
+    }
+    planscanR:::write_record_sidecar(mk_record("1001"))
+    planscanR:::write_record_sidecar(mk_record("1002"))
+    planscanR:::write_record_sidecar(mk_record("1003"))
+
+    baseline <- index_cache(batch_size = 1L)
+    default <- index_cache()
+    sidecars <- list.files(
+      file.path(getwd(), "files"),
+      pattern = "\\.meta\\.json$",
+      recursive = TRUE,
+      full.names = TRUE
+    )
+    prior_path <- do.call(
+      planscanR:::bind_results,
+      lapply(sidecars, planscanR:::read_record_sidecar)
+    )
+    expect_identical(default, baseline)
+    expect_identical(default, prior_path)
+    expect_identical(baseline, prior_path)
+
+    seen <- character(0)
+    projected <- index_cache(
+      row_transform = function(record) {
+        seen <<- c(seen, record$document_id[[1L]])
+        record$transformed <- TRUE
+        record
+      },
+      batch_size = 2L
+    )
+    expect_identical(seen, baseline$document_id)
+    expect_true(all(projected$transformed))
+    expect_identical(projected$document_id, baseline$document_id)
+    expect_identical(projected$attachment_urls, baseline$attachment_urls)
+  })
+})
+
+test_that("index_cache projects heterogeneous section rows in bounded batches", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = getwd())
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    for (i in seq_len(1000L)) {
+      record <- tibble::tibble(
+        country = if (i %% 2L == 0L) "nl" else "de",
+        source_portal = "commissiemer.nl",
+        document_id = sprintf("stress-%04d", i),
+        url = paste0("https://fixture/", i),
+        retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
+        attachment_urls = list(character(0)),
+        local_path = list(character(0)),
+        title = paste("Record", i),
+        summary = "heterogeneous section fixture",
+        competent_authority = NA_character_,
+        proponent = NA_character_,
+        date_decision = as.Date(NA)
+      )
+      section <- paste0("attachment_urls_section_", i)
+      record[[section]] <- list(paste0("https://fixture/section/", i, ".pdf"))
+      planscanR:::write_record_sidecar(record)
+    }
+
+    seen <- 0L
+    original_bind <- planscanR:::bind_results
+    bind_widths <- list()
+    bind_seen <- integer(0)
+    bind_names <- list()
+    bind_spy <- function(...) {
+      args <- rlang::list2(...)
+      bind_widths[[length(bind_widths) + 1L]] <<-
+        vapply(args, ncol, integer(1))
+      bind_seen <<- c(bind_seen, seen)
+      bind_names[[length(bind_names) + 1L]] <<-
+        unique(unlist(lapply(args, names), use.names = FALSE))
+      do.call(original_bind, args)
+    }
+    local_mocked_bindings(bind_results = bind_spy, .package = "planscanR")
+    projected <- index_cache(
+      batch_size = 64L,
+      row_transform = function(record) {
+        seen <<- seen + 1L
+        record$projected_id <- record$document_id
+        record[c(
+          "country", "source_portal", "document_id", "url", "retrieved_at",
+          "attachment_urls", "local_path", "projected_id"
+        )]
+      }
+    )
+    expect_identical(seen, 1000L)
+    expect_identical(nrow(projected), 1000L)
+    expect_true(all(projected$projected_id == projected$document_id))
+    expect_identical(length(names(projected)), 8L)
+    expect_identical(length(bind_widths), 17L)
+    expect_identical(bind_seen[[1L]], 64L)
+    expect_true(all(vapply(bind_widths, function(widths) all(widths <= 8L), logical(1))))
+    expect_false(any(grepl("^attachment_urls_section_", unlist(bind_names))))
+  })
+})
+
+test_that("index_cache rejects malformed row transforms outside read warnings", {
+  withr::with_tempdir({
+    options(planscanR.cache_dir = getwd())
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    record <- tibble::tibble(
+      country = "nl",
+      source_portal = "commissiemer.nl",
+      document_id = "1001",
+      url = "https://fixture/1001",
+      retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
+      attachment_urls = list(character(0)),
+      local_path = list(character(0)),
+      title = "Record 1001",
+      summary = "Fixture",
+      competent_authority = NA_character_,
+      proponent = NA_character_,
+      date_decision = as.Date(NA)
+    )
+    planscanR:::write_record_sidecar(record)
+    record$document_id <- "1002"
+    planscanR:::write_record_sidecar(record)
+
+    expect_error(
+      index_cache(row_transform = function(x) x[rep(1L, 2L), , drop = FALSE]),
+      class = "planscanR_error_bad_input"
+    )
+    expect_error(
+      index_cache(row_transform = function(x) stop("transform failed")),
+      "transform failed"
+    )
+    expect_error(
+      index_cache(
+        batch_size = 2L,
+        row_transform = function(x) {
+          if (identical(x$document_id[[1L]], "1002")) {
+            x$country <- NULL
+          }
+          x
+        }
+      ),
+      class = "planscanR_error_bad_schema"
+    )
+    expect_error(
+      index_cache(row_transform = 1L),
+      class = "planscanR_error_bad_input"
+    )
+    expect_error(
+      index_cache(batch_size = 0L),
+      class = "planscanR_error_bad_input"
+    )
+  })
+})
+
 test_that("write_record_sidecar never drops on-disk data it isn't given", {
   withr::with_tempdir({
     options(planscanR.cache_dir = file.path(getwd(), "cache"))
