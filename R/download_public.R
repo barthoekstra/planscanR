@@ -47,11 +47,12 @@ cache_path <- function(url, country, document_id, cache_dir = cache_dir_default(
 #' its body was fetched and its type sniffed. Given the path [cache_path()]
 #' returned, this resolves the actual file on disk:
 #'
-#' * the path itself when a non-empty file already exists there;
-#' * the single finalized sibling (same stem, real extension) when exactly one
-#'   exists for a `.x` placeholder;
-#' * `NA_character_` when nothing is cached yet (so the caller knows to
-#'   download) or when the match is ambiguous.
+#' * the path itself when a non-empty file has a matching SHA-256 verification
+#'   receipt;
+#' * the single finalized sibling (same stem, real extension) with a matching
+#'   receipt when exactly one exists for a `.x` placeholder;
+#' * `NA_character_` when no verified copy is cached or when the match is
+#'   ambiguous.
 #'
 #' @param dest A path as returned by [cache_path()].
 #' @return The resolved absolute path, or `NA_character_`.
@@ -75,11 +76,13 @@ resolve_cached_path <- function(dest) {
 #' * runs a cheap HEAD probe and skips the URL if its advertised
 #'   `Content-Length` already exceeds the cap, so an over-size file is never
 #'   transferred;
-#' * downloads through the shared throttled, retrying httr2 client;
-#' * re-checks the size cap after downloading and discards an over-cap file;
+#' * streams through the shared throttled, retrying httr2 client into a
+#'   same-filesystem staging path, enforcing the size cap while receiving;
+#' * checks the GET length, response format/MIME, and body before publication;
 #' * finalizes the file extension (a URL with no extension lands at a `.x`
 #'   placeholder, renamed from the response `Content-Type` or magic bytes);
-#' * computes the SHA-256 of the result.
+#' * computes the SHA-256, publishes its verification receipt, and atomically
+#'   renames the completed file.
 #'
 #' This is the public, single-URL counterpart to planscanR's internal batch
 #' downloader; it is intended for downstream callers (e.g. mirroring to
@@ -93,10 +96,9 @@ resolve_cached_path <- function(dest) {
 #' @param max_file_size_mb Per-file size ceiling in MiB. Defaults to
 #'   `getOption("planscanR.max_file_size_mb", 50)`. `Inf`, `NULL`, or a
 #'   non-positive value means no cap.
-#' @param overwrite If `FALSE` (default) and a non-empty file is already
-#'   cached, it is returned as-is with status `"exists"`. If `TRUE`, any
-#'   pre-existing copy (placeholder or finalized) is swept and the URL is
-#'   re-fetched.
+#' @param overwrite If `FALSE` (default) and a verified file is already cached,
+#'   it is returned as-is with status `"exists"`. If `TRUE`, the URL is
+#'   re-fetched; a failed attempt leaves an existing verified copy in place.
 #' @return A one-row tibble with columns:
 #'   `url`, `local_path` (`NA` when skipped/failed), `size_bytes`, `sha256`
 #'   (`NA` when no local file), `status`, `reason`. `status` is one of
@@ -138,64 +140,14 @@ download_to_cache <- function(
       status = "exists"
     ))
   }
-  if (overwrite) {
-    stem <- tools::file_path_sans_ext(dest)
-    for (p in Sys.glob(paste0(stem, ".*"))) {
-      unlink(p, force = TRUE)
-    }
-  }
-
-  announced <- head_content_length(url)
-  if (!is.na(announced) && announced > cap) {
-    return(download_to_cache_row(
-      url,
-      local_path = NA_character_,
-      size_bytes = announced,
-      sha256 = NA_character_,
-      status = "skipped_size",
-      reason = sprintf("HEAD Content-Length %s exceeds cap %s", format(announced), format(cap))
-    ))
-  }
-
-  tryCatch(
-    {
-      req <- req_planscanr(url_encode_safe(url))
-      resp <- httr2::req_perform(req, path = dest)
-      size <- unname(file.info(dest)$size)
-      if (!is.na(size) && size > cap) {
-        unlink(dest, force = TRUE)
-        return(download_to_cache_row(
-          url,
-          local_path = NA_character_,
-          size_bytes = size,
-          sha256 = NA_character_,
-          status = "skipped_size",
-          reason = sprintf("downloaded size %s exceeds cap %s", format(size), format(cap))
-        ))
-      }
-      ct <- tryCatch(httr2::resp_header(resp, "Content-Type"), error = function(e) NULL)
-      final_dest <- finalize_extension(dest, ct)
-      download_to_cache_row(
-        url,
-        local_path = final_dest,
-        size_bytes = unname(file.info(final_dest)$size),
-        sha256 = file_sha256(final_dest),
-        status = "downloaded"
-      )
-    },
-    error = function(e) {
-      if (file.exists(dest) && file.info(dest)$size == 0L) {
-        unlink(dest, force = TRUE)
-      }
-      download_to_cache_row(
-        url,
-        local_path = NA_character_,
-        size_bytes = NA_real_,
-        sha256 = NA_character_,
-        status = "failed",
-        reason = conditionMessage(e)
-      )
-    }
+  out <- download_one_attachment(url, dest, cap)
+  download_to_cache_row(
+    url,
+    local_path = out$local_path,
+    size_bytes = out$size_bytes,
+    sha256 = out$sha256,
+    status = out$status,
+    reason = out$reason
   )
 }
 

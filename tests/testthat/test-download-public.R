@@ -19,8 +19,8 @@ test_that("download_to_cache downloads, finalizes, and checksums", {
       .package = "planscanR"
     )
     local_mocked_bindings(
-      req_perform = function(req, path = NULL, ...) {
-        writeBin(PDF_MAGIC, path)
+      req_perform_stream = function(req, callback, ...) {
+        callback(PDF_MAGIC)
         structure(list(), class = "httr2_response")
       },
       resp_header = function(resp, header, ...) "application/pdf",
@@ -53,9 +53,9 @@ test_that("download_to_cache skips via the HEAD size cap before fetching", {
       .package = "planscanR"
     )
     local_mocked_bindings(
-      req_perform = function(req, path = NULL, ...) {
+      req_perform_stream = function(req, callback, ...) {
         perform_called <<- TRUE
-        writeBin(PDF_MAGIC, path)
+        callback(PDF_MAGIC)
         structure(list(), class = "httr2_response")
       },
       resp_header = function(resp, header, ...) "application/pdf",
@@ -86,8 +86,8 @@ test_that("download_to_cache discards an over-cap file after download", {
       .package = "planscanR"
     )
     local_mocked_bindings(
-      req_perform = function(req, path = NULL, ...) {
-        writeBin(as.raw(rep(0L, big_n)), path)
+      req_perform_stream = function(req, callback, ...) {
+        callback(as.raw(rep(0L, big_n)))
         structure(list(), class = "httr2_response")
       },
       resp_header = function(resp, header, ...) "application/pdf",
@@ -115,7 +115,7 @@ test_that("download_to_cache reports failure and leaves no 0-byte file", {
       .package = "planscanR"
     )
     local_mocked_bindings(
-      req_perform = function(req, path = NULL, ...) stop("boom"),
+      req_perform_stream = function(req, callback, ...) stop("boom"),
       resp_header = function(resp, header, ...) "application/pdf",
       .package = "httr2"
     )
@@ -148,9 +148,9 @@ test_that("download_to_cache with overwrite re-fetches an existing file", {
       .package = "planscanR"
     )
     local_mocked_bindings(
-      req_perform = function(req, path = NULL, ...) {
+      req_perform_stream = function(req, callback, ...) {
         perform_called <<- TRUE
-        writeBin(PDF_MAGIC, path)
+        callback(PDF_MAGIC)
         structure(list(), class = "httr2_response")
       },
       resp_header = function(resp, header, ...) "application/pdf",
@@ -174,8 +174,8 @@ test_that("download_to_cache finalizes the extension for a no-extension URL", {
       .package = "planscanR"
     )
     local_mocked_bindings(
-      req_perform = function(req, path = NULL, ...) {
-        writeBin(PDF_MAGIC, path)
+      req_perform_stream = function(req, callback, ...) {
+        callback(PDF_MAGIC)
         structure(list(), class = "httr2_response")
       },
       # NULL Content-Type forces the magic-byte sniff path.

@@ -26,10 +26,9 @@ download_to_cache(
 \code{getOption("planscanR.max_file_size_mb", 50)}. \code{Inf}, \code{NULL}, or a
 non-positive value means no cap.}
 
-\item{overwrite}{If \code{FALSE} (default) and a non-empty file is already
-cached, it is returned as-is with status \code{"exists"}. If \code{TRUE}, any
-pre-existing copy (placeholder or finalized) is swept and the URL is
-re-fetched.}
+\item{overwrite}{If \code{FALSE} (default) and a verified file is already
+cached, it is returned as-is with status \code{"exists"}. If \code{TRUE}, the
+URL is re-fetched; a failed attempt leaves an existing verified copy in place.}
 }
 \value{
 A one-row tibble with columns:
@@ -47,11 +46,13 @@ planscanR's own downloader does. In order, it:
 \item runs a cheap HEAD probe and skips the URL if its advertised
 \code{Content-Length} already exceeds the cap, so an over-size file is never
 transferred;
-\item downloads through the shared throttled, retrying httr2 client;
-\item re-checks the size cap after downloading and discards an over-cap file;
+\item streams through the shared throttled, retrying httr2 client into a
+same-filesystem staging path, enforcing the cap while receiving;
+\item checks the GET length, response format/MIME, and body before publication;
 \item finalizes the file extension (a URL with no extension lands at a \code{.x}
 placeholder, renamed from the response \code{Content-Type} or magic bytes);
-\item computes the SHA-256 of the result.
+\item computes the SHA-256, publishes its verification receipt, and atomically
+renames the completed file.
 }
 
 This is the public, single-URL counterpart to planscanR's internal batch
