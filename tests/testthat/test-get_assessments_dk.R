@@ -275,6 +275,77 @@ test_that("dk_collect_attachments returns list() when there are no documents", {
   expect_identical(dk_collect_attachments("assess-empty"), list())
 })
 
+test_that("strict DK inventory propagates document endpoint failures", {
+  testthat::local_mocked_bindings(
+    perform_json = function(req, ...) stop("detail timeout")
+  )
+  expect_error(
+    dk_collect_attachments("assess-detail-fail", strict = TRUE),
+    "document inventory failed.*detail timeout"
+  )
+  # The legacy default remains backward-compatible for existing callers.
+  expect_identical(dk_collect_attachments("assess-detail-fail"), list())
+})
+
+test_that("strict DK inventory propagates document link failures", {
+  testthat::local_mocked_bindings(
+    perform_json = function(req, ...) {
+      if (grepl("/links$", req$url)) {
+        stop("link endpoint forbidden")
+      }
+      list(documents = list(
+        list(
+          id = "d1",
+          documentType = list(name = list(`da-DK` = "Afgørelse"))
+        )
+      ))
+    }
+  )
+  expect_error(
+    dk_collect_attachments("assess-link-fail", strict = TRUE),
+    "document link failed.*link endpoint forbidden"
+  )
+  # A swallowed link failure remains the old empty result only for legacy API
+  # callers; the campaign resolver always uses strict mode.
+  expect_identical(dk_collect_attachments("assess-link-fail"), list())
+})
+
+test_that("strict DK inventory rejects malformed or id-less document payloads", {
+  mode <- "malformed"
+  testthat::local_mocked_bindings(
+    perform_json = function(req, ...) {
+      if (identical(mode, "malformed")) {
+        return(list(error = "upstream unavailable"))
+      }
+      list(documents = list(list(title = "missing id")))
+    }
+  )
+  expect_error(
+    dk_collect_attachments("assess-malformed", strict = TRUE),
+    "no valid documents array"
+  )
+
+  mode <- "idless"
+  expect_error(
+    dk_collect_attachments("assess-idless", strict = TRUE),
+    "document without an id"
+  )
+})
+
+test_that("strict DK inventory marks 401 and 403 failures as blocked", {
+  message <- "HTTP 401"
+  testthat::local_mocked_bindings(
+    perform_json = function(req, ...) stop(message)
+  )
+  for (message in c("HTTP 401", "HTTP 403")) {
+    err <- tryCatch(
+      dk_collect_attachments("assess-auth-fail", strict = TRUE),
+      error = identity
+    )
+    expect_s3_class(err, "planscanR_dk_blocked")
+  }
+})
+
 test_that("dk_finalise_record(download=TRUE) tags file sections in the sidecar", {
   withr::local_options(planscanR.cache_dir = withr::local_tempdir())
   rec <- tibble::tibble(

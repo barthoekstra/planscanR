@@ -564,30 +564,92 @@ wkt_split_rings <- function(s) {
 # Document enumeration + link resolution (download support)
 # -----------------------------------------------------------------------------
 
+# Strict inventory callers need to distinguish an authentication/authorization
+# denial from a transient endpoint outage. Keep the legacy helpers' forgiving
+# defaults, but attach a small condition class when strict mode propagates an
+# error so campaign adapters can retain `blocked` versus `retryable`.
+dk_error_is_blocked <- function(e) {
+  text <- paste(c(class(e), conditionMessage(e)), collapse = " ")
+  grepl(
+    "\\b(401|403)\\b|unauthori[sz]|forbidden|authentication|access denied|login required",
+    text,
+    ignore.case = TRUE
+  )
+}
+
+dk_inventory_abort <- function(message, blocked = FALSE) {
+  err <- simpleError(message)
+  class(err) <- c(
+    if (isTRUE(blocked)) "planscanR_dk_blocked" else "planscanR_dk_retryable",
+    class(err)
+  )
+  stop(err)
+}
+
 #' Fetch a record's document list from the EA-Hub detail endpoint.
 #'
 #' `GET /assessments/{id}` returns a detail object whose top-level `documents`
 #' array lists the attached files (id, title/filename, documentType, size).
 #' Returns the list of document objects, or `list()` on any failure / when the
-#' record carries no documents.
+#' record carries no documents. With `strict = TRUE`, endpoint failures and
+#' malformed responses are raised so a caller can preserve retryable discovery
+#' semantics instead of mistaking an outage for an empty inventory.
 #' @noRd
-dk_fetch_documents <- function(assessment_id) {
+dk_fetch_documents <- function(assessment_id, strict = FALSE) {
   req <- req_planscanr(dk_api_base())
   req <- httr2::req_url_path_append(req, "assessments", assessment_id)
-  payload <- tryCatch(perform_json(req), error = function(e) NULL)
+  payload <- if (isTRUE(strict)) {
+    tryCatch(
+      perform_json(req),
+      error = function(e) {
+        dk_inventory_abort(
+          sprintf("EA-Hub document inventory failed for %s: %s", assessment_id, conditionMessage(e)),
+          blocked = dk_error_is_blocked(e)
+        )
+      }
+    )
+  } else {
+    tryCatch(perform_json(req), error = function(e) NULL)
+  }
   if (is.null(payload) || !is.list(payload)) {
+    if (isTRUE(strict)) {
+      dk_inventory_abort(
+        sprintf("EA-Hub document inventory returned an invalid response for %s", assessment_id),
+        blocked = FALSE
+      )
+    }
     return(list())
   }
   docs <- payload$documents
-  if (is.null(docs) || !is.list(docs)) list() else docs
+  if (!"documents" %in% names(payload) || is.null(docs)) {
+    if (isTRUE(strict)) {
+      dk_inventory_abort(
+        sprintf("EA-Hub document inventory has no valid documents array for %s", assessment_id),
+        blocked = FALSE
+      )
+    }
+    return(list())
+  }
+  if (!is.list(docs)) {
+    if (isTRUE(strict)) {
+      dk_inventory_abort(
+        sprintf("EA-Hub document inventory has an invalid documents field for %s", assessment_id),
+        blocked = FALSE
+      )
+    }
+    return(list())
+  }
+  docs
 }
 
 #' Resolve one document to its public Azure-blob view URL.
 #'
 #' `GET /assessments/{id}/documents/{docId}/links` returns `{ viewUrl }` — an
-#' anonymous, directly-downloadable blob URL. Returns the URL or `NA_character_`.
+#' anonymous, directly-downloadable blob URL. Returns the URL or
+#' `NA_character_`. With `strict = TRUE`, endpoint failures and responses
+#' without a usable URL are raised for retryable discovery.
 #' @noRd
-dk_resolve_document_link <- function(assessment_id, document_id) {
+dk_resolve_document_link <- function(assessment_id, document_id, strict = FALSE) {
   req <- req_planscanr(dk_api_base())
   req <- httr2::req_url_path_append(
     req,
@@ -597,12 +659,41 @@ dk_resolve_document_link <- function(assessment_id, document_id) {
     document_id,
     "links"
   )
-  payload <- tryCatch(perform_json(req), error = function(e) NULL)
+  payload <- if (isTRUE(strict)) {
+    tryCatch(
+      perform_json(req),
+      error = function(e) {
+        dk_inventory_abort(
+          sprintf(
+            "EA-Hub document link failed for %s/%s: %s",
+            assessment_id,
+            document_id,
+            conditionMessage(e)
+          ),
+          blocked = dk_error_is_blocked(e)
+        )
+      }
+    )
+  } else {
+    tryCatch(perform_json(req), error = function(e) NULL)
+  }
   if (is.null(payload) || !is.list(payload)) {
+    if (isTRUE(strict)) {
+      dk_inventory_abort(
+        sprintf("EA-Hub document link returned an invalid response for %s/%s", assessment_id, document_id),
+        blocked = FALSE
+      )
+    }
     return(NA_character_)
   }
   v <- payload$viewUrl %||% payload$viewURL %||% NA_character_
   if (is.null(v) || !is.character(v) || length(v) != 1L || is.na(v) || !nzchar(v)) {
+    if (isTRUE(strict)) {
+      dk_inventory_abort(
+        sprintf("EA-Hub document link has no usable view URL for %s/%s", assessment_id, document_id),
+        blocked = FALSE
+      )
+    }
     return(NA_character_)
   }
   v
@@ -636,23 +727,37 @@ dk_section_slug <- function(label) {
 #' da-DK `documentType` name (falling back to en-US, then `otherDocumentType`,
 #' then `"document"`), resolves each document's blob link, and returns a named
 #' list `section_slug -> character(viewUrls)` (the same shape EE/BE produce).
-#' Returns `list()` when there are no documents or no links resolve.
+#' Returns `list()` when there are no documents or no links resolve. With
+#' `strict = TRUE`, document/link endpoint failures and unresolved document
+#' links are raised so callers can retry instead of claiming an empty inventory.
 #'
 #' This is the entry point the BIOGAIN runbook calls (via
 #' `planscanR:::dk_collect_attachments()`) to download PDFs for already-scanned
 #' records without re-crawling the register.
 #' @noRd
-dk_collect_attachments <- function(assessment_id) {
-  docs <- dk_fetch_documents(assessment_id)
+dk_collect_attachments <- function(assessment_id, strict = FALSE) {
+  docs <- dk_fetch_documents(assessment_id, strict = strict)
   if (length(docs) == 0L) {
     return(list())
   }
   per_section <- list()
   for (d in docs) {
-    doc_id <- d$id %||% NA_character_
-    if (is.null(doc_id) || is.na(doc_id) || !nzchar(doc_id)) {
+    doc_id <- if (is.list(d)) d$id %||% NA_character_ else NA_character_
+    if (
+      !is.list(d) ||
+        length(doc_id) != 1L ||
+        is.na(doc_id) ||
+        !nzchar(as.character(doc_id))
+    ) {
+      if (isTRUE(strict)) {
+        dk_inventory_abort(
+          sprintf("EA-Hub document inventory has a document without an id for %s", assessment_id),
+          blocked = FALSE
+        )
+      }
       next
     }
+    doc_id <- as.character(doc_id)
     label <- NULL
     dt <- d$documentType
     if (is.list(dt) && is.list(dt$name)) {
@@ -660,7 +765,7 @@ dk_collect_attachments <- function(assessment_id) {
     }
     label <- label %||% d$otherDocumentType
     slug <- dk_section_slug(label)
-    view_url <- dk_resolve_document_link(assessment_id, doc_id)
+    view_url <- dk_resolve_document_link(assessment_id, doc_id, strict = strict)
     if (is.na(view_url) || !nzchar(view_url)) {
       next
     }

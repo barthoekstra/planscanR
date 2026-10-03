@@ -79,10 +79,27 @@ discover_attachments <- function(
   country <- countries[1]
 
   if (is.null(country_config)) {
-    country_config <- resolve_discovery_config(country)
+    country_config <- tryCatch(
+      resolve_discovery_config(country),
+      error = function(e) e
+    )
+    if (inherits(country_config, "condition")) {
+      out <- records
+      out$discovery_status <- rep("blocked", nrow(out))
+      out$discovery_reason <- rep(conditionMessage(country_config), nrow(out))
+      out$discovery_checked_at <- rep(format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"), nrow(out))
+      return(out)
+    }
   }
   if (is.null(backend)) {
-    backend <- search_backend_tavily()
+    backend <- tryCatch(search_backend_tavily(), error = function(e) e)
+    if (inherits(backend, "condition")) {
+      out <- records
+      out$discovery_status <- rep("blocked", nrow(out))
+      out$discovery_reason <- rep(conditionMessage(backend), nrow(out))
+      out$discovery_checked_at <- rep(format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"), nrow(out))
+      return(out)
+    }
   }
 
   if (!is.null(cache_dir)) {
@@ -94,6 +111,15 @@ discover_attachments <- function(
     out$discovery_log <- vector("list", nrow(out))
     out$discovery_log <- lapply(out$discovery_log, function(x) list())
   }
+  if (!"discovery_status" %in% names(out)) {
+    out$discovery_status <- rep("unknown", nrow(out))
+  }
+  if (!"discovery_reason" %in% names(out)) {
+    out$discovery_reason <- rep(NA_character_, nrow(out))
+  }
+  if (!"discovery_checked_at" %in% names(out)) {
+    out$discovery_checked_at <- rep(NA_character_, nrow(out))
+  }
 
   workset_idx <- seq_len(nrow(out))
   if (skip_if_attached) {
@@ -102,6 +128,10 @@ discover_attachments <- function(
   }
 
   if (length(workset_idx) == 0L) {
+    attached <- vapply(out$attachment_urls, function(v) length(v) > 0L, logical(1))
+    out$discovery_status[attached] <- "success"
+    out$discovery_reason[attached] <- NA_character_
+    out$discovery_checked_at[attached] <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
     cli::cli_inform(
       c(i = "All records already have attachments; nothing to discover.")
     )
@@ -127,6 +157,9 @@ discover_attachments <- function(
     rec_row <- out[i, ]
     log_entries <- list()
     new_files <- list()
+    search_failed <- FALSE
+    search_errors <- character(0)
+    out$discovery_checked_at[[i]] <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
 
     # Idempotent re-run support: pre-load URLs that are already represented
     # by a real local file in the on-disk sidecar so a candidate already
@@ -165,7 +198,31 @@ discover_attachments <- function(
     }
 
     queries <- build_record_queries(rec_row, country_config, queries_per_record)
-    domains <- at_domains_for(rec_row, country_config)
+    domains <- tryCatch(
+      at_domains_for(rec_row, country_config),
+      error = function(e) {
+        search_failed <<- TRUE
+        search_errors <<- c(search_errors, conditionMessage(e))
+        character(0)
+      }
+    )
+
+    if (length(queries) == 0L) {
+      out$discovery_status[[i]] <- "blocked"
+      out$discovery_reason[[i]] <- "record has no usable discovery query"
+      out$discovery_log[[i]] <- c(out$discovery_log[[i]] %||% list(), log_entries)
+      if (!dry_run) {
+        downloads <- if ("download_status" %in% names(out)) out$download_status[[i]] else NULL
+        tryCatch(
+          write_record_sidecar(out[i, , drop = FALSE], downloads = downloads),
+          error = function(e) warn_partial(
+            "Could not write sidecar for {.val {rec_row$document_id}}: {conditionMessage(e)}"
+          )
+        )
+      }
+      cli::cli_progress_update()
+      next
+    }
 
     # `processed` counts NEW candidates handled this run (downloaded +
     # validated, regardless of pass/fail). Bounded by max_pdfs_per_record so
@@ -183,6 +240,8 @@ discover_attachments <- function(
           max_results = max_results_per_query
         ),
         error = function(e) {
+          search_failed <<- TRUE
+          search_errors <<- c(search_errors, conditionMessage(e))
           warn_partial(
             "Search backend failed on query {.val {q}}: {conditionMessage(e)}"
           )
@@ -415,6 +474,46 @@ discover_attachments <- function(
       out$discovery_log[[i]] %||% list(),
       log_entries
     )
+
+    candidate_statuses <- if (length(new_files) == 0L) character(0) else {
+      vapply(new_files, function(f) f$status %||% "", character(1))
+    }
+    if (search_failed) {
+      out$discovery_status[[i]] <- "retryable"
+      out$discovery_reason[[i]] <- paste(
+        "search backend failed:",
+        paste(unique(search_errors), collapse = "; ")
+      )
+    } else if (any(candidate_statuses == "failed")) {
+      out$discovery_status[[i]] <- "retryable"
+      out$discovery_reason[[i]] <- "one or more discovered candidates could not be downloaded"
+    } else if (any(candidate_statuses == "skipped_size")) {
+      out$discovery_status[[i]] <- "blocked"
+      out$discovery_reason[[i]] <- "discovered candidates exceeded the configured file-size limit"
+    } else if (any(candidate_statuses == "downloaded")) {
+      out$discovery_status[[i]] <- "success"
+      out$discovery_reason[[i]] <- NA_character_
+    } else {
+      # A web-search miss cannot prove that the source portal has an empty
+      # inventory. Preserve an explicit portal `empty` status if a handler
+      # supplied one; otherwise leave the record unresolved.
+      prior_status <- as.character(rec_row$discovery_status[[1]] %||% "unknown")
+      prior_checked_at <- if ("discovery_checked_at" %in% names(rec_row)) {
+        as.character(rec_row$discovery_checked_at[[1]])
+      } else {
+        NA_character_
+      }
+      prior_empty <- identical(prior_status, "empty") &&
+        length(prior_checked_at) == 1L &&
+        !is.na(prior_checked_at) &&
+        nzchar(prior_checked_at)
+      out$discovery_status[[i]] <- if (prior_empty) "empty" else "unknown"
+      out$discovery_reason[[i]] <- if (identical(out$discovery_status[[i]], "empty")) {
+        "portal inventory completed with no attachment URLs"
+      } else {
+        "search completed without a candidate; portal inventory unresolved"
+      }
+    }
 
     # Persist sidecar.
     if (!dry_run) {

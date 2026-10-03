@@ -364,3 +364,127 @@ test_that("discover_attachments(dry_run = TRUE) does not touch the cache", {
     expect_true(length(res$discovery_log[[1]]) >= 1L)
   })
 })
+
+test_that("an empty web-search result stays unresolved", {
+  rec <- make_at_record()
+  backend <- search_backend_mock(list("_default" = list()))
+
+  res <- suppressMessages(
+    discover_attachments(
+      rec,
+      backend = backend,
+      dry_run = TRUE,
+      queries_per_record = 1L
+    )
+  )
+
+  expect_identical(res$discovery_status, "unknown")
+  expect_match(res$discovery_reason, "portal inventory unresolved")
+})
+
+test_that("discovery backend failures are retryable, never empty", {
+  rec <- make_at_record()
+  backend <- search_backend(
+    "failing",
+    function(...) stop("temporary search outage")
+  )
+
+  res <- suppressWarnings(
+    suppressMessages(
+      discover_attachments(
+        rec,
+        backend = backend,
+        dry_run = TRUE,
+        queries_per_record = 1L
+      )
+    )
+  )
+
+  expect_identical(res$discovery_status, "retryable")
+  expect_match(res$discovery_reason, "temporary search outage")
+})
+
+test_that("attachment inventory resolver keeps legacy empties retryable", {
+  recs <- tibble::tibble(
+    country = c("de", "de", "zz", "de"),
+    document_id = c("with-file", "legacy-empty", "unsupported", "explicit-empty"),
+    attachment_urls = list(
+      "https://example/file.pdf",
+      character(0),
+      character(0),
+      character(0)
+    ),
+    discovery_status = c(NA_character_, NA_character_, NA_character_, "empty"),
+    discovery_reason = c(NA_character_, NA_character_, NA_character_, "portal checked"),
+    discovery_checked_at = c(NA_character_, NA_character_, NA_character_, "2026-10-03T10:00:00Z")
+  )
+
+  out <- resolve_attachment_inventory(recs)
+  expect_identical(out$status, c("success", "retryable", "blocked", "empty"))
+  expect_false(out$authoritative[[2]])
+  expect_match(out$reason[[2]], "no authoritative")
+  expect_match(out$reason[[3]], "unsupported")
+  expect_true(out$authoritative[[4]])
+
+  recs$discovery_checked_at[[4]] <- NA_character_
+  legacy_empty <- resolve_attachment_inventory(recs[4, , drop = FALSE])
+  expect_identical(legacy_empty$status, "retryable")
+  expect_match(legacy_empty$reason, "lacks a discovery timestamp")
+})
+
+test_that("inventory resolver covers every supported portal and fresh outcomes", {
+  countries <- supported_countries()
+  recs <- tibble::tibble(
+    country = countries,
+    document_id = paste0("legacy-", countries),
+    attachment_urls = rep(list(character(0)), length(countries))
+  )
+  out <- resolve_attachment_inventory(recs)
+  expect_setequal(out$country, countries)
+  expect_true(all(out$status == "retryable"))
+  expect_true(all(!out$authoritative))
+  expect_true(all(nzchar(out$checked_at)))
+
+  fresh_empty <- resolve_attachment_inventory(
+    recs[1, , drop = FALSE],
+    resolver = function(rec) list(status = "success", urls = character(0), reason = NA_character_)
+  )
+  expect_identical(fresh_empty$status, "empty")
+  expect_true(fresh_empty$authoritative[[1]])
+
+  fresh_without_urls <- resolve_attachment_inventory(
+    recs[1, , drop = FALSE],
+    resolver = function(rec) list(status = "success", reason = "fetch succeeded")
+  )
+  expect_identical(fresh_without_urls$status, "retryable")
+  expect_match(fresh_without_urls$reason, "without an attachment inventory")
+
+  cached_fresh_without_urls <- recs[1, , drop = FALSE]
+  cached_fresh_without_urls$attachment_urls <- list("https://example/cached.pdf")
+  cached_fresh <- resolve_attachment_inventory(
+    cached_fresh_without_urls,
+    resolver = function(rec) list(status = "success", reason = "fetch succeeded")
+  )
+  expect_identical(cached_fresh$status, "success")
+
+  fresh_blank_urls <- resolve_attachment_inventory(
+    recs[1, , drop = FALSE],
+    resolver = function(rec) list(status = "success", urls = c(NA_character_, ""))
+  )
+  expect_identical(fresh_blank_urls$status, "empty")
+
+  fresh_error <- resolve_attachment_inventory(
+    recs[1, , drop = FALSE],
+    resolver = function(rec) stop("EA-Hub timeout")
+  )
+  expect_identical(fresh_error$status, "retryable")
+  expect_match(fresh_error$reason, "EA-Hub timeout")
+
+  stored_failure <- recs[1, , drop = FALSE]
+  stored_failure$attachment_urls <- list("https://example/already-known.pdf")
+  stored_failure$discovery_status <- "retryable"
+  stored_failure$discovery_reason <- "previous timeout"
+  stored <- resolve_attachment_inventory(stored_failure)
+  expect_identical(stored$status, "retryable")
+  expect_false(stored$authoritative[[1]])
+})
