@@ -124,8 +124,14 @@ slugify_filename <- function(url, country, document_id, max_chars = 200L) {
 #' @return Absolute path.
 #' @noRd
 cache_path_internal <- function(url, country, document_id, root = NULL) {
+  filename <- slugify_filename(url, country, document_id)
+  if (exists("storage_root_validate", mode = "function") && exists("storage_path", mode = "function")) {
+    root <- if (is.null(root)) cache_dir_default() else root
+    root <- storage_root_validate(root, create = TRUE, writable = TRUE)
+    return(storage_path(root, file.path("files", country, document_id, filename), create_parent = TRUE))
+  }
   dir <- cache_dir(file.path("files", country, document_id), create = TRUE, root = root)
-  file.path(dir, slugify_filename(url, country, document_id))
+  file.path(dir, filename)
 }
 
 #' Locate the actual on-disk file for a placeholder-extension cache path.
@@ -175,8 +181,7 @@ content_type_to_ext <- function(content_type) {
     return(NA_character_)
   }
   mime <- tolower(trimws(sub(";.*$", "", content_type)))
-  switch(
-    mime,
+  switch(mime,
     "application/pdf" = "pdf",
     "application/zip" = "zip",
     "application/x-zip-compressed" = "zip",
@@ -789,8 +794,7 @@ validate_download_body <- function(path, content_type, dest) {
   magic_ext <- sniff_magic_ext(path)
   expected_ext <- tolower(tools::file_ext(dest))
   binary_magic <- function(ext) {
-    switch(
-      ext,
+    switch(ext,
       pdf = "pdf",
       zip = "zip",
       docx = "zip",
