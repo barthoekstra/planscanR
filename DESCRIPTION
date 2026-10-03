@@ -48,6 +48,7 @@ Depends:
 Imports:
     cli (>= 3.6.0),
     dplyr (>= 1.1.0),
+    filelock (>= 1.0.3),
     httr2 (>= 1.0.0),
     jsonlite (>= 1.8.0),
     openssl (>= 2.0.0),
@@ -69,5 +70,5 @@ Suggests:
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 VignetteBuilder: knitr
+RoxygenNote: 7.3.3

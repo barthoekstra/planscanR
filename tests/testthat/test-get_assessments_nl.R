@@ -342,6 +342,79 @@ test_that("sidecar_url_index reads only valid JSON sidecars", {
   })
 })
 
+test_that("NL finalisation does not replay stale derived sidecar fields", {
+  withr::with_tempdir({
+    cache <- file.path(getwd(), "cache")
+    options(planscanR.cache_dir = cache)
+    on.exit(options(planscanR.cache_dir = NULL), add = TRUE)
+    base <- tibble::tibble(
+      country = "nl",
+      source_portal = "commissiemer.nl",
+      document_id = "stale-finaliser",
+      url = "https://www.commissiemer.nl/advies/stale-finaliser/",
+      retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
+      attachment_urls = list(character(0)),
+      attachment_urls_source = list(character(0)),
+      attachment_urls_advice = list(character(0)),
+      attachment_urls_other = list(character(0)),
+      local_path = list(character(0)),
+      local_path_source = list(character(0)),
+      local_path_advice = list(character(0)),
+      local_path_other = list(character(0)),
+      title = "Portal record",
+      summary = "Fresh portal summary",
+      competent_authority = NA_character_,
+      proponent = NA_character_,
+      date_decision = as.Date(NA),
+      class_label = "wind",
+      class_score = 0.91,
+      class_relevant = TRUE,
+      class_model = "fresh-classifier",
+      class_score_wind = 0.91,
+      translation_title_en = "Fresh translated title",
+      translation_summary_en = "Fresh translated summary",
+      translation_service = "fresh-translator",
+      kw_total = 4L,
+      relevance_score_wind = 0.61,
+      relevance_model = "old-relevance"
+    )
+    path <- planscanR:::write_record_sidecar(base)
+    stale <- planscanR:::read_record_sidecar(path)
+    stale$class_label <- "stale"
+    stale$class_score <- 0.01
+    stale$class_relevant <- FALSE
+    stale$class_model <- "old-classifier"
+    stale$class_score_wind <- 0.01
+    stale$translation_title_en <- "Stale translated title"
+    stale$translation_summary_en <- "Stale translated summary"
+    stale$translation_service <- "old-translator"
+    stale$kw_total <- 0L
+    stale$relevance_score_wind <- 0.88
+    stale$relevance_model <- "new-relevance"
+
+    planscanR:::nl_finalise_record(
+      stale,
+      download = FALSE,
+      overwrite = FALSE,
+      max_file_size_mb = NULL,
+      write_sidecar = TRUE
+    )
+
+    back <- planscanR::read_record_sidecar(path)
+    expect_identical(back$class_label, "wind")
+    expect_equal(back$class_score, 0.91)
+    expect_true(back$class_relevant)
+    expect_identical(back$class_model, "fresh-classifier")
+    expect_equal(back$class_score_wind, 0.91)
+    expect_identical(back$translation_title_en, "Fresh translated title")
+    expect_identical(back$translation_summary_en, "Fresh translated summary")
+    expect_identical(back$translation_service, "fresh-translator")
+    expect_identical(back$kw_total, 4L)
+    expect_equal(back$relevance_score_wind, 0.88)
+    expect_identical(back$relevance_model, "new-relevance")
+  })
+})
+
 test_that("nl_parse_detail handles new card-layout with singular heading (issue #10.1)", {
   # New-layout page: advice heading is "Advies en persbericht" (SINGULAR).
   # Expected: advice (2 PDFs), source (1 PDF nested in <details>).

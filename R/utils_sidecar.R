@@ -8,6 +8,84 @@
 
 SCHEMA_VERSION <- 3L
 
+# Sidecar updates are read/merge/write transactions.  The lock is a separate
+# special file so the JSON can still be replaced atomically; filelock releases
+# an OS advisory lock when a worker exits, including an interrupted worker.
+sidecar_lock_timeout <- function() {
+  timeout <- getOption("planscanR.sidecar_lock_timeout_ms", 30000)
+  if (length(timeout) != 1L || is.na(timeout) ||
+      (!is.infinite(timeout) && (!is.numeric(timeout) || timeout < 0))) {
+    cli::cli_abort(
+      "Option {.code planscanR.sidecar_lock_timeout_ms} must be a non-negative number or {.val Inf}.",
+      class = "planscanR_error_bad_input"
+    )
+  }
+  as.numeric(timeout)
+}
+
+#' @noRd
+sidecar_lock_path <- function(path) paste0(path, ".lock")
+
+#' @noRd
+with_sidecar_lock <- function(path, code, exclusive = TRUE, timeout = sidecar_lock_timeout()) {
+  if (length(path) != 1L || is.na(path) || !nzchar(path)) {
+    cli::cli_abort("A sidecar path is required for locking.", class = "planscanR_error_bad_input")
+  }
+  parent <- dirname(path)
+  if (!dir.exists(parent)) {
+    cli::cli_abort(
+      "Sidecar directory {.file {parent}} does not exist.",
+      class = "planscanR_error_sidecar_lock"
+    )
+  }
+  lock <- filelock::lock(sidecar_lock_path(path), exclusive = exclusive, timeout = timeout)
+  if (is.null(lock)) {
+    cli::cli_abort(
+      "Timed out waiting for sidecar lock {.file {sidecar_lock_path(path)}}.",
+      class = "planscanR_error_sidecar_lock_timeout"
+    )
+  }
+  on.exit(filelock::unlock(lock), add = TRUE)
+  force(code)
+}
+
+#' @noRd
+read_sidecar_payload <- function(path) {
+  payload <- tryCatch(
+    jsonlite::fromJSON(path, simplifyVector = FALSE),
+    error = function(e) {
+      cli::cli_abort(
+        c(
+          "Sidecar {.file {path}} is not valid JSON; refusing to overwrite it.",
+          i = "Repair or remove the corrupt sidecar explicitly before retrying."
+        ),
+        class = "planscanR_error_sidecar_corrupt"
+      )
+    }
+  )
+  assert_sidecar_schema(payload, path)
+  payload
+}
+
+#' @noRd
+write_sidecar_payload <- function(payload, path) {
+  tmp <- tempfile(tmpdir = dirname(path), fileext = ".json")
+  con <- file(tmp, open = "wb", encoding = "UTF-8")
+  on.exit({
+    try(close(con), silent = TRUE)
+    if (file.exists(tmp)) unlink(tmp, force = TRUE)
+  }, add = TRUE)
+  writeLines(jsonlite::toJSON(payload, auto_unbox = TRUE, pretty = TRUE, null = "null"), con)
+  close(con)
+  if (!isTRUE(file.rename(tmp, path))) {
+    cli::cli_abort(
+      "Atomic sidecar publication failed for {.file {path}}.",
+      class = "planscanR_error_sidecar_publish"
+    )
+  }
+  invisible(path)
+}
+
 #' Assert a sidecar's schema version is one this package understands.
 #'
 #' The sidecar JSON is the shared contract between `planscanR` (writer)
@@ -93,24 +171,159 @@ write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
   payload <- record_to_sidecar(record, downloads, root = root_resolved)
   # Non-destructive write: a sidecar is the authoritative record, and any one
   # caller (scan / score / classify / download / discover) only knows about a
-  # slice of it. So we never blindly overwrite — we MERGE the new payload over
-  # whatever is already on disk, keeping every piece of original data the
-  # current write doesn't itself supply. See merge_sidecar_payload().
-  if (file.exists(path)) {
-    existing <- tryCatch(
-      jsonlite::fromJSON(path, simplifyVector = FALSE),
-      error = function(e) NULL
-    )
-    if (!is.null(existing)) {
-      payload <- merge_sidecar_payload(payload, existing)
+  # slice of it. Read/merge/write is one locked transaction so independent
+  # workers cannot replace one another's outcomes. See merge_sidecar_payload().
+  with_sidecar_lock(path, {
+    if (file.exists(path)) {
+      payload <- merge_sidecar_payload(payload, read_sidecar_payload(path))
     }
+    write_sidecar_payload(payload, path)
+  })
+  invisible(path)
+}
+
+#' @noRd
+fetched_record_projection <- function(record) {
+  derived <- c(
+    grep("^(class_|kw_|translation_)", names(record), value = TRUE),
+    c(
+      "cosine_max",
+      "n_attachments",
+      "has_attachments",
+      "n_downloaded",
+      "has_downloaded",
+      "selected",
+      "selected_model",
+      "select_prob",
+      "discovery_log"
+    )
+  )
+  record[, setdiff(names(record), derived), drop = FALSE]
+}
+
+#' Persist a portal fetch without replaying downstream curation columns.
+#'
+#' Sidecar-first country handlers can receive a row carrying classification,
+#' translation, or selection values that another worker refreshed after the row
+#' was read. Download finalisation owns the portal fields, attachment outcomes,
+#' and any newly computed fetch-time relevance fields; the derived curation
+#' columns remain owned by their writers. Existing sidecars are updated from
+#' their latest locked row so those derived values cannot be replayed from a
+#' stale fetch snapshot.
+#' @noRd
+write_fetched_record_sidecar <- function(record, downloads = NULL, root = NULL) {
+  stopifnot(is.data.frame(record), nrow(record) == 1L)
+  projected <- fetched_record_projection(record)
+  record_downloads <- projected[["download_status"]]
+  if (is.null(downloads) && is.list(record_downloads) && length(record_downloads) >= 1L) {
+    downloads <- record_downloads[[1L]]
   }
-  tmp <- tempfile(tmpdir = dirname(path), fileext = ".json")
-  con <- file(tmp, open = "wb", encoding = "UTF-8")
-  on.exit(if (file.exists(tmp)) unlink(tmp), add = TRUE)
-  writeLines(jsonlite::toJSON(payload, auto_unbox = TRUE, pretty = TRUE, null = "null"), con)
-  close(con)
-  file.rename(tmp, path)
+  country <- as.character(projected$country[[1L]])
+  document_id <- as.character(projected$document_id[[1L]])
+  path <- sidecar_path(country, document_id, root = root, create = FALSE)
+  if (file.exists(path)) {
+    update_record_sidecar(country, document_id, function(current) {
+      for (field in names(projected)) {
+        current[[field]] <- projected[[field]]
+      }
+      if (is.data.frame(downloads)) {
+        current$download_status <- list(downloads)
+      }
+      current
+    }, root = root)
+  } else {
+    write_record_sidecar(projected, downloads = downloads, root = root)
+  }
+  invisible(path)
+}
+
+#' @noRd
+sidecar_discovery_entries <- function(record) {
+  value <- record[["discovery_log"]]
+  if (!is.list(value) || length(value) == 0L || is.null(value[[1L]])) {
+    return(list())
+  }
+  value[[1L]]
+}
+
+#' @noRd
+sidecar_log_contains <- function(container, fragment) {
+  if (length(fragment) == 0L) {
+    return(TRUE)
+  }
+  if (length(container) < length(fragment)) {
+    return(FALSE)
+  }
+  starts <- seq_len(length(container) - length(fragment) + 1L)
+  any(vapply(
+    starts,
+    function(start) identical(container[start:(start + length(fragment) - 1L)], fragment),
+    logical(1)
+  ))
+}
+
+#' Atomically update one record sidecar from its latest on-disk value.
+#'
+#' This is the compound-operation counterpart to [write_record_sidecar()]. A
+#' caller such as a translation worker can read, add one extra field, and write
+#' while holding the same per-record lock as download/classification workers.
+#' The callback must return the one-row record to persist; the existing merge
+#' rules still protect fields it does not touch.
+#'
+#' @param country ISO-2 country code.
+#' @param document_id Portal-native document ID.
+#' @param update_fn A function accepting the current one-row sidecar tibble and
+#'   returning its updated one-row tibble.
+#' @param root Cache root (or `NULL` to use the default).
+#' @return Path to the written sidecar, invisibly.
+#' @export
+update_record_sidecar <- function(country, document_id, update_fn, root = NULL) {
+  if (!is.character(country) || length(country) != 1L || is.na(country) || !nzchar(country) ||
+      !is.character(document_id) || length(document_id) != 1L || is.na(document_id) || !nzchar(document_id)) {
+    cli::cli_abort(
+      "{.arg country} and {.arg document_id} must be single non-empty strings.",
+      class = "planscanR_error_bad_input"
+    )
+  }
+  if (!is.function(update_fn)) {
+    cli::cli_abort("{.arg update_fn} must be a function.", class = "planscanR_error_bad_input")
+  }
+  path <- sidecar_path(country, document_id, root = root, create = FALSE)
+  if (!file.exists(path)) {
+    cli::cli_abort(
+      "No sidecar exists for {.val {country}/{document_id}}.",
+      class = "planscanR_error_sidecar_missing"
+    )
+  }
+  root_resolved <- if (is.null(root)) cache_dir_default() else root
+  with_sidecar_lock(path, {
+    existing <- read_sidecar_payload(path)
+    current <- read_record_sidecar_unlocked(path)
+    prior_discovery_log <- sidecar_discovery_entries(current)
+    updated <- update_fn(current)
+    if (!is.data.frame(updated) || nrow(updated) != 1L) {
+      cli::cli_abort(
+        "{.arg update_fn} must return exactly one data-frame row.",
+        class = "planscanR_error_bad_input"
+      )
+    }
+    validate_result_schema(updated)
+    downloads <- updated[["download_status"]]
+    downloads <- if (is.list(downloads) && length(downloads) >= 1L) downloads[[1]] else NULL
+    payload <- record_to_sidecar(updated, downloads = downloads, root = root_resolved)
+    returned_discovery_log <- sidecar_discovery_entries(updated)
+    # Callbacks may either return the complete history (the normal pattern for
+    # an update callback) or supply only new discovery events. Merge old
+    # history only for the latter; otherwise unchanged callbacks would append
+    # the same log on every serialized update.
+    complete_history <- identical(returned_discovery_log, prior_discovery_log) ||
+      sidecar_log_contains(returned_discovery_log, prior_discovery_log)
+    merge_existing <- existing
+    if (complete_history) {
+      merge_existing$discovery_log <- list()
+    }
+    write_sidecar_payload(merge_sidecar_payload(payload, merge_existing), path)
+  })
   invisible(path)
 }
 
@@ -122,10 +335,10 @@ write_record_sidecar <- function(record, downloads = NULL, root = NULL) {
 #'
 #' * scalar metadata (title, summary, dates, authority, ...) — keep `old` when
 #'   `new` is NULL (the caller didn't carry that column);
-#' * `files[]` — union by URL: a new entry supersedes the same-URL old entry,
-#'   and every old URL absent from the new set is KEPT (this is what stops a
-#'   classify/score write, which carries no file rows, from wiping the portal
-#'   attachment URLs);
+#' * `files[]` — union by URL: a new entry supersedes the same-URL old entry
+#'   unless it is a weaker stale download outcome, and every old URL absent
+#'   from the new set is KEPT (this is what stops a classify/score write from
+#'   wiping portal attachment URLs);
 #' * `relevance_scores[]` — union by topic slug (new wins);
 #' * `extras{}` — union by key (new wins);
 #' * `discovery_log[]` — appended (audit trail, never dropped);
@@ -159,8 +372,23 @@ merge_sidecar_payload <- function(new, old) {
       function(f) f$url %||% NA_character_,
       character(1)
     )
-    kept <- Filter(function(f) !((f$url %||% "") %in% new_urls), old$files)
-    new$files <- c(new$files %||% list(), kept)
+    old_by_url <- old$files
+    for (old_file in old_by_url) {
+      old_url <- old_file$url %||% ""
+      match <- which(new_urls == old_url)
+      if (length(match) == 0L) {
+        new$files <- c(new$files %||% list(), list(old_file))
+        next
+      }
+      # Classification/translation workers often pass the download_status
+      # row they read before a downloader finished. Never let that stale
+      # pending/failed projection regress a stronger verified outcome already
+      # on disk; a new outcome at the same strength still wins as before.
+      new_file <- new$files[[match[[1]]]]
+      if (download_file_status_rank(old_file$status) > download_file_status_rank(new_file$status)) {
+        new$files[[match[[1]]]] <- old_file
+      }
+    }
   }
   # 3. relevance_scores[]: union by topic slug (new wins).
   if (length(old$relevance_scores) > 0L) {
@@ -198,6 +426,20 @@ merge_sidecar_payload <- function(new, old) {
     new$classification <- old$classification
   }
   new
+}
+
+#' @noRd
+download_file_status_rank <- function(status) {
+  switch(
+    as.character(status %||% ""),
+    downloaded = 3L,
+    cached = 3L,
+    exists = 3L,
+    failed = 2L,
+    skipped_size = 2L,
+    pending = 1L,
+    0L
+  )
 }
 
 #' Serialise a record + downloads into the sidecar JSON shape.
@@ -424,8 +666,15 @@ record_classification <- function(record) {
 #' }
 #' @export
 read_record_sidecar <- function(path) {
-  payload <- jsonlite::fromJSON(path, simplifyVector = FALSE)
-  assert_sidecar_schema(payload, path)
+  # Atomic same-filesystem rename means a standalone reader observes either
+  # the old complete JSON or the new complete JSON. Do not create a lock file
+  # here: readers must work against read-only or mounted cache trees.
+  read_record_sidecar_unlocked(path)
+}
+
+#' @noRd
+read_record_sidecar_unlocked <- function(path) {
+  payload <- read_sidecar_payload(path)
   files <- payload$files %||% list()
   urls <- vapply(files, function(f) f$url %||% NA_character_, character(1))
   sections <- vapply(files, function(f) f$section %||% NA_character_, character(1))
@@ -808,10 +1057,7 @@ sidecar_url_index <- function(country, cache_dir = NULL) {
     paths,
     function(p) {
       tryCatch(
-        {
-          payload <- jsonlite::fromJSON(p, simplifyVector = FALSE)
-          payload$url %||% NA_character_
-        },
+        read_sidecar_payload(p)$url %||% NA_character_,
         error = function(e) NA_character_
       )
     },

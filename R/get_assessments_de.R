@@ -701,7 +701,7 @@ de_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
   }
   if (write_sidecar) {
     tryCatch(
-      write_record_sidecar(rec, downloads = ds),
+      write_fetched_record_sidecar(rec, downloads = ds),
       error = function(e) {
         warn_partial(
           "Could not write sidecar for {.val {rec$document_id}}: {conditionMessage(e)}"

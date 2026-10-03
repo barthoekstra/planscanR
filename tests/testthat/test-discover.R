@@ -310,6 +310,7 @@ test_that("discover_attachments end-to-end: discovers, validates, writes sidecar
     cached <- res$local_path[[1]][1]
     expect_true(file.exists(cached))
     expect_true(grepl("/files/at/9999/", cached, fixed = TRUE))
+    expect_true(planscanR:::is_verified_download(cached))
     # The sidecar exists and contains the discovery_log + discovery-source file.
     sidecar <- file.path(cache, "files", "at", "9999", "9999.meta.json")
     expect_true(file.exists(sidecar))

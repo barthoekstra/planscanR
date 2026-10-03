@@ -426,6 +426,239 @@ is_verified_download <- function(path) {
   identical(digest, receipt_sha256)
 }
 
+#' Inspect a cached attachment and optionally repair its receipt from trusted metadata.
+#' @noRd
+reconcile_cached_download_internal <- function(
+  path,
+  expected_size_bytes = NA_real_,
+  expected_sha256 = NA_character_,
+  url = NA_character_,
+  content_type = NA_character_,
+  repair = FALSE
+) {
+  if (length(path) != 1L || is.na(path) || !nzchar(path)) {
+    return(tibble::tibble(
+      path = as.character(path)[1],
+      status = "missing",
+      size_bytes = NA_real_,
+      sha256 = NA_character_,
+      receipt_path = NA_character_,
+      reason = "empty path"
+    ))
+  }
+  if (!file.exists(path)) {
+    return(tibble::tibble(
+      path = path,
+      status = "missing",
+      size_bytes = NA_real_,
+      sha256 = NA_character_,
+      receipt_path = NA_character_,
+      reason = "file does not exist"
+    ))
+  }
+  info <- file.info(path)
+  if (isTRUE(info$isdir)) {
+    return(tibble::tibble(
+      path = path,
+      status = "unverified",
+      size_bytes = NA_real_,
+      sha256 = NA_character_,
+      receipt_path = NA_character_,
+      reason = "path is a directory"
+    ))
+  }
+  size <- as.numeric(info$size)
+  if (grepl("\\.part$", basename(path), ignore.case = TRUE)) {
+    return(tibble::tibble(
+      path = path,
+      status = "partial",
+      size_bytes = size,
+      sha256 = NA_character_,
+      receipt_path = NA_character_,
+      reason = "staging file is not a published attachment"
+    ))
+  }
+  digest <- if (!is.na(size) && size > 0) file_sha256(path) else NA_character_
+  receipt_path <- if (!is.na(digest)) download_receipt_path(path, digest) else NA_character_
+  if (isTRUE(is_verified_download(path))) {
+    return(tibble::tibble(
+      path = path,
+      status = "verified",
+      size_bytes = size,
+      sha256 = digest,
+      receipt_path = receipt_path,
+      reason = NA_character_
+    ))
+  }
+  if (!isTRUE(repair)) {
+    return(tibble::tibble(
+      path = path,
+      status = "unverified",
+      size_bytes = size,
+      sha256 = digest,
+      receipt_path = receipt_path,
+      reason = if (is.na(size) || size <= 0) {
+        "empty or unreadable file"
+      } else {
+        "matching verification receipt is absent or invalid"
+      }
+    ))
+  }
+
+  expected_size <- suppressWarnings(as.numeric(expected_size_bytes))
+  expected_sha <- as.character(expected_sha256)
+  expected_ok <- length(expected_size) == 1L && !is.na(expected_size) &&
+    length(expected_sha) == 1L && !is.na(expected_sha) && nzchar(expected_sha) &&
+    expected_size == size && identical(tolower(expected_sha), tolower(digest))
+  if (!isTRUE(expected_ok)) {
+    return(tibble::tibble(
+      path = path,
+      status = "unverified",
+      size_bytes = size,
+      sha256 = digest,
+      receipt_path = receipt_path,
+      reason = "trusted size and SHA-256 metadata do not match the published bytes"
+    ))
+  }
+  repaired <- tryCatch(
+    {
+      write_download_receipt(
+        path,
+        url = if (length(url) == 1L && !is.na(url)) url else NA_character_,
+        content_type = if (length(content_type) == 1L && !is.na(content_type)) content_type else NA_character_,
+        size_bytes = expected_size,
+        sha256 = digest
+      )
+      TRUE
+    },
+    error = function(e) e
+  )
+  if (inherits(repaired, "error")) {
+    return(tibble::tibble(
+      path = path,
+      status = "unverified",
+      size_bytes = size,
+      sha256 = digest,
+      receipt_path = receipt_path,
+      reason = conditionMessage(repaired)
+    ))
+  }
+  tibble::tibble(
+    path = path,
+    status = "repaired",
+    size_bytes = size,
+    sha256 = digest,
+    receipt_path = receipt_path,
+    reason = "published verification receipt from trusted metadata"
+  )
+}
+
+#' Audit published and interrupted attachment files under a cache root.
+#' @noRd
+audit_cache_downloads_internal <- function(cache_dir = NULL, country = NULL) {
+  root <- if (is.null(cache_dir)) cache_dir_default() else cache_dir
+  files_root <- file.path(root, "files")
+  if (!dir.exists(files_root)) {
+    return(tibble::tibble(
+      path = character(0),
+      status = character(0),
+      size_bytes = numeric(0),
+      sha256 = character(0),
+      receipt_path = character(0),
+      reason = character(0),
+      country = character(0),
+      document_id = character(0)
+    ))
+  }
+  scan_root <- if (is.null(country)) files_root else file.path(files_root, tolower(country))
+  if (!dir.exists(scan_root)) {
+    return(tibble::tibble(
+      path = character(0),
+      status = character(0),
+      size_bytes = numeric(0),
+      sha256 = character(0),
+      receipt_path = character(0),
+      reason = character(0),
+      country = character(0),
+      document_id = character(0)
+    ))
+  }
+  paths <- list.files(scan_root, recursive = TRUE, full.names = TRUE, all.files = TRUE, no.. = TRUE)
+  paths <- paths[!file.info(paths)$isdir]
+  if (length(paths) == 0L) {
+    return(tibble::tibble(
+      path = character(0),
+      status = character(0),
+      size_bytes = numeric(0),
+      sha256 = character(0),
+      receipt_path = character(0),
+      reason = character(0),
+      country = character(0),
+      document_id = character(0)
+    ))
+  }
+  base <- basename(paths)
+  data_paths <- paths[
+    !grepl("\\.meta\\.json$|\\.geometry\\.geojson$|\\.verified\\.json$|\\.lock$", base, ignore.case = TRUE)
+  ]
+  rows <- lapply(data_paths, reconcile_cached_download_internal)
+  out <- if (length(rows) == 0L) {
+    tibble::tibble(
+      path = character(0),
+      status = character(0),
+      size_bytes = numeric(0),
+      sha256 = character(0),
+      receipt_path = character(0),
+      reason = character(0)
+    )
+  } else {
+    do.call(rbind, rows)
+  }
+  if (nrow(out) > 0L) {
+    rel <- substring(out$path, nchar(files_root) + 2L)
+    parts <- strsplit(rel, "/", fixed = TRUE)
+    out$country <- vapply(parts, function(x) if (length(x) >= 1L) x[[1]] else NA_character_, character(1))
+    out$document_id <- vapply(parts, function(x) if (length(x) >= 2L) x[[2]] else NA_character_, character(1))
+  } else {
+    out$country <- character(0)
+    out$document_id <- character(0)
+  }
+  # A receipt whose hash no longer matches any sibling is itself evidence of
+  # an interrupted/replaced publication. Keep it visible to recovery tooling.
+  receipt_paths <- paths[grepl("\\.verified\\.json$", basename(paths), ignore.case = TRUE)]
+  if (length(receipt_paths) > 0L) {
+    expected_receipts <- unlist(lapply(data_paths, function(p) {
+      d <- file_sha256(p)
+      if (is.na(d)) NA_character_ else download_receipt_path(p, d)
+    }), use.names = FALSE)
+    orphan <- receipt_paths[!receipt_paths %in% expected_receipts]
+    if (length(orphan) > 0L) {
+      orphan_rows <- tibble::tibble(
+        path = orphan,
+        status = "orphan_receipt",
+        size_bytes = as.numeric(file.info(orphan)$size),
+        sha256 = NA_character_,
+        receipt_path = orphan,
+        reason = "receipt has no matching current data bytes"
+      )
+      rel_orphan <- substring(orphan, nchar(files_root) + 2L)
+      orphan_parts <- strsplit(rel_orphan, "/", fixed = TRUE)
+      orphan_rows$country <- vapply(
+        orphan_parts,
+        function(x) if (length(x) >= 1L) x[[1]] else NA_character_,
+        character(1)
+      )
+      orphan_rows$document_id <- vapply(
+        orphan_parts,
+        function(x) if (length(x) >= 2L) x[[2]] else NA_character_,
+        character(1)
+      )
+      out <- rbind(out, orphan_rows)
+    }
+  }
+  out[order(out$path, out$status), , drop = FALSE]
+}
+
 #' Atomically write the proof that a canonical attachment was verified.
 #' @noRd
 write_download_receipt <- function(path, url, content_type, size_bytes, sha256, publish = TRUE) {
@@ -440,10 +673,10 @@ write_download_receipt <- function(path, url, content_type, size_bytes, sha256, 
   jsonlite::write_json(
     list(
       schema_version = 1L,
-      url = url,
+      url = if (length(url) == 1L && !is.na(url)) url else NULL,
       size_bytes = as.numeric(size_bytes),
       sha256 = sha256,
-      content_type = if (is.na(content_type)) NULL else content_type
+      content_type = if (length(content_type) == 1L && !is.na(content_type)) content_type else NULL
     ),
     part,
     auto_unbox = TRUE,
@@ -456,6 +689,40 @@ write_download_receipt <- function(path, url, content_type, size_bytes, sha256, 
     stop("atomic verification receipt publication failed", call. = FALSE)
   }
   invisible(receipt_path)
+}
+
+#' Publish an already-downloaded, validated file with a receipt.
+#' @noRd
+publish_verified_download_copy <- function(part, dest, url, content_type = "application/octet-stream") {
+  if (!file.exists(part) || isTRUE(file.info(part)$isdir) || file.info(part)$size <= 0) {
+    stop("cannot publish an empty or missing staged download", call. = FALSE)
+  }
+  # Discovery receives an HTTP 200 even for portal login/error pages. Reuse
+  # the same body/MIME/magic validation as the normal downloader before any
+  # receipt or canonical bytes are published.
+  validate_download_body(part, content_type, dest)
+  size <- unname(file.info(part)$size)
+  sha256 <- file_sha256(part)
+  if (is.na(sha256)) {
+    stop("could not compute SHA-256 for staged download", call. = FALSE)
+  }
+  receipt <- write_download_receipt(
+    dest,
+    url = url,
+    content_type = content_type,
+    size_bytes = size,
+    sha256 = sha256,
+    publish = FALSE
+  )
+  on.exit(unlink(receipt$part, force = TRUE), add = TRUE)
+  if (!isTRUE(tryCatch(rename_download_file(receipt$part, receipt$path), error = function(e) FALSE))) {
+    stop("atomic verification receipt publication failed", call. = FALSE)
+  }
+  if (!atomic_publish_download(part, dest)) {
+    stop("atomic download publication failed", call. = FALSE)
+  }
+  remove_download_variants(dest, dest)
+  list(local_path = dest, size_bytes = size, sha256 = sha256)
 }
 
 #' Return one response header as a scalar character value.

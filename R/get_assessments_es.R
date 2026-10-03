@@ -734,7 +734,7 @@ es_finalise_record <- function(rec, session, dom_state, download, overwrite, max
   rec$file_sha256 <- list(ds$sha256)
   if (write_sidecar) {
     tryCatch(
-      write_record_sidecar(rec, downloads = rec$download_status[[1]]),
+      write_fetched_record_sidecar(rec, downloads = rec$download_status[[1]]),
       error = function(e) {
         warn_partial(
           "Could not write sidecar for {.val {rec$document_id}}: {conditionMessage(e)}"

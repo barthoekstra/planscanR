@@ -449,7 +449,7 @@ at_finalise_record <- function(rec, write_sidecar) {
   rec$local_path <- list(character(0))
   if (write_sidecar) {
     tryCatch(
-      write_record_sidecar(rec, downloads = ds),
+      write_fetched_record_sidecar(rec, downloads = ds),
       error = function(e) {
         warn_partial(
           "Could not write sidecar for {.val {rec$document_id}}: {conditionMessage(e)}"

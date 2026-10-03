@@ -153,6 +153,36 @@ discover_attachments <- function(
   )
   on.exit(cli::cli_progress_done(), add = TRUE)
 
+  # A discovery pass may receive a stale enriched row from planscanR.screen or
+  # BIOGAIN. When a sidecar already exists, update only discovery-owned fields
+  # from the latest on-disk record so a discovery write cannot replay stale
+  # classification/translation/score values over a concurrent update.
+  persist_discovery_sidecar <- function(index, downloads, new_log_entries) {
+    projected <- out[index, , drop = FALSE]
+    country_i <- as.character(projected$country[[1]])
+    document_id_i <- as.character(projected$document_id[[1]])
+    path_i <- sidecar_path(country_i, document_id_i, create = FALSE)
+    update_fn <- function(current) {
+      for (field in c("discovery_status", "discovery_reason", "discovery_checked_at")) {
+        if (field %in% names(projected)) {
+          current[[field]] <- projected[[field]]
+        }
+      }
+      if (is.data.frame(downloads)) {
+        current$download_status <- list(downloads)
+      }
+      prior_log <- current[["discovery_log"]]
+      prior_log <- if (is.list(prior_log) && length(prior_log) >= 1L) prior_log[[1L]] else list()
+      current$discovery_log <- list(c(prior_log, new_log_entries))
+      current
+    }
+    if (file.exists(path_i)) {
+      update_record_sidecar(country_i, document_id_i, update_fn)
+    } else {
+      write_record_sidecar(projected, downloads = downloads)
+    }
+  }
+
   for (i in workset_idx) {
     rec_row <- out[i, ]
     log_entries <- list()
@@ -175,24 +205,23 @@ discover_attachments <- function(
     sc_path <- sidecar_path(rec_row$country, rec_row$document_id, create = FALSE)
     if (file.exists(sc_path)) {
       existing <- tryCatch(
-        jsonlite::fromJSON(sc_path, simplifyVector = FALSE),
+        read_record_sidecar(sc_path),
         error = function(e) NULL
       )
       if (!is.null(existing)) {
-        prior <- existing$files %||% list()
+        prior <- existing$download_status[[1]]
+        if (!is.data.frame(prior)) {
+          prior <- empty_download_status()
+        }
         on_disk <- vapply(
-          prior,
-          function(f) {
-            lp <- f$local_path
-            !is.null(lp) && nzchar(lp) && file.exists(lp)
+          seq_len(nrow(prior)),
+          function(j) {
+            lp <- prior$local_path[[j]]
+            !is.na(lp) && nzchar(lp) && !is.na(resolve_cached_path_internal(lp))
           },
           logical(1)
         )
-        prior_urls <- vapply(
-          prior,
-          function(f) f$url %||% NA_character_,
-          character(1)
-        )
+        prior_urls <- prior$url
         seen_urls <- prior_urls[on_disk & !is.na(prior_urls) & nzchar(prior_urls)]
       }
     }
@@ -214,7 +243,7 @@ discover_attachments <- function(
       if (!dry_run) {
         downloads <- if ("download_status" %in% names(out)) out$download_status[[i]] else NULL
         tryCatch(
-          write_record_sidecar(out[i, , drop = FALSE], downloads = downloads),
+          persist_discovery_sidecar(i, downloads, log_entries),
           error = function(e) warn_partial(
             "Could not write sidecar for {.val {rec_row$document_id}}: {conditionMessage(e)}"
           )
@@ -276,7 +305,16 @@ discover_attachments <- function(
         # failures. Just GET; if the downloaded file exceeds the size cap,
         # discard it post-hoc with a clear status. Captures the actual
         # httr2 error message into the sidecar so failures are diagnosable.
-        scratch <- tempfile(fileext = ".pdf")
+        destination <- if (!dry_run) {
+          cache_path_internal(cand$url, country, rec_row$document_id)
+        } else {
+          NULL
+        }
+        # Keep a real ingest's staging file beside its destination. Atomic
+        # rename then remains valid when the cache is mounted on another
+        # filesystem from the session temp directory. Dry runs never touch
+        # the cache and may continue to use the system temp directory.
+        scratch <- if (!dry_run) download_part_path(destination) else tempfile(fileext = ".pdf")
         on.exit(if (file.exists(scratch)) unlink(scratch), add = TRUE)
         cap_bytes <- max_file_size_bytes(max_file_size_mb)
         dl_err <- NA_character_
@@ -358,15 +396,40 @@ discover_attachments <- function(
         # sidecar `validation_status` field. Cleanup of rejected files is a
         # separate, opt-in operation.
         if (!dry_run) {
-          dest <- cache_path_internal(cand$url, country, rec_row$document_id)
-          dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+          dest <- destination
           existing <- resolve_cached_path_internal(dest)
           if (is.na(existing)) {
             # `scratch` already validated as PDF; we know the real extension.
             if (tools::file_ext(dest) == "x") {
               dest <- paste0(tools::file_path_sans_ext(dest), ".pdf")
             }
-            file.copy(scratch, dest, overwrite = FALSE)
+            published <- tryCatch(
+              publish_verified_download_copy(
+                scratch,
+                dest,
+                url = cand$url,
+                content_type = "application/pdf"
+              ),
+              error = function(e) e
+            )
+            if (inherits(published, "error")) {
+              new_files[[length(new_files) + 1L]] <- list(
+                url = cand$url,
+                local_path = NA_character_,
+                status = "failed",
+                size_bytes = NA_real_,
+                sha256 = NA_character_,
+                reason = conditionMessage(published),
+                source = "discovery",
+                validation_status = validation_status,
+                validation_signals = signals_fired,
+                validation_notes = v$notes
+              )
+              unlink(scratch)
+              processed <- processed + 1L
+              next
+            }
+            dest <- published$local_path
           } else {
             dest <- existing
           }
@@ -518,7 +581,7 @@ discover_attachments <- function(
     # Persist sidecar.
     if (!dry_run) {
       tryCatch(
-        write_record_sidecar(out[i, ], downloads = out$download_status[[i]]),
+        persist_discovery_sidecar(i, out$download_status[[i]], log_entries),
         error = function(e) {
           warn_partial(
             "Could not write sidecar for {.val {rec_row$document_id}}: {conditionMessage(e)}"
