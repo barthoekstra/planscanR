@@ -53,6 +53,50 @@ test_that("files[].local_path is stored relative to the cache root, absolutised 
   })
 })
 
+test_that("portable file locations survive sidecar read and metadata-only updates", {
+  withr::with_tempdir({
+    cache <- file.path(getwd(), "cache")
+    archive <- file.path(getwd(), "archive")
+    dir.create(cache)
+    object <- file.path(archive, "objects", "sha256", "aa", "bb", paste0(rep("a", 64), collapse = ""))
+    dir.create(dirname(object), recursive = TRUE)
+    writeBin(charToRaw("%PDF-1.4"), object)
+    options(planscanR.cache_dir = cache, planscanR.storage_roots = c(archive = archive))
+    on.exit(options(planscanR.cache_dir = NULL, planscanR.storage_roots = NULL), add = TRUE)
+
+    rec <- tibble::tibble(
+      country = "nl", source_portal = "x", document_id = "portable1",
+      url = "https://x/portable1",
+      retrieved_at = as.POSIXct("2026-05-26 12:00:00", tz = "UTC"),
+      attachment_urls = list("https://x/a.pdf"), local_path = list(object)
+    )
+    location <- list(storage_root_id = "archive", relative_path = "objects/sha256/aa/bb/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+    downloads <- tibble::tibble(
+      url = "https://x/a.pdf", local_path = object, status = "downloaded",
+      size_bytes = file.size(object), sha256 = paste0(rep("a", 64), collapse = ""),
+      reason = NA_character_, location = list(location)
+    )
+    path <- planscanR:::write_record_sidecar(rec, downloads)
+    raw <- read_raw_sidecar(path)
+    expect_identical(raw$files[[1]]$location$storage_root_id, "archive")
+    expect_null(raw$files[[1]]$local_path)
+
+    first <- planscanR:::read_record_sidecar(path)
+    expect_identical(first$download_status[[1]]$location[[1]], location)
+    expect_identical(first$download_status[[1]]$local_path[[1]], object)
+    # A metadata worker passes the read projection back without reconstructing
+    # the location field. Merge must retain the prior portable identity.
+    planscanR:::write_record_sidecar(first, first$download_status[[1]])
+    raw_after <- read_raw_sidecar(path)
+    expect_identical(raw_after$files[[1]]$location$storage_root_id, "archive")
+    expect_null(raw_after$files[[1]]$local_path)
+    expect_identical(
+      planscanR:::read_record_sidecar(path)$download_status[[1]]$local_path[[1]],
+      object
+    )
+  })
+})
+
 test_that("geometry_path is stored relative to the cache root, absolutised on read", {
   withr::with_tempdir({
     options(planscanR.cache_dir = getwd())

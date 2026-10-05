@@ -51,3 +51,63 @@ test_that("storage paths stay below the registered root", {
     class = "planscanR_error_storage_path"
   )
 })
+
+test_that("storage resolver accepts legacy paths and portable root locations", {
+  root <- withr::local_tempdir()
+  dir.create(file.path(root, "objects"), recursive = TRUE)
+  writeLines("pdf", file.path(root, "objects", "sha256.pdf"))
+
+  expect_identical(
+    planscanR::storage_resolve_location(
+      "files/nl/project/report.pdf", root = root
+    ),
+    file.path(root, "files", "nl", "project", "report.pdf")
+  )
+  expect_identical(
+    planscanR::storage_resolve_location(
+      list(storage_root_id = "cache", relative_path = "objects/sha256.pdf"),
+      root = root, must_exist = TRUE
+    ),
+    file.path(root, "objects", "sha256.pdf")
+  )
+  expect_identical(
+    planscanR::storage_resolve_location(
+      list(storage_root_id = "archive", relative_path = "objects/sha256.pdf"),
+      root = root, roots = c(archive = root), must_exist = TRUE
+    ),
+    file.path(root, "objects", "sha256.pdf")
+  )
+  expect_error(
+    planscanR::storage_resolve_location(
+      list(storage_root_id = "cache", relative_path = "../escape.pdf"),
+      root = root
+    ),
+    class = "planscanR_error_storage_path"
+  )
+  expect_error(
+    planscanR::storage_resolve_location(
+      list(storage_root_id = "missing", relative_path = "objects/sha256.pdf"),
+      roots = c(cache = root)
+    ),
+    class = "planscanR_error_storage_root"
+  )
+})
+
+test_that("portable external locations do not require a mounted default cache", {
+  archive <- withr::local_tempdir()
+  withr::local_options(list(planscanR.cache_dir = file.path(archive, "missing-cache")))
+  writeLines("portable", file.path(archive, "object"))
+  expect_identical(
+    planscanR::storage_resolve_location(
+      list(storage_root_id = "archive", relative_path = "object"),
+      roots = c(archive = archive), must_exist = TRUE
+    ),
+    file.path(archive, "object")
+  )
+  expect_identical(
+    planscanR::storage_resolve_location(
+      file.path(archive, "object"), roots = c(archive = archive), must_exist = TRUE
+    ),
+    file.path(archive, "object")
+  )
+})

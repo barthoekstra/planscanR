@@ -387,6 +387,16 @@ merge_sidecar_payload <- function(new, old) {
       new_file <- new$files[[match[[1]]]]
       if (download_file_status_rank(old_file$status) > download_file_status_rank(new_file$status)) {
         new$files[[match[[1]]]] <- old_file
+      } else {
+        # Metadata-only workers often round-trip a projection that predates
+        # portable locations. Keep identity/path fields when the new row did
+        # not carry them, while allowing a supplied new location to win.
+        for (field in c("location", "local_path", "filename", "sha256")) {
+          if (is.null(new_file[[field]]) && !is.null(old_file[[field]])) {
+            new_file[[field]] <- old_file[[field]]
+          }
+        }
+        new$files[[match[[1]]]] <- new_file
       }
     }
   }
@@ -546,7 +556,9 @@ record_to_sidecar <- function(record, downloads = NULL, root = NULL) {
         } else {
           "portal"
         },
-        filename = if (is.na(r$local_path)) NULL else basename(r$local_path),
+        filename = if ("filename" %in% names(downloads) && !is.na(r$filename) && nzchar(r$filename)) {
+          r$filename
+        } else if (is.na(r$local_path)) NULL else basename(r$local_path),
         # v3: store relative to the cache root; absolutised again on read.
         local_path = relativise_cache_path(nullable(r$local_path), root),
         status = r$status,
@@ -554,6 +566,15 @@ record_to_sidecar <- function(record, downloads = NULL, root = NULL) {
         sha256 = nullable(r$sha256),
         reason = nullable(r$reason)
       )
+      location <- if ("location" %in% names(downloads)) r$location else NULL
+      if (is.list(location) && length(location) == 1L) {
+        location <- location[[1L]]
+      }
+      if (!is.null(location)) {
+        entry$location <- location
+        # Portable locations on non-cache roots must never leak machine paths.
+        if (!identical(location$storage_root_id, "cache")) entry$local_path <- NULL
+      }
       # v2.1: per-file validation classification. Optional — `portal`-source
       # entries don't have a validator verdict, so the fields are simply
       # absent from the JSON for those. For `discovery`-source entries the
@@ -685,13 +706,27 @@ read_record_sidecar_unlocked <- function(path) {
   cache_root <- dirname(dirname(dirname(dirname(path))))
   paths <- vapply(
     files,
-    function(f) absolutise_cache_path(f$local_path %||% NA_character_, cache_root),
+    function(f) {
+      location <- f$location %||% f$local_path %||% NA_character_
+      tryCatch(
+        storage_resolve_location(
+          location,
+          root = cache_root,
+          roots = getOption("planscanR.storage_roots", NULL)
+        ),
+        error = function(error) absolutise_cache_path(
+          f$local_path %||% NA_character_, cache_root
+        )
+      )
+    },
     character(1)
   )
 
   download_status <- tibble::tibble(
     url = urls,
     local_path = paths,
+    filename = vapply(files, function(f) f$filename %||% NA_character_, character(1)),
+    location = I(lapply(files, function(f) f$location)),
     status = vapply(files, function(f) f$status %||% NA_character_, character(1)),
     size_bytes = vapply(
       files,

@@ -236,3 +236,97 @@ storage_relative_path <- function(path, root) {
   relative <- substring(normalized, nchar(prefix) + 1L)
   storage_validate_relative(relative)
 }
+
+#' Resolve a legacy path or portable storage location
+#'
+#' Character paths are accepted for older cache/index records (absolute paths
+#' are only accepted when contained by one of the supplied roots). Portable
+#' locations use `list(storage_root_id = ..., relative_path = ...)`; `roots` is
+#' a named character vector mapping those stable IDs to paths on this machine.
+#' The built-in `cache` root resolves to `root` when no explicit mapping is
+#' supplied.
+#'
+#' @param location A legacy absolute/root-relative path or portable location
+#'   list.
+#' @param root Existing cache root used for legacy relative paths and the
+#'   built-in `cache` root.
+#' @param roots Named paths for additional storage root IDs.
+#' @param must_exist Require the resolved file or directory to exist.
+#' @return A canonical absolute path below a registered root.
+#' @export
+storage_resolve_location <- function(location, root = NULL, roots = NULL,
+                                     must_exist = FALSE) {
+  if (!is.logical(must_exist) || length(must_exist) != 1L || is.na(must_exist)) {
+    storage_abort("{.arg must_exist} must be TRUE or FALSE.", "planscanR_error_storage_path")
+  }
+  roots <- roots %||% getOption("planscanR.storage_roots", NULL)
+  root_map <- character(0)
+  if (!is.null(roots)) {
+    if (!is.character(roots) || is.null(names(roots)) || any(!nzchar(names(roots)))) {
+      storage_abort("{.arg roots} must be a named character vector.", "planscanR_error_storage_root")
+    }
+    for (id in names(roots)) {
+      root_map[[id]] <- storage_root_resolve(roots[[id]], writable = FALSE)
+    }
+  }
+  # A caller resolving a registered external root must not depend on the
+  # default cache being mounted or even present. Resolve the cache lazily only
+  # when the location actually uses that root (or is a legacy relative path).
+  if (!is.null(root) && dir.exists(root)) {
+    root_map["cache"] <- storage_root_resolve(root, writable = FALSE)
+  }
+
+  if (is.list(location)) {
+    root_id <- location$storage_root_id
+    relative_path <- location$relative_path
+    root_id <- storage_scalar_path(root_id, "storage_root_id")
+    if (identical(root_id, "cache") && !root_id %in% names(root_map)) {
+      root_map["cache"] <- storage_root_resolve(root, writable = FALSE)
+    }
+    if (!root_id %in% names(root_map)) {
+      storage_abort(
+        paste0("Unknown storage root ID: ", root_id),
+        "planscanR_error_storage_root"
+      )
+    }
+    resolved <- storage_path(root_map[[root_id]], relative_path)
+  } else {
+    path <- storage_scalar_path(location, "location")
+    if (storage_is_absolute_path(path)) {
+      candidates <- lapply(root_map, function(candidate_root) {
+        tryCatch(storage_relative_path(path, candidate_root), error = function(error) NULL)
+      })
+      valid <- which(!vapply(candidates, is.null, logical(1)))
+      # Only consult the default cache after the explicit portable roots fail;
+      # external absolute paths should work on machines without that cache.
+      if (length(valid) == 0L && !"cache" %in% names(root_map)) {
+        root_map["cache"] <- storage_root_resolve(root, writable = FALSE)
+        candidates <- lapply(root_map, function(candidate_root) {
+          tryCatch(storage_relative_path(path, candidate_root), error = function(error) NULL)
+        })
+        valid <- which(!vapply(candidates, is.null, logical(1)))
+      }
+      if (length(valid) == 0L) {
+        storage_abort(
+          "The legacy absolute path is outside every registered storage root.",
+          "planscanR_error_storage_path"
+        )
+      }
+      selected <- valid[[1L]]
+      resolved <- storage_path(root_map[[selected]], candidates[[selected]])
+    } else {
+      if (!"cache" %in% names(root_map)) {
+        root_map["cache"] <- storage_root_resolve(root, writable = FALSE)
+      }
+      resolved <- storage_path(root_map[["cache"]], path)
+    }
+  }
+
+  if (isTRUE(must_exist) && !file.exists(resolved) && !dir.exists(resolved)) {
+    storage_abort(
+      paste0("Storage location does not exist: ", resolved),
+      "planscanR_error_storage_path"
+    )
+  }
+  resolved
+}
