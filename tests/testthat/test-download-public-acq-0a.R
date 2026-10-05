@@ -384,6 +384,97 @@ test_that("successful explicit-extension downloads preserve distinct same-stem f
   })
 })
 
+test_that("content-addressed downloads deduplicate bytes without sharing URL receipts", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    urls <- c("https://example.org/files/nl/1234/report-a.pdf",
+      "https://example.org/files/nl/1234/report-b.pdf")
+    calls <- 0L
+    local_mocked_bindings(
+      head_content_length = function(url) NA_real_,
+      req_planscanr = function(base_url, path = NULL) structure(list(), class = "httr2_request"),
+      .package = "planscanR"
+    )
+    local_mocked_bindings(
+      req_perform_stream = function(req, callback, ...) {
+        calls <<- calls + 1L
+        callback(ACQ0A_PDF_MAGIC)
+        structure(list(), class = "httr2_response")
+      },
+      resp_header = function(resp, header, ...) {
+        if (identical(tolower(header), "content-type")) "application/pdf" else NA_character_
+      },
+      .package = "httr2"
+    )
+
+    first <- download_to_cache(urls[[1L]], "nl", "1234", cache_dir = root,
+      content_addressed = TRUE)
+    second <- download_to_cache(urls[[2L]], "nl", "1234", cache_dir = root,
+      content_addressed = TRUE)
+    expect_identical(first$status, "downloaded")
+    expect_identical(second$status, "downloaded")
+    expect_identical(first$local_path, second$local_path)
+    expect_identical(first$location[[1L]]$relative_path, second$location[[1L]]$relative_path)
+    expect_true(file.exists(first$source_local_path))
+    expect_true(file.exists(second$source_local_path))
+    expect_identical(jsonlite::read_json(planscanR:::download_receipt_path(first$source_local_path),
+      simplifyVector = TRUE)$url, urls[[1L]])
+    expect_identical(jsonlite::read_json(planscanR:::download_receipt_path(second$source_local_path),
+      simplifyVector = TRUE)$url, urls[[2L]])
+    object_receipt <- jsonlite::read_json(planscanR:::download_receipt_path(first$local_path),
+      simplifyVector = TRUE)
+    expect_true(is.na(object_receipt$url) || is.null(object_receipt$url))
+    expect_identical(calls, 2L)
+  })
+})
+
+test_that("content-addressed publication refuses insufficient duplicate space", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/nl/1234/report.pdf"
+    local_mocked_bindings(
+      head_content_length = function(url) NA_real_,
+      req_planscanr = function(base_url, path = NULL) structure(list(), class = "httr2_request"),
+      .package = "planscanR"
+    )
+    local_mocked_bindings(
+      req_perform_stream = function(req, callback, ...) {
+        callback(ACQ0A_PDF_MAGIC)
+        structure(list(), class = "httr2_response")
+      },
+      resp_header = function(resp, header, ...) {
+        if (identical(tolower(header), "content-type")) "application/pdf" else NA_character_
+      },
+      .package = "httr2"
+    )
+    local_mocked_bindings(storage_capacity = function(root) {
+      list(total_bytes = 100, free_bytes = 0)
+    }, .package = "planscanR")
+    out <- download_to_cache(url, "nl", "1234", cache_dir = root,
+      content_addressed = TRUE)
+    expect_identical(out$status, "failed")
+    expect_match(out$reason, "Insufficient free space")
+    expect_length(list.files(file.path(root, "objects"), recursive = TRUE), 0L)
+  })
+})
+
+test_that("content-addressed promotion enforces the current cap on cached files", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/nl/1234/report.pdf"
+    source <- cache_path(url, "nl", "1234", cache_dir = root)
+    writeBin(ACQ0A_PDF_MAGIC, source)
+    sha <- planscanR:::file_sha256(source)
+    planscanR:::write_download_receipt(source, url, "application/pdf", file.info(source)$size, sha)
+
+    out <- download_to_cache(url, "nl", "1234", cache_dir = root,
+      max_file_size_mb = 0.000001, content_addressed = TRUE)
+    expect_identical(out$status, "failed")
+    expect_match(out$reason, "exceeds the size cap")
+    expect_false(dir.exists(file.path(root, "objects")))
+  })
+})
+
 test_that("batch downloads also preserve a verified copy after interruption", {
   withr::with_tempdir({
     root <- file.path(getwd(), "cache")

@@ -153,6 +153,12 @@ audit_cache_downloads <- function(cache_dir = NULL, country = NULL) {
 #' @param overwrite If `FALSE` (default) and a verified file is already cached,
 #'   it is returned as-is with status `"exists"`. If `TRUE`, the URL is
 #'   re-fetched; a failed attempt leaves an existing verified copy in place.
+#' @param content_addressed Place a verified copy under
+#'   `objects/sha256/ab/cd/<sha256>` and return its portable location. The
+#'   legacy per-project copy and its URL-specific receipt are retained. Defaults
+#'   to `FALSE` for backward compatibility.
+#' @param storage_root_id Stable root ID to include in the returned location;
+#'   defaults to the built-in `cache` root.
 #' @return A one-row tibble with columns:
 #'   `url`, `local_path` (`NA` when skipped/failed), `size_bytes`, `sha256`
 #'   (`NA` when no local file), `status`, `reason`. `status` is one of
@@ -173,7 +179,9 @@ download_to_cache <- function(
   document_id,
   cache_dir = cache_dir_default(),
   max_file_size_mb = getOption("planscanR.max_file_size_mb", 50),
-  overwrite = FALSE
+  overwrite = FALSE,
+  content_addressed = FALSE,
+  storage_root_id = "cache"
 ) {
   if (!is.character(url) || length(url) != 1L || is.na(url) || !nzchar(url)) {
     cli::cli_abort(
@@ -181,21 +189,36 @@ download_to_cache <- function(
       class = "planscanR_error_bad_input"
     )
   }
+  if (!is.logical(content_addressed) || length(content_addressed) != 1L || is.na(content_addressed)) {
+    cli::cli_abort("{.arg content_addressed} must be TRUE or FALSE.", class = "planscanR_error_bad_input")
+  }
+  if (!is.character(storage_root_id) || length(storage_root_id) != 1L || is.na(storage_root_id) || !nzchar(storage_root_id)) {
+    cli::cli_abort("{.arg storage_root_id} must be one non-empty string.", class = "planscanR_error_bad_input")
+  }
   cap <- max_file_size_bytes(max_file_size_mb)
   dest <- cache_path_internal(url, country, document_id, root = cache_dir)
 
   cached <- resolve_cached_path_internal(dest)
   if (!is.na(cached) && !overwrite) {
-    return(download_to_cache_row(
+    cached_size <- as.numeric(file.info(cached)$size)
+    if (isTRUE(content_addressed) && is.finite(cap) && cached_size > cap) {
+      return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+        "The verified cached file exceeds the size cap for content-addressed publication."))
+    }
+    row <- download_to_cache_row(
       url,
       local_path = cached,
-      size_bytes = unname(file.info(cached)$size),
+      size_bytes = cached_size,
       sha256 = file_sha256(cached),
       status = "exists"
-    ))
+    )
+    if (isTRUE(content_addressed)) {
+      return(download_to_cache_content_addressed(row, cached, url, cache_dir, storage_root_id))
+    }
+    return(row)
   }
   out <- download_one_attachment(url, dest, cap)
-  download_to_cache_row(
+  row <- download_to_cache_row(
     url,
     local_path = out$local_path,
     size_bytes = out$size_bytes,
@@ -203,6 +226,77 @@ download_to_cache <- function(
     status = out$status,
     reason = out$reason
   )
+  if (isTRUE(content_addressed) && identical(as.character(row$status[[1L]]), "downloaded")) {
+    return(download_to_cache_content_addressed(row, out$local_path, url, cache_dir, storage_root_id))
+  }
+  row
+}
+
+download_to_cache_content_addressed <- function(row, source, url, cache_root, storage_root_id) {
+  sha <- as.character(row$sha256[[1L]])
+  size <- as.numeric(row$size_bytes[[1L]])
+  source_receipt <- tryCatch(
+    jsonlite::read_json(download_receipt_path(source, sha), simplifyVector = TRUE),
+    error = function(error) NULL
+  )
+  if (!is_verified_download(source) || is.null(source_receipt) ||
+    !identical(as.character(source_receipt$url %||% NA_character_), as.character(url))) {
+    return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+      "The source file lacks its own matching URL verification receipt."))
+  }
+  if (!grepl("^[[:xdigit:]]{64}$", sha) || is.na(size) || size != file.info(source)$size) {
+    return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+      "The source file size or SHA-256 is invalid."))
+  }
+  relative <- file.path("objects", "sha256", substr(tolower(sha), 1L, 2L),
+    substr(tolower(sha), 3L, 4L), tolower(sha))
+  target <- storage_path(cache_root, relative, create_parent = TRUE)
+  if (file.exists(target)) {
+    if (file.info(target)$size != size || !identical(file_sha256(target), tolower(sha))) {
+      return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+        "An existing content-addressed object has different bytes; it was left untouched."))
+    }
+  } else {
+    # The source copy remains in place; during staging the temporary and final
+    # object can coexist. Refuse to begin when peak duplicate space is absent.
+    capacity <- storage_capacity(cache_root)
+    if (capacity$free_bytes < size * 2) {
+      return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+        "Insufficient free space for the retained source and staged content-addressed copy."))
+    }
+    part <- tempfile(pattern = paste0(basename(target), "."), tmpdir = dirname(target), fileext = ".part")
+    on.exit(if (file.exists(part)) unlink(part), add = TRUE)
+    copied <- tryCatch(file.copy(source, part, overwrite = FALSE), error = function(error) FALSE)
+    if (!isTRUE(copied) || !file.exists(part) || file.info(part)$size != size ||
+      !identical(file_sha256(part), tolower(sha))) {
+      return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+        "The staged object copy did not match its verified source."))
+    }
+    if (!isTRUE(file.rename(part, target))) {
+      if (!file.exists(target) || file.info(target)$size != size ||
+        !identical(file_sha256(target), tolower(sha))) {
+        return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+          "The content-addressed object could not be published atomically."))
+      }
+    }
+  }
+  # This receipt proves the shared object's bytes only. URL-specific proofs
+  # remain beside each retained legacy source file and are never copied or
+  # overwritten by another source URL.
+  object_receipt_path <- download_receipt_path(target, tolower(sha))
+  if (!file.exists(object_receipt_path)) {
+    tryCatch(write_download_receipt(target, NA_character_, NA_character_, size, tolower(sha)),
+      error = function(error) NULL)
+  }
+  if (!is_verified_download(target)) {
+    return(download_to_cache_row(url, NA_character_, NA_real_, NA_character_, "failed",
+      "The content-addressed object's byte receipt could not be verified."))
+  }
+  out <- download_to_cache_row(url, target, size, tolower(sha), as.character(row$status[[1L]]))
+  out$filename <- basename(source)
+  out$source_local_path <- source
+  out$location <- list(list(storage_root_id = storage_root_id, relative_path = relative))
+  out
 }
 
 #' One-row result tibble for [download_to_cache()].

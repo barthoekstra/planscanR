@@ -10,7 +10,9 @@ download_to_cache(
   document_id,
   cache_dir = cache_dir_default(),
   max_file_size_mb = getOption("planscanR.max_file_size_mb", 50),
-  overwrite = FALSE
+  overwrite = FALSE,
+  content_addressed = FALSE,
+  storage_root_id = "cache"
 )
 }
 \arguments{
@@ -26,9 +28,17 @@ download_to_cache(
 \code{getOption("planscanR.max_file_size_mb", 50)}. \code{Inf}, \code{NULL}, or a
 non-positive value means no cap.}
 
-\item{overwrite}{If \code{FALSE} (default) and a verified file is already
-cached, it is returned as-is with status \code{"exists"}. If \code{TRUE}, the
-URL is re-fetched; a failed attempt leaves an existing verified copy in place.}
+\item{overwrite}{If \code{FALSE} (default) and a verified file is already cached,
+it is returned as-is with status \code{"exists"}. If \code{TRUE}, the URL is
+re-fetched; a failed attempt leaves an existing verified copy in place.}
+
+\item{content_addressed}{Place a verified copy under
+\verb{objects/sha256/ab/cd/<sha256>} and return its portable location. The
+legacy per-project copy and its URL-specific receipt are retained. Defaults
+to \code{FALSE} for backward compatibility.}
+
+\item{storage_root_id}{Stable root ID to include in the returned location;
+defaults to the built-in \code{cache} root.}
 }
 \value{
 A one-row tibble with columns:
