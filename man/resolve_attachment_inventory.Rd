@@ -7,7 +7,8 @@
 resolve_attachment_inventory(
   records,
   resolver = NULL,
-  supported = supported_countries()
+  supported = supported_countries(),
+  refresh = FALSE
 )
 }
 \arguments{
@@ -18,10 +19,14 @@ fresh portal inventory. It may return a list with \code{status}, \code{reason}, 
 optional \code{urls}; resolver errors become \code{retryable}.}
 
 \item{supported}{Character vector of enabled country codes.}
+
+\item{refresh}{Logical; when \code{TRUE} and \code{resolver} is \code{NULL}, refresh only
+the exact NL, DE, or DK source identity through its existing detail helper.
+The refresh never crawls listings, downloads files, or writes sidecars.}
 }
 \value{
 A tibble with \code{country}, \code{document_id}, \code{status}, \code{reason}, and
-\code{authoritative} columns plus UTC \code{checked_at}.
+\code{authoritative} columns plus UTC \code{checked_at} and attachment URL columns.
 }
 \description{
 This resolver is deliberately conservative. A record with captured generic

@@ -546,6 +546,7 @@ de_parse_detail <- function(url) {
     country = "de",
     source_portal = "uvp-verbund.de",
     document_id = docuuid,
+    response_document_id = de_response_document_id(html),
     url = url,
     retrieved_at = as.POSIXct(Sys.time(), tz = "UTC"),
     attachment_urls = list(ordered_union),
@@ -577,6 +578,25 @@ de_docuuid_from_url <- function(url) {
     return(NA_character_)
   }
   sub("^docuuid=", "", m[1])
+}
+
+#' Extract the detail-page identity echoed by the portal response.
+#' @noRd
+de_response_document_id <- function(html) {
+  attrs <- rvest::html_attr(rvest::html_elements(html, "[hx-get]"), "hx-get")
+  attrs <- attrs[!is.na(attrs) & nzchar(attrs)]
+  if (length(attrs) == 0L) {
+    return(NA_character_)
+  }
+  matches <- regmatches(
+    attrs,
+    regexec("rest/createDetailZip\\?docuuid=([A-Fa-f0-9-]+)", attrs, perl = TRUE)
+  )
+  ids <- vapply(matches, function(match) {
+    if (length(match) >= 2L) match[[2L]] else NA_character_
+  }, character(1))
+  ids <- unique(ids[!is.na(ids) & nzchar(ids)])
+  if (length(ids) == 1L) ids[[1L]] else NA_character_
 }
 
 #' Extract PDF (and generic attachment) URLs from a specific H4 section.
