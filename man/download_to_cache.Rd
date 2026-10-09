@@ -12,7 +12,8 @@ download_to_cache(
   max_file_size_mb = getOption("planscanR.max_file_size_mb", 50),
   overwrite = FALSE,
   content_addressed = FALSE,
-  storage_root_id = "cache"
+  storage_root_id = "cache",
+  storage_guard = NULL
 )
 }
 \arguments{
@@ -39,6 +40,13 @@ to \code{FALSE} for backward compatibility.}
 
 \item{storage_root_id}{Stable root ID to include in the returned location;
 defaults to the built-in \code{cache} root.}
+
+\item{storage_guard}{Optional callback used by an acquisition coordinator to
+authorize bytes before they are written. It receives cumulative bytes already
+written, the advertised size (or \code{NA}), and may accept \code{phase} and
+\code{pending_bytes} arguments. A guard error or \code{FALSE} result fails
+closed. When omitted, the historical \code{max_file_size_mb} behavior is
+unchanged.}
 }
 \value{
 A one-row tibble with columns:

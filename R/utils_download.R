@@ -1057,22 +1057,109 @@ remove_download_variants <- function(dest, keep) {
 
 #' Stream one response into a bounded staging file.
 #' @noRd
-download_stream_to_part <- function(req, part, cap) {
+invoke_storage_guard <- function(storage_guard, cumulative_bytes, advertised_size,
+                                 phase = "stream", pending_bytes = 0) {
+  if (!is.function(storage_guard)) {
+    return(list(ok = TRUE))
+  }
+  cumulative_bytes <- suppressWarnings(as.numeric(cumulative_bytes))
+  advertised_size <- suppressWarnings(as.numeric(advertised_size))
+  if (length(cumulative_bytes) != 1L || is.na(cumulative_bytes) ||
+    !is.finite(cumulative_bytes) || cumulative_bytes < 0) {
+    return(list(ok = FALSE, reason = "The storage guard received invalid cumulative bytes."))
+  }
+  if (length(advertised_size) != 1L || is.nan(advertised_size) ||
+    (!is.na(advertised_size) && (!is.finite(advertised_size) || advertised_size < 0))) {
+    advertised_size <- NA_real_
+  }
+  pending_bytes <- suppressWarnings(as.numeric(pending_bytes))
+  if (length(pending_bytes) != 1L || is.na(pending_bytes) ||
+    !is.finite(pending_bytes) || pending_bytes < 0) {
+    return(list(ok = FALSE, reason = "The storage guard received invalid pending bytes."))
+  }
+  formals <- tryCatch(names(formals(storage_guard)), error = function(error) character())
+  accepts_phase <- "phase" %in% formals || "..." %in% formals
+  accepts_pending <- "pending_bytes" %in% formals || "..." %in% formals
+  result <- tryCatch(
+    if (isTRUE(accepts_phase) && isTRUE(accepts_pending)) {
+      storage_guard(
+        cumulative_bytes,
+        advertised_size,
+        phase = phase,
+        pending_bytes = pending_bytes
+      )
+    } else if (isTRUE(accepts_phase)) {
+      storage_guard(cumulative_bytes, advertised_size, phase = phase)
+    } else if (isTRUE(accepts_pending)) {
+      storage_guard(cumulative_bytes, advertised_size, pending_bytes = pending_bytes)
+    } else {
+      storage_guard(cumulative_bytes, advertised_size)
+    },
+    error = function(error) error
+  )
+  if (inherits(result, "error")) {
+    return(list(ok = FALSE, reason = conditionMessage(result)))
+  }
+  if (is.logical(result) && length(result) == 1L && !is.na(result)) {
+    return(list(ok = isTRUE(result), reason = if (isTRUE(result)) NULL else "The storage guard rejected the write."))
+  }
+  if (!is.list(result) || length(result$ok) != 1L || is.na(result$ok)) {
+    return(list(ok = FALSE, reason = "The storage guard returned no valid decision."))
+  }
+  list(
+    ok = isTRUE(result$ok),
+    reason = if (isTRUE(result$ok)) NULL else as.character(result$reason %||% "The storage guard rejected the write.")
+  )
+}
+
+download_stream_to_part <- function(
+  req, part, cap, storage_guard = NULL, advertised_size = NA_real_
+) {
   con <- file(part, open = "wb")
   on.exit(close(con), add = TRUE)
   bytes <- 0
   exceeded <- FALSE
+  guard_failed <- FALSE
+  guard_reason <- NULL
   callback <- function(chunk) {
     chunk <- as.raw(chunk)
     n <- length(chunk)
     if (is.finite(cap) && bytes + n > cap) {
       allowed <- max(0L, floor(cap - bytes))
       if (allowed > 0L) {
+        if (is.function(storage_guard)) {
+          guard <- invoke_storage_guard(
+            storage_guard,
+            bytes,
+            advertised_size,
+            phase = "stream",
+            pending_bytes = allowed
+          )
+          if (!isTRUE(guard$ok)) {
+            guard_failed <<- TRUE
+            guard_reason <<- guard$reason %||% "The storage guard rejected the write."
+            return(FALSE)
+          }
+        }
         writeBin(chunk[seq_len(allowed)], con)
+        bytes <<- bytes + allowed
       }
-      bytes <<- bytes + n
       exceeded <<- TRUE
       return(FALSE)
+    }
+    if (n > 0L && is.function(storage_guard)) {
+      guard <- invoke_storage_guard(
+        storage_guard,
+        bytes,
+        advertised_size,
+        phase = "stream",
+        pending_bytes = n
+      )
+      if (!isTRUE(guard$ok)) {
+        guard_failed <<- TRUE
+        guard_reason <<- guard$reason %||% "The storage guard rejected the write."
+        return(FALSE)
+      }
     }
     if (n > 0L) {
       writeBin(chunk, con)
@@ -1081,18 +1168,32 @@ download_stream_to_part <- function(req, part, cap) {
     TRUE
   }
   resp <- httr2::req_perform_stream(req, callback = callback, round = "byte")
-  list(response = resp, size_bytes = bytes, exceeded = exceeded)
+  list(
+    response = resp,
+    size_bytes = bytes,
+    exceeded = exceeded,
+    guard_failed = guard_failed,
+    guard_reason = guard_reason
+  )
 }
 
 #' Download, validate, checksum and publish one response from a staged path.
 #' @noRd
-download_staged_response <- function(req, url, dest, cap) {
+download_staged_response <- function(
+  req, url, dest, cap, storage_guard = NULL, advertised_size = NA_real_
+) {
   part <- download_part_path(dest)
   on.exit(unlink(part, force = TRUE), add = TRUE)
 
   tryCatch(
     {
-      transfer <- download_stream_to_part(req, part, cap)
+      transfer <- download_stream_to_part(
+        req,
+        part,
+        cap,
+        storage_guard = storage_guard,
+        advertised_size = advertised_size
+      )
       resp <- transfer$response
       status <- tryCatch(httr2::resp_status(resp), error = function(e) NA_integer_)
       if (length(status) == 1L && !is.na(status) && (status < 200L || status >= 300L)) {
@@ -1100,6 +1201,15 @@ download_staged_response <- function(req, url, dest, cap) {
       }
 
       size <- as.numeric(transfer$size_bytes)
+      if (isTRUE(transfer$guard_failed)) {
+        return(list(
+          local_path = NA_character_,
+          status = "failed",
+          size_bytes = size,
+          sha256 = NA_character_,
+          reason = transfer$guard_reason %||% "The storage guard rejected the transfer."
+        ))
+      }
       if (isTRUE(transfer$exceeded)) {
         return(list(
           local_path = NA_character_,
@@ -1128,7 +1238,8 @@ download_staged_response <- function(req, url, dest, cap) {
           reason = sprintf("downloaded size %s exceeds cap %s", format(size), format(cap))
         ))
       }
-      if (!is.na(get_length) && (is.na(size) || get_length != size)) {
+      if (!is.function(storage_guard) && !is.na(get_length) &&
+        (is.na(size) || get_length != size)) {
         stop(
           sprintf("GET Content-Length %s does not match downloaded size %s", format(get_length), format(size)),
           call. = FALSE
@@ -1146,6 +1257,24 @@ download_staged_response <- function(req, url, dest, cap) {
       sha256 <- file_sha256(part)
       if (is.na(sha256)) {
         stop("could not compute SHA-256 for staged download", call. = FALSE)
+      }
+      if (is.function(storage_guard)) {
+        guard <- invoke_storage_guard(
+          storage_guard,
+          size,
+          if (is.na(advertised_size)) get_length else advertised_size,
+          phase = "publish",
+          pending_bytes = 0
+        )
+        if (!isTRUE(guard$ok)) {
+          return(list(
+            local_path = NA_character_,
+            status = "failed",
+            size_bytes = size,
+            sha256 = NA_character_,
+            reason = guard$reason %||% "The storage guard rejected publication."
+          ))
+        }
       }
       publication_dest <- dest
       if (tools::file_ext(dest) == "x") {
@@ -1208,7 +1337,7 @@ download_request <- function(url) {
 }
 
 #' @noRd
-download_one_attachment <- function(url, dest, cap) {
+download_one_attachment <- function(url, dest, cap, storage_guard = NULL) {
   announced <- head_content_length(url)
   if (!is.na(announced) && announced > cap) {
     return(list(
@@ -1219,8 +1348,28 @@ download_one_attachment <- function(url, dest, cap) {
       reason = sprintf("HEAD Content-Length %s exceeds cap %s", format(announced), format(cap))
     ))
   }
+  if (is.function(storage_guard)) {
+    guard <- invoke_storage_guard(storage_guard, 0, announced, phase = "stream")
+    if (!isTRUE(guard$ok)) {
+      return(list(
+        local_path = NA_character_,
+        status = "failed",
+        size_bytes = NA_real_,
+        sha256 = NA_character_,
+        reason = guard$reason %||% "The storage guard rejected the transfer."
+      ))
+    }
+  }
   tryCatch(
-    download_staged_response(download_request(url), url, dest, cap),
+    if (is.function(storage_guard)) {
+      download_staged_response(
+        download_request(url), url, dest, cap,
+        storage_guard = storage_guard,
+        advertised_size = announced
+      )
+    } else {
+      download_staged_response(download_request(url), url, dest, cap)
+    },
     error = function(e) {
       list(
         local_path = NA_character_,
