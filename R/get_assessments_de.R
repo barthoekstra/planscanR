@@ -581,22 +581,104 @@ de_docuuid_from_url <- function(url) {
 }
 
 #' Extract the detail-page identity echoed by the portal response.
+#'
+#' Most UVP detail pages expose the document UUID on the HTMX ZIP-widget. A
+#' legitimate project with no attachments has no ZIP widget, however. Those
+#' pages still repeat their UUID in the encoded target URL of the social-share
+#' links. Use that as a fallback only when at least two share links agree and
+#' the response has the structural markers of a project detail page. A URL
+#' reflected by a maintenance/error response must never be enough on its own.
 #' @noRd
 de_response_document_id <- function(html) {
   attrs <- rvest::html_attr(rvest::html_elements(html, "[hx-get]"), "hx-get")
   attrs <- attrs[!is.na(attrs) & nzchar(attrs)]
-  if (length(attrs) == 0L) {
-    return(NA_character_)
-  }
-  matches <- regmatches(
+  zip_matches <- regmatches(
     attrs,
     regexec("rest/createDetailZip\\?docuuid=([A-Fa-f0-9-]+)", attrs, perl = TRUE)
   )
-  ids <- vapply(matches, function(match) {
+  zip_ids <- vapply(zip_matches, function(match) {
     if (length(match) >= 2L) match[[2L]] else NA_character_
   }, character(1))
-  ids <- unique(ids[!is.na(ids) & nzchar(ids)])
-  if (length(ids) == 1L) ids[[1L]] else NA_character_
+  zip_ids <- unique(zip_ids[!is.na(zip_ids) & nzchar(zip_ids)])
+
+  # The share links carry an URL-encoded copy of the detail URL, e.g.
+  # `...?url=http%3A%2F%2Fwww.uvp-verbund.de%2Ftrefferanzeige%3Fdocuuid%3D...`.
+  # Decode repeatedly because some providers encode the nested URL twice.
+  share_hrefs <- rvest::html_attr(
+    rvest::html_elements(html, ".social-buttons a.social[href]"),
+    "href"
+  )
+  share_hrefs <- share_hrefs[!is.na(share_hrefs) & nzchar(share_hrefs)]
+  share_matches <- lapply(share_hrefs, function(href) {
+    decoded <- href
+    for (attempt in seq_len(3L)) {
+      next_value <- tryCatch(utils::URLdecode(decoded), error = function(e) decoded)
+      if (identical(next_value, decoded)) {
+        break
+      }
+      decoded <- next_value
+    }
+    match <- regexec(
+      "uvp-verbund\\.de/trefferanzeige\\?docuuid=([A-Fa-f0-9-]+)",
+      decoded,
+      perl = TRUE,
+      ignore.case = TRUE
+    )
+    captured <- regmatches(decoded, match)[[1L]]
+    if (length(captured) >= 2L && nzchar(captured[[2L]])) captured[[2L]] else NA_character_
+  })
+  share_ids <- vapply(share_matches, identity, character(1))
+  share_ids <- share_ids[!is.na(share_ids) & nzchar(share_ids)]
+  distinct_share_ids <- unique(share_ids)
+
+  # Never use a share-link fallback when the stronger ZIP-widget identity
+  # disagrees with it (or when the response contains multiple ZIP identities).
+  all_ids <- unique(c(zip_ids, distinct_share_ids))
+  if (length(all_ids) > 1L) {
+    return(NA_character_)
+  }
+  if (length(zip_ids) == 1L) {
+    return(zip_ids[[1L]])
+  }
+
+  # Repeated share links plus project-detail structure are the minimum evidence
+  # for an attachment-free project page. This deliberately excludes a generic
+  # error page that merely reflects the requested URL in one link.
+  if (length(distinct_share_ids) != 1L || length(share_ids) < 2L ||
+    !de_is_project_detail_page(html)) {
+    return(NA_character_)
+  }
+  distinct_share_ids[[1L]]
+}
+
+#' Check whether an HTML response has the structure of a UVP project page.
+#'
+#' @noRd
+de_is_project_detail_page <- function(html) {
+  body <- rvest::html_element(html, "body")
+  body_class <- rvest::html_attr(body, "class")
+  if (is.na(body_class) || !grepl("\\bpage-detail\\b", body_class, perl = TRUE)) {
+    return(FALSE)
+  }
+
+  title <- rvest::html_text(
+    rvest::html_element(html, ".detail h1"),
+    trim = TRUE
+  )
+  if (is.na(title) || !nzchar(title)) {
+    return(FALSE)
+  }
+
+  # A project page has at least one labelled detail block in addition to its
+  # heading. The summary and timeline are present on both attachment-bearing
+  # and attachment-free projects; the category/date checks cover older pages.
+  detail_text <- rvest::html_text2(rvest::html_element(html, ".detail"))
+  any(c(
+    grepl("Allgemeine Vorhabenbeschreibung", detail_text, fixed = TRUE),
+    grepl("UVP-Kategorie", detail_text, fixed = TRUE),
+    grepl("Verfahrensschritte", detail_text, fixed = TRUE),
+    grepl("Zuletzt ge\u00e4ndert", detail_text, fixed = TRUE)
+  ))
 }
 
 #' Extract PDF (and generic attachment) URLs from a specific H4 section.

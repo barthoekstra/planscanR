@@ -147,6 +147,122 @@ test_that("refresh accepts a proven DE empty inventory as character empty", {
   expect_length(out$attachment_urls[[1L]], 0L)
 })
 
+test_that("refresh accepts a valid DE empty project identified by encoded share links", {
+  document_id <- "ADF2AD38-849C-40D5-BA12-B5453F74A8FC"
+  url <- paste0("https://www.uvp-verbund.de/trefferanzeige?docuuid=", document_id)
+  encoded_detail_url <- utils::URLencode(url, reserved = TRUE)
+  empty_project <- paste0(
+    "<html><body class='page-detail'><div class='detail'>",
+    "<h1>Windpark Heubusch GmbH &amp; Co. KG</h1>",
+    "<h3>Allgemeine Vorhabenbeschreibung</h3><p>Projektbeschreibung.</p>",
+    "<div id='timeline'><h1>Verfahrensschritte</h1></div>",
+    "<div class='social-buttons'>",
+    "<a class='button round social' href='https://x.com/intent/post?url=",
+    encoded_detail_url,
+    "'>X</a>",
+    "<a class='button round social' href='https://www.facebook.com/sharer/sharer.php?u=",
+    encoded_detail_url,
+    "'>Facebook</a>",
+    "</div></div></body></html>"
+  )
+  records <- tibble::tibble(
+    country = "de",
+    source_portal = "uvp-verbund.de",
+    document_id = document_id,
+    url = url,
+    attachment_urls = list(character(0))
+  )
+  testthat::local_mocked_bindings(
+    perform_html = function(req) rvest::read_html(empty_project),
+    req_planscanr = function(base_url, path = NULL) base_url,
+    .package = "planscanR"
+  )
+
+  out <- planscanR::resolve_attachment_inventory(records, refresh = TRUE)
+
+  expect_identical(out$status, "empty")
+  expect_true(out$authoritative[[1L]])
+  expect_identical(out$attachment_urls[[1L]], character(0))
+})
+
+test_that("DE URL reflection without project markers cannot prove an empty inventory", {
+  document_id <- "ADF2AD38-849C-40D5-BA12-B5453F74A8FC"
+  url <- paste0("https://www.uvp-verbund.de/trefferanzeige?docuuid=", document_id)
+  encoded_detail_url <- utils::URLencode(url, reserved = TRUE)
+  maintenance <- paste0(
+    "<html><body><h1>Maintenance</h1><div class='social-buttons'>",
+    "<a class='button round social' href='https://x.com/intent/post?url=",
+    encoded_detail_url,
+    "'>X</a>",
+    "<a class='button round social' href='https://www.facebook.com/sharer/sharer.php?u=",
+    encoded_detail_url,
+    "'>Facebook</a>",
+    "</div></body></html>"
+  )
+  records <- tibble::tibble(
+    country = "de",
+    source_portal = "uvp-verbund.de",
+    document_id = document_id,
+    url = url,
+    attachment_urls = list(character(0))
+  )
+  testthat::local_mocked_bindings(
+    perform_html = function(req) rvest::read_html(maintenance),
+    req_planscanr = function(base_url, path = NULL) base_url,
+    .package = "planscanR"
+  )
+
+  out <- planscanR::resolve_attachment_inventory(records, refresh = TRUE)
+
+  expect_identical(out$status, "retryable")
+  expect_false(out$authoritative[[1L]])
+  expect_match(out$reason, "response identity")
+  expect_length(out$attachment_urls[[1L]], 0L)
+})
+
+test_that("DE share-link fallback never overrides a conflicting ZIP identity", {
+  requested_id <- "ADF2AD38-849C-40D5-BA12-B5453F74A8FC"
+  zip_id <- "BDF2AD38-849C-40D5-BA12-B5453F74A8FC"
+  url <- paste0("https://www.uvp-verbund.de/trefferanzeige?docuuid=", requested_id)
+  encoded_detail_url <- utils::URLencode(url, reserved = TRUE)
+  conflicting <- paste0(
+    "<html><body class='page-detail'><div class='detail'>",
+    "<h1>Project with conflicting identity</h1>",
+    "<h3>Allgemeine Vorhabenbeschreibung</h3><p>Project description.</p>",
+    "<div id='timeline'><h1>Verfahrensschritte</h1>",
+    "<div hx-get='rest/createDetailZip?docuuid=", zip_id, "'></div></div>",
+    "<div class='social-buttons'>",
+    "<a class='button round social' href='https://x.com/intent/post?url=",
+    encoded_detail_url,
+    "'>X</a>",
+    "<a class='button round social' href='https://www.facebook.com/sharer/sharer.php?u=",
+    encoded_detail_url,
+    "'>Facebook</a>",
+    "</div></div></body></html>"
+  )
+  parsed <- rvest::read_html(conflicting)
+  expect_true(is.na(planscanR:::de_response_document_id(parsed)))
+
+  records <- tibble::tibble(
+    country = "de",
+    source_portal = "uvp-verbund.de",
+    document_id = requested_id,
+    url = url,
+    attachment_urls = list(character(0))
+  )
+  testthat::local_mocked_bindings(
+    perform_html = function(req) parsed,
+    req_planscanr = function(base_url, path = NULL) base_url,
+    .package = "planscanR"
+  )
+
+  out <- planscanR::resolve_attachment_inventory(records, refresh = TRUE)
+
+  expect_identical(out$status, "retryable")
+  expect_false(out$authoritative[[1L]])
+  expect_match(out$reason, "response identity")
+})
+
 test_that("strict DK empty documents are an authoritative empty inventory", {
   records <- tibble::tibble(
     country = "dk",

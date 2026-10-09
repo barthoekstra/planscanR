@@ -132,9 +132,12 @@ audit_cache_downloads <- function(cache_dir = NULL, country = NULL) {
 #'   transferred;
 #' * streams through the shared throttled, retrying httr2 client into a
 #'   same-filesystem staging path, enforcing the size cap while receiving;
-#' * checks the GET length, response format/MIME, and body before publication;
+#' * checks the GET length and rejects empty bodies or clear HTML/login/error
+#'   pages before publication; MIME and magic bytes are identification hints,
+#'   so arbitrary nonempty attachment bytes are retained;
 #' * finalizes the file extension (a URL with no extension lands at a `.x`
-#'   placeholder, renamed from the response `Content-Type` or magic bytes);
+#'   placeholder, renamed from the URL, magic bytes, response `Content-Type`,
+#'   or a stable `.bin` fallback);
 #' * computes the SHA-256, publishes its verification receipt, and atomically
 #'   renames the completed file.
 #'

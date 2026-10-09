@@ -57,10 +57,13 @@ planscanR's own downloader does. In order, it:
 \code{Content-Length} already exceeds the cap, so an over-size file is never
 transferred;
 \item streams through the shared throttled, retrying httr2 client into a
-same-filesystem staging path, enforcing the cap while receiving;
-\item checks the GET length, response format/MIME, and body before publication;
+same-filesystem staging path, enforcing the size cap while receiving;
+\item checks the GET length and rejects empty bodies or clear HTML/login/error
+pages before publication; MIME and magic bytes are identification hints,
+so arbitrary nonempty attachment bytes are retained;
 \item finalizes the file extension (a URL with no extension lands at a \code{.x}
-placeholder, renamed from the response \code{Content-Type} or magic bytes);
+placeholder, renamed from the URL, magic bytes, response \code{Content-Type},
+or a stable \code{.bin} fallback);
 \item computes the SHA-256, publishes its verification receipt, and atomically
 renames the completed file.
 }

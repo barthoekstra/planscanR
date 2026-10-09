@@ -79,23 +79,84 @@ test_that("content_type_to_ext maps the common MIME types and ignores parameters
     ),
     "docx"
   )
+  expect_identical(planscanR:::content_type_to_ext("application/x-7z-compressed"), "7z")
+  expect_identical(planscanR:::content_type_to_ext("image/x-ms-bmp"), "bmp")
+  expect_identical(planscanR:::content_type_to_ext("application/vnd.ms-outlook"), "msg")
   expect_true(is.na(planscanR:::content_type_to_ext("application/octet-stream")))
   expect_true(is.na(planscanR:::content_type_to_ext(NA_character_)))
   expect_true(is.na(planscanR:::content_type_to_ext("")))
   expect_true(is.na(planscanR:::content_type_to_ext(NULL)))
 })
 
-test_that("sniff_magic_ext recognises PDF / PNG / JPEG / ZIP byte signatures", {
+test_that("content disposition preserves RFC 5987 attachment extensions", {
+  expect_identical(
+    planscanR:::content_disposition_to_ext('attachment; filename="report.final.PDF"'),
+    "pdf"
+  )
+  expect_identical(
+    planscanR:::content_disposition_to_ext("attachment; filename*=UTF-8''notice.html"),
+    "html"
+  )
+  expect_identical(
+    planscanR:::content_disposition_to_ext('attachment; filename="owner\'s.report.pdf"'),
+    "pdf"
+  )
+  expect_true(
+    planscanR:::is_explicit_html_attachment(
+      "attachment; filename*=UTF-8''notice.html",
+      "download.x"
+    )
+  )
+  expect_false(
+    planscanR:::is_explicit_html_attachment(
+      "inline; filename*=UTF-8''notice.html",
+      "download.x"
+    )
+  )
+})
+
+test_that("JSON error detection checks error values rather than field names", {
+  expect_true(planscanR:::looks_like_json_error('{"message":"Unauthorized"}'))
+  expect_true(planscanR:::looks_like_json_error('{"status":403,"message":"denied"}'))
+  expect_false(planscanR:::looks_like_json_error('{"error":0,"measurements":[1,2]}'))
+  expect_false(planscanR:::looks_like_json_error('{"message":"measurement complete"}'))
+  withr::with_tempdir({
+    writeLines('{"error":0,"measurements":[1,2]}', "measurements.json")
+    expect_identical(
+      planscanR:::validate_download_body(
+        "measurements.json",
+        "application/json",
+        "measurements.json"
+      ),
+      "json"
+    )
+    writeLines("<project><metadata/></project>", "project.xml")
+    expect_identical(
+      planscanR:::validate_download_body("project.xml", "application/xml", "project.xml"),
+      "xml"
+    )
+  })
+})
+
+test_that("sniff_magic_ext recognises common and legacy binary signatures", {
   withr::with_tempdir({
     writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34)), "doc")
     writeBin(as.raw(c(0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10)), "img")
     writeBin(as.raw(c(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)), "pic")
     writeBin(as.raw(c(0x50, 0x4B, 0x03, 0x04, 0x14, 0x00)), "bundle")
+    writeBin(as.raw(c(0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C, 0x00, 0x04)), "archive")
+    writeBin(as.raw(c(0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1)), "ole")
+    writeBin(as.raw(c(0x42, 0x4D, 0x00, 0x00)), "bitmap")
+    writeBin(c(charToRaw("SQLite format 3"), as.raw(0x00), as.raw(rep(0x00, 4L))), "sqlite")
     writeBin(as.raw(rep(0x00, 16L)), "blank")
     expect_identical(planscanR:::sniff_magic_ext("doc"), "pdf")
     expect_identical(planscanR:::sniff_magic_ext("img"), "jpg")
     expect_identical(planscanR:::sniff_magic_ext("pic"), "png")
     expect_identical(planscanR:::sniff_magic_ext("bundle"), "zip")
+    expect_identical(planscanR:::sniff_magic_ext("archive"), "7z")
+    expect_identical(planscanR:::sniff_magic_ext("ole"), "ole")
+    expect_identical(planscanR:::sniff_magic_ext("bitmap"), "bmp")
+    expect_identical(planscanR:::sniff_magic_ext("sqlite"), "sqlite")
     expect_true(is.na(planscanR:::sniff_magic_ext("blank")))
     expect_true(is.na(planscanR:::sniff_magic_ext("nonexistent-file")))
   })
@@ -115,11 +176,11 @@ test_that("finalize_extension renames .x placeholders using Content-Type or magi
     out <- planscanR:::finalize_extension("b.x", "application/octet-stream")
     expect_identical(basename(out), "b.pdf")
 
-    # Unknown type / unknown bytes: leave the placeholder in place.
+    # Unknown type / unknown bytes: use a stable generic binary extension.
     writeBin(as.raw(rep(0xAB, 8L)), "c.x")
     out <- planscanR:::finalize_extension("c.x", "application/x-weird")
-    expect_identical(basename(out), "c.x")
-    expect_true(file.exists("c.x"))
+    expect_identical(basename(out), "c.bin")
+    expect_true(file.exists("c.bin"))
 
     # Not a placeholder: no-op even when Content-Type disagrees.
     writeBin(as.raw(c(0x25, 0x50, 0x44, 0x46)), "d.pdf")
@@ -270,6 +331,63 @@ test_that("download_attachments DOES hit the network for a not-yet-cached file",
     expect_true(requested)
     expect_identical(out$status, "failed")
   })
+})
+
+test_that("unbounded streaming requests use a low-speed guard", {
+  captured <- list(request = NULL)
+  local_mocked_bindings(
+    head_content_length = function(url) NA_real_,
+    download_staged_response = function(req, url, dest, cap) {
+      captured$request <<- req
+      list(
+        local_path = NA_character_,
+        status = "failed",
+        size_bytes = NA_real_,
+        sha256 = NA_character_,
+        reason = "test"
+      )
+    },
+    .package = "planscanR"
+  )
+
+  withr::with_options(list(planscanR.timeout = Inf), {
+    planscanR:::download_one_attachment(
+      "https://example.org/files/nl/1/large.bin",
+      "large.bin",
+      cap = Inf
+    )
+  })
+  expect_identical(captured$request$options$connecttimeout, 60)
+  expect_identical(captured$request$options$low_speed_limit, 1)
+  expect_identical(captured$request$options$low_speed_time, 120)
+
+  captured$request <- NULL
+  withr::with_options(list(planscanR.timeout = 60), {
+    planscanR:::download_one_attachment(
+      "https://example.org/files/nl/1/ordinary.bin",
+      "ordinary.bin",
+      cap = Inf
+    )
+  })
+  expect_identical(captured$request$options$connecttimeout, 0)
+  expect_null(captured$request$options$low_speed_limit)
+  expect_null(captured$request$options$low_speed_time)
+})
+
+test_that("unbounded timeout keeps the HEAD size probe finite", {
+  captured <- list(request = NULL)
+  local_mocked_bindings(
+    req_perform = function(req, ...) {
+      captured$request <<- req
+      structure(list(), class = "httr2_response")
+    },
+    .package = "httr2"
+  )
+
+  withr::with_options(list(planscanR.timeout = Inf), {
+    expect_true(is.na(planscanR:::head_content_length("https://example.org/file")))
+  })
+  expect_identical(captured$request$options$timeout_ms, 60000)
 })
 
 test_that("clear_cache is a no-op against an empty / missing root", {

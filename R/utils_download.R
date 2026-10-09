@@ -173,8 +173,9 @@ resolve_cached_path_internal <- function(dest) {
 
 #' Map an HTTP Content-Type header value to a file extension.
 #'
-#' Returns `NA_character_` when no mapping applies — the caller leaves the
-#' file with its placeholder `.x` extension rather than guessing.
+#' Returns `NA_character_` when no mapping applies. Unknown types are still
+#' accepted by the downloader; callers use the URL extension or a stable
+#' generic `.bin` fallback when no stronger signal is available.
 #' @noRd
 content_type_to_ext <- function(content_type) {
   if (is.null(content_type) || length(content_type) != 1L || is.na(content_type) || !nzchar(content_type)) {
@@ -194,16 +195,32 @@ content_type_to_ext <- function(content_type) {
     "application/rtf" = "rtf",
     "application/json" = "json",
     "application/xml" = "xml",
+    "application/x-7z-compressed" = "7z",
+    "application/x-rar-compressed" = "rar",
+    "application/vnd.rar" = "rar",
+    "application/gzip" = "gz",
+    "application/x-gzip" = "gz",
+    "application/x-bzip2" = "bz2",
+    "application/x-xz" = "xz",
+    "application/x-sqlite3" = "sqlite",
+    "application/vnd.ms-outlook" = "msg",
+    "application/x-msg" = "msg",
+    "application/epub+zip" = "epub",
+    "application/x-tar" = "tar",
     "text/xml" = "xml",
     "text/plain" = "txt",
     "text/html" = "html",
     "text/csv" = "csv",
+    "text/css" = "css",
+    "text/calendar" = "ics",
     "image/jpeg" = "jpg",
     "image/png" = "png",
     "image/tiff" = "tif",
     "image/gif" = "gif",
     "image/webp" = "webp",
     "image/svg+xml" = "svg",
+    "image/bmp" = "bmp",
+    "image/x-ms-bmp" = "bmp",
     NA_character_
   )
 }
@@ -212,18 +229,18 @@ content_type_to_ext <- function(content_type) {
 #'
 #' Used as a fallback when the server replies with a generic
 #' `application/octet-stream`. Returns `NA_character_` for unrecognised
-#' content so the caller can leave the placeholder extension in place.
+#' content; the downloader then uses the URL extension or `.bin`.
 #' @noRd
 sniff_magic_ext <- function(path) {
   if (length(path) != 1L || is.na(path) || !file.exists(path)) {
     return(NA_character_)
   }
-  if (file.info(path)$size < 4L) {
+  if (file.info(path)$size < 2L) {
     return(NA_character_)
   }
   con <- file(path, open = "rb")
   on.exit(close(con), add = TRUE)
-  b <- readBin(con, what = "raw", n = 8L)
+  b <- readBin(con, what = "raw", n = 32L)
   eq <- function(prefix) length(b) >= length(prefix) && all(b[seq_along(prefix)] == as.raw(prefix))
   if (eq(c(0x25, 0x50, 0x44, 0x46))) {
     return("pdf")
@@ -231,6 +248,35 @@ sniff_magic_ext <- function(path) {
   if (eq(c(0x50, 0x4B, 0x03, 0x04))) {
     return("zip")
   } # PK..  (also docx/xlsx/pptx containers)
+  if (eq(c(0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C))) {
+    return("7z")
+  } # 7z archive
+  if (eq(c(0x52, 0x61, 0x72, 0x21, 0x1A, 0x07))) {
+    return("rar")
+  } # RAR archive
+  if (eq(c(0x1F, 0x8B))) {
+    return("gz")
+  } # gzip
+  if (eq(c(0x42, 0x5A, 0x68))) {
+    return("bz2")
+  } # bzip2
+  if (eq(c(0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00))) {
+    return("xz")
+  } # xz
+  if (eq(c(0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1))) {
+    return("ole")
+  } # OLE Compound File (MSG/DOC/XLS and similar)
+  if (eq(c(0x42, 0x4D))) {
+    return("bmp")
+  } # Windows bitmap
+  sqlite_magic <- as.raw(c(
+    charToRaw("SQLite format 3"),
+    0x00
+  ))
+  if (length(b) >= length(sqlite_magic) &&
+    all(b[seq_along(sqlite_magic)] == sqlite_magic)) {
+    return("sqlite")
+  }
   if (eq(c(0xFF, 0xD8, 0xFF))) {
     return("jpg")
   }
@@ -250,9 +296,11 @@ sniff_magic_ext <- function(path) {
 #'
 #' Called after a successful download for paths produced by
 #' `slugify_filename()` from URLs whose path didn't expose an extension.
-#' Content-Type is the primary signal; magic-byte sniffing is a fallback
-#' for generic responses. If neither yields a known type, the placeholder
-#' extension is left in place so the file is still usable.
+#' The URL extension is retained when it is present. For extensionless URLs,
+#' magic-byte sniffing is preferred over Content-Type because portals often
+#' mislabel archives and office files; `.bin` is used when neither signal is
+#' known. This keeps every nonempty binary attachment addressable without
+#' pretending that its format was identified.
 #'
 #' @param dest On-disk path (already populated with the response body).
 #' @param content_type Value of the `Content-Type` response header, or
@@ -266,19 +314,154 @@ finalize_extension <- function(dest, content_type) {
   if (tools::file_ext(dest) != "x" || !file.exists(dest)) {
     return(dest)
   }
-  ext <- content_type_to_ext(content_type)
-  if (is.na(ext)) {
-    ext <- sniff_magic_ext(dest)
-  }
-  if (is.na(ext) || identical(ext, "x")) {
-    return(dest)
-  }
+  ext <- attachment_extension(dest, content_type, path = dest)
   new_dest <- paste0(tools::file_path_sans_ext(dest), ".", ext)
   if (identical(new_dest, dest) || file.exists(new_dest)) {
     return(dest)
   }
   ok <- tryCatch(file.rename(dest, new_dest), error = function(e) FALSE)
   if (isTRUE(ok)) new_dest else dest
+}
+
+#' Choose a stable extension for a downloaded attachment.
+#' @noRd
+attachment_extension <- function(
+  dest,
+  content_type,
+  path = NULL,
+  content_disposition = NA_character_
+) {
+  expected_ext <- tolower(tools::file_ext(dest))
+  if (nzchar(expected_ext) && expected_ext != "x") {
+    return(expected_ext)
+  }
+  disposition_ext <- content_disposition_to_ext(content_disposition)
+  if (!is.na(disposition_ext) && nzchar(disposition_ext)) {
+    return(disposition_ext)
+  }
+  magic_ext <- if (!is.null(path)) sniff_magic_ext(path) else NA_character_
+  if (!is.na(magic_ext) && nzchar(magic_ext)) {
+    return(magic_ext)
+  }
+  mime_ext <- content_type_to_ext(content_type)
+  if (!is.na(mime_ext) && nzchar(mime_ext) &&
+    (!identical(mime_ext, "html") || is_explicit_html_attachment(
+      content_disposition, dest
+    ))) {
+    return(mime_ext)
+  }
+  "bin"
+}
+
+#' Extract a safe extension from a Content-Disposition filename.
+#' @noRd
+content_disposition_to_ext <- function(content_disposition) {
+  if (is.null(content_disposition) || length(content_disposition) != 1L ||
+    is.na(content_disposition) || !nzchar(content_disposition)) {
+    return(NA_character_)
+  }
+  match <- regexec(
+    "filename\\*?\\s*=\\s*([^;]+)",
+    content_disposition,
+    ignore.case = TRUE,
+    perl = TRUE
+  )
+  value <- regmatches(content_disposition, match)[[1L]]
+  if (length(value) < 2L) {
+    return(NA_character_)
+  }
+  value <- trimws(value[[2L]])
+  value <- gsub('^"|"$', "", value)
+  # RFC 5987 values use charset''percent-encoded-name. Keep ordinary
+  # apostrophes in quoted filenames while removing only that prefix.
+  value <- sub("^[^']*''", "", value)
+  ext <- tolower(tools::file_ext(tryCatch(utils::URLdecode(value), error = function(e) value)))
+  ext <- gsub("[^a-z0-9]", "", ext, perl = TRUE)
+  if (!nzchar(ext)) NA_character_ else ext
+}
+
+#' Whether a response carries explicit evidence of an HTML attachment.
+#' @noRd
+is_explicit_html_attachment <- function(content_disposition, dest) {
+  if (is.null(content_disposition) || length(content_disposition) != 1L ||
+    is.na(content_disposition) || !grepl(
+    "(^|;)\\s*attachment\\s*(;|$)",
+    content_disposition,
+    ignore.case = TRUE,
+    perl = TRUE
+  )) {
+    return(FALSE)
+  }
+  expected_ext <- tolower(tools::file_ext(dest))
+  disposition_ext <- content_disposition_to_ext(content_disposition)
+  identical(expected_ext, "html") || identical(expected_ext, "htm") ||
+    identical(disposition_ext, "html") || identical(disposition_ext, "htm")
+}
+
+#' Detect a JSON authorization/error envelope without rejecting data fields.
+#' @noRd
+looks_like_json_error <- function(preview_text) {
+  if (!grepl("^\\s*\\{", preview_text, perl = TRUE)) {
+    return(FALSE)
+  }
+  marker <- "(error|exception|failure|failed|unauthori|forbidden|not[ -]?found|login|sign[ -]?in|expired|access[ -]?denied|session[ -]?(expired|invalid|ended)|invalid[ -]?token)"
+  code <- "\\b(401|403|404|408|419|429|500|502|503|504)\\b"
+  parsed <- tryCatch(
+    jsonlite::fromJSON(preview_text, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  if (is.list(parsed)) {
+    for (key in intersect(names(parsed), c("error", "errors", "exception", "message", "status"))) {
+      values <- unlist(parsed[[key]], recursive = TRUE, use.names = FALSE)
+      if (length(values) == 0L) {
+        next
+      }
+      text <- tolower(paste(as.character(values), collapse = " "))
+      if (grepl(marker, text, perl = TRUE) || grepl(code, text, perl = TRUE)) {
+        return(TRUE)
+      }
+    }
+    return(FALSE)
+  }
+  # A large JSON attachment may be truncated by the preview read. Inspect
+  # only scalar values for error-like keys; `"error": 0` and similar data
+  # fields therefore remain valid.
+  pairs <- regmatches(
+    preview_text,
+    gregexpr(
+      "\"([^\"]+)\"\\s*:\\s*(\"[^\"]*\"|true|false|null|-?[0-9]+)",
+      preview_text,
+      perl = TRUE
+    )
+  )[[1L]]
+  for (pair in pairs) {
+    fields <- regmatches(
+      pair,
+      regexec(
+        "\"([^\"]+)\"\\s*:\\s*(\"([^\"]*)\"|true|false|null|-?[0-9]+)",
+        pair,
+        perl = TRUE
+      )
+    )[[1L]]
+    if (length(fields) < 4L ||
+      !tolower(fields[[2L]]) %in% c("error", "errors", "exception", "message", "status")) {
+      next
+    }
+    value <- if (length(fields) >= 4L && !is.na(fields[[4L]]) &&
+      nzchar(fields[[4L]])) {
+      fields[[4L]]
+    } else {
+      fields[[3L]]
+    }
+    if (is.na(value)) {
+      next
+    }
+    value <- tolower(value)
+    if (grepl(marker, value, perl = TRUE) || grepl(code, value, perl = TRUE)) {
+      return(TRUE)
+    }
+  }
+  FALSE
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
@@ -343,6 +526,13 @@ head_content_length <- function(url) {
   res <- tryCatch(
     {
       req <- req_planscanr(url_encode_safe(url))
+      timeout <- getOption("planscanR.timeout", 60)
+      if (length(timeout) == 1L && is.numeric(timeout) &&
+        isTRUE(is.infinite(timeout)) && isTRUE(timeout > 0)) {
+        # A queue run may disable the aggregate GET timeout, but the cheap
+        # preflight must still fail promptly when a server never answers HEAD.
+        req <- httr2::req_timeout(req, 60)
+      }
       req <- httr2::req_method(req, "HEAD")
       resp <- httr2::req_perform(req)
       response_content_length(resp)
@@ -698,14 +888,20 @@ write_download_receipt <- function(path, url, content_type, size_bytes, sha256, 
 
 #' Publish an already-downloaded, validated file with a receipt.
 #' @noRd
-publish_verified_download_copy <- function(part, dest, url, content_type = "application/octet-stream") {
+publish_verified_download_copy <- function(
+  part,
+  dest,
+  url,
+  content_type = "application/octet-stream",
+  content_disposition = NA_character_
+) {
   if (!file.exists(part) || isTRUE(file.info(part)$isdir) || file.info(part)$size <= 0) {
     stop("cannot publish an empty or missing staged download", call. = FALSE)
   }
   # Discovery receives an HTTP 200 even for portal login/error pages. Reuse
   # the same body/MIME/magic validation as the normal downloader before any
   # receipt or canonical bytes are published.
-  validate_download_body(part, content_type, dest)
+  validate_download_body(part, content_type, dest, content_disposition)
   size <- unname(file.info(part)$size)
   sha256 <- file_sha256(part)
   if (is.na(sha256)) {
@@ -763,16 +959,18 @@ download_part_path <- function(dest) {
 
 #' Validate an attachment body before it can be published.
 #' @noRd
-validate_download_body <- function(path, content_type, dest) {
+validate_download_body <- function(
+  path,
+  content_type,
+  dest,
+  content_disposition = NA_character_
+) {
   size <- unname(file.info(path)$size)
   if (is.na(size) || size <= 0) {
     stop("download response body is empty", call. = FALSE)
   }
 
-  mime <- if (is.na(content_type)) "" else tolower(trimws(sub(";.*$", "", content_type)))
-  if (mime %in% c("text/html", "application/xhtml+xml")) {
-    stop("download response is an HTML/login/error body", call. = FALSE)
-  }
+  allow_html_attachment <- is_explicit_html_attachment(content_disposition, dest)
 
   con <- file(path, open = "rb")
   on.exit(close(con), add = TRUE)
@@ -780,62 +978,31 @@ validate_download_body <- function(path, content_type, dest) {
   preview_ascii <- preview
   preview_ascii[as.integer(preview_ascii) > 127L] <- as.raw(0x20)
   preview_text <- tryCatch(tolower(trimws(rawToChar(preview_ascii))), error = function(e) "")
-  if (grepl("^(<!doctype[[:space:]]+html|<html|<head|<body|<script|<title)", preview_text)) {
+  if (grepl(
+    "^(<!doctype[[:space:]]+html|<(html|head|body|script|title|form|meta|div|p|a)([[:space:]]|>|/))",
+    preview_text
+  ) &&
+    !allow_html_attachment) {
     stop("download response body looks like an HTML/login/error body", call. = FALSE)
   }
-  if (grepl("(?s)^\\s*\\{.*(error|message|login|unauthori|not[ -]?found)", preview_text, perl = TRUE)) {
-    expected <- tolower(tools::file_ext(dest))
-    if (expected %in% c("", "x", "pdf", "zip", "doc", "docx", "xls", "xlsx", "ppt", "pptx")) {
-      stop("download response body looks like an error response", call. = FALSE)
-    }
+  # Portals sometimes return a JSON error envelope with HTTP 200 and a
+  # generic MIME type. Inspect values belonging to error-like fields so a
+  # legitimate data object such as `{"error": 0, ...}` remains downloadable.
+  if (looks_like_json_error(preview_text)) {
+    stop("download response body looks like an error response", call. = FALSE)
   }
 
-  mime_ext <- content_type_to_ext(content_type)
-  magic_ext <- sniff_magic_ext(path)
-  expected_ext <- tolower(tools::file_ext(dest))
-  binary_magic <- function(ext) {
-    switch(ext,
-      pdf = "pdf",
-      zip = "zip",
-      docx = "zip",
-      xlsx = "zip",
-      pptx = "zip",
-      jpg = "jpg",
-      jpeg = "jpg",
-      png = "png",
-      tif = "tif",
-      tiff = "tif",
-      gif = "gif",
-      NA_character_
-    )
-  }
-  required_magic <- binary_magic(mime_ext)
-  if (!is.na(required_magic) && !identical(magic_ext, required_magic)) {
-    stop("download response bytes do not match the attachment MIME type", call. = FALSE)
-  }
-  expected_magic <- binary_magic(expected_ext)
-  if (!is.na(expected_magic) && !identical(magic_ext, expected_magic)) {
-    stop("download response bytes do not match the attachment filename", call. = FALSE)
-  }
-
-  if (is.na(mime_ext) && is.na(magic_ext) && !(expected_ext %in% c("txt", "csv", "json", "xml", "rtf"))) {
-    stop("download response has no recognised attachment format", call. = FALSE)
-  }
-  if (identical(mime_ext, "html")) {
-    stop("download response is an HTML/login/error body", call. = FALSE)
-  }
-
-  extension <- mime_ext
-  if (is.na(extension)) {
-    extension <- magic_ext
-  }
-  if (is.na(extension) && expected_ext != "x" && nzchar(expected_ext)) {
-    extension <- expected_ext
-  }
-  if (is.na(extension) || !nzchar(extension)) {
-    stop("download response has no recognised attachment format", call. = FALSE)
-  }
-  extension
+  # Format checks are deliberately advisory. A portal can return a valid
+  # attachment with a generic or incorrect MIME type, an uncommon magic
+  # signature, or a legacy file format. Empty bodies and clear error pages
+  # were rejected above; every other nonempty response is retained and gets
+  # a stable URL/MIME/magic-derived extension (or `.bin`).
+  attachment_extension(
+    dest,
+    content_type,
+    path = path,
+    content_disposition = content_disposition
+  )
 }
 
 #' Replace a cache file atomically while preserving it if publication fails.
@@ -969,7 +1136,13 @@ download_staged_response <- function(req, url, dest, cap) {
       }
 
       content_type <- response_header_value(resp, "Content-Type")
-      extension <- validate_download_body(part, content_type, dest)
+      content_disposition <- response_header_value(resp, "Content-Disposition")
+      extension <- validate_download_body(
+        part,
+        content_type,
+        dest,
+        content_disposition
+      )
       sha256 <- file_sha256(part)
       if (is.na(sha256)) {
         stop("could not compute SHA-256 for staged download", call. = FALSE)
@@ -1016,6 +1189,25 @@ download_staged_response <- function(req, url, dest, cap) {
 
 #' Run the shared preflight and staged download path for one URL.
 #' @noRd
+download_request <- function(url) {
+  req <- req_planscanr(url_encode_safe(url))
+  timeout <- getOption("planscanR.timeout", 60)
+  # Queue workers may deliberately disable the aggregate request timeout for
+  # large downloads. Keep those workers from hanging forever on a stalled
+  # socket while leaving the normal finite timeout path unchanged.
+  if (length(timeout) == 1L && is.numeric(timeout) &&
+    isTRUE(is.infinite(timeout)) && isTRUE(timeout > 0)) {
+    req <- httr2::req_options(
+      req,
+      connecttimeout = 60,
+      low_speed_limit = 1,
+      low_speed_time = 120
+    )
+  }
+  req
+}
+
+#' @noRd
 download_one_attachment <- function(url, dest, cap) {
   announced <- head_content_length(url)
   if (!is.na(announced) && announced > cap) {
@@ -1028,7 +1220,7 @@ download_one_attachment <- function(url, dest, cap) {
     ))
   }
   tryCatch(
-    download_staged_response(req_planscanr(url_encode_safe(url)), url, dest, cap),
+    download_staged_response(download_request(url), url, dest, cap),
     error = function(e) {
       list(
         local_path = NA_character_,
@@ -1052,7 +1244,8 @@ download_one_attachment <- function(url, dest, cap) {
 #'    size exceeds `max_file_size_mb` are skipped with status `"skipped_size"`.
 #'  * If the HEAD probe fails (e.g. server doesn't support HEAD), the download
 #'    is streamed into bounded staging and stops when the cap is crossed.
-#'    Completed responses are checked for length and format before publication.
+#'    Completed responses are checked for length and clear HTML/error bodies
+#'    before publication; arbitrary nonempty attachment bytes are retained.
 #'  * Any other failure yields status `"failed"` with the error message in `reason`.
 #'
 #' @param urls Character vector of URLs.

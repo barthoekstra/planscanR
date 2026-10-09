@@ -95,6 +95,177 @@ test_that("HTML login/error bodies are rejected before publication", {
   })
 })
 
+test_that("binary attachments survive a misleading HTML MIME header", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/nl/1234/report.pdf"
+    local_mocked_bindings(
+      head_content_length = function(url) NA_real_,
+      req_planscanr = function(base_url, path = NULL) structure(list(), class = "httr2_request"),
+      .package = "planscanR"
+    )
+    local_mocked_bindings(
+      req_perform_stream = function(req, callback, ...) {
+        callback(ACQ0A_PDF_MAGIC)
+        structure(list(), class = "httr2_response")
+      },
+      resp_header = function(resp, header, ...) {
+        if (identical(tolower(header), "content-type")) "text/html" else NA_character_
+      },
+      .package = "httr2"
+    )
+
+    out <- download_to_cache(url, "nl", "1234", cache_dir = root)
+
+    expect_identical(out$status, "downloaded")
+    expect_match(out$local_path, "\\.pdf$")
+    expect_identical(
+      readBin(out$local_path, "raw", n = length(ACQ0A_PDF_MAGIC)),
+      ACQ0A_PDF_MAGIC
+    )
+    expect_true(planscanR:::is_verified_download(out$local_path))
+  })
+})
+
+test_that("nonempty legacy and unknown binary attachments are published with receipts", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    urls <- c(
+      "https://example.org/files/nl/1234/legacy.msg",
+      "https://example.org/files/nl/1234/opaque-attachment"
+    )
+    # OLE Compound File bytes model the legacy .msg / .db attachments seen in
+    # the German portal; the second body has no recognised signature at all.
+    bodies <- list(
+      as.raw(c(0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1)),
+      as.raw(c(0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45))
+    )
+    calls <- 0L
+    local_mocked_bindings(
+      head_content_length = function(url) NA_real_,
+      req_planscanr = function(base_url, path = NULL) structure(list(), class = "httr2_request"),
+      .package = "planscanR"
+    )
+    local_mocked_bindings(
+      req_perform_stream = function(req, callback, ...) {
+        calls <<- calls + 1L
+        callback(bodies[[calls]])
+        structure(list(), class = "httr2_response")
+      },
+      resp_header = function(resp, header, ...) {
+        if (identical(tolower(header), "content-type")) "application/octet-stream" else NA_character_
+      },
+      .package = "httr2"
+    )
+
+    out <- do.call(rbind, lapply(
+      urls,
+      function(u) download_to_cache(u, "nl", "1234", cache_dir = root)
+    ))
+
+    expect_identical(out$status, c("downloaded", "downloaded"))
+    expect_match(out$local_path[[1]], "\\.msg$")
+    expect_match(out$local_path[[2]], "\\.bin$")
+    expect_identical(readBin(out$local_path[[1]], "raw", n = 8L), bodies[[1L]])
+    expect_identical(readBin(out$local_path[[2]], "raw", n = 6L), bodies[[2L]])
+    expect_true(all(vapply(out$local_path, planscanR:::is_verified_download, logical(1))))
+    expect_identical(out$sha256, unname(vapply(out$local_path, planscanR:::file_sha256, character(1))))
+  })
+})
+
+test_that("a valid body is retained when the portal MIME disagrees with its bytes", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/dk/1234/archive.zip"
+    zip_magic <- as.raw(c(0x50, 0x4B, 0x03, 0x04, 0x14, 0x00))
+    local_mocked_bindings(
+      head_content_length = function(url) NA_real_,
+      req_planscanr = function(base_url, path = NULL) structure(list(), class = "httr2_request"),
+      .package = "planscanR"
+    )
+    local_mocked_bindings(
+      req_perform_stream = function(req, callback, ...) {
+        callback(zip_magic)
+        structure(list(), class = "httr2_response")
+      },
+      resp_header = function(resp, header, ...) {
+        if (identical(tolower(header), "content-type")) "application/pdf" else NA_character_
+      },
+      .package = "httr2"
+    )
+
+    out <- download_to_cache(url, "dk", "1234", cache_dir = root)
+
+    expect_identical(out$status, "downloaded")
+    expect_match(out$local_path, "\\.zip$")
+    expect_identical(readBin(out$local_path, "raw", n = length(zip_magic)), zip_magic)
+    expect_true(planscanR:::is_verified_download(out$local_path))
+  })
+})
+
+test_that("explicit HTML attachments are retained while generic HTML pages are rejected", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/nl/1234/notice.html"
+    html <- charToRaw("<!doctype html><html><body>notice</body></html>")
+    local_mocked_bindings(
+      head_content_length = function(url) NA_real_,
+      req_planscanr = function(base_url, path = NULL) structure(list(), class = "httr2_request"),
+      .package = "planscanR"
+    )
+    local_mocked_bindings(
+      req_perform_stream = function(req, callback, ...) {
+        callback(html)
+        structure(list(), class = "httr2_response")
+      },
+      resp_header = function(resp, header, ...) {
+        header <- tolower(header)
+        if (identical(header, "content-type")) return("text/html")
+        if (identical(header, "content-disposition")) {
+          return('attachment; filename="notice.html"')
+        }
+        NA_character_
+      },
+      .package = "httr2"
+    )
+
+    out <- download_to_cache(url, "nl", "1234", cache_dir = root)
+
+    expect_identical(out$status, "downloaded")
+    expect_match(out$local_path, "\\.html$")
+    expect_identical(readBin(out$local_path, "raw", n = length(html)), html)
+    expect_true(planscanR:::is_verified_download(out$local_path))
+  })
+})
+
+test_that("empty attachment bodies remain rejected", {
+  withr::with_tempdir({
+    root <- file.path(getwd(), "cache")
+    url <- "https://example.org/files/nl/1234/empty.msg"
+    local_mocked_bindings(
+      head_content_length = function(url) NA_real_,
+      req_planscanr = function(base_url, path = NULL) structure(list(), class = "httr2_request"),
+      .package = "planscanR"
+    )
+    local_mocked_bindings(
+      req_perform_stream = function(req, callback, ...) {
+        callback(raw())
+        structure(list(), class = "httr2_response")
+      },
+      resp_header = function(resp, header, ...) {
+        if (identical(tolower(header), "content-type")) "application/octet-stream" else NA_character_
+      },
+      .package = "httr2"
+    )
+
+    out <- download_to_cache(url, "nl", "1234", cache_dir = root)
+
+    expect_identical(out$status, "failed")
+    expect_match(out$reason, "empty", ignore.case = TRUE)
+    expect_true(is.na(out$local_path))
+  })
+})
+
 test_that("pretty-printed JSON error bodies are rejected for extensionless URLs", {
   withr::with_tempdir({
     root <- file.path(getwd(), "cache")
