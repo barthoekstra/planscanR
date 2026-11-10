@@ -19,6 +19,7 @@
 ^\.positai$
 ^Plans\.md$
 ^Countries-to-add\.md$
+^Regional-portals\.md$
 ^out$
 ^pkgdown$
 ^planscanR\.Rcheck$
