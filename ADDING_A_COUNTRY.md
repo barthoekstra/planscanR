@@ -233,6 +233,14 @@ hit <- Filter(function(p) identical(p$from_code, "<lang>") &&
 pkg$install_from_path(hit[[1]]$download())
 ```
 
+**The LandSCOPE search highlighter needs the new language too.** The live app
+marks query words in passages but skips function words ("the", "de", "und",
+"og", …), using one stopword list per corpus language in
+`planscanR.biogain/inst/react-preview/src/stopwords.json` (currently `en`, `nl`,
+`de`, `da`). If the new country's documents are in a language without a list
+there, add one (a standard Snowball/NLTK stopword list is fine) and rebuild the
+UI; otherwise every "le", "la", "et" in a French question gets highlighted.
+
 ---
 
 ## 4. Tests and docs
