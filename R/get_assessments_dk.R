@@ -941,11 +941,20 @@ dk_collect_labels <- function(items) {
   }
   out <- vapply(
     items,
-    function(it) dk_label_da(it) %||% NA_character_,
+    # A label can hold several values; keep them all rather than drop the record.
+    function(it) dk_join_values(dk_label_da(it)),
     character(1)
   )
   out <- trimws(out[!is.na(out)])
   out[nzchar(out)]
+}
+
+#' Collapse a value to one string ("; "-joined); NA when empty.
+#' @noRd
+dk_join_values <- function(v) {
+  v <- as.character(unlist(v, use.names = FALSE))
+  v <- v[!is.na(v) & nzchar(trimws(v))]
+  if (length(v) == 0L) NA_character_ else paste(unique(v), collapse = "; ")
 }
 
 #' Collect a scalar field from a list of objects, dropping NA / empty.
@@ -957,8 +966,7 @@ dk_collect_chr <- function(items, field) {
   out <- vapply(
     items,
     function(it) {
-      v <- it[[field]]
-      if (is.null(v)) NA_character_ else as.character(v)
+      dk_join_values(it[[field]])
     },
     character(1)
   )
