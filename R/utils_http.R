@@ -41,12 +41,19 @@ req_planscanr <- function(base_url, path = NULL, referer = NULL) {
 #'   commissiemer.nl 429s under a sustained burst).
 #'
 #' `httr2::req_throttle()` enforces each cap with a token bucket keyed by host
-#' (`realm`), so the delay only spreads requests to the throttled host.
+#' (`realm`), so the delay only spreads requests to the throttled host. Since
+#' httr2 1.1, `rate = r` means a bucket of `60 * r` tokens refilled over 60 s,
+#' which allows a burst of up to 60 s worth of requests (enough to trip
+#' commissiemer.nl's 429). A one-token bucket refilled every `1 / r` seconds
+#' gives a steady `r` req/s instead.
 #' @noRd
 req_throttle_planscanr <- function(req) {
   rate <- throttle_rate_for(req$url)
   if (is.null(rate) || !is.finite(rate) || rate <= 0) {
     return(req)
+  }
+  if ("capacity" %in% names(formals(httr2::req_throttle))) {
+    return(httr2::req_throttle(req, capacity = 1, fill_time_s = 1 / rate))
   }
   httr2::req_throttle(req, rate = rate)
 }
