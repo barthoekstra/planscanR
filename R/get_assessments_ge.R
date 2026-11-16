@@ -4,7 +4,7 @@
 #' environmental decision portal** of the Ministry of Environmental Protection
 #' and Agriculture (<https://ei.gov.ge/>, Georgian-language `/ka` pages). The
 #' legacy archive is out of scope, and the portal's own historical horizon is
-#' not documented: only what the listing returns is covered, so results are
+#' not documented (cases from 2024-08 onward were observed): only what the listing returns is covered, so results are
 #' **not national completeness**. Native Georgian values are kept verbatim.
 #'
 #' @section Records:
@@ -16,9 +16,16 @@
 #' `detail_json`; `title` (project name), `proponent` (implementer),
 #' `jurisdiction` (activity address, free text "region/municipality"),
 #' `date_published` (earliest procedure publication date, else the listing
-#' date), `status` / `status_date` (of the procedure that surfaced the case),
+#' date), `status` / `status_date` (of the procedure that surfaced the case; a
+#' listing row that is a nested-document event is resolved to its enclosing
+#' procedure, and an unmatched row falls back to the listing-row cells),
 #' `procedure_native`, `category_native` and `procedures_native` (all procedures
 #' of the case) are columns. `competent_authority` is not exposed (`NA`).
+#' The cells of the listing row that surfaced the case are kept as
+#' `listing_row_id`, `listing_municipality`, `listing_comment_deadline` and
+#' `listing_public_hearing`; later event rows of the same case are not merged.
+#' An empty procedure grid is an error (`planscanR_error_bad_response`); no
+#' sidecar is written, so the case is retried on the next run.
 #' `assessment_type` comes from the procedure filter that found the case
 #' (`"EIA"` or `"SEA"`); no title heuristic is used.
 #'
@@ -36,15 +43,20 @@
 #' holds `accompany=true` downloads only where the record says
 #' `HasAccompanyingDocument`. **The EIA report itself lives inside the RAR5
 #' accompanying bundle.** Bundles are downloaded as-is (no extraction, no new
-#' dependency). SEA report-review bundles are often 500+ MB and exceed the
-#' default size cap (status `skipped_size`). `attachment_labels_native` is a
-#' JSON object mapping each URL to its native category label.
+#' dependency). **Where the report is:** the EIA report sits in the accompanying
+#' bundle of the EIA procedure's application/annex entry (for SEA, of the
+#' report-review procedure); screening and scoping bundles hold screening and
+#' scoping material only. Accompanying files can also be PDFs, not only RAR.
+#' SEA report-review bundles are often 500+ MB and some EIA bundles are over the
+#' default 50 MB cap too (e.g. a 75 MB gas-pipeline bundle); both are
+#' `skipped_size`. `attachment_labels_native` is a JSON object mapping each URL
+#' to `"<native procedure name> | <native category name>"`.
 #'
 #' @section Filter coverage:
 #' `procedure` is applied server-side. `query` (case-insensitive title
 #' substring) and `date_range` (against `date_published`) are client-side, so a
 #' selective filter still pages through the listing. Requests are throttled to
-#' 2 req/s (`getOption("planscanR.ge_throttle_rate")`). Page failures or short
+#' 2 req/s (`getOption("planscanR.ge_throttle_rate")`). Page failures or empty
 #' pages give a `planscanR_warning_partial`; a response without the expected
 #' table is an error.
 #'
@@ -277,6 +289,9 @@ ge_parse_table <- function(html) {
       listing_category = cells[2],
       listing_procedure = cells[4],
       listing_title = cells[6],
+      listing_municipality = cells[7],
+      listing_comment_deadline = cells[8],
+      listing_public_hearing = cells[9],
       listing_status = cells[11]
     )
   }
@@ -330,9 +345,11 @@ ge_fetch_search <- function(keys) {
         } # last page unknown: abandon this procedure
         next
       }
-      if (page == 1L) {
-        last <<- min(parsed$last_page, 5000L)
-      } else if (length(parsed$entries) == 0L) {
+      if (parsed$last_page > 5000L && page == 1L) {
+        warn_partial("Georgia listing {.val {key}} has {parsed$last_page} pages; stopping at 5000.")
+      }
+      last <<- min(max(last, parsed$last_page), 5000L)
+      if (page > 1L && length(parsed$entries) == 0L) {
         warn_partial("Georgia listing {.val {key}} page {page} of {last} was empty; skipping.")
       }
       fresh <- Filter(function(e) !e$id %in% seen, parsed$entries)
@@ -362,16 +379,37 @@ ge_load_or_fetch <- function(entry, sidecar_index) {
 #' @noRd
 ge_build_record <- function(entry, json) {
   res <- json$res
-  if (!is.list(res) || is.null(res$PermitsPublicPortalInfluenceProjectProcedureGrid)) {
+  grid <- if (is.list(res)) res$PermitsPublicPortalInfluenceProjectProcedureGrid
+  if (length(grid) == 0L) {
     cli::cli_abort(
       "Georgia record {.val {entry$id}} has no procedure grid.",
       class = "planscanR_error_bad_response"
     )
   }
-  grid <- res$PermitsPublicPortalInfluenceProjectProcedureGrid
+  if (length(res$PermitsPublicPortalInfluenceProjectProcedureDocuments) > 0L) {
+    warn_partial(
+      "Georgia record {.val {entry$id}} has top-level documents that are only kept in detail_json."
+    )
+  }
+  # The listing row is a procedure or a nested-document event: resolve it to the
+  # enclosing procedure; no match leaves `prim` empty (listing-row cells are used).
   gid <- vapply(grid, function(g) ge_chr(g$ID), "")
-  idx <- match(entry$row_id, gid, nomatch = 1L)
-  prim <- if (length(grid) > 0L) grid[[idx]] else list()
+  idx <- match(entry$row_id, gid)
+  if (is.na(idx)) {
+    idx <- which(vapply(
+      grid,
+      function(g) {
+        entry$row_id %in%
+          vapply(
+            g$PermitsPublicPortalInfluenceProjectProcedureDocuments,
+            function(d) ge_chr(d$ID),
+            ""
+          )
+      },
+      NA
+    ))[1]
+  }
+  prim <- if (is.na(idx)) list() else grid[[idx]]
 
   urls <- list(main_document = character(0), accompanying_bundle = character(0))
   labels <- list()
@@ -391,9 +429,10 @@ ge_build_record <- function(entry, json) {
     }
   }
   for (g in grid) {
-    add(g, ge_chr(g$CategoryName))
+    pn <- ge_chr(g$ProcedureName)
+    add(g, paste(pn, "|", ge_chr(g$CategoryName)))
     for (d in g$PermitsPublicPortalInfluenceProjectProcedureDocuments) {
-      add(d, ge_chr(d$StatementCategoryName))
+      add(d, paste(pn, "|", ge_chr(d$StatementCategoryName)))
     }
   }
   urls <- lapply(urls, unique)
@@ -413,7 +452,7 @@ ge_build_record <- function(entry, json) {
     retrieved_at = as.POSIXct(Sys.time(), tz = "UTC"),
     attachment_urls = list(unique(unlist(urls, use.names = FALSE))),
     local_path = list(character(0)),
-    title = or_listing(ge_chr(res$ProjectName), entry$listing_title),
+    title = ge_text(or_listing(ge_chr(res$ProjectName), entry$listing_title)),
     summary = NA_character_,
     competent_authority = NA_character_,
     proponent = ge_chr(res$ImplementerName),
@@ -428,6 +467,10 @@ ge_build_record <- function(entry, json) {
     status = or_listing(ge_chr(prim$ProcedureStatusName), entry$listing_status),
     status_date = as.character(ge_parse_date(prim$ProcedureStatusDate)), # ISO text: extras round-trip as text
     native_id = entry$id,
+    listing_row_id = ge_chr(entry$row_id),
+    listing_municipality = ge_chr(entry$listing_municipality),
+    listing_comment_deadline = ge_chr(entry$listing_comment_deadline),
+    listing_public_hearing = ge_chr(entry$listing_public_hearing),
     procedures_native = paste(
       vapply(
         grid,
@@ -437,7 +480,7 @@ ge_build_record <- function(entry, json) {
       collapse = "; "
     ),
     attachment_labels_native = as.character(jsonlite::toJSON(labels, auto_unbox = TRUE)),
-    detail_json = as.character(jsonlite::toJSON(json, auto_unbox = TRUE, null = "null")),
+    detail_json = as.character(jsonlite::toJSON(json, auto_unbox = TRUE, null = "null", digits = NA)),
     download_status = list(empty_download_status())
   )
   for (sec in names(urls)) {

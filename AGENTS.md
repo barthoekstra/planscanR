@@ -445,8 +445,14 @@ Python, no Shiny, no project-specific scoring config.
   the results table errors (`planscanR_error_bad_response`); failed/short pages
   warn partial. Files: `/download/files/?file=<GUID>&accompany=false|true`;
   bundles only where `HasAccompanyingDocument` is true. The EIA report is
-  inside the RAR5 bundle (kept as-is, no extractor); SEA bundles exceed the
-  default size cap. A failed detail fetch writes no sidecar (retried next run).
+  inside the accompanying bundle (RAR5, kept as-is, no extractor) of the EIA
+  procedure's application/annex entry (SEA: the report-review procedure);
+  screening/scoping bundles hold only that material; accompanying files can be
+  PDFs. SEA bundles and some EIA bundles exceed the default 50 MB cap. Labels
+  are `"<procedure> | <category>"`. The listing row that surfaced a case may be
+  a nested-document event: `ge_build_record()` resolves it to the enclosing
+  procedure, else uses the row cells (`listing_*` extras; later rows not
+  merged). An empty grid aborts (retried next run). A failed detail fetch writes no sidecar (retried next run).
 - Cyprus (`get_assessments_cy()`) — Department of Environment **EIA register**
   at `eia.moa.gov.cy/public/` (server-rendered HTML, `rvest`; Greek). **Coverage
   is a current-year window, not national completeness:** the only enumerable

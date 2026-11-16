@@ -7,26 +7,32 @@ ge_page <- function(n) xml2::read_html(ge_read(sprintf("table_%d.html", n)), enc
 igoeti <- "8235a082-5bda-4e58-bf6b-b513802df00e"
 ge_json <- function() jsonlite::fromJSON(ge_read("record_8235a082.json"), simplifyVector = FALSE)
 
-# Igoeti verbatim; any other case gets a distinct project name, and the
-# Ternali-like variant drops the implementer and every file flag.
+# Igoeti and Ekovilsi (ea80ad4d) are real captures; any other case gets Igoeti's
+# JSON with a distinct project name.
 ge_rec <- function(id) {
-  j <- ge_json()
-  if (id == igoeti) {
-    return(j)
-  }
-  j$res$ProjectName <- paste("Project", substr(id, 1, 8))
   if (startsWith(id, "ea80ad4d")) {
-    j$res$ImplementerName <- NULL
-    j$res$PermitsPublicPortalInfluenceProjectProcedureGrid <- lapply(
-      j$res$PermitsPublicPortalInfluenceProjectProcedureGrid,
-      function(g) {
-        g$HasDocument <- FALSE
-        g$HasAccompanyingDocument <- FALSE
-        g$PermitsPublicPortalInfluenceProjectProcedureDocuments <- list()
-        g
-      }
-    )
+    return(jsonlite::fromJSON(ge_read("record_ea80ad4d.json"), simplifyVector = FALSE))
   }
+  j <- ge_json()
+  if (id != igoeti) {
+    j$res$ProjectName <- paste("Project", substr(id, 1, 8))
+  }
+  j
+}
+
+# Igoeti with no implementer and every file flag cleared.
+ge_stripped <- function() {
+  j <- ge_json()
+  j$res$ImplementerName <- NULL
+  j$res$PermitsPublicPortalInfluenceProjectProcedureGrid <- lapply(
+    j$res$PermitsPublicPortalInfluenceProjectProcedureGrid,
+    function(g) {
+      g$HasDocument <- FALSE
+      g$HasAccompanyingDocument <- FALSE
+      g$PermitsPublicPortalInfluenceProjectProcedureDocuments <- list()
+      g
+    }
+  )
   j
 }
 
@@ -96,8 +102,12 @@ test_that("record builder keeps native fields, full JSON, dates and sectioned at
   expect_true(any(grepl("file=bb867595-c0c6-4b1d-ab41-d0cbf26ffcbc&accompany=true", bund, fixed = TRUE)))
   expect_false(any(grepl("file=e1e83751", bund, fixed = TRUE))) # nested doc has no bundle: not guessed
   expect_setequal(rec$attachment_urls[[1]], c(main, bund))
-  lab <- jsonlite::fromJSON(rec$attachment_labels_native)
+  lab <- unlist(jsonlite::fromJSON(rec$attachment_labels_native))
   expect_length(lab, 7L)
+  expect_true(all(grepl(" | ", lab, fixed = TRUE)))
+  expect_true(any(startsWith(lab, rec$procedure_native)))
+  expect_identical(rec$listing_municipality, "\u10d9\u10d0\u10e1\u10de\u10d8")
+  expect_identical(rec$listing_row_id, e$row_id)
   # raw detail JSON survives whole
   raw <- jsonlite::fromJSON(rec$detail_json, simplifyVector = FALSE)
   expect_identical(raw$res$ImplementerName, ge_json()$res$ImplementerName)
@@ -108,7 +118,7 @@ test_that("record builder keeps native fields, full JSON, dates and sectioned at
 test_that("missing implementer / no files are tolerated; a body without the grid errors", {
   e <- planscanR:::ge_parse_table(ge_page(1))$entries[[2]]
   e$procedure <- "sea_scoping"
-  rec <- planscanR:::ge_build_record(e, ge_rec(e$id))
+  rec <- planscanR:::ge_build_record(e, ge_stripped())
   expect_true(is.na(rec$proponent))
   expect_identical(rec$assessment_type, "SEA")
   expect_length(rec$attachment_urls[[1]], 0L)
@@ -228,7 +238,9 @@ test_that("filters have positive and negative cases; empty results are typed", {
     expect_identical(nrow(none), 0L)
     expect_identical(names(none), names(planscanR:::empty_result_tibble()))
     d <- get_assessments_ge(procedure = "eia", date_range = c("2026-05-01", "2026-05-31"), write_sidecar = FALSE)
-    expect_identical(nrow(d), 7L)
+    expect_identical(nrow(d), 6L) # ea80ad4d is a 2024-08 case
+    old <- get_assessments_ge(procedure = "eia", date_range = c("2024-08-01", "2024-08-31"), write_sidecar = FALSE)
+    expect_identical(old$native_id, "ea80ad4d-aca7-4e87-8ca2-d09bd8cc1f93")
     expect_identical(
       nrow(get_assessments_ge(procedure = "eia", date_range = c("2010-01-01", "2010-12-31"), write_sidecar = FALSE)),
       0L
@@ -296,5 +308,47 @@ test_that("get_assessments('ge') fetches a real record end-to-end", {
     expect_identical(nrow(res), 1L)
     planscanR:::validate_result_schema(res)
     expect_match(res$document_id, "^ge_")
+  })
+})
+
+test_that("a listing row that is a nested-document event takes its parent procedure's status", {
+  e <- planscanR:::ge_parse_table(ge_page(1))$entries[[2]] # row 73502909 = nested letter of the EIA procedure
+  expect_identical(e$id, "ea80ad4d-aca7-4e87-8ca2-d09bd8cc1f93")
+  e$procedure <- "eia"
+  rec <- planscanR:::ge_build_record(e, ge_rec(e$id))
+  expect_identical(rec$status, "\u10e8\u10d4\u10e9\u10d4\u10e0\u10d4\u10d1\u10e3\u10da\u10d8") # suspended
+  expect_identical(
+    rec$procedure_native,
+    "\u10d2\u10d0\u10e0\u10d4\u10db\u10dd\u10d6\u10d4 \u10d6\u10d4\u10db\u10dd\u10e5\u10db\u10d4\u10d3\u10d4\u10d1\u10d8\u10e1 \u10e8\u10d4\u10e4\u10d0\u10e1\u10d4\u10d1\u10d8\u10e1 (\u10d2\u10d6\u10e8) \u10de\u10e0\u10dd\u10ea\u10d4\u10d3\u10e3\u10e0\u10d0"
+  )
+  expect_match(rec$procedures_native, "[", fixed = TRUE)
+  # a row id found nowhere falls back to the listing-row cells, never grid[[1]]
+  e$row_id <- "00000000-0000-0000-0000-000000000000"
+  rec2 <- planscanR:::ge_build_record(e, ge_rec(e$id))
+  expect_identical(rec2$status, e$listing_status)
+  expect_identical(rec2$procedure_native, e$listing_procedure)
+})
+
+test_that("an empty procedure grid is a bad response: no sidecar, retried next run", {
+  e <- planscanR:::ge_parse_table(ge_page(1))$entries[[1]]
+  e$procedure <- "eia"
+  empty <- ge_json()
+  empty$res$PermitsPublicPortalInfluenceProjectProcedureGrid <- list()
+  expect_error(planscanR:::ge_build_record(e, empty), class = "planscanR_error_bad_response")
+  with_temp_cache({
+    ge_mock(record = function(id) {
+      if (id == igoeti) empty else ge_rec(id)
+    })
+    expect_warning(res <- get_assessments_ge(procedure = "eia"), class = "planscanR_warning_partial")
+    expect_identical(nrow(res), 6L)
+    expect_false(paste0("ge_", igoeti) %in% index_cache(country = "ge")$document_id)
+    n <- 0L
+    ge_mock(record = function(id) {
+      n <<- n + 1L
+      ge_rec(id)
+    })
+    res2 <- get_assessments_ge(procedure = "eia")
+    expect_identical(n, 1L)
+    expect_identical(nrow(res2), 7L)
   })
 })

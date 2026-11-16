@@ -41,7 +41,7 @@ Implementation of \code{\link[=get_assessments]{get_assessments()}} for Georgia.
 environmental decision portal} of the Ministry of Environmental Protection
 and Agriculture (\url{https://ei.gov.ge/}, Georgian-language \verb{/ka} pages). The
 legacy archive is out of scope, and the portal's own historical horizon is
-not documented: only what the listing returns is covered, so results are
+not documented (cases from 2024-08 onward were observed): only what the listing returns is covered, so results are
 \strong{not national completeness}. Native Georgian values are kept verbatim.
 }
 \section{Records}{
@@ -54,9 +54,16 @@ detail JSON (\verb{GET /ka/record?id=<GUID>}) is captured in full in
 \code{detail_json}; \code{title} (project name), \code{proponent} (implementer),
 \code{jurisdiction} (activity address, free text "region/municipality"),
 \code{date_published} (earliest procedure publication date, else the listing
-date), \code{status} / \code{status_date} (of the procedure that surfaced the case),
+date), \code{status} / \code{status_date} (of the procedure that surfaced the case; a
+listing row that is a nested-document event is resolved to its enclosing
+procedure, and an unmatched row falls back to the listing-row cells),
 \code{procedure_native}, \code{category_native} and \code{procedures_native} (all procedures
 of the case) are columns. \code{competent_authority} is not exposed (\code{NA}).
+The cells of the listing row that surfaced the case are kept as
+\code{listing_row_id}, \code{listing_municipality}, \code{listing_comment_deadline} and
+\code{listing_public_hearing}; later event rows of the same case are not merged.
+An empty procedure grid is an error (\code{planscanR_error_bad_response}); no
+sidecar is written, so the case is retried on the next run.
 \code{assessment_type} comes from the procedure filter that found the case
 (\code{"EIA"} or \code{"SEA"}); no title heuristic is used.
 }
@@ -78,9 +85,14 @@ decisions) where \code{HasDocument} is true; \code{attachment_urls_accompanying_
 holds \code{accompany=true} downloads only where the record says
 \code{HasAccompanyingDocument}. \strong{The EIA report itself lives inside the RAR5
 accompanying bundle.} Bundles are downloaded as-is (no extraction, no new
-dependency). SEA report-review bundles are often 500+ MB and exceed the
-default size cap (status \code{skipped_size}). \code{attachment_labels_native} is a
-JSON object mapping each URL to its native category label.
+dependency). \strong{Where the report is:} the EIA report sits in the accompanying
+bundle of the EIA procedure's application/annex entry (for SEA, of the
+report-review procedure); screening and scoping bundles hold screening and
+scoping material only. Accompanying files can also be PDFs, not only RAR.
+SEA report-review bundles are often 500+ MB and some EIA bundles are over the
+default 50 MB cap too (e.g. a 75 MB gas-pipeline bundle); both are
+\code{skipped_size}. \code{attachment_labels_native} is a JSON object mapping each URL
+to \code{"<native procedure name> | <native category name>"}.
 }
 
 \section{Filter coverage}{
@@ -88,7 +100,7 @@ JSON object mapping each URL to its native category label.
 \code{procedure} is applied server-side. \code{query} (case-insensitive title
 substring) and \code{date_range} (against \code{date_published}) are client-side, so a
 selective filter still pages through the listing. Requests are throttled to
-2 req/s (\code{getOption("planscanR.ge_throttle_rate")}). Page failures or short
+2 req/s (\code{getOption("planscanR.ge_throttle_rate")}). Page failures or empty
 pages give a \code{planscanR_warning_partial}; a response without the expected
 table is an error.
 }
