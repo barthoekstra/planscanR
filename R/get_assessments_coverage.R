@@ -130,6 +130,7 @@ get_assessments_coverage <- function() {
       FALSE,
       FALSE,
       FALSE,
+      FALSE,
       FALSE
     ),
     status = c(
