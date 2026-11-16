@@ -33,6 +33,11 @@ a `topic`) and gate PDF downloads on the score — but the embedding work is
 delegated to planscanR.screen, which is an optional dependency (see
 [Scoring](#scoring-optional) below). Omit `topic` and no Python is required.
 
+Explicit non-national sources are opt-in via `source =` (see
+`get_assessments_sources()`): `"eib"` is the European Investment Bank public
+register (per document, ISO-2 country tags, all native document types;
+`get_assessments("de", source = "eib")`).
+
 Supported portals:
 
 | Country | Portal | Notes |

@@ -70,6 +70,14 @@ de <- get_assessments("de", limit = 20, download = FALSE)
 both <- bind_results(nl, de)
 ```
 
+Explicit non-national sources, such as the European Investment Bank register
+(`get_assessments("de", source = "eib")`), are opt-in and listed by
+`get_assessments_sources()`; they are not in the country list below.
+
+```{r}
+get_assessments_sources()
+```
+
 To see which countries and search options are available, use:
 
 ```{r}

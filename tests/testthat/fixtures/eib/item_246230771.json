@@ -1,0 +1,168 @@
+{
+ "data": {
+  "availability": {
+   "alternative": "",
+   "id": "registryPubliclyAvailable",
+   "value": "Publicly available"
+  },
+  "countries": [
+   {
+    "code": "Germany",
+    "codes": {
+     "DE": "Deutschland",
+     "EN": "Germany",
+     "IT": "Germania",
+     "FR": "Allemagne"
+    },
+    "countryCode": "",
+    "id": "DE",
+    "label": "Germany and the EIB ",
+    "region": {
+     "code": "EU",
+     "codes": {
+      "AR": "",
+      "AZ": "",
+      "BG": "",
+      "BS": "",
+      "CA": "",
+      "CS": "",
+      "DA": "",
+      "DE": "EU",
+      "EL": "",
+      "EN": "EU",
+      "ES": "",
+      "ET": "",
+      "FI": "",
+      "FR": "UE",
+      "GA": "",
+      "HE": "",
+      "HR": "",
+      "HU": "",
+      "HY": "",
+      "IS": "",
+      "IT": "",
+      "JA": "",
+      "KA": "",
+      "LB": "",
+      "LT": "",
+      "LV": "",
+      "MT": "",
+      "NE": "",
+      "NL": "",
+      "NO": "",
+      "PL": "",
+      "PT": "",
+      "RO": "",
+      "RU": "",
+      "SK": "",
+      "SL": "",
+      "SQ": "",
+      "SR": "",
+      "SV": "",
+      "SW": "",
+      "TR": "",
+      "UK": "",
+      "ZH": ""
+     },
+     "id": "1",
+     "label": "European Union",
+     "serapis": true,
+     "url": "/projects/regions/european-union/index.htm",
+     "value": "European Union",
+     "values": {
+      "DE": "Europäische Union",
+      "EN": "European Union",
+      "FR": "Union européenne"
+     }
+    },
+    "serapis": true,
+    "url": "/projects/regions/european-union/germany/index.htm",
+    "value": "Germany",
+    "values": {
+     "DE": "Deutschland",
+     "EN": "Germany",
+     "IT": "Germania",
+     "FR": "Allemagne"
+    }
+   }
+  ],
+  "documentDate": 1765273684718,
+  "documentFocus": {
+   "alternative": "",
+   "id": "environmentalInformation",
+   "value": "Environmental Information"
+  },
+  "documentLanguage": {
+   "alternative": "",
+   "id": "DE",
+   "value": "German"
+  },
+  "documentTitle": "BORKUM RIFFGRUND 3 OFFSHORE WIND FARM - UVP-Bericht",
+  "documentType": {
+   "alternative": "",
+   "id": "ESIA",
+   "value": "Environmental and Social Impact Assessment (ESIA)"
+  },
+  "id": "246230771",
+  "lastUpdateDate": 1765273684739,
+  "projectNumber": "20230138",
+  "publicationDate": 1765152000000,
+  "sectors": [
+   {
+    "id": "6adf50c76c73d1771e753824",
+    "section": {
+     "id": "D",
+     "value": "Electricity, gas, steam and air conditioning supply"
+    },
+    "serapis": true,
+    "value": "Energy",
+    "values": {
+     "DE": "Energie",
+     "NO": "Energi",
+     "FI": "Energia",
+     "RU": "Энергетика",
+     "PT": "Energia",
+     "BG": "Енергетика",
+     "LT": "Energetika",
+     "HR": "Energetika",
+     "LV": "Enerģētika",
+     "FR": "Énergie",
+     "HU": "Energia",
+     "HY": "Էներգիա",
+     "KA": "წყალი, წყალარინების სისტემა",
+     "UK": "Енергетика",
+     "SK": "Energetika",
+     "SL": "Energetika",
+     "GA": "Fuinneamh",
+     "MK": "Енергија",
+     "SV": "Energi",
+     "EL": "Ενέργεια",
+     "MT": "Enerġija",
+     "EN": "Energy",
+     "IT": "Energia",
+     "ES": "Energía",
+     "ET": "Energia",
+     "CS": "Energetika",
+     "AZ": "Enerji",
+     "PL": "Energetyka",
+     "DA": "Energi",
+     "RO": "Energie",
+     "NL": "Energetika",
+     "TR": "Enerji"
+    }
+   }
+  ],
+  "statusDate": null,
+  "topic": {
+   "alternative": "",
+   "id": "lending",
+   "value": "Lending"
+  },
+  "type": "Register"
+ },
+ "linkedData": {
+  "values": null
+ },
+ "message": "Success",
+ "valid": true
+}

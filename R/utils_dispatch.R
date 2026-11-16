@@ -77,6 +77,15 @@ assessment_sources <- function() {
       scope = "Disclosed World Bank project documents typed Environmental Assessment, Environmental and Social Assessment or Strategic Environmental Assessment/Analysis; all sectors, mostly 2000s to present; anonymous PDF access",
       limitations = "Document-level, bank-financed projects only; the type label also holds ESMP-grade site files, plans, volumes and annexes (no title heuristic applied)",
       url = "https://documents.worldbank.org/"
+    ),
+    eib = list(
+      handler = get_assessments_eib,
+      name = "European Investment Bank public register",
+      granularity = "document (project_number kept)",
+      geography = "ISO-2 country tags; any tag equal to the requested code matches; regional/non-ISO and untagged rows excluded",
+      scope = "environmental and social documents of EIB-financed projects, all native document types (ESIA/EIA/SEA full reports, ESDS/ESCS/NTS summaries, permits, links), about 2011 onward",
+      limitations = "not national completeness; some rows have no file; totalItems can exceed listed rows; reports over the size cap are skipped_size",
+      url = "https://www.eib.org/en/registers/"
     )
   )
 }

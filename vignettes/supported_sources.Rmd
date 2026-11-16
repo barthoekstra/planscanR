@@ -1344,6 +1344,28 @@ get_assessments_es(query = "eólica", limit = 5, download = TRUE)
 ```{r}
 get_assessments_cy(limit = 5, download = FALSE)
 ```
+## European Investment Bank register — `source = "eib"`
+Not a national portal: an explicit, opt-in source
+(`get_assessments("de", source = "eib")`, see `get_assessments_sources()`),
+backed by the [EIB public register](https://www.eib.org/en/registers/) of
+documents for EIB-financed projects.
+- One record per register **document** (`document_id = "eib_<id>"`); the project
+  number is kept as `project_number`. All native document types are kept in
+  `role` / `native_type`, each with its own `attachment_urls_<type>` section.
+  `ESIA`, `Environmental Impact Assessment` and `SEA` labels identify full
+  reports (the `ESIA` bucket also holds permits and placeholder rows);
+  `ESDS`, `ESCS` and `NTS` are summaries. "Link to promoter website" rows may
+  have no file; that is only known after download, where a missing file is
+  recorded in `download_status`. The record `url` is the register page. Use `document_type = "ESIA"` to filter.
+- Geography: a record matches when any of its ISO-2 country tags equals the
+  requested code (multi-country records included). Regional/non-ISO tags
+  (`C7` "EU Countries", `A1`-`A9`, ...) and untagged rows are excluded; the full
+  tag list stays in `country_codes`.
+- One listing request per call; if `totalItems` differs from the returned rows
+  a `planscanR_warning_partial` states both numbers. Files above
+  `max_file_size_mb` are kept in the record with status `skipped_size`.
+- Scope: EIB-financed projects only (publication since about 2011), not
+  national completeness.
 
 ## Adding a new source
 
