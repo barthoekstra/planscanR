@@ -1348,6 +1348,28 @@ get_assessments_es(query = "eólica", limit = 5, download = TRUE)
 get_assessments_cy(limit = 5, download = FALSE)
 ```
 
+## Georgia — `"ge"`
+
+* **Portal:** recent environmental decision portal of the Ministry of
+  Environmental Protection and Agriculture, [ei.gov.ge](https://ei.gov.ge/)
+  (Georgian, `/ka`). The legacy archive is out of scope and the portal's
+  historical horizon is undocumented, so this is **not national completeness**.
+* **Records:** one per case (`ge_<GUID>`), enumerated from the POST listing per
+  `procedure` (`eia`, `eia_screening`, `eia_scoping`, `sea_screening`,
+  `sea_scoping`, `sea_report_review`; default all). Native procedure, category
+  and status are kept (`procedure_native`, `category_native`, `status`,
+  `procedures_native`) and the full detail JSON is in `detail_json`. No
+  geometry; `competent_authority` is not exposed.
+* **Attachments:** `attachment_urls_main_document` (application letters and
+  decisions, PDF) and `attachment_urls_accompanying_bundle` (only where the
+  record flags accompanying documents). **The EIA report is inside the RAR5
+  bundle**, which is downloaded as-is (no extraction); SEA bundles often exceed
+  the default size cap (`skipped_size`).
+
+```{r}
+get_assessments_ge(limit = 5, download = FALSE, procedure = "eia")
+```
+
 ## European Investment Bank register — `source = "eib"`
 Not a national portal: an explicit, opt-in source
 (`get_assessments("de", source = "eib")`, see `get_assessments_sources()`),

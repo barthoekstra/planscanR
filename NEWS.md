@@ -134,6 +134,18 @@ and related advice) from European government portals.
   (`IVN-` / `ATZ-` / `LEM-` / `MON-`). No geometry; `query` and `date_range`
   are matched client-side (the portal's own filters are POST/AJAX). Latvian.
   Throttled to 5 req/s by default (`getOption("planscanR.lv_throttle_rate")`).
+* Georgia (`get_assessments_ge()`): fetches the recent environmental decision
+  portal **ei.gov.ge** (Georgian). Only the recent portal is covered (the legacy
+  archive is out of scope and the portal's historical horizon is undocumented).
+  The listing (`POST /ka/Home/Table`, finite pages) is enumerated per procedure
+  (`procedure` = `eia`, `eia_screening`, `eia_scoping`, `sea_screening`,
+  `sea_scoping`, `sea_report_review`), deduplicated to one record per case
+  (`ge_<GUID>`); the `/ka/record` detail JSON is kept whole in `detail_json`.
+  Application/decision PDFs go in `attachment_urls_main_document`; accompanying
+  bundles (listed only when the record says they exist) go in
+  `attachment_urls_accompanying_bundle`. **The EIA report is inside the RAR5
+  bundle**; bundles are downloaded as-is (no extraction) and SEA bundles
+  (500+ MB) exceed the default size cap. 2 req/s by default.
 * Cyprus (`get_assessments_cy()`): fetches the Department of Environment EIA
   register at **eia.moa.gov.cy**. Coverage is the portal's *current-year*
   listing only (no archive or year selector exists; ids are never guessed), so
