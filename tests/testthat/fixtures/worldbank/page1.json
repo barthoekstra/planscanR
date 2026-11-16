@@ -1,0 +1,33 @@
+{"total": 3, "rows": 100, "os": 0, "page": 1,
+ "documents": {
+  "D40080515": {
+   "id": "40080515", "admreg": "Eastern and Southern Africa", "count": "Kenya",
+   "docna": {"0": {"docna": "Kenya - Water and Sanitation Development Project : ESIA"}},
+   "docty": "Environmental and Social Assessment", "owner": "Water East Africa Region (SAEW3)",
+   "projn": "KE-Water and Sanitation Development Project -- P156634",
+   "theme": "FY17 - Water Institutions, Policies and Reform", "prdln": "IBRD/IDA", "seccl": "Public", "lang": "English",
+   "lndinstr": {"0": {"lndinstr": "Investment Project Financing"}},
+   "majtheme": "FY17 - Urban and Rural Development",
+   "sectr": {"0": {"sector": "FY17 - Water, Sanitation and Waste Management"}, "1": {"sector": "FY17 - Other"}},
+   "docdt": "2025-12-31T05:00:00Z", "majdocty": "Project Documents",
+   "abstracts": {"cdata!": "The development objective is to remove screenings."},
+   "display_title": "Kenya - Water and Sanitation Development Project : ESIA",
+   "disclosure_date": "2026-01-09T15:11:25Z",
+   "pdfurl": "http://documents.worldbank.org/curated/en/099514301092640402/pdf/IDU-50b6.pdf",
+   "txturl": "http://documents.worldbank.org/curated/en/099514301092640402/text/IDU-50b6.txt",
+   "disclstat": "Disclosed", "chronical_docm_id": "IDU-50b6", "versiontyp": "Final",
+   "projectid": "P156634", "guid": "099514301092640402", "countrycode": "KE",
+   "available_in": "English", "fullavailablein": [],
+   "url": "http://documents.worldbank.org/curated/en/099514301092640402"},
+  "D34302187": {
+   "id": "34302187", "count": "World,Kenya", "countrycode": "1W,KE",
+   "docty": "Environmental Assessment; Social Assessment", "majdocty": "Project Documents",
+   "display_title": "Kwa Murogi ESIA", "docdt": "2024-04-16T04:00:00Z",
+   "pdfurl": "https://documents.worldbank.org/curated/en/099041624044510696/pdf/P167814.pdf",
+   "projectid": "P167814", "guid": "099041624044510696",
+   "url": "https://documents.worldbank.org/curated/en/099041624044510696"},
+  "D111": {
+   "id": "111", "count": "Kenya", "countrycode": "KE", "docty": "Environmental Assessment",
+   "display_title": "No file yet", "docdt": "2019-01-02T05:00:00Z", "url": "http://documents.worldbank.org/curated/en/111"},
+  "facets": {}
+ }}

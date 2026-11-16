@@ -98,7 +98,6 @@ test_that("source-prefixed IDs from two sources in one country do not collide in
 })
 
 test_that("get_assessments_sources() lists registry metadata", {
-  expect_identical(nrow(get_assessments_sources()), 0L)
   mock_registry(fake = fake_source("fake"))
   s <- get_assessments_sources()
   expect_identical(s$source, "fake")

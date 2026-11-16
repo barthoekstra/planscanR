@@ -12,6 +12,13 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
+**Explicit sources.** Beyond the country handlers, opt-in sources live in the
+`assessment_sources()` registry (`R/utils_dispatch.R`). `"worldbank"`
+(`get_assessments_worldbank()`, World Bank WDS API, one record per
+EA/ESA/SEA-typed document, `countrycode=<ISO2>` server filter, `document_id`
+`worldbank_<id>`, PDF in `attachment_urls_document`) is the first; it is not in
+`supported_countries()`.
+
 **v0.1 scope.** Twenty-two country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
