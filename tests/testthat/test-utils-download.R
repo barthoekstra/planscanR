@@ -541,3 +541,17 @@ test_that("max_file_size_bytes honours the option and arg overrides", {
     expect_identical(planscanR:::max_file_size_bytes(NULL), 50 * 1024 * 1024)
   })
 })
+
+test_that("slugify_filename takes the filename from a script endpoint's f= query", {
+  slug <- planscanR:::slugify_filename
+  expect_identical(
+    slug("https://x.example/public/download.php?f=%2FdocEia%2FMeep%2F2025%2FMP1.zip", "cy", "cy_1"),
+    "cy_cy_1_mp1.zip"
+  )
+  expect_identical(
+    slug("https://x.example/public/download.php?f=%2FdocEia%2FGnomatevseis%2F2025%2FGN1.pdf", "cy", "cy_1"),
+    "cy_cy_1_gn1.pdf"
+  )
+  # plain URLs are unaffected
+  expect_identical(slug("https://x.example/a/b.pdf?f=1", "cy", "z"), "cy_z_b.pdf")
+})

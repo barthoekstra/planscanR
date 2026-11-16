@@ -1,5 +1,5 @@
 # Output column contract (dev/spec/contract.md §1). Locks the guaranteed core
-# columns across ALL 22 country handlers BEFORE Phase 3.2 renames portal-native
+# columns across ALL 23 country handlers BEFORE Phase 3.2 renames portal-native
 # keys, so that work cannot silently drop or retype a core column. Each handler
 # is driven to one representative record through its parse seam + existing
 # fixtures (no live HTTP); at/de/nl mock the network binding.
@@ -222,6 +222,10 @@ make_record <- list(
     url <- planscanR:::it_canonical_url(entry$id)
     planscanR:::it_parse_detail(url, entry, info, documents)$record
   },
+  cy = function() {
+    entry <- planscanR:::cy_parse_listing(xml2::read_html(fixture_path("cy", "list.html")))[[2]]
+    planscanR:::cy_build_record(entry, xml2::read_html(fixture_path("cy", "detail_3792.html")))
+  },
   sk = function() {
     detail <- jsonlite::fromJSON(
       fixture_path("sk", "detail_with_docs.json"),
@@ -332,10 +336,10 @@ test_that("empty_result_tibble() carries the required columns with correct types
   expect_true(is.list(e$local_path))
 })
 
-test_that("bind_results() across all 22 countries is type-stable", {
+test_that("bind_results() across all 23 countries is type-stable", {
   recs <- lapply(names(make_record), function(cc) make_record[[cc]]())
   bound <- expect_no_error(planscanR::bind_results(!!!recs))
-  expect_identical(nrow(bound), 22L)
+  expect_identical(nrow(bound), 23L)
   expect_setequal(bound$country, names(make_record))
   # Core columns survive the bind, types intact.
   expect_true(all(planscanR:::required_columns() %in% names(bound)))
