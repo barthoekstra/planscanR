@@ -31,7 +31,8 @@ supported_countries <- function() {
     "lv",
     "es",
     "cy",
-    "ge"
+    "ge",
+    "lu"
   )
 }
 

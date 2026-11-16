@@ -291,6 +291,15 @@ test_that("CY coverage row signals the current-year EIA register window", {
   expect_setequal(names(cy$facets[[1]]), "listing_type")
 })
 
+test_that("LU coverage row signals the all-themes public-inquiry portal and the theme facet", {
+  c <- get_assessments_coverage()
+  lu <- c[c$country == "lu", ]
+  expect_identical(lu$source_portal, "enquetes.public.lu")
+  expect_false(lu$requires_auth)
+  expect_match(lu$status, "all themes")
+  expect_true("environement" %in% lu$facets[[1]]$theme)
+})
+
 test_that("NO coverage row signals the NVE concession register and exposes the getall list filters", {
   c <- get_assessments_coverage()
   no <- c[c$country == "no", ]

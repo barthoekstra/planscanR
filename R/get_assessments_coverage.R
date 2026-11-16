@@ -49,7 +49,8 @@ get_assessments_coverage <- function() {
       "lv",
       "es",
       "cy",
-      "ge"
+      "ge",
+      "lu"
     ),
     source_portal = c(
       "commissiemer.nl",
@@ -75,7 +76,8 @@ get_assessments_coverage <- function() {
       "eva.gov.lv",
       "sede.miteco.gob.es",
       "eia.moa.gov.cy",
-      "ei.gov.ge"
+      "ei.gov.ge",
+      "enquetes.public.lu"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -101,7 +103,8 @@ get_assessments_coverage <- function() {
       "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti",
       "https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido",
       "https://eia.moa.gov.cy/public",
-      "https://ei.gov.ge"
+      "https://ei.gov.ge",
+      "https://enquetes.public.lu"
     ),
     requires_auth = c(
       FALSE,
@@ -153,7 +156,8 @@ get_assessments_coverage <- function() {
       "supported (metadata-only EIA register \u2014 documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
       "supported (requires optional headless browser; TLS-fingerprinted portal)", # es
       "supported (EIA register only, current-year listing window; Screening + MEEP; zip studies; no SEA, no geometry)", # cy
-      "supported (recent portal only, legacy archive excluded; Georgian-language; EIA/SEA procedures; reports inside RAR5 bundles, SEA bundles often exceed the size cap; no geometry)" # ge
+      "supported (recent portal only, legacy archive excluded; Georgian-language; EIA/SEA procedures; reports inside RAR5 bundles, SEA bundles often exceed the size cap; no geometry)", # ge
+      "supported (public-inquiry portal, all themes, ~2020 onward; no native EIA flag; listing-only records when a detail page is missing; EIA reports often inside zip/7z; no geometry)" # lu
     ),
     facets = list(
       commissiemer_facets(),
@@ -179,7 +183,8 @@ get_assessments_coverage <- function() {
       eva_lv_facets(),
       sabia_es_facets(),
       eia_moa_cy_facets(),
-      ei_gov_ge_facets()
+      ei_gov_ge_facets(),
+      enquetes_lu_facets()
     )
   )
 }
@@ -196,6 +201,14 @@ ei_gov_ge_facets <- function() {
 #' @noRd
 eia_moa_cy_facets <- function() {
   list(listing_type = c("\u039c\u0395\u0395\u03a0", "Screening"))
+}
+
+#' Static lookup of the Luxembourg public-inquiry portal facets: the native
+#' theme slugs accepted by `theme` (snapshot of the portal's theme facet; the
+#' portal's own spelling "environement"). The portal has no EIA flag.
+#' @noRd
+enquetes_lu_facets <- function() {
+  list(theme = lu_themes())
 }
 
 #' Static lookup of the MITECO/SABIA (Spain) facet vocabularies.

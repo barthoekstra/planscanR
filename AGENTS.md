@@ -485,6 +485,24 @@ Python, no Shiny, no project-specific scoring config.
   extracted; the default 50 MB cap skips the largest). Downloads use
   `download.php?f=<path>`, so `slugify_filename()` takes the name from `f=`.
   No geometry. Throttled 5 req/s (`planscanR.cy_throttle_rate`).
+- Luxembourg (`get_assessments_lu()`) — national public-inquiry portal
+  `enquetes.public.lu` (JSON search `/ctie/searchresults?id=<data-id>&page=N`,
+  1-based, 21/page, `data-id` read from `/fr/enquetes.html`; detail page per
+  record, sidecar-first; French). **All themes are returned** (~2,100 inquiries
+  since ~2020): the portal has no EIA flag, `assessment_type` is `NA` and no
+  title heuristic exists; the `theme` filter (native slug, `"environement"`
+  sic) is sent as `r=f/aem_theme/...` and re-checked client-side. Items without
+  a `page` object are identified through `hitMetaData$b64_uri`; a failed or
+  unexpected detail page (3904/4420 return 404) yields a listing-only record
+  (`detail_fetched = FALSE`, no attachments) plus a partial warning, never
+  cached (a sidecar with `detail_fetched = FALSE` is a cache miss). Unique ids
+  are compared with `totalMatches`; inquiry 1041 is listed twice, so full
+  crawls warn. `proponent` = the "Requérant" line when present. Listing close-date timestamps are shifted 1-2 h, so the
+  dates come from the detail page. Files (host `*download.public.lu`) are
+  grouped by accordion heading (`fichiers`), the "Tout telecharger" button
+  (`tout_telecharger`) and description links (`description`); zip/7z are
+  downloaded as-is. Seams `lu_fetch_home()` / `lu_fetch_page()` /
+  `lu_fetch_detail()`; throttle `planscanR.lu_throttle_rate` (5 req/s).
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only

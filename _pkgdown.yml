@@ -41,6 +41,7 @@ reference:
   - get_assessments_es
   - get_assessments_cy
   - get_assessments_ge
+  - get_assessments_lu
   - get_assessments_coverage
   - get_assessments_sources
   - supported_countries
