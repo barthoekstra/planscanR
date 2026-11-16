@@ -64,7 +64,7 @@ assert_country <- function(country) {
 #' Registry of explicit, opt-in assessment sources.
 #'
 #' Named list `source_id -> list(handler, name, granularity, geography, scope,
-#' limitations, url)`. Empty until source adapters register themselves here.
+#' limitations, url)`. Source adapters register themselves here.
 #' @noRd
 assessment_sources <- function() {
   list(

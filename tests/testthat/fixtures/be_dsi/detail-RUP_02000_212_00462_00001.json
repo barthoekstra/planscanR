@@ -20,7 +20,83 @@
     {
       "id": "825a44f9-0206-4346-b4d1-85aecb8a8d07",
       "code": "BG",
-      "geodata": [],
+      "geodata": [
+        {
+          "id": "ae1cb1d4-0601-424f-bf16-fafe77acdb8b",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2380,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Geodata.CT.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "a4f9577f-06fa-4961-b5ae-493edff5b6ef",
+          "originId": null,
+          "code": "DG",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2463,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Geodata.DG.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "44cb1e00-615e-4f95-8cda-1010476595c8",
+          "originId": null,
+          "code": "GV",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2593,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Geodata.GV.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "4c1b57e8-4a3f-437d-a8ef-d4b45407b4c9",
+          "originId": null,
+          "code": "LNIA",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2085,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Geodata.LNIA.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "2d01081e-6469-4f85-8fba-d7364d23cbb4",
+          "originId": null,
+          "code": "OV",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 4133,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Geodata.OV.1_1",
+          "omschrijving": ""
+        }
+      ],
       "dossierstukken": [
         {
           "id": "ec602e22-394f-4419-b460-29566a6bd37a",
@@ -387,7 +463,83 @@
     {
       "id": "ab5921a8-f238-4844-9034-1a6602d40667",
       "code": "VV",
-      "geodata": [],
+      "geodata": [
+        {
+          "id": "ae4e3b38-92e2-4198-91be-266355d6fa41",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2348,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Geodata.CT.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "e3c6cdef-8eb1-40c1-91d2-231c48b0c08f",
+          "originId": null,
+          "code": "DG",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2432,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Geodata.DG.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "b3040016-b38c-4fa5-934f-233d8a191f46",
+          "originId": null,
+          "code": "GV",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2564,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Geodata.GV.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "3d16024a-84bd-4d08-80be-baff5c91de58",
+          "originId": null,
+          "code": "LNIA",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2084,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Geodata.LNIA.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "6793eacd-1fde-4c75-913e-41426c4e4741",
+          "originId": null,
+          "code": "OV",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 4111,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Geodata.OV.1_1",
+          "omschrijving": ""
+        }
+      ],
       "dossierstukken": [
         {
           "id": "20d640ba-bab8-4e66-86c0-76b54e38d00b",
@@ -702,7 +854,23 @@
     {
       "id": "100255e1-5d43-464f-b0d5-44b5d09ebaa4",
       "code": "PV",
-      "geodata": [],
+      "geodata": [
+        {
+          "id": "9c8dbc61-95ac-4212-9f2b-7eecd44eafd9",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2219,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Geodata.CT.1_1",
+          "omschrijving": ""
+        }
+      ],
       "dossierstukken": [
         {
           "id": "d8d0c381-1486-4098-80e7-f2ba292bf905",

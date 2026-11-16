@@ -25,27 +25,41 @@
 #' until `page.totalPages`; the stable id is `algplanid`
 #' (`document_id = "be_dsi_<algplanid>"`). One
 #' `GET /api/fiches/dossiers/{dossierId}` per dossier returns all phases
-#' (`fases[]`) with their `dossierstukken[]`, each with a public download link.
+#' (`fases[]`) with four document arrays per phase (`dossierstukken[]`,
+#' `workflow[]`, `geodata[]`, `inspraakstukken[]`), each document with a
+#' public download link. The listing's first-publication timestamp of the
+#' active phase is used as `date_published`.
 #'
 #' @section Attachments:
-#' Links are grouped per native document code into
+#' Links from all four arrays are grouped per native document code into
 #' `attachment_urls_<code>` / `local_path_<code>` columns (`plnmer`, `bs`,
 #' `rvr`, ...) and deduplicated (the same file often recurs across phases).
-#' The extra column `documents_json` keeps every document with code, type,
-#' description, phase, extension, size, version and link; `phases_json` keeps
-#' the phases with their native payload; `dossier_payload_json` the dossier-level
-#' payload.
+#' Documents from `workflow` (e.g. advice letters), `geodata` and
+#' `inspraakstukken` get the array name as slug prefix
+#' (`attachment_urls_workflow_adv`, `attachment_urls_geodata_ct`, ...).
+#' The extra column `documents_json` keeps every document as its full native
+#' object (id, originId, code, type, description, extension, size, version,
+#' index, groepering, verordenend, payload, link) plus `phase` and
+#' `source_array`; `phases_json` keeps every phase's non-array fields (id, code,
+#' volgorde, payload); `dossier_payload_json` the dossier-level payload;
+#' `listing_json` the raw listing row; `herinterpretatie` the native flag.
+#' Download volume is large: a dossier with all its documents is often about
+#' 100 MB, so use `limit` and `max_file_size_mb`.
 #'
 #' @section Geometry:
-#' The contour (MultiPolygon, EPSG:31370) of the latest phase that has one is
-#' saved next to the sidecar, as in [get_assessments_be()].
+#' Only the contour (MultiPolygon, EPSG:31370) of the latest phase (highest
+#' `volgorde`) that has one is saved next to the sidecar, as in
+#' [get_assessments_be()], because the record schema has a single
+#' `geometry_path`; its phase is recorded in `geometry_phase_code`. Earlier
+#' phases' contours are not stored.
 #'
 #' @section Filters:
 #' * `query` — case-insensitive substring on dossier name + `algplanid`
 #'   (client-side, before the detail call).
 #' * `procedure_code` — exact `procedureCode` (e.g. `"gewRUP"`), client-side.
-#' * `date_range` — against `date_published` (first publication of the active
-#'   phase, else the active phase date).
+#' * `date_range` — against `date_published` (listing `actieveFaseTijdstipEerstePublicatie`,
+#'   the first-publication time of the active phase, else the active phase
+#'   date `fasedatum`).
 #'
 #' @param country Must be `"be"`.
 #' @param date_range,limit,download,cache_dir,overwrite,max_file_size_mb,write_sidecar,refresh,topic,relevance_threshold,relevance_model
@@ -87,6 +101,14 @@ get_assessments_be_dsi <- function(
     warn_partial("Unknown argument{?s} ignored: {.val {names(dots)}}")
   }
   date_range <- parse_date_range(date_range)
+  if (
+    !is.null(procedure_code) && (!is.character(procedure_code) || length(procedure_code) != 1L || is.na(procedure_code))
+  ) {
+    cli::cli_abort(
+      "{.arg procedure_code} must be a single non-NA string.",
+      class = "planscanR_error_bad_input"
+    )
+  }
 
   if (!is.null(cache_dir)) {
     withr::local_options(list(planscanR.cache_dir = cache_dir))
@@ -184,13 +206,25 @@ be_dsi_fetch_search <- function(limit = Inf, max_size = 200L) {
       }
     )
     page <<- page + 1L
-    rows <- payload$`_embedded`$ficheOverzichtZoekResultaats %||% list()
-    if (!is.list(payload) || length(rows) == 0L) {
+    if (!is.list(payload)) {
       done <<- TRUE
+      if (!is.null(payload)) {
+        warn_partial("DSI listing page {page - 1L} returned an unexpected payload; results are incomplete.")
+      }
       return(NULL)
     }
     total_pages <<- as.integer(payload$page$totalPages %||% NA_integer_)
     total <<- as.integer(payload$page$totalElements %||% NA_integer_)
+    rows <- payload$`_embedded`$ficheOverzichtZoekResultaats %||% list()
+    if (length(rows) == 0L) {
+      done <<- TRUE
+      if (is.na(total) || length(seen) < total) {
+        warn_partial(
+          "DSI listing page {page - 1L} was empty after {length(seen)} of {total} dossiers; results are incomplete."
+        )
+      }
+      return(NULL)
+    }
     ids <- vapply(rows, function(r) as.character(r$algplanid %||% r$dossierId %||% NA_character_), character(1))
     fresh <- !is.na(ids) & !ids %in% seen & !duplicated(ids)
     if (!any(fresh)) {
@@ -233,13 +267,13 @@ be_dsi_load_or_fetch <- function(url, entry, sidecar_index, write_sidecar) {
 
 #' Contour of the phase with the highest `volgorde` that has one.
 #' @noRd
-be_dsi_latest_contour <- function(fases) {
+be_dsi_latest_contour <- function(fases, field = "contour") {
   fases <- Filter(function(f) is.list(f$contour) && nzchar(f$contour$type %||% ""), fases %||% list())
   if (length(fases) == 0L) {
     return(NULL)
   }
   ord <- vapply(fases, function(f) as.numeric(f$volgorde %||% -Inf), numeric(1))
-  fases[[which.max(ord)]]$contour
+  fases[[which.max(ord)]][[field]]
 }
 
 #' Build the 1-row record from a listing row + detail payload.
@@ -248,34 +282,36 @@ be_dsi_parse_detail <- function(url, entry, detail) {
   algplanid <- as.character(detail$algplanid %||% entry$algplanid)
   fases <- detail$fases %||% list()
 
+  doc_arrays <- c("dossierstukken", "workflow", "geodata", "inspraakstukken")
   docs <- list()
   for (f in fases) {
-    for (d in f$dossierstukken %||% list()) {
-      docs[[length(docs) + 1L]] <- list(
-        code = d$code %||% NA_character_,
-        type = d$type %||% NA_character_,
-        omschrijving = d$omschrijving %||% NA_character_,
-        phase = f$code %||% NA_character_,
-        file_extension = d$fileExtension %||% NA_character_,
-        size = d$size %||% NA_integer_,
-        versie = d$versie %||% NA_integer_,
-        link = d$link %||% NA_character_
-      )
+    for (arr in doc_arrays) {
+      for (d in f[[arr]] %||% list()) {
+        d$phase <- f$code %||% NA_character_
+        d$source_array <- arr
+        docs[[length(docs) + 1L]] <- d
+      }
     }
   }
-  has_link <- vapply(docs, function(d) !is.na(d$link) && nzchar(d$link), logical(1))
-  docs_linked <- docs[has_link]
   per_section <- list()
-  for (d in docs_linked) {
+  for (d in docs) {
+    link <- d$link %||% NA_character_
+    if (is.na(link) || !nzchar(link)) {
+      next
+    }
     slug <- ascii_slug(d$code, "document")
-    per_section[[slug]] <- unique(c(per_section[[slug]], d$link))
+    if (!identical(d$source_array, "dossierstukken")) {
+      slug <- paste0(d$source_array, "_", slug)
+    }
+    per_section[[slug]] <- unique(c(per_section[[slug]], link))
   }
   union_urls <- unique(unlist(per_section, use.names = FALSE)) %||% character(0)
 
   json <- function(x) as.character(jsonlite::toJSON(x, auto_unbox = TRUE, null = "null", na = "null"))
   phases <- lapply(fases, function(f) {
-    list(code = f$code, volgorde = f$volgorde, payload = f$payload %||% list())
+    f[setdiff(names(f), c(doc_arrays, "contour"))]
   })
+  geom_phase <- be_dsi_latest_contour(fases, field = "code")
   date_published <- parse_iso_date(substr(entry$actieveFaseTijdstipEerstePublicatie %||% NA_character_, 1, 10))
   if (is.na(date_published)) {
     date_published <- parse_iso_date(entry$fasedatum)
@@ -314,11 +350,14 @@ be_dsi_parse_detail <- function(url, entry, detail) {
     contact = na_chr(detail$contact),
     active_phase_code = na_chr(entry$actieveFaseCode),
     staatsblad_publication_date = na_chr(entry$actieveFaseDatumPublicatieBelgischStaatsblad),
+    herinterpretatie = isTRUE(detail$herinterpretatie),
+    listing_json = json(entry),
     dossier_payload_json = json(detail$payload %||% list()),
     phases_json = json(phases),
     documents_json = json(docs),
     geometry_path = NA_character_,
     geometry_crs = NA_character_,
+    geometry_phase_code = geom_phase %||% NA_character_,
     download_status = list(empty_download_status())
   )
   for (slug in names(per_section)) {

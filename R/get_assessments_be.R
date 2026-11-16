@@ -5,7 +5,8 @@
 #' public register of Project-MER dossiers (project-level EIA) and
 #' dossier-MER-plicht ontheffingsaanvragen (exemption requests). Plan-MER
 #' (SEA) lives in a separate Flemish register and is out of scope for this
-#' handler.
+#' handler; Flemish planning dossiers are the explicit source `be_dsi`
+#' (`get_assessments("be", source = "be_dsi")`).
 #'
 #' @section URL enumeration:
 #' The portal is a Vue SPA backed by a public REST API. The SPA reads the

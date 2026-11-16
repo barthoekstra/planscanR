@@ -76,6 +76,11 @@ To see which countries and search options are available, use:
 get_assessments_coverage()
 ```
 
+Some opt-in sources beyond the national portals are chosen with `source`,
+for example Flemish planning dossiers with
+`get_assessments("be", source = "be_dsi")`; list them with
+`get_assessments_sources()`.
+
 ## Working offline
 
 Every record you fetch is saved to the offline metadata cache under the cache
