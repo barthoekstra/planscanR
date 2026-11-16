@@ -67,7 +67,17 @@ assert_country <- function(country) {
 #' limitations, url)`. Empty until source adapters register themselves here.
 #' @noRd
 assessment_sources <- function() {
-  list()
+  list(
+    be_dsi = list(
+      handler = get_assessments_be_dsi,
+      name = "Flanders DSI planning dossiers (Departement Omgeving)",
+      granularity = "planning dossier (all phases and documents)",
+      geography = "Flanders only (country = \"be\"); not Wallonia or Brussels",
+      scope = "Flemish spatial plans (RUP, BPA, ...); plan-MER reports are a subset of the documents",
+      limitations = "Document code PLNMER mixes plan-MER reports, screening and decision letters; native code/description/phase kept, no classification. No server-side pre-filter to report-bearing dossiers.",
+      url = "https://dsi.omgeving.vlaanderen.be/"
+    )
+  )
 }
 
 #' Validate a scalar ISO-2 format (two ASCII letters), independent of

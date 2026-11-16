@@ -1,0 +1,918 @@
+{
+  "id": "2ba01672-59b0-48cc-83c7-7737c072a15f",
+  "procedureCode": "gewRUP",
+  "fichelink": "https://dsi.omgeving.vlaanderen.be/fiche-detail/2ba01672-59b0-48cc-83c7-7737c072a15f",
+  "algplanid": "RUP_02000_212_00462_00001",
+  "naam": "Historisch gegroeid bedrijf 'AVR' te Roeselare",
+  "plannendeOverheid": "Departement Omgeving",
+  "status": "DEFINITIEF",
+  "omschrijving": "Het GRUP heeft betrekking op delen van het grondgebied van de gemeente(n) Roeselare.",
+  "contact": "omgevingsplanning@vlaanderen.be",
+  "payload": [
+    {
+      "label": "Thema",
+      "value": "Bedrijventerrein",
+      "type": "CONFIGURATIE"
+    }
+  ],
+  "herinterpretatie": false,
+  "fases": [
+    {
+      "id": "825a44f9-0206-4346-b4d1-85aecb8a8d07",
+      "code": "BG",
+      "geodata": [],
+      "dossierstukken": [
+        {
+          "id": "ec602e22-394f-4419-b460-29566a6bd37a",
+          "originId": null,
+          "code": "AD",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 3554011,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.AD.1_1",
+          "omschrijving": "Andere dossierstukken"
+        },
+        {
+          "id": "c1b739fe-e1f4-457d-87da-69958aceb1a1",
+          "originId": null,
+          "code": "BS",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 675192,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.EvolutiefDossierstuk.BS.1_1",
+          "omschrijving": "Goedkeuringsbesluit van de betreffende fase"
+        },
+        {
+          "id": "e6fe5543-10e2-4142-91ca-a5cdb8f6361d",
+          "originId": null,
+          "code": "GP",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 466165,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.GP.1_1",
+          "omschrijving": "Verordenend grafisch plan"
+        },
+        {
+          "id": "cb37e6df-9c89-4495-9214-9bd420dd4724",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 239830,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.PLNMER.1_1",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "d09dac66-b28b-4f6e-8db1-edaf1a854a40",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 88551,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.PLNMER.1_2",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "f836f8dd-ec7b-4bfc-822e-5d5230e29273",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 3878325,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.PLNMER.1_3",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "77645887-07f9-4bc7-9879-95387e4be086",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 1371127,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.PLNMER.1_4",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "12c64a9e-92c5-4b3c-9c80-8fd004d866a7",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 5,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 7245587,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.PLNMER.1_5",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "854770d0-98f9-4542-b062-674e17f47d07",
+          "originId": null,
+          "code": "RPC",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 326149,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.RPC.1_1",
+          "omschrijving": "Register plancompensaties"
+        },
+        {
+          "id": "a626223b-f057-460f-b986-64824ddd00b8",
+          "originId": null,
+          "code": "RPC",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 182593,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.RPC.1_2",
+          "omschrijving": "Register plancompensaties"
+        },
+        {
+          "id": "6207091d-c745-402b-8ebc-1b6431a2e16a",
+          "originId": null,
+          "code": "SLD_GV",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "sld",
+          "size": 226780,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.SLD_GV.1_1",
+          "omschrijving": "SLD van de grondvlakken"
+        },
+        {
+          "id": "df05ac70-3a86-4b32-ac40-944be7549e42",
+          "originId": null,
+          "code": "SLD_LNIA",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "sld",
+          "size": 69217,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.SLD_LNIA.1_1",
+          "omschrijving": "SLD van de lijnen"
+        },
+        {
+          "id": "a77f9225-4dc6-4834-98b7-d0508bb57f67",
+          "originId": null,
+          "code": "SLD_OV",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "sld",
+          "size": 196378,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.SLD_OV.1_1",
+          "omschrijving": "SLD van de overdrukken"
+        },
+        {
+          "id": "6bd17179-d795-48cc-bd8c-cdb30224f611",
+          "originId": null,
+          "code": "SV",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 324326,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.SV.1_1",
+          "omschrijving": "Stedenbouwkundige voorschriften"
+        },
+        {
+          "id": "b547d055-0423-41d0-8ac2-26059d1b1541",
+          "originId": null,
+          "code": "TN",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 6192178,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.TN.1_1",
+          "omschrijving": "Toelichtingsnota"
+        },
+        {
+          "id": "1743c2c5-b7e6-4b3f-96a9-304cb41c7472",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 3883068,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.TNK.1_1",
+          "omschrijving": "Kaart 0 Situering plangebied"
+        },
+        {
+          "id": "c525aae4-a73c-4a6e-a9a0-a648347ff9a2",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 1679311,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.TNK.1_2",
+          "omschrijving": "Kaart 1 Bestaande feitelijke toestand: luchtfoto met aanduidingen"
+        },
+        {
+          "id": "04048c54-ae5c-410e-8727-9aaa4f637d3d",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 2551359,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.TNK.1_3",
+          "omschrijving": "Kaart 2a Bestaande juridische toestand: gewestplan, gewestplanwijzigingen en ruimtelijke uitvoeringsplannen"
+        },
+        {
+          "id": "6ec13c28-05f0-4c63-859f-c01fc001c349",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 2547204,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.TNK.1_4",
+          "omschrijving": "Kaart 2b bestaande juridische toestand: algemeen plan van aanleg Roeselare"
+        },
+        {
+          "id": "96e1f415-e72e-4971-bfd9-3a5a336190a4",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 5,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 2589261,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.BG.3.Dossierstuk.TNK.1_5",
+          "omschrijving": "Kaart 3 Bestaande juridische toestand: andere plannen "
+        }
+      ],
+      "workflow": [],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [
+        {
+          "label": "Planelement compleet",
+          "value": true,
+          "type": "Boolean"
+        },
+        {
+          "label": "Datum besluit tot goedkeuring door Vlaamse Regering",
+          "value": "2016-09-16",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Herinterpretatie op andere referentiekaart",
+          "value": false,
+          "type": "Boolean"
+        },
+        {
+          "label": "Datum Publicatie Belgisch Staatsblad",
+          "value": "2016-10-06",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Numac",
+          "value": "2016204932",
+          "type": "String"
+        },
+        {
+          "label": "Dossier informatie",
+          "value": null,
+          "type": "String"
+        },
+        {
+          "label": "Link Belgisch Staatsblad",
+          "value": "https://www.ejustice.just.fgov.be/cgi/api2.pl?lg=nl&pd=2016-10-06&numac=2016204932",
+          "type": "URL"
+        }
+      ],
+      "volgorde": 3
+    },
+    {
+      "id": "ab5921a8-f238-4844-9034-1a6602d40667",
+      "code": "VV",
+      "geodata": [],
+      "dossierstukken": [
+        {
+          "id": "20d640ba-bab8-4e66-86c0-76b54e38d00b",
+          "originId": null,
+          "code": "AD",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 866125,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.AD.1_1",
+          "omschrijving": "Andere dossierstukken"
+        },
+        {
+          "id": "a2f0a80f-3bed-4fee-bb0d-354a15fb052a",
+          "originId": null,
+          "code": "BS",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 56956,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.BS.1_1",
+          "omschrijving": "Goedkeuringsbesluit van de betreffende fase"
+        },
+        {
+          "id": "2a8ca7c3-d5e7-47d1-b444-c3074879d3a7",
+          "originId": null,
+          "code": "GP",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 200393,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.GP.1_1",
+          "omschrijving": "Verordenend grafisch plan"
+        },
+        {
+          "id": "3e0bb9e6-b6c7-4510-9207-e4315b8d4e53",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 15846224,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.PLNMER.1_1",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "f55628a7-a0b8-486a-92cb-55f93e48102c",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 752807,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.PLNMER.1_2",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "f9f7fa9c-c8f8-4169-8b54-7daf7097de6e",
+          "originId": null,
+          "code": "RPC",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 207147,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.RPC.1_1",
+          "omschrijving": "Register plancompensaties"
+        },
+        {
+          "id": "b5a13351-7b01-439f-9fb8-b2c13e5ac613",
+          "originId": null,
+          "code": "RPC",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 174787,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.RPC.1_2",
+          "omschrijving": "Register plancompensaties"
+        },
+        {
+          "id": "6dd58da6-c0d7-4e66-aa07-99c2a27cf1b7",
+          "originId": null,
+          "code": "SLD_GV",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "sld",
+          "size": 226780,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.SLD_GV.1_1",
+          "omschrijving": "SLD van de grondvlakken"
+        },
+        {
+          "id": "5d002ba6-8b4f-4996-95b6-29e3fb4b1298",
+          "originId": null,
+          "code": "SLD_LNIA",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "sld",
+          "size": 69217,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.SLD_LNIA.1_1",
+          "omschrijving": "SLD van de lijnen indicatieve aanduiding"
+        },
+        {
+          "id": "8d52ed96-aa29-4ac1-8584-13a172a4e519",
+          "originId": null,
+          "code": "SLD_OV",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "sld",
+          "size": 196378,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.SLD_OV.1_1",
+          "omschrijving": "SLD van de overdrukken"
+        },
+        {
+          "id": "7e93e39a-de8c-45ed-bc8c-0751e390c185",
+          "originId": null,
+          "code": "SV",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 198077,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.SV.1_1",
+          "omschrijving": "Stedenbouwkundige voorschriften"
+        },
+        {
+          "id": "c92c75ff-8958-481b-8853-c607a00ff28c",
+          "originId": null,
+          "code": "TN",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 6280969,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.TN.1_1",
+          "omschrijving": "Toelichtingsnota"
+        },
+        {
+          "id": "5942e390-1b5f-4faf-b672-d9469ea1e8e9",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 645069,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.TNK.1_1",
+          "omschrijving": "Kaart 0 Situering plangebied"
+        },
+        {
+          "id": "d6ad5eeb-d1d3-4977-9909-ecc99e19d09f",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 394931,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.TNK.1_2",
+          "omschrijving": "Kaart 1 Bestaande feitelijke toestand: luchtfoto met aanduidingen"
+        },
+        {
+          "id": "e8e9d43e-617f-4a60-93c9-d1c49ff38009",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 681377,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.TNK.1_3",
+          "omschrijving": "Kaart 2a Bestaande juridische toestand: gewestplan, gewestplanwijzigingen en ruimtelijke uitvoeringsplannen"
+        },
+        {
+          "id": "a6bb0ef8-12e9-4317-837d-01620bb24686",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 469604,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.TNK.1_4",
+          "omschrijving": "Kaart 2b Bestaande juridische toestand: algemeen plan van aanleg Roeselare"
+        },
+        {
+          "id": "2b87aae3-ed00-4379-ad5a-4aa123311063",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 5,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 489536,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.VV.2.Dossierstuk.TNK.1_5",
+          "omschrijving": "Kaart 3 Bestaande juridische toestand: andere plannen "
+        }
+      ],
+      "workflow": [],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [
+        {
+          "label": "Planelement compleet",
+          "value": false,
+          "type": "Boolean"
+        },
+        {
+          "label": "Datum Voorlopige Vaststelling",
+          "value": "2015-12-18",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Herinterpretatie op andere referentiekaart",
+          "value": false,
+          "type": "Boolean"
+        },
+        {
+          "label": "Datum Publicatie Belgisch Staatsblad",
+          "value": "2016-01-13",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Numac",
+          "value": null,
+          "type": "String"
+        },
+        {
+          "label": "Datum principiële goedkeuring RUP",
+          "value": null,
+          "type": "LocalDate"
+        },
+        {
+          "label": "Dossier informatie",
+          "value": null,
+          "type": "String"
+        }
+      ],
+      "volgorde": 2
+    },
+    {
+      "id": "100255e1-5d43-464f-b0d5-44b5d09ebaa4",
+      "code": "PV",
+      "geodata": [],
+      "dossierstukken": [
+        {
+          "id": "d8d0c381-1486-4098-80e7-f2ba292bf905",
+          "originId": null,
+          "code": "AD",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 866125,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.AD.1_1",
+          "omschrijving": "Andere dossierstukken"
+        },
+        {
+          "id": "9089eae1-c9de-4faf-a399-6b9bf8f63151",
+          "originId": null,
+          "code": "GP",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 209160,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.GP.1_1",
+          "omschrijving": "Verordenend grafisch plan"
+        },
+        {
+          "id": "b98261dd-bfe3-4fce-8cfe-24c7ad82e975",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 15846224,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.PLNMER.1_1",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "eb7cedeb-0505-4385-a707-80bf565f5aed",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "C",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 752807,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.PLNMER.1_2",
+          "omschrijving": "Plan-MER"
+        },
+        {
+          "id": "9d9f88b7-927e-40a0-b007-5f79a29be9c7",
+          "originId": null,
+          "code": "RPC",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 174780,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.RPC.1_1",
+          "omschrijving": "Register plancompensaties"
+        },
+        {
+          "id": "6a8d4349-9ea1-4872-899e-f5c5fdb08be4",
+          "originId": null,
+          "code": "SV",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 17224277,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.SV.1_1",
+          "omschrijving": "Stedenbouwkundige voorschriften in Toelichtingsnota"
+        },
+        {
+          "id": "233ecf72-04dd-4d05-94be-a9ebe267117d",
+          "originId": null,
+          "code": "TN",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 17224277,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.TN.1_1",
+          "omschrijving": "Toelichtingsnota"
+        },
+        {
+          "id": "95e562b1-43d9-4465-91b9-1f9abee6fc70",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 644782,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.TNK.1_1",
+          "omschrijving": "Kaart 0 Situering plangebied"
+        },
+        {
+          "id": "0c779107-4535-4a76-8f37-480b1fde3f93",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 414783,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.TNK.1_2",
+          "omschrijving": "Kaart 1 Bestaande feitelijke toestand: luchtfoto met aanduidingen"
+        },
+        {
+          "id": "e77d1695-2327-4ba7-b36f-1026c140b4bc",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 681008,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.TNK.1_3",
+          "omschrijving": "Kaart 2a Bestaande juridische toestand: gewestplan, gewestplanwijzigingen en ruimtelijke uitvoeringsplannen"
+        },
+        {
+          "id": "f64cff0e-68be-4ad3-a8d7-d426a2c4688f",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 469352,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.TNK.1_4",
+          "omschrijving": "Kaart 2b Bestaande juridische toestand: Algemeen plan van aanleg Roeselare"
+        },
+        {
+          "id": "e08e2812-dc82-4da9-ad6d-8d8cca7e9ef2",
+          "originId": null,
+          "code": "TNK",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 5,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 489434,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_02000_212_00462_00001.PV.1.Dossierstuk.TNK.1_5",
+          "omschrijving": "Kaart 3 Bestaande juridische toestand: andere plannen "
+        }
+      ],
+      "workflow": [],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [
+        {
+          "label": "Herinterpretatie op andere referentiekaart",
+          "value": false,
+          "type": "Boolean"
+        },
+        {
+          "label": "Dossier informatie",
+          "value": null,
+          "type": "String"
+        }
+      ],
+      "volgorde": 1
+    }
+  ]
+}

@@ -3,7 +3,11 @@
 * `get_assessments()` gains an opt-in `source` argument (after all existing
   parameters) for explicit non-national sources, and `get_assessments_sources()`
   lists them. `source = NULL` keeps the national dispatch unchanged;
-  `get_assessments_coverage()` is unchanged. No source is registered yet.
+  `get_assessments_coverage()` is unchanged. The first source is
+  `be_dsi` (Flanders DSI planning dossiers, `get_assessments("be", source =
+  "be_dsi")`): one record per dossier with every phase and document, grouped per
+  native document code. `PLNMER` mixes plan-MER reports, screening and decision
+  letters; they are not classified. Flanders only.
 
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,

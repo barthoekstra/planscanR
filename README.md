@@ -150,6 +150,9 @@ Explicit, opt-in sources beyond the national portals (e.g. development banks)
 are selected with `get_assessments(country, source = "<id>")` and listed by
 `get_assessments_sources()`. With a source, `country` is any ISO-2 code; the
 source maps it to its own geography. They are not in `supported_countries()`.
+`source = "be_dsi"` (with `country = "be"`) fetches Flemish spatial-planning
+dossiers from the DSI portal, including plan-MER material; assessment reports
+are only a subset of its documents (Wallonia and Brussels are not covered).
 
 ## License
 

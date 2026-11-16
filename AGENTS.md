@@ -43,6 +43,12 @@ Python, no Shiny, no project-specific scoring config.
   GeoJSON layout as DK), and direct anonymous document downloads. The
   geometry sidecar's CRS is the only thing that distinguishes it from a
   DK file.
+  Plan-MER lives in the explicit second portal `source = "be_dsi"`
+  (`get_assessments("be", source = "be_dsi")`, `R/get_assessments_be_dsi.R`):
+  Flanders DSI planning dossiers (one record per dossier, `be_dsi_<algplanid>`,
+  documents grouped per native code, e.g. `attachment_urls_plnmer`). Flemish
+  only; `PLNMER` mixes plan-MER reports, screening and decision letters and is
+  not classified.
 - Estonia (`get_assessments_ee()`) — Keskkonnaamet KOTKAS at
   `kotkas.envir.ee`. Merges both Estonian registers — **KMH** (EIA) and
   **KSH** (SEA) — into one result tibble; each row carries an
