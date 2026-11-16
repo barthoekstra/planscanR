@@ -11,7 +11,8 @@
   records included, global/regional-only records excluded). Raw `docty`,
   `majdocty`, `count`, `countrycode`, `projectid` and all other fields are kept
   as extras; the type label also holds ESMP-grade site files and plans, and no
-  title heuristic is applied.
+  title heuristic is applied. A country code with no World Bank documents at all
+  is an error; all native fields are requested (`fl = "*"`).
 
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,

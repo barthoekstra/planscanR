@@ -76,6 +76,14 @@ To see which countries and search options are available, use:
 get_assessments_coverage()
 ```
 
+Beyond the national portals, opt-in sources such as the World Bank's project
+documents are chosen with `source =` (for example
+`get_assessments("ke", source = "worldbank")`) and listed with:
+
+```{r}
+get_assessments_sources()
+```
+
 ## Working offline
 
 Every record you fetch is saved to the offline metadata cache under the cache

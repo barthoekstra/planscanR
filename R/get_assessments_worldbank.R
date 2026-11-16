@@ -14,9 +14,12 @@
 #' multi-country records (such as `"World,Georgia"`); the same source-prefixed
 #' `document_id` is then returned for each requested country. Purely global or
 #' regional records without the code are not returned. The native `count`
-#' (names) and `countrycode` strings are kept verbatim as extra columns. A valid
-#' code with no matching documents (including a code the source does not use)
-#' yields a typed empty result.
+#' (names) and `countrycode` strings are kept verbatim as extra columns. A code
+#' with no matching assessment documents yields a typed empty result only if
+#' the World Bank holds other documents for it; a code with no documents at all
+#' (an unknown code, or one the bank spells differently, such as `"gb"` rather
+#' than `"uk"`) raises `planscanR_error_bad_input`, checked with one extra
+#' `rows = 0` request.
 #'
 #' @section Document types:
 #' Only documents whose native `docty` is one of
@@ -40,15 +43,17 @@
 #' Pages are requested with `rows`/`os`, sorted by `docdt` descending, until the
 #' offset reaches the (re-read) `total`. Records are de-duplicated on the native
 #' id, so repeated pages and offset shifts from records added mid-crawl are
-#' harmless. A mid-crawl failure, an empty page before `total` is reached, or a
-#' crawl that cannot finish within a bounded number of pages raises a
+#' harmless. A mid-crawl failure, an empty page before `total` is reached, a
+#' `total` that falls between pages, a response without `total`, or a crawl
+#' that cannot finish within a bounded number of pages raises a
 #' `planscanR_warning_partial`.
 #'
 #' @param country Lower-case ISO-3166-1 alpha-2 code (supplied by
 #'   [get_assessments()]).
-#' @param date_range,limit,download,cache_dir,overwrite,max_file_size_mb,write_sidecar,refresh,topic,relevance_threshold,relevance_model
+#' @param date_range,limit,download,cache_dir,overwrite,max_file_size_mb,write_sidecar,topic,relevance_threshold,relevance_model
 #'   See [get_assessments()]. `date_range` is applied server-side
 #'   (`strdate`/`enddate`) and again client-side on `docdt`.
+#' @param refresh Ignored: every call queries the live API.
 #' @param query Optional free-text query, forwarded as the API `qterm`.
 #' @param ... Reserved; unused arguments are warned about.
 #'
@@ -135,6 +140,7 @@ wb_fetch_search <- function(country, date_range = NULL, query = NULL) {
   max_pages <- Inf
   done <- FALSE
   seen <- character(0)
+  prev_total <- NULL
   fetch_page <- function() {
     req <- req_planscanr(wb_api_base(), c("api", "v3", "wds"))
     req <- httr2::req_url_query(
@@ -145,6 +151,7 @@ wb_fetch_search <- function(country, date_range = NULL, query = NULL) {
       srt = "docdt",
       order = "desc",
       countrycode = toupper(country),
+      # "^" ORs the exact types (live KE: 395 + 25 + 1 = 421 = the "^" total).
       docty_exact = paste(wb_doc_types(), collapse = "^"),
       fl = wb_fields(),
       strdate = if (!is.null(date_range)) format(date_range[1]),
@@ -152,6 +159,12 @@ wb_fetch_search <- function(country, date_range = NULL, query = NULL) {
       qterm = if (!is.null(query) && nzchar(query)) as.character(query)
     )
     perform_json(req)
+  }
+  # Country-only probe (rows = 0): distinguishes an unknown code from no documents.
+  probe_country <- function() {
+    req <- req_planscanr(wb_api_base(), c("api", "v3", "wds"))
+    req <- httr2::req_url_query(req, format = "json", rows = 0L, countrycode = toupper(country))
+    suppressWarnings(as.integer(perform_json(req)$total %||% 0L))
   }
   function() {
     while (!done) {
@@ -182,10 +195,32 @@ wb_fetch_search <- function(country, date_range = NULL, query = NULL) {
       if (is.na(total)) {
         total <- 0L
       }
+      docs <- Filter(function(d) is.list(d) && !is.null(d$id), payload$documents %||% list())
       if (pages == 0L) {
         max_pages <<- 2L * ceiling(total / rows) + 5L
+        if (total == 0L && length(docs) == 0L) {
+          done <<- TRUE
+          n_country <- probe_country()
+          if (is.na(n_country) || n_country == 0L) {
+            cli::cli_abort(
+              c(
+                "The World Bank has no documents for country code {.val {toupper(country)}}.",
+                i = "It uses its own codes (for example {.val gb}, not {.val uk}); check the ISO-2 code."
+              ),
+              class = "planscanR_error_bad_input"
+            )
+          }
+          return(NULL)
+        }
+        if (is.null(payload$total) && length(docs) > 0L) {
+          warn_partial("World Bank response had no total; results may be incomplete.")
+        }
+      } else if (!is.null(prev_total) && total < prev_total) {
+        warn_partial(
+          "World Bank total fell from {prev_total} to {total}; records may have shifted past the offset, results may be incomplete."
+        )
       }
-      docs <- Filter(function(d) is.list(d) && !is.null(d$id), payload$documents %||% list())
+      prev_total <<- total
       pages <<- pages + 1L
       os <<- os + length(docs)
       ids <- vapply(docs, function(d) as.character(d$id), character(1))
@@ -217,49 +252,14 @@ wb_fetch_search <- function(country, date_range = NULL, query = NULL) {
   }
 }
 
-#' Field list requested from WDS (all fields seen in the probe).
+#' Field list requested from WDS: all of them.
+#'
+#' The default response omits `countrycode` and varies by record age; an explicit
+#' field list drops further fields (authors, datestored, ...). `"*"` returned a
+#' strict superset of the default on 1990s and current Kenya records (see
+#' probe/WB/NOTES.md, "Correction pass").
 #' @noRd
-wb_fields <- function() {
-  paste(
-    c(
-      "id",
-      "projectid",
-      "guid",
-      "url",
-      "pdfurl",
-      "txturl",
-      "docty",
-      "majdocty",
-      "display_title",
-      "docna",
-      "docdt",
-      "disclosure_date",
-      "datestored",
-      "lang",
-      "count",
-      "countrycode",
-      "admreg",
-      "sectr",
-      "theme",
-      "projn",
-      "trustfund",
-      "seccl",
-      "disclstat",
-      "versiontyp",
-      "chronical_docm_id",
-      "authors",
-      "owner",
-      "lndinstr",
-      "majtheme",
-      "prdln",
-      "origu",
-      "available_in",
-      "fullavailablein",
-      "abstracts"
-    ),
-    collapse = ","
-  )
-}
+wb_fields <- function() "*"
 
 #' Flatten a WDS value (scalar, nested list, empty) to one string or NA.
 #' @noRd

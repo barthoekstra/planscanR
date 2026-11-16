@@ -151,8 +151,10 @@ are selected with `get_assessments(country, source = "<id>")` and listed by
 `get_assessments_sources()`. With a source, `country` is any ISO-2 code; the
 source maps it to its own geography. They are not in `supported_countries()`.
 Currently registered: `"worldbank"` (World Bank Documents & Reports; one record
-per assessment-typed document; the type label also covers site-level ESMP-grade
-files, so review before treating a record as a full EIA report).
+per assessment-typed document; all sectors, mostly 2000s to present, anonymous
+PDF access; the type label also covers site-level ESMP-grade files, so review
+before treating a record as a full EIA report). A code with no World Bank
+documents at all (e.g. `"uk"`; the bank uses `"gb"`) is an error.
 
 ## License
 

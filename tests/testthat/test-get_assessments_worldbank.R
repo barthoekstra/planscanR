@@ -61,15 +61,39 @@ test_that("registered source parses a WDS page into schema columns, extras and s
     expect_true(is.na(res$projectid[3]))
     # request carries the server-side filters
     expect_match(calls$urls[1], "countrycode=KE", fixed = TRUE)
-    expect_match(calls$urls[1], "docty_exact=Environmental%20Assessment%5E", fixed = TRUE)
+    expect_match(
+      calls$urls[1],
+      paste0(
+        "docty_exact=Environmental%20Assessment%5EEnvironmental%20and%20Social%20Assessment",
+        "%5EStrategic%20Environmental%20Assessment%2FAnalysis"
+      ),
+      fixed = TRUE
+    )
     expect_match(calls$urls[1], "srt=docdt&order=desc", fixed = TRUE)
   })
 })
 
-test_that("a valid code with total 0 gives a typed empty result", {
+test_that("an unknown country code errors after a bare-country probe", {
   with_temp_cache({
-    mock_wb(list(list(total = 0, documents = list(facets = list()))))
-    expect_identical(get_assessments("xx", source = "worldbank"), empty_result_tibble())
+    calls <- mock_wb(list(list(total = 0, documents = list(facets = list()))))
+    expect_error(
+      get_assessments("xx", source = "worldbank"),
+      class = "planscanR_error_bad_input"
+    )
+    expect_length(calls$urls, 2L)
+    expect_match(calls$urls[2], "rows=0", fixed = TRUE)
+    expect_match(calls$urls[2], "countrycode=XX", fixed = TRUE)
+    expect_false(grepl("docty_exact|strdate|qterm", calls$urls[2]))
+  })
+})
+
+test_that("a known code without assessment documents gives a typed empty result", {
+  with_temp_cache({
+    mock_wb(list(
+      list(total = 0, documents = list(facets = list())),
+      list(total = 57, documents = list(facets = list()))
+    ))
+    expect_identical(get_assessments("ke", source = "worldbank"), empty_result_tibble())
   })
 })
 
@@ -134,6 +158,17 @@ test_that("a mid-crawl failure warns as partial; a first-page failure errors", {
   })
 })
 
+test_that("documents without a total warn as partial", {
+  with_temp_cache({
+    mock_wb(list(list(documents = list(D1 = wb_doc(1)))))
+    expect_warning(
+      res <- get_assessments("ke", source = "worldbank", write_sidecar = FALSE),
+      class = "planscanR_warning_partial"
+    )
+    expect_identical(nrow(res), 1L)
+  })
+})
+
 test_that("a total that keeps growing terminates finitely with a partial warning", {
   with_temp_cache({
     withr::local_options(planscanR.wb_page_size = 2L)
@@ -150,11 +185,14 @@ test_that("a total that keeps growing terminates finitely with a partial warning
   })
 })
 
-test_that("a shrinking total ends the crawl without a warning", {
+test_that("a shrinking total ends the crawl with a partial warning", {
   with_temp_cache({
     withr::local_options(planscanR.wb_page_size = 2L)
     mock_wb(list(wb_payload(c(1, 2), 6), wb_payload(c(3, 4), 4)))
-    res <- get_assessments("ke", source = "worldbank", write_sidecar = FALSE)
+    expect_warning(
+      res <- get_assessments("ke", source = "worldbank", write_sidecar = FALSE),
+      class = "planscanR_warning_partial"
+    )
     expect_identical(nrow(res), 4L)
   })
 })
@@ -191,15 +229,11 @@ test_that("query is forwarded as qterm only when given", {
   })
 })
 
-test_that("sidecar round trip keeps extras and sections; warm run does not re-download", {
+test_that("sidecar round trip keeps extras and sections", {
   with_temp_cache({
     mock_wb(list(wb_page1))
-    n_dl <- 0L
     testthat::local_mocked_bindings(
-      download_attachments = function(urls, country, document_id, ...) {
-        n_dl <<- n_dl + 1L
-        pending_download_status(urls)
-      }
+      download_attachments = function(urls, country, document_id, ...) pending_download_status(urls)
     )
     res <- get_assessments("ke", source = "worldbank", download = TRUE)
     side <- read_record_sidecar(sidecar_path("ke", "worldbank_40080515", create = FALSE))
