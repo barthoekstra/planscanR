@@ -16,14 +16,14 @@ Python, no Shiny, no project-specific scoring config.
 `assessment_sources()` registry (`R/utils_dispatch.R`) and are selected with
 `get_assessments(country, source = "<id>")`; they are not in
 `supported_countries()` or `get_assessments_coverage()`. Registered: `"worldbank"`
-(World Bank WDS API, one record per EA/ESA/SEA-typed document, `document_id`
-`worldbank_<id>`), `"eib"` (EIB public register, one record per document,
-`eib_<id>`), `"ifc"` (IFC ESRS project disclosures, `ifc_<Project_Number>`) and
-`"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
-`eib_<id>`), `"aiib"` (AIIB projects with per-section document links, `aiib_p<project number>`) and `"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
+(World Bank WDS API, one record per EA/ESA/SEA-typed document, `worldbank_<id>`),
+`"eib"` (EIB public register, one record per document, `eib_<id>`), `"ifc"` (IFC
+ESRS project disclosures, `ifc_<Project_Number>`), `"aiib"` (AIIB projects with
+per-section document links, `aiib_p<project number>`) and `"be_dsi"` (Flanders
+DSI planning dossiers, `be_dsi_<algplanid>`).
 `get_assessments_sources()` lists them with scope and limitations.
 
-**v0.1 scope.** Twenty-three country handlers ship:
+**v0.1 scope.** Twenty-five country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at

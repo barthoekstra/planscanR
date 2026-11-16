@@ -65,10 +65,10 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 24 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 25 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
   Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy,
-  Slovakia, Norway, Latvia, Spain, Cyprus, and Luxembourg.
+  Slovakia, Norway, Latvia, Spain, Cyprus, Georgia, and Luxembourg.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.
