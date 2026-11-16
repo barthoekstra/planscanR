@@ -100,8 +100,8 @@ assessment_sources <- function() {
       handler = get_assessments_ifc,
       name = "IFC project disclosures (ESRS)",
       granularity = "project (Environmental and Social Review Summary) with its client documents",
-      geography = "ISO-2 code mapped to IFC's World-Bank-style country name (150-value ESRS facet table); regional/world pseudo-countries excluded; a code IFC has no ESRS projects for is an error",
-      scope = "IFC private-sector investments, disclosure type ESRS only (other IFC types out of scope); projects 1999 to present, files mostly 2020 onward; all sectors, mainly Category A/B; anonymous PDF access",
+      geography = "ISO-2 code mapped to IFC's World-Bank-style country name (134 countries from the 150-value ESRS facet, 16 regional values dropped); regional/world pseudo-countries excluded; a code IFC has no ESRS projects for is an error",
+      scope = "IFC private-sector investments, disclosure type ESRS only (other IFC types out of scope); projects 1999 to present, older files often 404 (2 of 2 sampled legacy cases); all sectors, mainly Category A/B; anonymous PDF access",
       limitations = "Document roles are not labelled by IFC (only file names; no classifier); older files often 404; pending projects list no files; relies on a public search key read from a detail page; no NL/DE/DK/AT projects",
       url = "https://disclosures.ifc.org/"
     )

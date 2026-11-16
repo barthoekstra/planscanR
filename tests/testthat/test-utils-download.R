@@ -120,6 +120,10 @@ test_that("JSON error detection checks error values rather than field names", {
   expect_true(planscanR:::looks_like_json_error('{"status":403,"message":"denied"}'))
   expect_false(planscanR:::looks_like_json_error('{"error":0,"measurements":[1,2]}'))
   expect_false(planscanR:::looks_like_json_error('{"message":"measurement complete"}'))
+  expect_true(planscanR:::looks_like_json_error(
+    '{"error":{"code":"NoResponse","message":"The server did not receive a response from an upstream server. Request tracking id 08584."}}'
+  ))
+  expect_false(planscanR:::looks_like_json_error('{"error":{"mean":1}}'))
   withr::with_tempdir({
     writeLines('{"error":0,"measurements":[1,2]}', "measurements.json")
     expect_identical(

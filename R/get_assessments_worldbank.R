@@ -263,6 +263,7 @@ wb_fields <- function() "*"
 
 #' Flatten a WDS value (scalar, nested list, empty) to one string or NA.
 #' @noRd
+# Also used by get_assessments_ifc.R.
 wb_flat <- function(v) {
   s <- if (is.list(v)) unlist(v, use.names = FALSE) else v
   s <- trimws(as.character(s))

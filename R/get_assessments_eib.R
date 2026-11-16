@@ -314,6 +314,7 @@ eib_add_section <- function(rec, label) {
   rec
 }
 
+# Also used by get_assessments_ifc.R.
 eib_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write_sidecar) {
   urls <- rec$attachment_urls[[1]]
   if (download) {

@@ -46,7 +46,7 @@
 #' the file links (`disclosuresservice.ifc.org/api/File/downloadfile`) go to
 #' `attachment_urls_document`, the single section (the table has no native
 #' grouping). **Roles are not labelled by IFC**: the only native label is the
-#' file name, kept as `role` in `documents_json`; no classifier is applied, so
+#' file name (`file_name` in `documents_json`, no role field); no classifier is applied, so
 #' ESIA, ESMP, SEP, translations and summaries all appear. Older files often
 #' return HTTP 404 and fail visibly per attachment. A record whose detail page
 #' failed or lacked the documents table has `detail_fetched = FALSE` and is
@@ -155,7 +155,13 @@ get_assessments_ifc <- function(
 #' Regenerate: POST the search API with `filter = "Project_Type eq 'ESRS'"`,
 #' `top = 0`, `facets = list("Country_Description,count:400")`, drop the values
 #' ending in "Region"/"Subregion" and map the rest to ISO-2. Dated 2026-11-16
-#' (150 facet values, 2929 ESRS rows).
+#' (150 facet values, 2929 ESRS rows; 134 countries kept). The 16 regional
+#' values dropped: Africa Region, World Region, Middle East, Pakistan, and Afg
+#' Region, Latin America and the Caribbean Region, Eastern Europe Subregion,
+#' East Asia and Pacific Region, Southern Europe Subregion, Eastern Africa
+#' Region, Western Africa Region, Central America Subregion, South Asia Region,
+#' Central Asia and Turkiye Region, Caribbean Subregion, Cen Afr, and Anglophne
+#' W Africa Region, Central Europe Subregion, Europe Region.
 #' @noRd
 ifc_country_names <- function() {
   c(
@@ -300,6 +306,7 @@ ifc_source_portal <- function() "disclosures.ifc.org"
 
 ifc_search_url <- function() "https://webapi.worldbank.org/aemsite/ifc-disclosure-search"
 
+# Shares wb_flat() from get_assessments_worldbank.R.
 ifc_chr <- function(x) wb_flat(x)
 
 ifc_state <- new.env(parent = emptyenv())
@@ -311,17 +318,22 @@ ifc_subscription_key <- function() {
     return(ifc_state$key)
   }
   page <- getOption("planscanR.ifc_key_page", "https://disclosures.ifc.org/project-detail/ESRS/46568/africa-release")
+  err <- NULL
   key <- tryCatch(
     {
       html <- perform_html(req_planscanr(page))
       rvest::html_attr(rvest::html_element(html, "[data-subscription-key]"), "data-subscription-key")
     },
-    error = function(e) NA_character_
+    error = function(e) {
+      err <<- conditionMessage(e)
+      NA_character_
+    }
   )
   if (length(key) != 1L || is.na(key) || !nzchar(key)) {
     cli::cli_abort(
       c(
         "Could not read the IFC public search key from {.url {page}}.",
+        x = if (!is.null(err)) err else "No {.field data-subscription-key} attribute on the page.",
         i = "The portal may have changed; set {.code options(planscanR.ifc_key_page = <a project-detail URL>)} or retry later."
       ),
       class = "planscanR_error_bad_response"
@@ -366,8 +378,13 @@ ifc_fetch_listing <- function(ifc_name, limit = Inf) {
       perform_json(req),
       error = function(e) {
         if (pages == 0L) {
+          ifc_state$key <- NULL
           cli::cli_abort(
-            c("Could not query the IFC disclosure search.", x = conditionMessage(e)),
+            c(
+              "Could not query the IFC disclosure search.",
+              x = conditionMessage(e),
+              i = "The public search key is re-read on the next call."
+            ),
             class = "planscanR_error_http",
             parent = e
           )
@@ -380,7 +397,7 @@ ifc_fetch_listing <- function(ifc_name, limit = Inf) {
       done <<- TRUE
       return(NULL)
     }
-    cnt <- suppressWarnings(as.integer(payload[["@odata.count"]] %||% NA))
+    cnt <- if (is.list(payload)) suppressWarnings(as.integer(payload[["@odata.count"]] %||% NA)) else NA_integer_
     if (!is.list(payload) || !is.list(payload$value) || is.na(cnt)) {
       cli::cli_abort(
         c(
@@ -448,7 +465,7 @@ ifc_parse_documents <- function(html, url) {
     href <- xml2::url_absolute(href[!is.na(href) & nzchar(href)], url)
     nm <- as.list(txt[nzchar(txt)])
     names(nm)[1L] <- "file_name"
-    c(nm, list(url = unname(href), role = nm$file_name))
+    c(nm, list(url = as.list(unname(href))))
   })
 }
 

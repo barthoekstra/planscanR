@@ -421,6 +421,10 @@ looks_like_json_error <- function(preview_text) {
     error = function(e) NULL
   )
   if (is.list(parsed)) {
+    err <- parsed[["error"]]
+    if (is.list(err) && any(c("code", "message") %in% names(err))) {
+      return(TRUE)
+    }
     for (key in intersect(names(parsed), c("error", "errors", "exception", "message", "status"))) {
       values <- unlist(parsed[[key]], recursive = TRUE, use.names = FALSE)
       if (length(values) == 0L) {
