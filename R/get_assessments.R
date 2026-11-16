@@ -77,20 +77,21 @@
 #'   See [discover_attachments()] for backend / config controls.
 #' @param search_backend Optional [search_backend()] for the discovery
 #'   pass. Defaults to [search_backend_tavily()] when `discover = TRUE`.
+#' @param ... Forwarded to the country or source handler. Common search
+#'   parameters are documented in [get_assessments_nl()].
 #' @param source Optional single string naming an explicit, opt-in source from
 #'   [get_assessments_sources()] (e.g. a development bank or a second portal).
 #'   `NULL` (default) keeps the national-portal dispatch on `country`. With a
 #'   source, `country` must be a scalar ISO-2 code; it need not be in
 #'   [supported_countries()] because the source maps it to its own geography
-#'   vocabulary. Records carry source-prefixed `document_id`s.
-#' @param ... Forwarded to the country handler. Common search parameters are
-#'   documented in [get_assessments_nl()].
+#'   vocabulary. Must be named in full (it follows `...`). Records from a source
+#'   carry source-prefixed `document_id`s.
 #'
 #' @return A tibble with at least these required columns:
 #'   \describe{
 #'     \item{`country`}{Character (ISO-2, lowercase).}
 #'     \item{`source_portal`}{Character (e.g. `"commissiemer.nl"`).}
-#'     \item{`document_id`}{Character. Portal-native ID, unique within the portal.}
+#'     \item{`document_id`}{Character. Portal-native ID (source-prefixed for explicit sources), unique within the portal.}
 #'     \item{`url`}{Character. Canonical portal landing URL.}
 #'     \item{`retrieved_at`}{POSIXct (UTC).}
 #'     \item{`attachment_urls`}{List-column of character vectors.}
@@ -124,8 +125,8 @@ get_assessments <- function(
   relevance_model = NULL,
   discover = FALSE,
   search_backend = NULL,
-  source = NULL,
-  ...
+  ...,
+  source = NULL
 ) {
   country <- normalise_country(country)
   if (is.null(source)) {
@@ -173,7 +174,7 @@ get_assessments <- function(
       )
       validate_result_schema(result)
     }
-  } else if (!isTRUE(discover) && download && country %in% metadata_only_countries()) {
+  } else if (is.null(source) && !isTRUE(discover) && download && country %in% metadata_only_countries()) {
     nudge_discover_for_metadata_only(country)
   }
 

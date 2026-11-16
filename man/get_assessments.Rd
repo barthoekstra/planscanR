@@ -19,8 +19,8 @@ get_assessments(
   relevance_model = NULL,
   discover = FALSE,
   search_backend = NULL,
-  source = NULL,
-  ...
+  ...,
+  source = NULL
 )
 }
 \arguments{
@@ -101,22 +101,23 @@ See \code{\link[=discover_attachments]{discover_attachments()}} for backend / co
 \item{search_backend}{Optional \code{\link[=search_backend]{search_backend()}} for the discovery
 pass. Defaults to \code{\link[=search_backend_tavily]{search_backend_tavily()}} when \code{discover = TRUE}.}
 
+\item{...}{Forwarded to the country or source handler. Common search
+parameters are documented in \code{\link[=get_assessments_nl]{get_assessments_nl()}}.}
+
 \item{source}{Optional single string naming an explicit, opt-in source from
 \code{\link[=get_assessments_sources]{get_assessments_sources()}} (e.g. a development bank or a second portal).
 \code{NULL} (default) keeps the national-portal dispatch on \code{country}. With a
 source, \code{country} must be a scalar ISO-2 code; it need not be in
 \code{\link[=supported_countries]{supported_countries()}} because the source maps it to its own geography
-vocabulary. Records carry source-prefixed \code{document_id}s.}
-
-\item{...}{Forwarded to the country handler. Common search parameters are
-documented in \code{\link[=get_assessments_nl]{get_assessments_nl()}}.}
+vocabulary. Must be named in full (it follows \code{...}). Records from a source
+carry source-prefixed \code{document_id}s.}
 }
 \value{
 A tibble with at least these required columns:
 \describe{
 \item{\code{country}}{Character (ISO-2, lowercase).}
 \item{\code{source_portal}}{Character (e.g. \code{"commissiemer.nl"}).}
-\item{\code{document_id}}{Character. Portal-native ID, unique within the portal.}
+\item{\code{document_id}}{Character. Portal-native ID (source-prefixed for explicit sources), unique within the portal.}
 \item{\code{url}}{Character. Canonical portal landing URL.}
 \item{\code{retrieved_at}}{POSIXct (UTC).}
 \item{\code{attachment_urls}}{List-column of character vectors.}

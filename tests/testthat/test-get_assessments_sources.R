@@ -6,7 +6,7 @@ fake_source <- function(prefix, docs = "1") {
     tibble::tibble(
       country = country,
       source_portal = prefix,
-      document_id = paste0(prefix, ":", docs),
+      document_id = paste0(prefix, "_", docs),
       url = paste0("https://example.org/", prefix, "/", docs),
       retrieved_at = Sys.time(),
       attachment_urls = rep(list(character(0)), length(docs)),
@@ -27,10 +27,10 @@ test_that("legacy call and positional call reach the national handler unchanged"
       empty_result_tibble()
     }
   )
-  res <- get_assessments("NL", NULL, 3, limit = NULL)
+  res <- get_assessments("NL", NULL, 3, query = "x")
   expect_identical(res, empty_result_tibble())
   expect_false("country" %in% names(seen))
-  expect_identical(seen$limit, NULL)
+  expect_identical(seen$query, "x")
   get_assessments("nl", NULL, 3)
   expect_identical(seen$limit, 3)
   expect_named(
@@ -61,7 +61,7 @@ test_that("explicit source dispatches with the ISO-2 country and same args", {
   expect_identical(seen$country, "al")
   expect_identical(seen$limit, 2)
   expect_identical(seen$query, "x")
-  expect_identical(res$document_id, "fake:1")
+  expect_identical(res$document_id, "fake_1")
 })
 
 test_that("invalid source and invalid country format error actionably", {
@@ -103,4 +103,25 @@ test_that("get_assessments_sources() lists registry metadata", {
   s <- get_assessments_sources()
   expect_identical(s$source, "fake")
   expect_named(s, c("source", "name", "granularity", "geography", "scope", "limitations", "url"))
+})
+
+test_that("source calls skip the metadata-only discover hint", {
+  local_mocked_bindings(metadata_only_countries = function() "ke")
+  withr::local_options(planscanR.nudged_discover_ke = NULL)
+  mock_registry(fake = fake_source("fake"))
+  get_assessments("ke", source = "fake", download = TRUE)
+  expect_null(getOption("planscanR.nudged_discover_ke"))
+})
+
+test_that("unnamed extra arguments still flow through ... to national handlers", {
+  seen <- NULL
+  local_mocked_bindings(
+    get_assessments_nl = function(...) {
+      seen <<- list(...)
+      empty_result_tibble()
+    }
+  )
+  get_assessments("nl", NULL, Inf, FALSE, NULL, FALSE, NULL, TRUE, FALSE, NULL, NULL, NULL, FALSE, NULL, "extra")
+  expect_true("extra" %in% unlist(seen))
+  expect_false("source" %in% names(seen))
 })
