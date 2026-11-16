@@ -19,6 +19,7 @@ get_assessments(
   relevance_model = NULL,
   discover = FALSE,
   search_backend = NULL,
+  source = NULL,
   ...
 )
 }
@@ -99,6 +100,13 @@ See \code{\link[=discover_attachments]{discover_attachments()}} for backend / co
 
 \item{search_backend}{Optional \code{\link[=search_backend]{search_backend()}} for the discovery
 pass. Defaults to \code{\link[=search_backend_tavily]{search_backend_tavily()}} when \code{discover = TRUE}.}
+
+\item{source}{Optional single string naming an explicit, opt-in source from
+\code{\link[=get_assessments_sources]{get_assessments_sources()}} (e.g. a development bank or a second portal).
+\code{NULL} (default) keeps the national-portal dispatch on \code{country}. With a
+source, \code{country} must be a scalar ISO-2 code; it need not be in
+\code{\link[=supported_countries]{supported_countries()}} because the source maps it to its own geography
+vocabulary. Records carry source-prefixed \code{document_id}s.}
 
 \item{...}{Forwarded to the country handler. Common search parameters are
 documented in \code{\link[=get_assessments_nl]{get_assessments_nl()}}.}

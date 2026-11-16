@@ -38,6 +38,14 @@ the valid vocabularies for the search facets each handler accepts — call:
 get_assessments_coverage()
 ```
 
+Explicit, opt-in sources (not national portals) are chosen with
+`get_assessments(country, source = "<id>")` and listed, with granularity,
+geography, scope and limitations, by:
+
+```{r}
+get_assessments_sources()
+```
+
 ## A note on stability
 
 > [!WARNING]

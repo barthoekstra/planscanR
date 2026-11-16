@@ -146,6 +146,11 @@ See `vignette("planscanR")` for an end-to-end walkthrough, and
 `get_assessments_coverage()` for the portals and search options available at
 runtime.
 
+Explicit, opt-in sources beyond the national portals (e.g. development banks)
+are selected with `get_assessments(country, source = "<id>")` and listed by
+`get_assessments_sources()`. With a source, `country` is any ISO-2 code; the
+source maps it to its own geography. They are not in `supported_countries()`.
+
 ## License
 
 GPL (>= 3).

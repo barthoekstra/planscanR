@@ -77,6 +77,12 @@
 #'   See [discover_attachments()] for backend / config controls.
 #' @param search_backend Optional [search_backend()] for the discovery
 #'   pass. Defaults to [search_backend_tavily()] when `discover = TRUE`.
+#' @param source Optional single string naming an explicit, opt-in source from
+#'   [get_assessments_sources()] (e.g. a development bank or a second portal).
+#'   `NULL` (default) keeps the national-portal dispatch on `country`. With a
+#'   source, `country` must be a scalar ISO-2 code; it need not be in
+#'   [supported_countries()] because the source maps it to its own geography
+#'   vocabulary. Records carry source-prefixed `document_id`s.
 #' @param ... Forwarded to the country handler. Common search parameters are
 #'   documented in [get_assessments_nl()].
 #'
@@ -118,24 +124,37 @@ get_assessments <- function(
   relevance_model = NULL,
   discover = FALSE,
   search_backend = NULL,
+  source = NULL,
   ...
 ) {
   country <- normalise_country(country)
-  assert_country(country)
-  handler <- select_assessments_handler(country)
-  result <- handler(
-    date_range = date_range,
-    limit = limit,
-    download = download,
-    cache_dir = cache_dir,
-    overwrite = overwrite,
-    max_file_size_mb = max_file_size_mb,
-    write_sidecar = write_sidecar,
-    refresh = refresh,
-    topic = topic,
-    relevance_threshold = relevance_threshold,
-    relevance_model = relevance_model,
-    ...
+  if (is.null(source)) {
+    assert_country(country)
+    handler <- select_assessments_handler(country)
+  } else {
+    assert_iso2_format(country)
+    handler <- select_source_handler(source)
+  }
+  # Source handlers take the ISO-2 code and map it to their own geography.
+  result <- do.call(
+    handler,
+    c(
+      if (!is.null(source)) list(country = country),
+      list(
+        date_range = date_range,
+        limit = limit,
+        download = download,
+        cache_dir = cache_dir,
+        overwrite = overwrite,
+        max_file_size_mb = max_file_size_mb,
+        write_sidecar = write_sidecar,
+        refresh = refresh,
+        topic = topic,
+        relevance_threshold = relevance_threshold,
+        relevance_model = relevance_model,
+        ...
+      )
+    )
   )
   validate_result_schema(result)
 

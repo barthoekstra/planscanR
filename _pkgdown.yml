@@ -40,6 +40,7 @@ reference:
   - get_assessments_lv
   - get_assessments_es
   - get_assessments_coverage
+  - get_assessments_sources
   - supported_countries
   - bind_results
 

@@ -1,5 +1,10 @@
 # planscanR 0.0.0.9000
 
+* `get_assessments()` gains an opt-in `source` argument (after all existing
+  parameters) for explicit non-national sources, and `get_assessments_sources()`
+  lists them. `source = NULL` keeps the national dispatch unchanged;
+  `get_assessments_coverage()` is unchanged. No source is registered yet.
+
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,
 and related advice) from European government portals.
