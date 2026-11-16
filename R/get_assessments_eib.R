@@ -109,7 +109,7 @@ get_assessments_eib <- function(
         rec[[col]] <- as.Date(rec[[col]])
       }
       # A record cached without its item detail is retried, not served warm.
-      if (isFALSE(rec$detail_fetched[[1]])) {
+      if (isFALSE(rec[["detail_fetched"]][1])) {
         rec <- NULL
       }
     }
@@ -233,6 +233,7 @@ eib_ms_date <- function(ms) {
 }
 
 na_or <- function(x, fallback) if (length(x) == 0L || is.na(x)) fallback else x
+drop_na_chr <- function(x) x[!is.na(x)]
 
 eib_val <- function(x) {
   v <- if (is.list(x)) x$value else x
@@ -276,10 +277,18 @@ eib_parse_entry <- function(entry, detail, country) {
     status = NA_character_,
     eib_id = id,
     project_number = as.character(detail$projectNumber %||% info[3L] %||% NA_character_),
-    language = na_or(eib_val(detail$documentLanguage), as.character(info[2L])),
+    language = na_or(eib_val(detail$documentLanguage), as.character(info[2L] %||% NA_character_)),
     language_id = as.character(detail$documentLanguage$id %||% NA_character_),
-    sector_sections = join(na.omit(vapply(detail$sectors %||% list(), function(s) eib_val(s$section), character(1)))),
-    country_regions = join(na.omit(vapply(detail$countries %||% list(), function(c) eib_val(c$region), character(1)))),
+    sector_sections = join(drop_na_chr(vapply(
+      detail$sectors %||% list(),
+      function(s) eib_val(s$section),
+      character(1)
+    ))),
+    country_regions = join(drop_na_chr(vapply(
+      detail$countries %||% list(),
+      function(x) eib_val(x$region),
+      character(1)
+    ))),
     document_type_id = as.character(detail$documentType$id %||% NA_character_),
     document_focus = eib_val(detail$documentFocus),
     availability = eib_val(detail$availability),
