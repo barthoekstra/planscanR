@@ -295,7 +295,7 @@ test_that("a corrupt sidecar is never silently replaced", {
 
 test_that("cache audit identifies unverified legacy files and interrupted parts", {
   withr::with_tempdir({
-    root <- file.path(getwd(), "cache")
+    root <- file.path(normalizePath(getwd(), winslash = "/"), "cache")
     verified_url <- "https://example.org/files/nl/1234/verified.pdf"
     verified <- planscanR::cache_path(verified_url, "nl", "1234", cache_dir = root)
     writeBin(charToRaw("verified"), verified)

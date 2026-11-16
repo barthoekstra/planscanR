@@ -11,7 +11,8 @@ test_that("storage roots resolve to canonical writable directories", {
 })
 
 test_that("storage paths stay below the registered root", {
-  root <- withr::local_tempdir()
+  # Storage functions return canonical paths (/private/var on macOS, long names on Windows).
+  root <- normalizePath(withr::local_tempdir(), winslash = "/")
   expect_identical(
     planscanR:::storage_relative_path("files/nl/project/report.pdf", root),
     "files/nl/project/report.pdf"
@@ -27,6 +28,7 @@ test_that("storage paths stay below the registered root", {
     class = "planscanR_error_storage_path"
   )
 
+  skip_on_os("windows") # symlinks need elevated privileges there
   outside <- file.path(dirname(root), "outside")
   dir.create(outside)
   file.symlink(outside, file.path(root, "escape"))
@@ -53,7 +55,7 @@ test_that("storage paths stay below the registered root", {
 })
 
 test_that("storage resolver accepts legacy paths and portable root locations", {
-  root <- withr::local_tempdir()
+  root <- normalizePath(withr::local_tempdir(), winslash = "/")
   dir.create(file.path(root, "objects"), recursive = TRUE)
   writeLines("pdf", file.path(root, "objects", "sha256.pdf"))
 
@@ -94,7 +96,7 @@ test_that("storage resolver accepts legacy paths and portable root locations", {
 })
 
 test_that("portable external locations do not require a mounted default cache", {
-  archive <- withr::local_tempdir()
+  archive <- normalizePath(withr::local_tempdir(), winslash = "/")
   withr::local_options(list(planscanR.cache_dir = file.path(archive, "missing-cache")))
   writeLines("portable", file.path(archive, "object"))
   expect_identical(

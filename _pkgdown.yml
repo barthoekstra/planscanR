@@ -70,6 +70,15 @@ reference:
   - read_record_sidecar
   - write_record_sidecar
   - migrate_sidecars_v3
+  - update_record_sidecar
+  - audit_cache_downloads
+  - reconcile_cached_download
+  - resolve_attachment_inventory
+- title: Storage roots
+  desc: >
+    Portable storage roots and paths contained below them.
+  contents:
+  - starts_with("storage_")
 
 - title: Package
   contents:

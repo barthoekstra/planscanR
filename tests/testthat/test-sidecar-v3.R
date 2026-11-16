@@ -56,7 +56,7 @@ test_that("files[].local_path is stored relative to the cache root, absolutised 
 test_that("portable file locations survive sidecar read and metadata-only updates", {
   withr::with_tempdir({
     cache <- file.path(getwd(), "cache")
-    archive <- file.path(getwd(), "archive")
+    archive <- file.path(normalizePath(getwd(), winslash = "/"), "archive")
     dir.create(cache)
     object <- file.path(archive, "objects", "sha256", "aa", "bb", paste0(rep("a", 64), collapse = ""))
     dir.create(dirname(object), recursive = TRUE)
