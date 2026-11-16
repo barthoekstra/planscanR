@@ -350,7 +350,7 @@ be_dsi_parse_detail <- function(url, entry, detail) {
     contact = na_chr(detail$contact),
     active_phase_code = na_chr(entry$actieveFaseCode),
     staatsblad_publication_date = na_chr(entry$actieveFaseDatumPublicatieBelgischStaatsblad),
-    herinterpretatie = isTRUE(detail$herinterpretatie),
+    herinterpretatie = as.logical(detail$herinterpretatie %||% NA),
     listing_json = json(entry),
     dossier_payload_json = json(detail$payload %||% list()),
     phases_json = json(phases),
