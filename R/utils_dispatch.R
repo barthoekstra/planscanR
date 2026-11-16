@@ -30,7 +30,8 @@ supported_countries <- function() {
     "no",
     "lv",
     "es",
-    "cy"
+    "cy",
+    "ge"
   )
 }
 

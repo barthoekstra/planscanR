@@ -448,6 +448,24 @@ Python, no Shiny, no project-specific scoring config.
   `getOption("planscanR.es_throttle_rate", 2)` (seconds between ficha
   fetches). Coverage `status` = `"supported (requires optional headless
   browser; TLS-fingerprinted portal)"`.
+- Georgia (`get_assessments_ge()`) — recent environmental decision portal
+  `ei.gov.ge` (Georgian). **Recent portal only** (legacy archive excluded).
+  Seams `ge_fetch_table(procedure_id, page)` (POST `/ka/Home/Table`, HTML
+  fragment, 5 rows/page, last page from the pagination links) and
+  `ge_fetch_record(id)` (`/ka/record?id=`, JSON, kept whole in `detail_json`).
+  One record per case (`/ka/info/<GUID>`, `ge_<GUID>`), deduped across pages and
+  procedures; `procedure` filter picks the procedure GUIDs. A response without
+  the results table errors (`planscanR_error_bad_response`); failed/empty pages
+  warn partial. Files: `/download/files/?file=<GUID>&accompany=false|true`;
+  bundles only where `HasAccompanyingDocument` is true. The EIA report is
+  inside the accompanying bundle (RAR5, kept as-is, no extractor) of the EIA
+  procedure's application/annex entry (SEA: the report-review procedure);
+  screening/scoping bundles hold only that material; accompanying files can be
+  PDFs. SEA bundles and some EIA bundles exceed the default 50 MB cap. Labels
+  are `"<procedure> | <category>"`. The listing row that surfaced a case may be
+  a nested-document event: `ge_build_record()` resolves it to the enclosing
+  procedure, else uses the row cells (`listing_*` extras; later rows not
+  merged). An empty grid aborts (retried next run). A failed detail fetch writes no sidecar (retried next run).
 - Cyprus (`get_assessments_cy()`) — Department of Environment **EIA register**
   at `eia.moa.gov.cy/public/` (server-rendered HTML, `rvest`; Greek). **Coverage
   is a current-year window, not national completeness:** the only enumerable

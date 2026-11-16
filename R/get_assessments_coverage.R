@@ -48,7 +48,8 @@ get_assessments_coverage <- function() {
       "no",
       "lv",
       "es",
-      "cy"
+      "cy",
+      "ge"
     ),
     source_portal = c(
       "commissiemer.nl",
@@ -73,7 +74,8 @@ get_assessments_coverage <- function() {
       "nve.no",
       "eva.gov.lv",
       "sede.miteco.gob.es",
-      "eia.moa.gov.cy"
+      "eia.moa.gov.cy",
+      "ei.gov.ge"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -98,9 +100,11 @@ get_assessments_coverage <- function() {
       "https://www.nve.no/konsesjon/konsesjonssaker",
       "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti",
       "https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido",
-      "https://eia.moa.gov.cy/public"
+      "https://eia.moa.gov.cy/public",
+      "https://ei.gov.ge"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -148,7 +152,8 @@ get_assessments_coverage <- function() {
       "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)", # no
       "supported (metadata-only EIA register \u2014 documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
       "supported (requires optional headless browser; TLS-fingerprinted portal)", # es
-      "supported (EIA register only, current-year listing window; Screening + MEEP; zip studies; no SEA, no geometry)" # cy
+      "supported (EIA register only, current-year listing window; Screening + MEEP; zip studies; no SEA, no geometry)", # cy
+      "supported (recent portal only, legacy archive excluded; Georgian-language; EIA/SEA procedures; reports inside RAR5 bundles, SEA bundles often exceed the size cap; no geometry)" # ge
     ),
     facets = list(
       commissiemer_facets(),
@@ -173,9 +178,17 @@ get_assessments_coverage <- function() {
       nve_no_facets(),
       eva_lv_facets(),
       sabia_es_facets(),
-      eia_moa_cy_facets()
+      eia_moa_cy_facets(),
+      ei_gov_ge_facets()
     )
   )
+}
+
+#' Static lookup of the Georgia ei.gov.ge facets: the server-side procedure
+#' filter keys (native procedure names are kept in `procedure_native`).
+#' @noRd
+ei_gov_ge_facets <- function() {
+  list(procedure = names(ge_procedure_ids()))
 }
 
 #' Static lookup of the Cyprus DoE EIA register facets: none server-side; the

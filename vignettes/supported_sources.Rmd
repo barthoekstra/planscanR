@@ -24,7 +24,7 @@ library(planscanR)
 portals (currently Netherlands, Germany, France, Austria, Denmark, Belgium
 (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia, Greece,
 Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy, Slovakia,
-Norway, Latvia, Spain, and Cyprus).
+Norway, Latvia, Spain, Cyprus, and Georgia).
 There is no shared API behind the scenes — each country gives us a
 different mix of HTML pages, sitemaps, search endpoints, and undocumented JSON
 handlers, and each one comes with its own quirks. This vignette describes what
@@ -1346,6 +1346,38 @@ get_assessments_es(query = "eólica", limit = 5, download = TRUE)
 
 ```{r}
 get_assessments_cy(limit = 5, download = FALSE)
+```
+
+## Georgia — `"ge"`
+
+* **Portal:** recent environmental decision portal of the Ministry of
+  Environmental Protection and Agriculture, [ei.gov.ge](https://ei.gov.ge/)
+  (Georgian, `/ka`). The legacy archive is out of scope and the portal's
+  historical horizon is undocumented, so this is **not national completeness**.
+* **Records:** one per case (`ge_<GUID>`), enumerated from the POST listing per
+  `procedure` (`eia`, `eia_screening`, `eia_scoping`, `sea_screening`,
+  `sea_scoping`, `sea_report_review`; default all). Native procedure, category
+  and status are kept (`procedure_native`, `category_native`, `status`,
+  `procedures_native`) and the full detail JSON is in `detail_json`. No
+  geometry; `competent_authority` is not exposed.
+* **Attachments:** `attachment_urls_main_document` (application letters and
+  decisions, PDF) and `attachment_urls_accompanying_bundle` (only where the
+  record flags accompanying documents). **The EIA report is inside the RAR5
+  bundle of the EIA procedure's application/annex entry** (for SEA, of the
+  report-review procedure); screening and scoping bundles hold screening and
+  scoping material only, and accompanying files can also be PDFs. Bundles are
+  downloaded as-is (no extraction). SEA bundles (500+ MB) and some EIA bundles
+  (e.g. 75 MB) exceed the default 50 MB cap (`skipped_size`). Labels in
+  `attachment_labels_native` are `"<native procedure> | <native category>"`.
+* **Listing row:** `status`, `procedure_native` and the `listing_*` cells
+  (`listing_row_id`, `listing_municipality`, `listing_comment_deadline`,
+  `listing_public_hearing`) come from the row that first surfaced the case
+  (a nested-document event row is resolved to its enclosing procedure); later
+  event rows are not merged. An empty procedure grid is an error and the case
+  is retried on the next run.
+
+```{r}
+get_assessments_ge(limit = 5, download = FALSE, procedure = "eia")
 ```
 
 ## European Investment Bank register — `source = "eib"`

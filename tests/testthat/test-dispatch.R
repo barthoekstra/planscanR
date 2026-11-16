@@ -24,7 +24,8 @@ test_that("supported_countries() returns the shipped set", {
       "no",
       "lv",
       "es",
-      "cy"
+      "cy",
+      "ge"
     )
   )
 })
