@@ -348,7 +348,11 @@ ge_fetch_search <- function(keys) {
       if (parsed$last_page > 5000L && page == 1L) {
         warn_partial("Georgia listing {.val {key}} has {parsed$last_page} pages; stopping at 5000.")
       }
-      last <<- min(max(last, parsed$last_page), 5000L)
+      # grow the page count only from non-empty pages, so a stray pager link
+      # past the end cannot extend the crawl
+      if (length(parsed$entries) > 0L) {
+        last <<- min(max(last, parsed$last_page), 5000L)
+      }
       if (page > 1L && length(parsed$entries) == 0L) {
         warn_partial("Georgia listing {.val {key}} page {page} of {last} was empty; skipping.")
       }

@@ -442,7 +442,7 @@ Python, no Shiny, no project-specific scoring config.
   `ge_fetch_record(id)` (`/ka/record?id=`, JSON, kept whole in `detail_json`).
   One record per case (`/ka/info/<GUID>`, `ge_<GUID>`), deduped across pages and
   procedures; `procedure` filter picks the procedure GUIDs. A response without
-  the results table errors (`planscanR_error_bad_response`); failed/short pages
+  the results table errors (`planscanR_error_bad_response`); failed/empty pages
   warn partial. Files: `/download/files/?file=<GUID>&accompany=false|true`;
   bundles only where `HasAccompanyingDocument` is true. The EIA report is
   inside the accompanying bundle (RAR5, kept as-is, no extractor) of the EIA
