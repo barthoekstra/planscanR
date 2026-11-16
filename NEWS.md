@@ -18,6 +18,20 @@
   all native document types with per-type attachment sections, ISO-2 country
   tags, a `document_type` filter, and a partial-result warning when the
   register's `totalItems` differs from the listed rows.
+* Luxembourg (`get_assessments_lu()`, country `"lu"`): the national
+  public-inquiry portal `enquetes.public.lu`, listed through its anonymous JSON
+  search endpoint (`/ctie/searchresults`, `data-id` read from the page) with a
+  detail page fetched per record. **All inquiries are returned (all themes,
+  about 2020 onward)**: the portal has no native EIA flag and no title
+  heuristic is applied, so filter on the native `theme` (new `theme` argument,
+  e.g. `"environement"`), `query` or `date_range`. Native theme, inquiry type,
+  status, dates, municipalities, authorities and the raw listing item
+  (`listing_json`) are kept; every file link is captured with its native
+  label, grouped by the portal's own grouping (`attachment_urls_fichiers`,
+  `..._tout_telecharger`, `..._description`). Zip/7z files are downloaded
+  as-is, never unpacked. Failed pages or details give
+  `planscanR_warning_partial` or an error, never a silently complete result.
+  French, no geometry, 5 req/s by default.
 * New explicit source `"be_dsi"` (Flanders DSI planning dossiers,
   `get_assessments("be", source = "be_dsi")`): one record per dossier with every
   phase and document, grouped per native document code. `PLNMER` mixes plan-MER
@@ -35,10 +49,10 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 23 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 24 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
   Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy,
-  Slovakia, Norway, Latvia, Spain, and Cyprus.
+  Slovakia, Norway, Latvia, Spain, Cyprus, and Luxembourg.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.

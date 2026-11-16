@@ -15,7 +15,7 @@
 #' @param country Character scalar, ISO-3166-1 alpha-2 country code (any case).
 #'   v0.1 supports `"nl"`, `"de"`, `"fr"`, `"at"`, `"dk"`, `"be"` (Flanders),
 #'   `"ee"`, `"fi"`, `"bg"`, `"cz"`, `"hr"`, `"gr"`, `"is"`, `"ie"`, `"si"`,
-#'   `"pt"`, `"gb"`, `"it"`, `"sk"`, `"no"`, `"lv"`, `"es"`, and `"cy"`. Note that
+#'   `"pt"`, `"gb"`, `"it"`, `"sk"`, `"no"`, `"lv"`, `"es"`, `"cy"`, and `"lu"`. Note that
 #'   `"es"` (Spain) requires the optional \{chromote\} headless-browser
 #'   transport — see [get_assessments_es()]. See [supported_countries()].
 #' @param date_range Optional length-2 vector `c(from, to)` of `Date`,
@@ -234,6 +234,7 @@ select_assessments_handler <- function(country) {
     lv = get_assessments_lv,
     es = get_assessments_es,
     cy = get_assessments_cy,
+    lu = get_assessments_lu,
     abort_unsupported_country(country)
   )
 }

@@ -35,9 +35,11 @@ Description: A unified R interface for fetching environmental-assessment
     strategic SEA sub-pages with direct PDFs), Spain
     (MITECO/SABIA sede.miteco.gob.es; national-competence project EIA +
     plan SEA; reached only through the optional chromote headless
-    browser because the portal TLS-fingerprints and rejects libcurl), and
+    browser because the portal TLS-fingerprints and rejects libcurl),
     Cyprus (Department of Environment eia.moa.gov.cy; HTML; EIA register,
-    current-year listing window only).
+    current-year listing window only), and
+    Luxembourg (public-inquiry portal enquetes.public.lu; JSON search + HTML
+    detail pages; all inquiry themes, no native EIA flag).
     An explicit, opt-in source covers World Bank project documents (assessment-typed
     Documents & Reports, any country; not a national register).
     Optional
