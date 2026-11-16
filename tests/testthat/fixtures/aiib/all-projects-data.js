@@ -12,6 +12,10 @@ var data=[
 	
 	{"date":"2023","pos":"0.6","economy":"Multicountry","sector":"Finance","financing_type":"Nonsovereign","project_type":"NULL","name":"Multi-Country: GSS Bond Platform","approved_funding":"","committed_funding":"","proposed_funding":"","special_funding":"","status":"Approved","path":"/en/projects/details/2023/approved/gss.html"},
 	
+	{"date":"2022","pos":"0.8","economy":"Algeria","sector":"Water","financing_type":"Sovereign","project_type":"NULL","name":"Uzbekistan: Bukhara Region Water Supply","approved_funding":"","committed_funding":"","proposed_funding":"","special_funding":"","status":"Approved","path":"/en/projects/details/2022/approved/bukhara.html"},
+	
+	{"date":"2021","pos":"0.9","economy":"Philippines","sector":"Health","financing_type":"Sovereign","project_type":"NULL","name":"Philippines: Health System","approved_funding":"","committed_funding":"","proposed_funding":"","special_funding":"","status":"Approved","path":"/en/projects/details/2021/approved/ph-health.html"},
+	
 	{"date":"2020","pos":"0.7","economy":"Atlantis","sector":"Water","financing_type":"Sovereign","project_type":"NULL","name":"Atlantis: Harbour","approved_funding":"","committed_funding":"","proposed_funding":"","special_funding":"","status":"Terminated / Cancelled","path":"/en/projects/details/2020/terminated/atlantis.html"},
 	
 ];

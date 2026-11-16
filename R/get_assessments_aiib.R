@@ -14,12 +14,15 @@
 #' whole register as a JavaScript assignment (`var data=[...]`, with a trailing
 #' comma). The wrapper is stripped and the array parsed; an unexpected shape
 #' aborts with `planscanR_error_bad_response`. There is no pagination. The
-#' record key is the listing `path` (unique); `document_id` is
-#' `"aiib_<slug of path>"`. Because the path contains the status segment, a
-#' project that moves from proposed to approved gets a new path and thus a new
-#' `document_id`. The project number (e.g. `000543`) is only shown on the
-#' detail page and is kept as `project_number`. The complete raw listing row
-#' is kept as `listing_json`.
+#' listing `path` is unique but contains the status segment, so it changes when
+#' a project moves from proposed to approved. `document_id` is therefore
+#' `"aiib_p<project number>"` (the six-digit number from the detail page, e.g.
+#' `aiib_p000543`), so a status move updates the same sidecar. Only a record
+#' whose detail fetch failed (and so is never cached) falls back to
+#' `"aiib_path_<short path slug>_<hash>"`. Two listing rows resolving to the
+#' same project number in one run raise a `planscanR_warning_partial`. The
+#' number is also kept as `project_number`, the path as `path`, and the
+#' complete raw listing row as `listing_json`.
 #'
 #' @section Detail pages and attachments:
 #' The project page is fetched for every returned record (sidecar-first, so
@@ -36,21 +39,26 @@
 #' holds every link with section, label, URL and an external flag. Also kept:
 #' `summary` (the DESCRIPTION text), `objective`, `sector`, `status`,
 #' `es_category`, `project_number`, `borrower`, `implementing_entity`
-#' (organisation lines only: person names, titles and e-mail addresses are not
-#' stored), `detail_fields_json` (all summary/financing/timeline items),
+#' (only text lines containing an organisation word such as Ministry,
+#' Department, Government, Bank or Company are kept, `NA` when none; names,
+#' titles and e-mail addresses are dropped, and the team-leader, borrower and
+#' implementing blocks are excluded from `paragraphs_json`), `detail_fields_json` (all summary/financing/timeline items),
 #' `paragraphs_json` and `news_json`. `date_published` is the "FINANCING
 #' APPROVAL" date when the page shows one with a full day.
 #'
-#' A failed detail fetch, or a 200 page without the expected project and
-#' document containers, yields a listing-only record with
+#' A failed detail fetch, or a 200 page without the project title
+#' (`h1.project-name`) or a document container, yields a listing-only record with
 #' `detail_status = "failed"` and a `planscanR_warning_partial`; it is not
 #' written to the sidecar cache, so the next run retries it.
 #'
 #' @section Geography:
 #' AIIB uses English country names (field `economy`), not ISO codes. The ISO-2
 #' `country` is mapped through an internal table (see [aiib_country_names()]);
-#' records are matched on the `economy` field, not on the name prefix (the
-#' two disagree for a few rows; both are kept: `economy`, `name_prefix`). A
+#' a row matches when its `economy` field OR the name prefix before the colon
+#' equals the mapped name (the two disagree for a few rows, e.g. economy
+#' "Algeria" for "Uzbekistan: ..."; such a row appears under both countries
+#' with the same `document_id`; both values are kept as `economy`,
+#' `name_prefix`). A
 #' valid code absent from the table (including the NL/DE/DK/AT focus
 #' countries, which AIIB does not finance) is an error; a mapped code with no
 #' rows returns a typed empty result. Records with `economy = "Multicountry"`
@@ -121,10 +129,18 @@ get_assessments_aiib <- function(
 
   rows <- aiib_fetch_listing()
   target <- aiib_norm_name(tbl[[country]])
-  keep <- vapply(rows, function(r) identical(aiib_norm_name(r$economy), target), logical(1))
+  keep <- vapply(
+    rows,
+    function(r) {
+      pref <- if (grepl(":", r$name, fixed = TRUE)) sub(":.*$", "", r$name) else NA_character_
+      identical(aiib_norm_name(r$economy), target) || identical(aiib_norm_name(pref), target)
+    },
+    logical(1)
+  )
   rows <- rows[keep]
   rows <- Filter(function(r) aiib_listing_matches(r, query, status, date_range), rows)
 
+  seen_ids <- new.env(parent = emptyenv())
   process_entry <- function(entry) {
     u <- aiib_url(entry$path)
     hit <- sidecar_index[u]
@@ -142,6 +158,13 @@ get_assessments_aiib <- function(
         }
       )
     }
+    prev <- seen_ids[[rec$document_id]]
+    if (!is.null(prev) && !identical(prev, entry$path)) {
+      warn_partial(
+        "AIIB rows {.val {prev}} and {.val {entry$path}} resolve to the same project number ({.val {rec$project_number}}); one record overwrites the other in the cache."
+      )
+    }
+    seen_ids[[rec$document_id]] <- entry$path
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
@@ -374,12 +397,12 @@ aiib_parse_detail <- function(page) {
           url = aiib_abs(rvest::html_attr(a, "href"))
         )
       }
-    } else if (grepl("borrower-content|implementing-content", as.character(p))) {
-      # the project team leader block (a person) is deliberately not stored
-      if (grepl("^BORROWER", hn)) {
-        borrower <- aiib_org_line(p)
-      }
-      if (grepl("^IMPLEMENTING", hn)) implementing <- aiib_org_line(p)
+    } else if (grepl("^BORROWER", hn)) {
+      borrower <- aiib_org_line(p)
+    } else if (grepl("^IMPLEMENTING", hn)) {
+      implementing <- aiib_org_line(p)
+    } else if (grepl("TEAM LEADER|^TEAM|^CONTACT", hn)) {
+      # persons: deliberately not stored
     } else if (nzchar(hn) && !grepl("headline", cls, fixed = TRUE)) {
       para[[hn]] <- aiib_text(sub(hn, "", rvest::html_text(p), fixed = TRUE))
     }
@@ -410,19 +433,34 @@ aiib_parse_detail <- function(page) {
   )
 }
 
-#' Organisation text of a borrower / implementing block: the paragraphs that
-#' are neither bold-only (person or unit names) nor e-mail lines, joined.
+#' Organisation text of a borrower / implementing block: split into text lines
+#' (paragraph and `<br>` boundaries) and keep only lines containing an
+#' organisation word, so person names, titles and e-mail addresses are dropped.
+#' `NA` when no line matches. A leading comma segment without an organisation word
+#' ("Vice Chairman, Yingkou Commission") is dropped as a title.
 #' @noRd
 aiib_org_line <- function(node) {
-  keep <- Filter(
-    function(p) {
-      length(rvest::html_elements(p, "a[href^='mailto:']")) == 0L && length(rvest::html_elements(p, "strong")) == 0L
-    },
-    as.list(rvest::html_elements(node, "p"))
+  lines <- aiib_text(rvest::html_text(rvest::html_elements(node, xpath = ".//text()")))
+  lines <- lines[nzchar(lines) & !grepl("@", lines, fixed = TRUE)]
+  words <- paste0(
+    "\\b(Ministry|Department|Government|Republic|Bank|Board|Company|Limited|Ltd|Commission|Authority|Agency|",
+    "Corporation|Directorate|Division|Office|Bureau|Railways?|Municipal(ity)?|Province|Council|Utility|",
+    "Fund|Institute|University|Enterprises?|Group|Cooperation|Association|Organi[sz]ation|Society|",
+    "Administration|Secretariat|State|City|Co\\.|Inc\\.?|PLC)\\b"
   )
-  txt <- aiib_text(vapply(keep, function(p) rvest::html_text(p), character(1)))
-  txt <- txt[nzchar(txt)]
-  if (length(txt) == 0L) NA_character_ else paste(txt, collapse = "; ")
+  lines <- lines[grepl(words, lines, perl = TRUE)]
+  # drop a leading job title ("Vice Chairman, <organisation>")
+  lines <- vapply(
+    lines,
+    function(l) {
+      parts <- strsplit(l, ",\\s*")[[1]]
+      first <- which(grepl(words, parts, perl = TRUE))[1]
+      paste(parts[first:length(parts)], collapse = ", ")
+    },
+    character(1),
+    USE.NAMES = FALSE
+  )
+  if (length(lines) == 0L) NA_character_ else paste(lines, collapse = "; ")
 }
 
 #' Resolve a href against the AIIB host; NA for mailto/javascript/anchors.
@@ -453,8 +491,13 @@ aiib_link <- function(a, section) {
   if (is.na(url)) {
     return(NULL)
   }
-  before <- rvest::html_text(rvest::html_elements(a, xpath = "preceding-sibling::text()"))
-  label <- aiib_text(paste(c(before, rvest::html_text(a)), collapse = " "))
+  parent <- rvest::html_element(a, xpath = "parent::div[contains(@class,'link')]")
+  label <- if (!inherits(parent, "xml_missing") && length(rvest::html_elements(parent, "a")) == 1L) {
+    aiib_text(rvest::html_text(parent))
+  } else {
+    before <- rvest::html_text(rvest::html_elements(a, xpath = "preceding-sibling::text()"))
+    aiib_text(paste(c(before, rvest::html_text(a)), collapse = " "))
+  }
   list(section = section, label = label, url = url, external = !aiib_is_internal(url))
 }
 
@@ -474,7 +517,14 @@ aiib_date <- function(x) {
 aiib_build_record <- function(entry, country, d) {
   json <- function(x) as.character(jsonlite::toJSON(x, auto_unbox = TRUE, null = "null", na = "null"))
   f <- function(nm) if (is.null(d)) NA_character_ else aiib_chr(d$fields[[nm]])
-  slug <- ascii_slug(sub("\\.html$", "", sub("^/en/projects/", "", entry$path)), "project")
+  pn <- if (is.null(d)) NA_character_ else aiib_chr(d$fields[["PROJECT NUMBER"]])
+  # failed-detail records are never cached, so a path-based fallback id is safe
+  doc_id <- if (!is.na(pn) && nzchar(ascii_slug(pn, ""))) {
+    paste0("aiib_p", ascii_slug(pn))
+  } else {
+    seg <- ascii_slug(sub("\\.html$", "", basename(entry$path)), "project")
+    paste0("aiib_path_", substr(seg, 1, 50), "_", substr(rlang::hash(entry$path), 1, 8))
+  }
   links <- if (is.null(d)) list() else d$links
   sections <- unique(vapply(links, function(l) l$section, character(1)))
   nm <- entry$name %||% NA_character_
@@ -485,7 +535,7 @@ aiib_build_record <- function(entry, country, d) {
   rec <- tibble::tibble(
     country = country,
     source_portal = aiib_source_portal(),
-    document_id = paste0("aiib_", slug),
+    document_id = doc_id,
     url = aiib_url(entry$path),
     retrieved_at = as.POSIXct(Sys.time(), tz = "UTC"),
     attachment_urls = list(character(0)),
@@ -533,7 +583,13 @@ aiib_build_record <- function(entry, country, d) {
       if (!any(keep)) {
         next
       }
-      lab <- vapply(sub_l, function(l) l$label, character(1))[keep]
+      lab_all <- vapply(sub_l, function(l) l$label, character(1))
+      lab <- vapply(
+        u[keep],
+        function(x) paste(unique(lab_all[u == x]), collapse = " | "),
+        character(1),
+        USE.NAMES = FALSE
+      )
       if (ext) {
         rec[[paste0("external_urls_", s)]] <- list(u[keep])
         rec[[paste0("external_labels_", s)]] <- list(lab)

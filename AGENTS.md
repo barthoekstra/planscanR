@@ -18,7 +18,7 @@ Python, no Shiny, no project-specific scoring config.
 `supported_countries()` or `get_assessments_coverage()`. Registered: `"worldbank"`
 (World Bank WDS API, one record per EA/ESA/SEA-typed document, `document_id`
 `worldbank_<id>`), `"eib"` (EIB public register, one record per document,
-`eib_<id>`), `"aiib"` (AIIB projects with per-section document links, `aiib_<path slug>`) and `"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
+`eib_<id>`), `"aiib"` (AIIB projects with per-section document links, `aiib_p<project number>`) and `"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
 `get_assessments_sources()` lists them with scope and limitations.
 
 **v0.1 scope.** Twenty-three country handlers ship:
@@ -53,7 +53,7 @@ Python, no Shiny, no project-specific scoring config.
 - AIIB projects (`get_assessments_aiib()`, explicit source `source = "aiib"`; not
   in `supported_countries()`): one `all-projects-data.js` request, detail page per
   returned record (sidecar-first; failures are not cached), ISO-2 to economy-name
-  table, links grouped per native heading with `attachment_labels_<slug>`,
+  table (economy or name prefix), links grouped per native heading with `attachment_labels_<slug>`,
   external links in `external_urls_<slug>`.
 - Belgium (Flanders) (`get_assessments_be()`) — Departement Omgeving
   MER-register at `merregister.omgeving.vlaanderen.be`. Project-MER and

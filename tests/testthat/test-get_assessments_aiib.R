@@ -19,10 +19,18 @@ aiib_mock_html <- function(bad = character(0)) {
       "detail-bad.html"
     } else if (grepl("Henan-Flood", u, fixed = TRUE)) {
       "detail-henan.html"
+    } else if (grepl("ph-health", u, fixed = TRUE)) {
+      "detail-ph.html"
     } else {
       "detail-nodocs.html"
     }
-    rvest::read_html(fixture_path("aiib", f))
+    txt <- paste(readLines(fixture_path("aiib", f), warn = FALSE), collapse = "\n")
+    # the generic fixture gets a per-project number so ids stay distinct
+    num <- c(Yingkou = "000670", bukhara = "000777", tcdd = "000951", `ci-water` = "000900")
+    for (k in names(num)) {
+      if (grepl(k, u, fixed = TRUE)) txt <- sub("000003", num[[k]], txt, fixed = TRUE)
+    }
+    xml2::read_html(txt)
   }
 }
 
@@ -30,8 +38,9 @@ with_aiib <- function(code, js = .aiib_js, fail = character(0), bad = character(
   with_temp_cache({
     .aiib_calls$html <- character(0)
     .aiib_calls$fail <- fail
+    .aiib_calls$js <- js
     local_mocked_bindings(
-      aiib_perform_text = function(req) js,
+      aiib_perform_text = function(req) .aiib_calls$js,
       perform_html = aiib_mock_html(bad)
     )
     force(code)
@@ -56,7 +65,7 @@ test_that("country filter matches on economy, handles non-ASCII and the typograp
   with_aiib({
     expect_setequal(
       aiib_get("cn")$document_id,
-      c("aiib_details_2021_approved_henan_flood", "aiib_details_2024_proposed_yingkou")
+      c("aiib_p000543", "aiib_p000670")
     )
     expect_identical(aiib_get("tr")$economy, "Türkiye")
     ci <- aiib_get("ci")
@@ -83,7 +92,7 @@ test_that("mapped code with no rows is a typed empty; unmapped economy names are
 test_that("detail record keeps native metadata, dates, organisations only, extras", {
   with_aiib({
     r <- aiib_get("cn")
-    r <- r[r$document_id == "aiib_details_2021_approved_henan_flood", ]
+    r <- r[r$document_id == "aiib_p000543", ]
     expect_identical(r$source_portal, "aiib.org")
     expect_identical(r$url, "https://www.aiib.org/en/projects/details/2021/approved/Henan-Flood.html")
     expect_identical(r$title, "China: Henan Flood Emergency Rehabilitation and Recovery Project")
@@ -113,7 +122,7 @@ test_that("detail record keeps native metadata, dates, organisations only, extra
 test_that("links are grouped by native heading with full labels; external links are listed, not attached", {
   with_aiib({
     r <- aiib_get("cn")
-    r <- r[r$document_id == "aiib_details_2021_approved_henan_flood", ]
+    r <- r[r$document_id == "aiib_p000543", ]
     expect_true(all(
       c(
         "attachment_urls_aiib_documents",
@@ -240,7 +249,7 @@ test_that("downloads go through the shared downloader per section; sidecar round
       }
     )
     r <- suppressWarnings(get_assessments("cn", source = "aiib", download = TRUE))
-    h <- r[r$document_id == "aiib_details_2021_approved_henan_flood", ]
+    h <- r[r$document_id == "aiib_p000543", ]
     expect_length(h$local_path[[1]], length(h$attachment_urls[[1]]))
     expect_length(h$local_path_aiib_documents[[1]], 4L)
     back <- index_cache(country = "cn")
@@ -257,4 +266,104 @@ test_that("relevance scoring uses the shared helpers", {
     res <- aiib_get("cn", topic = c(flood = "flood recovery"), relevance_model = make_fake_model())
     expect_true("relevance_score_flood" %in% names(res))
   })
+})
+
+test_that("borrower/implementing keep organisation lines only; no names or titles survive anywhere", {
+  with_aiib({
+    names_titles <- c(
+      "Siddiky",
+      "Joint Secretary",
+      "Kaiser",
+      "Managing Director",
+      "Teamlead",
+      "Recto",
+      "Villaverde",
+      "Undersecretary",
+      "Investment Officer",
+      "Principal Officer",
+      "Secretary"
+    )
+    bd <- aiib_get("bd")
+    expect_identical(bd$proponent, "Ministry of Power and Energy")
+    expect_identical(bd$implementing_entity, "Dhaka Electric Supply Company Limited")
+    ph <- aiib_get("ph")
+    expect_identical(ph$proponent, "Department of Finance, Republic of the Philippines")
+    expect_identical(ph$implementing_entity, "Department of Health")
+    for (r in list(bd, ph, aiib_get("cn"))) {
+      txt <- paste(unlist(r), collapse = " ")
+      for (n in names_titles) {
+        expect_false(grepl(n, txt, fixed = TRUE), info = n)
+      }
+    }
+    hn <- aiib_get("cn")
+    hn <- hn[hn$document_id == "aiib_p000543", ]
+    expect_false(grepl("BORROWER|IMPLEMENTING|TEAM LEADER", hn$paragraphs_json))
+  })
+})
+
+test_that("a block without any organisation line stores NA", {
+  d <- xml2::read_html(
+    '<div class="paragraph"><h2 class="headline">BORROWER</h2><div class="borrower-content"><p>Jo Person</p><p>Director</p></div></div>'
+  )
+  expect_true(is.na(aiib_org_line(rvest::html_element(d, "div.borrower-content"))))
+})
+
+test_that("document_id follows the project number; a status move updates the same sidecar", {
+  moved <- sub("details/2024/proposed/Yingkou", "details/2024/approved/Yingkou", .aiib_js, fixed = TRUE)
+  moved <- sub('"status":"Proposed"', '"status":"Approved"', moved, fixed = TRUE)
+  with_aiib({
+    r1 <- get_assessments("cn", source = "aiib")
+    expect_true("aiib_p000670" %in% r1$document_id)
+    .aiib_calls$js <- moved
+    r2 <- get_assessments("cn", source = "aiib")
+    expect_true(all(nchar(r2$document_id) < 20))
+    idx <- index_cache(country = "cn")
+    expect_identical(sum(idx$document_id == "aiib_p000670"), 1L)
+    i <- idx[idx$document_id == "aiib_p000670", ]
+    expect_match(i$url, "/approved/Yingkou\\.html$")
+    expect_identical(i$status, "Approved")
+  })
+})
+
+test_that("a failed detail fetch uses a short path-based fallback id; duplicate project numbers warn", {
+  with_aiib(
+    {
+      r <- suppressWarnings(get_assessments("cn", source = "aiib", query = "yingkou"))
+      expect_match(r$document_id, "^aiib_path_[a-z0-9_]+_[0-9a-f]{8}$")
+      expect_lt(nchar(r$document_id), 100)
+    },
+    fail = "Yingkou"
+  )
+  dup <- sub(
+    "\\];\\s*$",
+    '{"name":"China: Yingkou copy","path":"/en/projects/details/2024/proposed/Yingkou-copy.html","economy":"China","status":"Proposed","date":"-"},\n];',
+    .aiib_js
+  )
+  with_aiib(
+    expect_warning(get_assessments("cn", source = "aiib"), "000670|same project", class = "planscanR_warning_partial"),
+    js = dup
+  )
+})
+
+test_that("a row mis-tagged on economy is kept under its name-prefix country too", {
+  with_aiib({
+    uz <- aiib_get("uz")
+    dz <- aiib_get("dz")
+    expect_identical(uz$document_id, "aiib_p000777")
+    expect_identical(dz$document_id, "aiib_p000777")
+    expect_identical(uz$country, "uz")
+    expect_identical(dz$country, "dz")
+    expect_identical(uz$economy, "Algeria")
+    expect_identical(uz$name_prefix, "Uzbekistan")
+  })
+})
+
+test_that("leading job titles before the organisation are dropped", {
+  d <- xml2::read_html(
+    '<div class="b"><p>Vice Chairman, Yingkou Municipal Commission<br />Officer, Ministry of Finance, PRC</p><p>Economic Relations Division,</p></div>'
+  )
+  expect_identical(
+    aiib_org_line(rvest::html_element(d, "div.b")),
+    "Yingkou Municipal Commission; Ministry of Finance, PRC; Economic Relations Division"
+  )
 })
