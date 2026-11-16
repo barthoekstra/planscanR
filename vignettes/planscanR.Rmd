@@ -70,31 +70,22 @@ de <- get_assessments("de", limit = 20, download = FALSE)
 both <- bind_results(nl, de)
 ```
 
-Explicit non-national sources, such as the European Investment Bank register
-(`get_assessments("de", source = "eib")`), are opt-in and listed by
-`get_assessments_sources()`; they are not in the country list below.
-
-```{r}
-get_assessments_sources()
-```
-
 To see which countries and search options are available, use:
 
 ```{r}
 get_assessments_coverage()
 ```
 
-Beyond the national portals, opt-in sources such as the World Bank's project
-documents are chosen with `source =` (for example
-`get_assessments("ke", source = "worldbank")`) and listed with:
+Beyond the national portals, opt-in sources are chosen with `source =` and
+listed with `get_assessments_sources()`: for example World Bank project
+documents (`get_assessments("ke", source = "worldbank")`), the European
+Investment Bank register (`get_assessments("de", source = "eib")`) and Flemish
+planning dossiers (`get_assessments("be", source = "be_dsi")`). They are not in
+the country list above.
 
 ```{r}
 get_assessments_sources()
 ```
-Some opt-in sources beyond the national portals are chosen with `source`,
-for example Flemish planning dossiers with
-`get_assessments("be", source = "be_dsi")`; list them with
-`get_assessments_sources()`.
 
 ## Working offline
 

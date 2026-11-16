@@ -33,11 +33,6 @@ a `topic`) and gate PDF downloads on the score — but the embedding work is
 delegated to planscanR.screen, which is an optional dependency (see
 [Scoring](#scoring-optional) below). Omit `topic` and no Python is required.
 
-Explicit non-national sources are opt-in via `source =` (see
-`get_assessments_sources()`): `"eib"` is the European Investment Bank public
-register (per document, ISO-2 country tags, all native document types;
-`get_assessments("de", source = "eib")`).
-
 Supported portals:
 
 | Country | Portal | Notes |
@@ -156,14 +151,19 @@ Explicit, opt-in sources beyond the national portals (e.g. development banks)
 are selected with `get_assessments(country, source = "<id>")` and listed by
 `get_assessments_sources()`. With a source, `country` is any ISO-2 code; the
 source maps it to its own geography. They are not in `supported_countries()`.
-Currently registered: `"worldbank"` (World Bank Documents & Reports; one record
-per assessment-typed document; all sectors, mostly 2000s to present, anonymous
-PDF access; the type label also covers site-level ESMP-grade files, so review
-before treating a record as a full EIA report). A code with no World Bank
-documents at all (e.g. `"uk"`; the bank uses `"gb"`) is an error.
-`source = "be_dsi"` (with `country = "be"`) fetches Flemish spatial-planning
-dossiers from the DSI portal, including plan-MER material; assessment reports
-are only a subset of its documents (Wallonia and Brussels are not covered).
+Currently registered:
+
+- `"worldbank"`: World Bank Documents & Reports; one record per
+  assessment-typed document; all sectors, mostly 2000s to present, anonymous
+  PDF access. The type label also covers site-level ESMP-grade files, so review
+  before treating a record as a full EIA report. A code with no World Bank
+  documents at all (e.g. `"uk"`; the bank uses `"gb"`) is an error.
+- `"eib"`: European Investment Bank public register; one record per document,
+  ISO-2 country tags, all native document types
+  (`get_assessments("de", source = "eib")`).
+- `"be_dsi"` (with `country = "be"`): Flemish spatial-planning dossiers from the
+  DSI portal, including plan-MER material; assessment reports are only a subset
+  of its documents (Wallonia and Brussels are not covered).
 
 ## License
 

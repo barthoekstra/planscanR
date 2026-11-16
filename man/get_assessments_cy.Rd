@@ -55,7 +55,7 @@ Each listing row links to \verb{/public/eiaview.html?no=<id>}. The detail page
 supplies every key/value metadata row (all kept verbatim in the
 \code{native_fields} JSON column) and the "Related files" file table.
 \code{document_id} is \code{"cy_"} plus the native \code{no}. Both full EIA studies
-(native listing label \emph{MEEP}, kept in \code{listing_type}) and \emph{Screening} rows are
+(native listing label \emph{ΜΕΕΠ} ("MEEP"), kept in \code{listing_type}) and \emph{Screening} rows are
 returned; no eligibility rule is applied beyond the native labels
 (\code{listing_type}, and \code{native_type} = the detail type field). \code{date_published}
 is the letter date and \code{date_decision} the

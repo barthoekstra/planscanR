@@ -50,7 +50,8 @@ Implementation of \code{\link[=get_assessments]{get_assessments()}} for the Flem
 public register of Project-MER dossiers (project-level EIA) and
 dossier-MER-plicht ontheffingsaanvragen (exemption requests). Plan-MER
 (SEA) lives in a separate Flemish register and is out of scope for this
-handler.
+handler; Flemish planning dossiers are the explicit source \code{be_dsi}
+(\code{get_assessments("be", source = "be_dsi")}).
 }
 \section{URL enumeration}{
 

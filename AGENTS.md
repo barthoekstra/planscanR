@@ -13,11 +13,13 @@ follow-up advice) from European national portals — modelled on
 Python, no Shiny, no project-specific scoring config.
 
 **Explicit sources.** Beyond the country handlers, opt-in sources live in the
-`assessment_sources()` registry (`R/utils_dispatch.R`). `"worldbank"`
-(`get_assessments_worldbank()`, World Bank WDS API, one record per
-EA/ESA/SEA-typed document, `countrycode=<ISO2>` server filter, `document_id`
-`worldbank_<id>`, PDF in `attachment_urls_document`) is the first; it is not in
-`supported_countries()`.
+`assessment_sources()` registry (`R/utils_dispatch.R`) and are selected with
+`get_assessments(country, source = "<id>")`; they are not in
+`supported_countries()` or `get_assessments_coverage()`. Registered: `"worldbank"`
+(World Bank WDS API, one record per EA/ESA/SEA-typed document, `document_id`
+`worldbank_<id>`), `"eib"` (EIB public register, one record per document,
+`eib_<id>`) and `"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
+`get_assessments_sources()` lists them with scope and limitations.
 
 **v0.1 scope.** Twenty-three country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister

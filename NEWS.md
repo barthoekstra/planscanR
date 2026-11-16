@@ -13,17 +13,16 @@
   as extras; the type label also holds ESMP-grade site files and plans, and no
   title heuristic is applied. A country code with no World Bank documents at all
   is an error; all native fields are requested (`fl = "*"`).
-  `get_assessments_coverage()` is unchanged. The first source is `"eib"`, the
-  European Investment Bank public register
+* New explicit source `"eib"`, the European Investment Bank public register
   (`get_assessments("de", source = "eib")`): one record per register document,
   all native document types with per-type attachment sections, ISO-2 country
   tags, a `document_type` filter, and a partial-result warning when the
   register's `totalItems` differs from the listed rows.
-  `get_assessments_coverage()` is unchanged. The first source is
-  `be_dsi` (Flanders DSI planning dossiers, `get_assessments("be", source =
-  "be_dsi")`): one record per dossier with every phase and document, grouped per
-  native document code. `PLNMER` mixes plan-MER reports, screening and decision
-  letters; they are not classified. Flanders only.
+* New explicit source `"be_dsi"` (Flanders DSI planning dossiers,
+  `get_assessments("be", source = "be_dsi")`): one record per dossier with every
+  phase and document, grouped per native document code. `PLNMER` mixes plan-MER
+  reports, screening and decision letters; they are not classified. Flanders
+  only.
 
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,

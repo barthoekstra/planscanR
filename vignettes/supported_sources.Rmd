@@ -1347,6 +1347,7 @@ get_assessments_es(query = "eólica", limit = 5, download = TRUE)
 ```{r}
 get_assessments_cy(limit = 5, download = FALSE)
 ```
+
 ## European Investment Bank register — `source = "eib"`
 Not a national portal: an explicit, opt-in source
 (`get_assessments("de", source = "eib")`, see `get_assessments_sources()`),

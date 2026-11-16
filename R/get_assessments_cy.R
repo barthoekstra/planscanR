@@ -19,7 +19,7 @@
 #' supplies every key/value metadata row (all kept verbatim in the
 #' `native_fields` JSON column) and the "Related files" file table.
 #' `document_id` is `"cy_"` plus the native `no`. Both full EIA studies
-#' (native listing label *MEEP*, kept in `listing_type`) and *Screening* rows are
+#' (native listing label *ΜΕΕΠ* ("MEEP"), kept in `listing_type`) and *Screening* rows are
 #' returned; no eligibility rule is applied beyond the native labels
 #' (`listing_type`, and `native_type` = the detail type field). `date_published`
 #' is the letter date and `date_decision` the
