@@ -17,13 +17,13 @@
 #' @section Records:
 #' Each listing row links to `/public/eiaview.html?no=<id>`. The detail page
 #' supplies every key/value metadata row (all kept verbatim in the
-#' `native_fields` JSON column) and the *Σχετικά Αρχεία* file table.
+#' `native_fields` JSON column) and the "Related files" file table.
 #' `document_id` is `"cy_"` plus the native `no`. Both full EIA studies
-#' (listing label *ΜΕΕΠ*, kept in `listing_type`) and *Screening* rows are
+#' (native listing label *MEEP*, kept in `listing_type`) and *Screening* rows are
 #' returned; no eligibility rule is applied beyond the native labels
-#' (`listing_type`, and `native_type` = the detail *Είδος*). `date_published`
-#' is the letter date (*Ημερομηνία Επιστολής*) and `date_decision` the
-#' completion date (*Ημερομηνία Ολοκλήρωσης*), both `DD-MM-YYYY`. The project
+#' (`listing_type`, and `native_type` = the detail type field). `date_published`
+#' is the letter date and `date_decision` the
+#' completion date, both `DD-MM-YYYY`. The project
 #' number (`project_number`), file number (`file_number`), `no`
 #' (`native_no`), category, district, area and town are extras. The proponent
 #' is not a separate field and is `NA`.
@@ -32,8 +32,7 @@
 #' Files are grouped by the portal's server folder in the download path
 #' (`Meep`, `Gnomatevseis`, `oikologiki axiologisi`, `Bebaiwseis Simmorfwsis`,
 #' `Ekthesis Pliroforion`, ...) into `attachment_urls_<slug>` columns (ASCII
-#' slugs, e.g. `meep`); the native Greek row labels per slug (*Μελέτη*,
-#' *Γνωμάτευση*, ...) are kept in `attachment_labels_native`. Main EIA studies
+#' slugs, e.g. `meep`); the native Greek row labels per slug (study, opinion, ...) are kept in `attachment_labels_native`. Main EIA studies
 #' are often `.zip` archives; they are downloaded as-is, never extracted, and
 #' are bounded by `max_file_size_mb`. Anonymous downloads. No geometry
 #' (coordinates are normally `...`; kept as text in `native_fields`).
@@ -148,16 +147,16 @@ cy_absolute_url <- function(href) {
 #' @noRd
 cy_key_map <- function() {
   c(
-    project_number = "Αριθμός Έργου",
-    file_number = "Αριθμός Φακέλου",
-    title = "Περιγραφή",
-    native_type = "Είδος",
-    category = "Κατηγορία",
-    district = "Επαρχία",
-    area = "Περιοχή",
-    competent_authority = "Αρμόδια Αρχή",
-    letter_date = "Ημερομηνία Επιστολής",
-    completion_date = "Ημερομηνία Ολοκλήρωσης"
+    project_number = "\u0391\u03c1\u03b9\u03b8\u03bc\u03cc\u03c2 \u0388\u03c1\u03b3\u03bf\u03c5",
+    file_number = "\u0391\u03c1\u03b9\u03b8\u03bc\u03cc\u03c2 \u03a6\u03b1\u03ba\u03ad\u03bb\u03bf\u03c5",
+    title = "\u03a0\u03b5\u03c1\u03b9\u03b3\u03c1\u03b1\u03c6\u03ae",
+    native_type = "\u0395\u03af\u03b4\u03bf\u03c2",
+    category = "\u039a\u03b1\u03c4\u03b7\u03b3\u03bf\u03c1\u03af\u03b1",
+    district = "\u0395\u03c0\u03b1\u03c1\u03c7\u03af\u03b1",
+    area = "\u03a0\u03b5\u03c1\u03b9\u03bf\u03c7\u03ae",
+    competent_authority = "\u0391\u03c1\u03bc\u03cc\u03b4\u03b9\u03b1 \u0391\u03c1\u03c7\u03ae",
+    letter_date = "\u0397\u03bc\u03b5\u03c1\u03bf\u03bc\u03b7\u03bd\u03af\u03b1 \u0395\u03c0\u03b9\u03c3\u03c4\u03bf\u03bb\u03ae\u03c2",
+    completion_date = "\u0397\u03bc\u03b5\u03c1\u03bf\u03bc\u03b7\u03bd\u03af\u03b1 \u039f\u03bb\u03bf\u03ba\u03bb\u03ae\u03c1\u03c9\u03c3\u03b7\u03c2"
   )
 }
 
@@ -178,7 +177,7 @@ cy_parse_date <- function(x) {
 #' Collapse whitespace and trim.
 #' @noRd
 cy_text <- function(x) {
-  trimws(gsub("[[:space:] ﻿]+", " ", x))
+  trimws(gsub("[[:space:]\u00a0\ufeff]+", " ", x))
 }
 
 # -----------------------------------------------------------------------------
@@ -237,7 +236,11 @@ cy_parse_listing <- function(html) {
   for (tr in rows) {
     cells <- rvest::html_elements(tr, "td")
     href <- rvest::html_attr(rvest::html_element(tr, "a[href*='eiaview']"), "href")
-    if (length(cells) < 6L || is.na(href)) {
+    if (is.na(href)) {
+      next
+    }
+    if (length(cells) < 6L) {
+      warn_partial("Skipped Cyprus listing row with {length(cells)} cells: {.val {href}}")
       next
     }
     no <- sub(".*[?&]no=([0-9]+).*", "\\1", href)
@@ -311,7 +314,7 @@ cy_parse_detail <- function(html) {
     files[nrow(files) + 1L, ] <- list(
       label,
       cy_absolute_url(href),
-      ascii_slug(cy_href_folder(href), "dokumenta")
+      ascii_slug(cy_href_folder(href), "other")
     )
   }
   list(fields = fields, files = files[!duplicated(files$url), , drop = FALSE])
@@ -327,6 +330,7 @@ cy_build_record <- function(entry, html) {
     if (length(v) == 0L || is.na(v) || !nzchar(v) || v == "...") NA_character_ else v
   }
   files <- parsed$files
+  or_listing <- function(x, fallback) if (is.na(x)) fallback else x
   per_section <- split(files$url, factor(files$slug, levels = unique(files$slug)))
   labels <- vapply(
     names(per_section),
@@ -341,7 +345,7 @@ cy_build_record <- function(entry, html) {
     retrieved_at = as.POSIXct(Sys.time(), tz = "UTC"),
     attachment_urls = list(unique(files$url)),
     local_path = list(character(0)),
-    title = get("title") %||% entry$listing_title,
+    title = or_listing(get("title"), entry$listing_title),
     summary = NA_character_,
     competent_authority = get("competent_authority"),
     proponent = NA_character_,
@@ -352,11 +356,11 @@ cy_build_record <- function(entry, html) {
     assessment_type = "EIA",
     listing_type = entry$listing_type,
     native_no = entry$no,
-    project_number = get("project_number") %||% entry$listing_number,
+    project_number = or_listing(get("project_number"), entry$listing_number),
     file_number = get("file_number"),
-    category = get("category") %||% entry$listing_category,
+    category = or_listing(get("category"), entry$listing_category),
     district = get("district"),
-    area = get("area") %||% entry$listing_area,
+    area = or_listing(get("area"), entry$listing_area),
     town = entry$town,
     attachment_labels_native = paste(
       sprintf("%s=%s", names(labels), labels),

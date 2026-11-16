@@ -73,6 +73,36 @@ test_that("missing optional fields and no attachments are tolerated; empty detai
   expect_false(any(grepl("^attachment_urls_", names(rec)) & names(rec) != "attachment_urls"))
   expect_true(is.na(rec$date_published))
   expect_error(planscanR:::cy_parse_detail(xml2::read_html("<html><body><p>x</p></body></html>")))
+
+  # blank description / area / category / project number on the detail page:
+  # the listing values must survive
+  blank <- function(h, key) {
+    sub(sprintf("(?s)(<strong>%s:? ?</strong></td>\\s*<td>).*?(</td>)", key), "\\1\\2", h, perl = TRUE)
+  }
+  h2 <- paste(readLines(fixture_path("cy", "detail_4173.html"), encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  for (k in c(
+    "\u03a0\u03b5\u03c1\u03b9\u03b3\u03c1\u03b1\u03c6\u03ae",
+    "\u03a0\u03b5\u03c1\u03b9\u03bf\u03c7\u03ae",
+    "\u039a\u03b1\u03c4\u03b7\u03b3\u03bf\u03c1\u03af\u03b1",
+    "\u0391\u03c1\u03b9\u03b8\u03bc\u03cc\u03c2 \u0388\u03c1\u03b3\u03bf\u03c5"
+  )) {
+    h2 <- blank(h2, k)
+  }
+  rec2 <- planscanR:::cy_build_record(e, xml2::read_html(h2))
+  expect_identical(rec2$title, e$listing_title)
+  expect_identical(rec2$area, e$listing_area)
+  expect_identical(rec2$category, e$listing_category)
+  expect_identical(rec2$project_number, e$listing_number)
+  expect_false(is.na(rec2$title))
+})
+
+test_that("listing rows with a detail link but too few cells warn and are skipped", {
+  h <- xml2::read_html(paste0(
+    "<table id='example1'><tbody><tr><td>x</td><td>y</td>",
+    "<td><a href='eiaview.html?no=9'>i</a></td></tr></tbody></table>"
+  ))
+  expect_warning(e <- planscanR:::cy_parse_listing(h), class = "planscanR_warning_partial")
+  expect_length(e, 0L)
 })
 
 test_that("end-to-end crawl: dedupe, sidecars, extras round trip, warm rerun skips detail fetch", {
@@ -92,6 +122,23 @@ test_that("end-to-end crawl: dedupe, sidecars, extras round trip, warm rerun ski
     expect_identical(nrow(back), 3L)
     expect_true(all(c("listing_type", "project_number", "native_fields", "attachment_urls_meep") %in% names(back)))
     expect_length(back$attachment_urls_meep[back$document_id == "cy_3792"][[1]], 2L)
+    expect_true(all(
+      c(
+        "attachment_urls_gnomatevseis",
+        "attachment_urls_oikologiki_axiologisi",
+        "attachment_urls_ekthesis_pliroforion",
+        "attachment_urls_aitiologimeni_diapistosi",
+        "native_no",
+        "file_number",
+        "category",
+        "district",
+        "area",
+        "town",
+        "attachment_labels_native"
+      ) %in%
+        names(back)
+    ))
+    expect_identical(back$native_no[back$document_id == "cy_3792"], "3792")
 
     n <- 0L
     again <- get_assessments_cy(download = FALSE)

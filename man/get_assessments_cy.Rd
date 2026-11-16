@@ -53,13 +53,13 @@ accessible reports).
 
 Each listing row links to \verb{/public/eiaview.html?no=<id>}. The detail page
 supplies every key/value metadata row (all kept verbatim in the
-\code{native_fields} JSON column) and the \emph{Σχετικά Αρχεία} file table.
+\code{native_fields} JSON column) and the "Related files" file table.
 \code{document_id} is \code{"cy_"} plus the native \code{no}. Both full EIA studies
-(listing label \emph{ΜΕΕΠ}, kept in \code{listing_type}) and \emph{Screening} rows are
+(native listing label \emph{MEEP}, kept in \code{listing_type}) and \emph{Screening} rows are
 returned; no eligibility rule is applied beyond the native labels
-(\code{listing_type}, and \code{native_type} = the detail \emph{Είδος}). \code{date_published}
-is the letter date (\emph{Ημερομηνία Επιστολής}) and \code{date_decision} the
-completion date (\emph{Ημερομηνία Ολοκλήρωσης}), both \code{DD-MM-YYYY}. The project
+(\code{listing_type}, and \code{native_type} = the detail type field). \code{date_published}
+is the letter date and \code{date_decision} the
+completion date, both \code{DD-MM-YYYY}. The project
 number (\code{project_number}), file number (\code{file_number}), \code{no}
 (\code{native_no}), category, district, area and town are extras. The proponent
 is not a separate field and is \code{NA}.
@@ -70,8 +70,7 @@ is not a separate field and is \code{NA}.
 Files are grouped by the portal's server folder in the download path
 (\code{Meep}, \code{Gnomatevseis}, \verb{oikologiki axiologisi}, \verb{Bebaiwseis Simmorfwsis},
 \verb{Ekthesis Pliroforion}, ...) into \verb{attachment_urls_<slug>} columns (ASCII
-slugs, e.g. \code{meep}); the native Greek row labels per slug (\emph{Μελέτη},
-\emph{Γνωμάτευση}, ...) are kept in \code{attachment_labels_native}. Main EIA studies
+slugs, e.g. \code{meep}); the native Greek row labels per slug (study, opinion, ...) are kept in \code{attachment_labels_native}. Main EIA studies
 are often \code{.zip} archives; they are downloaded as-is, never extracted, and
 are bounded by \code{max_file_size_mb}. Anonymous downloads. No geometry
 (coordinates are normally \code{...}; kept as text in \code{native_fields}).
