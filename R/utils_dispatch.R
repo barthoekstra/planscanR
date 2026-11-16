@@ -65,10 +65,20 @@ assert_country <- function(country) {
 #' Registry of explicit, opt-in assessment sources.
 #'
 #' Named list `source_id -> list(handler, name, granularity, geography, scope,
-#' limitations, url)`. Empty until source adapters register themselves here.
+#' limitations, url)`. Source adapters register themselves here.
 #' @noRd
 assessment_sources <- function() {
-  list()
+  list(
+    worldbank = list(
+      handler = get_assessments_worldbank,
+      name = "World Bank Documents & Reports",
+      granularity = "document",
+      geography = "ISO-2 country code mapped to the WDS countrycode filter; multi-country records included, global/regional-only records excluded; a code with no World Bank documents at all (e.g. \"uk\", the bank uses \"gb\") is an error",
+      scope = "Disclosed World Bank project documents typed Environmental Assessment, Environmental and Social Assessment or Strategic Environmental Assessment/Analysis; all sectors, mostly 2000s to present; anonymous PDF access",
+      limitations = "Document-level, bank-financed projects only; the type label also holds ESMP-grade site files, plans, volumes and annexes (no title heuristic applied)",
+      url = "https://documents.worldbank.org/"
+    )
+  )
 }
 
 #' Validate a scalar ISO-2 format (two ASCII letters), independent of

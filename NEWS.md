@@ -3,7 +3,16 @@
 * `get_assessments()` gains an opt-in `source` argument (after all existing
   parameters) for explicit non-national sources, and `get_assessments_sources()`
   lists them. `source = NULL` keeps the national dispatch unchanged;
-  `get_assessments_coverage()` is unchanged. No source is registered yet.
+  `get_assessments_coverage()` is unchanged.
+* New explicit source `"worldbank"` (`get_assessments("ke", source = "worldbank")`):
+  World Bank Documents & Reports (WDS API), one record per disclosed document of
+  type Environmental Assessment, Environmental and Social Assessment or Strategic
+  Environmental Assessment/Analysis for the given ISO-2 country (multi-country
+  records included, global/regional-only records excluded). Raw `docty`,
+  `majdocty`, `count`, `countrycode`, `projectid` and all other fields are kept
+  as extras; the type label also holds ESMP-grade site files and plans, and no
+  title heuristic is applied. A country code with no World Bank documents at all
+  is an error; all native fields are requested (`fl = "*"`).
 
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,

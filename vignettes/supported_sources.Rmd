@@ -46,6 +46,15 @@ geography, scope and limitations, by:
 get_assessments_sources()
 ```
 
+`"worldbank"` queries the World Bank Documents & Reports API for documents typed
+*Environmental Assessment*, *Environmental and Social Assessment* or *Strategic
+Environmental Assessment/Analysis*, filtered server-side on the ISO-2 country
+code (multi-country records included; global/regional-only records excluded).
+The bank's type label does not separate full EA/ESIA reports from site-level
+ESMP-grade files filed under the same label, and planscanR adds no title
+heuristic: the raw `docty`/`majdocty` strings are kept so downstream screening
+can decide.
+
 ## A note on stability
 
 > [!WARNING]
