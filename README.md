@@ -161,6 +161,12 @@ Currently registered:
 - `"eib"`: European Investment Bank public register; one record per document,
   ISO-2 country tags, all native document types
   (`get_assessments("de", source = "eib")`).
+- `"aiib"`: Asian Infrastructure Investment Bank projects, one record per project
+  with all linked project documents (ESIA, ESMP, IEE, RAP, ...) grouped by the
+  page's own headings and labelled with the native link text; ISO-2 code mapped
+  to AIIB country names (Asia-heavy; NL/DE/DK/AT are an error), "Multicountry"
+  projects excluded, partner-portal links listed but not downloaded
+  (`get_assessments("cn", source = "aiib")`).
 - `"be_dsi"` (with `country = "be"`): Flemish spatial-planning dossiers from the
   DSI portal, including plan-MER material; assessment reports are only a subset
   of its documents (Wallonia and Brussels are not covered).

@@ -1371,6 +1371,32 @@ documents for EIB-financed projects.
 - Scope: EIB-financed projects only (publication since about 2011), not
   national completeness.
 
+## Asian Infrastructure Investment Bank projects — `source = "aiib"`
+
+An explicit, opt-in source (`get_assessments("cn", source = "aiib")`) for the
+[AIIB project register](https://www.aiib.org/en/projects/list/): an
+international development bank portfolio (2016 onward, mostly Asia), not a
+national EIA register.
+- One record per **project** (`document_id = "aiib_<slug of path>"`; the path
+  changes when a project moves from proposed to approved). The whole register
+  is one `all-projects-data.js` request; the project page is fetched for each
+  returned record (sidecar-first) for the project number, E&S category,
+  description, borrower/implementing organisation and the document links.
+- Every document link is kept under its native heading
+  (`attachment_urls_aiib_documents`, `..._client_cofinancing_partner_documents`,
+  `..._procurement_documents`) with the full native label, including the language
+  suffix, in `attachment_labels_<section>`. No role is assigned: ESIA, ESMP, IEE
+  and RAP files are only recognisable from those labels. Links to other hosts are
+  listed in `external_urls_<section>` and not downloaded.
+- Geography: ISO-2 codes are mapped to AIIB's English economy names and matched
+  on the `economy` field (the name prefix can differ and is kept as
+  `name_prefix`). Codes without a mapping (including NL/DE/DK/AT) are an error;
+  `"Multicountry"` projects have no member list and are excluded.
+- Only some Category A/B projects publish an assessment; Category C, financial
+  intermediary and policy projects often have none. A failed detail page gives a
+  listing-only record (`detail_status = "failed"`) and a partial-result warning,
+  and is retried on the next run.
+
 ## Adding a new source
 
 Adding a handler for another national portal is a matter of writing one

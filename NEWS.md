@@ -18,6 +18,13 @@
   all native document types with per-type attachment sections, ISO-2 country
   tags, a `document_type` filter, and a partial-result warning when the
   register's `totalItems` differs from the listed rows.
+* New explicit source `"aiib"` (Asian Infrastructure Investment Bank projects,
+  `get_assessments("cn", source = "aiib")`): one record per project from the
+  bank's project data file, with the project page fetched for every returned
+  record and every document link kept per native section heading with its full
+  native label. External links are listed in `external_urls_*`, not downloaded.
+  ISO-2 codes map to AIIB English country names; "Multicountry" projects are
+  excluded; a failed detail page is retried next run.
 * New explicit source `"be_dsi"` (Flanders DSI planning dossiers,
   `get_assessments("be", source = "be_dsi")`): one record per dossier with every
   phase and document, grouped per native document code. `PLNMER` mixes plan-MER

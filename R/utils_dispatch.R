@@ -95,6 +95,15 @@ assessment_sources <- function() {
       scope = "Flemish spatial plans (RUP, BPA, ...); plan-MER reports are a subset of the documents",
       limitations = "Document code PLNMER mixes plan-MER reports, screening and decision letters; native code/description/phase kept, no classification. No server-side pre-filter to report-bearing dossiers.",
       url = "https://dsi.omgeving.vlaanderen.be/"
+    ),
+    aiib = list(
+      handler = get_assessments_aiib,
+      name = "Asian Infrastructure Investment Bank projects",
+      granularity = "project (all project documents grouped by the native section heading)",
+      geography = "ISO-2 code mapped to AIIB English economy names (about 50 mapped, mostly Asia); matched on the economy field; \"Multicountry\" projects excluded; NL/DE/DK/AT are not mapped and raise an error",
+      scope = "505 AIIB projects, 2016 to present, proposed to terminated; links to ESIA, ESMP, IEE, RAP, ESMPF, monitoring and procurement documents on each project page; anonymous PDF access",
+      limitations = "Only some Category A/B projects publish an assessment; Category C, FI and policy projects often have none; partner-portal links are listed (external_urls_*) but not downloaded; no role classification (native link label kept); document_id follows the path, which changes when a project changes status",
+      url = "https://www.aiib.org/en/projects/list/"
     )
   )
 }
