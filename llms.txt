@@ -273,6 +273,34 @@ Read previously-downloaded slices offline and manage the file cache.
 - [`migrate_sidecars_v3()`](https://barthoekstra.github.io/planscanR/reference/migrate_sidecars_v3.md)
   : Upgrade every sidecar in a cache to the current schema (v3) in
   place.
+- [`update_record_sidecar()`](https://barthoekstra.github.io/planscanR/reference/update_record_sidecar.md)
+  : Atomically update one record sidecar from its latest on-disk value.
+- [`audit_cache_downloads()`](https://barthoekstra.github.io/planscanR/reference/audit_cache_downloads.md)
+  : Audit attachment files under the local cache.
+- [`reconcile_cached_download()`](https://barthoekstra.github.io/planscanR/reference/reconcile_cached_download.md)
+  : Inspect or repair a cached attachment's verification receipt.
+- [`resolve_attachment_inventory()`](https://barthoekstra.github.io/planscanR/reference/resolve_attachment_inventory.md)
+  : Resolve the attachment-inventory outcome for cached records.
+
+## Storage roots
+
+Portable storage roots and paths contained below them.
+
+- [`storage_capacity()`](https://barthoekstra.github.io/planscanR/reference/storage_capacity.md)
+  : Return total and free bytes on the filesystem containing a storage
+  root.
+- [`storage_free_bytes()`](https://barthoekstra.github.io/planscanR/reference/storage_free_bytes.md)
+  : Return free bytes on the filesystem containing a storage root.
+- [`storage_path()`](https://barthoekstra.github.io/planscanR/reference/storage_path.md)
+  : Resolve one portable location below a storage root.
+- [`storage_relative_path()`](https://barthoekstra.github.io/planscanR/reference/storage_relative_path.md)
+  : Normalize a path for catalog storage relative to a root.
+- [`storage_resolve_location()`](https://barthoekstra.github.io/planscanR/reference/storage_resolve_location.md)
+  : Resolve a legacy path or portable storage location
+- [`storage_root_validate()`](https://barthoekstra.github.io/planscanR/reference/storage_root_validate.md)
+  : Validate and resolve a local storage root.
+- [`storage_transfer_cap_bytes()`](https://barthoekstra.github.io/planscanR/reference/storage_transfer_cap_bytes.md)
+  : Return the finite per-download cap used by planscanR.
 
 ## Package
 

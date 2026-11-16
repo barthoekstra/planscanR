@@ -709,8 +709,13 @@ embedding is delegated to planscanR.screen.
   you want fresh fetches afterwards. The download layer pre-flights
   every URL with HEAD; files exceeding
   `getOption("planscanR.max_file_size_mb", 50)` are skipped and recorded
-  in `download_status`. Already-on-disk non-empty files become
-  `status = "cached"` unless `overwrite = TRUE`.
+  in `download_status`. Each GET is written to a unique same-filesystem
+  `.part` path and is published only after a non-empty format/MIME and
+  length check plus SHA-256. A hash-keyed verification receipt is staged
+  before the final file rename; only a verified canonical file becomes
+  `status = "cached"` (or public `"exists"`). Failed attempts remove
+  their staging bytes and keep an existing verified copy. `.part` files
+  are excluded from cache lookup.
 
 - **Errors** carry classed conditions
   (`planscanR_error_unsupported_country`, `planscanR_error_bad_input`,
@@ -906,3 +911,9 @@ and
   the runtime-accessible equivalent (including the valid search-facet
   vocabularies) is
   [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md).
+
+## Commit messages
+
+Follow the repository’s existing commit-message style. Never add AI
+authorship or attribution text, such as “Authored by Claude”, “Generated
+by Codex”, or AI co-author trailers, to commit subjects or bodies.

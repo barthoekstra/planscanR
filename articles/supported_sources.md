@@ -742,7 +742,7 @@ get_assessments_gr(type = "aepo_creation", limit = 5, download = FALSE)
 footprint; `Issue.geographies` returns a GraphQL `FeatureCollection`
 whose per-feature `geometry` arrives as a GeoJSON **string** that needs
 a *second*
-[`jsonlite::fromJSON`](https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html)
+[`jsonlite::fromJSON`](https://rdrr.io/pkg/jsonlite/man/fromJSON.html)
 parse. Point / LineString / Polygon are all observed. Coordinates are
 already geographic **WGS84 (EPSG:4326 lon/lat)** — *not* the projected
 ISN93 grid — so no reprojection happens. When present, the geometry is

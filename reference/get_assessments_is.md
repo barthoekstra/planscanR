@@ -116,7 +116,7 @@ that returns HTTP 500 for the whole query on some records.
 `Issue.hasGeography` flags whether a record has a footprint;
 `Issue.geographies` returns a GraphQL `FeatureCollection` whose
 per-feature `geometry` arrives as a **GeoJSON string** needing a second
-[`jsonlite::fromJSON`](https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html)
+[`jsonlite::fromJSON`](https://rdrr.io/pkg/jsonlite/man/fromJSON.html)
 parse. Point / LineString / Polygon are all observed. Coordinates are
 already geographic **WGS84 (EPSG:4326 lon/lat)** — *not* the projected
 ISN93 grid — so no reprojection happens. When `write_sidecar = TRUE`,

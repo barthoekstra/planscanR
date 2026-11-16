@@ -1,3 +1,9 @@
 # NA
 
 See [AGENTS.md](https://barthoekstra.github.io/planscanR/AGENTS.md).
+
+## Commit messages
+
+Follow the repository’s existing commit-message style. Never add AI
+authorship or attribution text, such as “Authored by Claude”, “Generated
+by Codex”, or AI co-author trailers, to commit subjects or bodies.

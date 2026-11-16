@@ -26,13 +26,14 @@ The resolved absolute path, or `NA_character_`.
 
 ## Details
 
-- the path itself when a non-empty file already exists there;
+- the path itself when a non-empty file has a matching SHA-256
+  verification receipt;
 
-- the single finalized sibling (same stem, real extension) when exactly
-  one exists for a `.x` placeholder;
+- the single finalized sibling (same stem, real extension) with a
+  matching receipt when exactly one exists for a `.x` placeholder;
 
-- `NA_character_` when nothing is cached yet (so the caller knows to
-  download) or when the match is ambiguous.
+- `NA_character_` when no verified copy is cached or when the match is
+  ambiguous.
 
 ## See also
 

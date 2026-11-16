@@ -5,6 +5,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/CLAUDE.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/Countries-to-add.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/LICENSE-text.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/Regional-portals.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/articles/index.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/articles/planscanR.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/articles/supported_sources.html</loc></url>
@@ -12,6 +13,7 @@
 <url><loc>https://barthoekstra.github.io/planscanR/index.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/news/index.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/at_discovery_config.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/audit_cache_downloads.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/backend_name.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/bind_results.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/cache_dir_default.html</loc></url>
@@ -49,11 +51,21 @@
 <url><loc>https://barthoekstra.github.io/planscanR/reference/migrate_sidecars_v3.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/planscanR-package.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/read_record_sidecar.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/reconcile_cached_download.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/resolve_attachment_inventory.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/resolve_cached_path.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend_mock.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/search_backend_tavily.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/storage_capacity.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/storage_free_bytes.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/storage_path.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/storage_relative_path.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/storage_resolve_location.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/storage_root_validate.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/storage_transfer_cap_bytes.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/supported_countries.html</loc></url>
+<url><loc>https://barthoekstra.github.io/planscanR/reference/update_record_sidecar.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/web_search.html</loc></url>
 <url><loc>https://barthoekstra.github.io/planscanR/reference/write_record_sidecar.html</loc></url>
 </urlset>
