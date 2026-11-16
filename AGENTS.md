@@ -462,8 +462,11 @@ Python, no Shiny, no project-specific scoring config.
   title heuristic exists; the `theme` filter (native slug, `"environement"`
   sic) is sent as `r=f/aem_theme/...` and re-checked client-side. Items without
   a `page` object are identified through `hitMetaData$b64_uri`; a failed or
-  unexpected detail page is skipped with a partial warning and never cached
-  (retried next run). Listing close-date timestamps are shifted 1-2 h, so the
+  unexpected detail page (3904/4420 return 404) yields a listing-only record
+  (`detail_fetched = FALSE`, no attachments) plus a partial warning, never
+  cached (a sidecar with `detail_fetched = FALSE` is a cache miss). Unique ids
+  are compared with `totalMatches`; inquiry 1041 is listed twice, so full
+  crawls warn. `proponent` = the "Requérant" line when present. Listing close-date timestamps are shifted 1-2 h, so the
   dates come from the detail page. Files (host `*download.public.lu`) are
   grouped by accordion heading (`fichiers`), the "Tout telecharger" button
   (`tout_telecharger`) and description links (`description`); zip/7z are

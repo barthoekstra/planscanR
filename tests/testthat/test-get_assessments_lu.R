@@ -206,13 +206,13 @@ test_that("a genuinely empty portal result is a typed empty tibble", {
   })
 })
 
-test_that("a failed or unexpected detail page skips the record and is retried, not cached", {
+test_that("a failed or unexpected detail page keeps a listing-only record and is retried, not cached", {
   with_temp_cache({
     bad <- TRUE
     calls <- lu_mock(detail = function(url) {
       id <- sub(".*/([0-9]+)\\.html$", "\\1", url)
       if (bad && id == "889") {
-        stop("HTTP 500")
+        stop("HTTP 404")
       }
       if (bad && id == "5010") {
         return(lu_html("detail_error.html"))
@@ -220,16 +220,62 @@ test_that("a failed or unexpected detail page skips the record and is retried, n
       lu_html(sprintf("detail_%s.html", id))
     })
     expect_warning(
-      expect_warning(res <- get_assessments_lu(), class = "planscanR_warning_partial"),
+      expect_warning(res <- get_assessments_lu(), "listing metadata only", class = "planscanR_warning_partial"),
+      "listing metadata only",
       class = "planscanR_warning_partial"
     )
-    expect_identical(sort(res$document_id), c("lu_3904", "lu_6198", "lu_820"))
-    expect_identical(nrow(index_cache(country = "lu")), 3L)
+    expect_identical(nrow(res), 5L)
+    expect_identical(
+      res$detail_fetched[match(c("lu_889", "lu_5010", "lu_820"), res$document_id)],
+      c(FALSE, FALSE, TRUE)
+    )
+    lo <- res[res$document_id == "lu_889", ]
+    expect_length(lo$attachment_urls[[1]], 0L)
+    expect_match(lo$title, "Alzingen")
+    expect_identical(lo$theme, "environement")
+    expect_identical(lo$date_published, planscanR:::lu_parse_item(lu_items()[[2]])$open_date)
+    expect_match(lo$listing_json, "hitMetaData", fixed = TRUE)
+    expect_false(any(c("lu_889", "lu_5010") %in% index_cache(country = "lu")$document_id))
     bad <- FALSE
     calls$details <- character()
     res2 <- get_assessments_lu()
     expect_identical(nrow(res2), 5L)
-    expect_identical(sort(basename(calls$details)), c("5010.html", "889.html")) # only the two retried
+    expect_true(all(res2$detail_fetched))
+    expect_identical(sort(basename(calls$details)), c("5010.html", "889.html"))
+  })
+})
+
+test_that("a sidecar with detail_fetched = FALSE is a cache miss", {
+  with_temp_cache({
+    e <- planscanR:::lu_parse_item(lu_items()[[2]])
+    rec <- planscanR:::lu_listing_record(e)
+    planscanR:::write_fetched_record_sidecar(rec)
+    calls <- lu_mock()
+    res <- get_assessments_lu(query = "alzingen")
+    expect_true(res$detail_fetched)
+    expect_length(calls$details, 1L)
+  })
+})
+
+test_that("proponent comes from the native Requerant line when present", {
+  items <- lu_items()
+  rec <- function(i, f) planscanR:::lu_build_record(planscanR:::lu_parse_item(items[[i]]), lu_html(f))
+  expect_identical(rec(3, "detail_5010.html")$proponent, "LuxTram S.A.")
+  expect_identical(rec(5, "detail_6198.html")$proponent, "LB Technology Google s.\u00e0 r.l.")
+  expect_true(is.na(rec(1, "detail_820.html")$proponent))
+})
+
+test_that("a shifted listing (id seen twice, another missing) warns naming the duplicate", {
+  with_temp_cache({
+    p <- lu_pages()
+    p[[2]]$search$items <- list(p[[1]]$search$items[[2]], p[[2]]$search$items[[1]]) # 889, 5010
+    lu_mock(pages = p)
+    expect_warning(
+      res <- get_assessments_lu(write_sidecar = FALSE),
+      "889",
+      class = "planscanR_warning_partial"
+    )
+    expect_false("lu_3904" %in% res$document_id)
   })
 })
 
@@ -333,5 +379,21 @@ test_that("an inquiry listed twice by the portal is deduped without an incomplet
     res <- expect_no_warning(get_assessments_lu(write_sidecar = FALSE))
     expect_identical(sum(res$document_id == "lu_820"), 1L)
     expect_identical(nrow(res), 5L)
+  })
+})
+
+test_that("three consecutive failed result pages stop the crawl with a warning", {
+  with_temp_cache({
+    boom <- function() stop("HTTP 500")
+    p <- lu_pages()
+    p[[1]]$search$totalMatches <- 8L
+    p[[2]] <- boom
+    p[[3]] <- boom
+    p[[4]] <- boom
+    lu_mock(pages = p)
+    w <- testthat::capture_warnings(res <- get_assessments_lu(write_sidecar = FALSE))
+    expect_match(w, "result page 2", all = FALSE)
+    expect_match(w, "3 consecutive", all = FALSE)
+    expect_identical(sort(res$document_id), c("lu_820", "lu_889"))
   })
 })

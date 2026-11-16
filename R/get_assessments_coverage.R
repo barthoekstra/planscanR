@@ -153,7 +153,7 @@ get_assessments_coverage <- function() {
       "supported (metadata-only EIA register \u2014 documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
       "supported (requires optional headless browser; TLS-fingerprinted portal)", # es
       "supported (EIA register only, current-year listing window; Screening + MEEP; zip studies; no SEA, no geometry)", # cy
-      "supported (public-inquiry portal, all themes, ~2020 onward; no native EIA flag; EIA reports often inside zip/7z; no geometry)" # lu
+      "supported (public-inquiry portal, all themes, ~2020 onward; no native EIA flag; listing-only records when a detail page is missing; EIA reports often inside zip/7z; no geometry)" # lu
     ),
     facets = list(
       commissiemer_facets(),

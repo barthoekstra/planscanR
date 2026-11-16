@@ -1363,12 +1363,17 @@ get_assessments_cy(limit = 5, download = FALSE)
 * **Records:** `document_id` is `lu_<native id>`; the raw listing item is in
   `listing_json` and every text section of the page in `detail_sections`.
   Opening/closing dates, municipalities, organising and supervising
-  authorities, reference number and procedure type are extras. No proponent
-  field (free text only), no geometry. French (`fr`).
+  authorities, reference number and procedure type are extras. `proponent`
+  is the "Requérant" line of the description when present, else `NA`; no
+  geometry. French (`fr`).
 * **Completeness:** a malformed response or a failed first page is an error; a
-  failed, short, early-empty or repeated later page, or a listed inquiry whose
-  detail page is missing (a few listed items have no public page), gives a
-  `planscanR_warning_partial` and the record is retried next run.
+  failed, short, early-empty or repeated later page, three consecutive failed
+  pages, or fewer unique ids than the reported total (the portal lists
+  inquiry 1041 twice, so full crawls warn "56 of 57") gives a
+  `planscanR_warning_partial`. A listed inquiry whose detail page is missing
+  (a few listed items return 404) is returned as a listing-only record
+  (`detail_fetched = FALSE`, no attachments) with a warning, never cached and
+  retried next run.
 * **Attachments:** every file link on the page with its native label, grouped
   into `attachment_urls_fichiers`, `attachment_urls_tout_telecharger` (the
   per-case zip duplicating the others) and `attachment_urls_description`

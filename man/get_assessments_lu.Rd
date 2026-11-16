@@ -64,10 +64,14 @@ classified-establishment and water inquiries carry no EIA report.
 The search endpoint needs a constant \code{data-id} that the handler reads from
 the \verb{<cmp-search-results>} element of \verb{/fr/enquetes.html} (never hardcoded).
 Pages are requested from 1 until an empty page or until the reported
-\code{totalMatches} is reached; ids are de-duplicated. A malformed envelope or a
-failed first page is an error; a failed, short, empty-too-early or repeated
-later page raises a \code{planscanR_warning_partial} instead of returning a
-silently complete result. Inquiries closed or archived since about 2020
+\code{totalMatches} is reached; ids are de-duplicated and the number of UNIQUE ids
+is compared with the total. A malformed envelope or a failed first page is
+an error; a failed, short, empty-too-early or repeated later page, three
+consecutive failed pages, or fewer unique ids than the total (the warning
+names ids listed more than once, which suggests a shifted listing) raise a
+\code{planscanR_warning_partial} instead of returning a silently complete result.
+Known case: the portal lists inquiry 1041 twice, so a full crawl of all
+themes (and the "environement" theme) warns that 56 of 57 were retrieved. Inquiries closed or archived since about 2020
 remain listed; earlier ones are not on the portal.
 }
 
@@ -81,8 +85,9 @@ page; the listing's timestamps are shifted by one or two hours); \code{date_deci
 (the portal exposes no decision date). \code{competent_authority} is the
 authority organising the inquiry (as written on the page; several are
 joined with \code{"; "}), \code{supervising_authority} the authority following the
-file, \code{jurisdiction} the municipalities. The requester ("Requérant") is
-only free text inside the description, so \code{proponent} is \code{NA}. Also kept:
+file, \code{jurisdiction} the municipalities. \code{proponent} is the
+requester ("Requérant : ...") line of the description when the page has one,
+else \code{NA}. Also kept:
 \code{native_id}, \code{reference_number}, \code{status_native}, \code{survey_type},
 \code{nb_contributions}, \code{last_modified_native}, \code{procedure_type},
 \code{municipalities_concerned}, \code{neighbouring_municipalities}, \code{related_links}
@@ -94,8 +99,11 @@ names only).
 \section{Attachments}{
 
 The detail page is fetched for every returned record (sidecar-first; a
-record whose detail fetch failed, or whose page looks unexpected, is skipped
-with a warning and retried next time, never cached). Every file link on the
+record whose detail fetch failed, or whose page looks unexpected, e.g. the
+few listed items whose page returns 404, is returned as a \strong{listing-only
+record} (\code{detail_fetched = FALSE}: title, theme, status, dates,
+municipalities, reference number and \code{listing_json}, no attachments) with a
+\code{planscanR_warning_partial}; it is never cached and is retried next run). Every file link on the
 page (host \verb{*download.public.lu}) is captured with its native label, grouped
 by the portal's own grouping into \verb{attachment_urls_<slug>} columns: the
 accordion headings (normally \code{fichiers}), the per-case "Tout télécharger"
@@ -111,7 +119,8 @@ often inside a zip.
 
 \code{theme} (a native theme slug, see \code{\link[=get_assessments_coverage]{get_assessments_coverage()}}; sent to the
 portal and re-checked client-side), \code{query} (case-insensitive title
-substring), and \code{date_range} (against the opening date) are applied before
+substring), and \code{date_range} (against the opening date of the
+listing, the same calendar day as \code{date_published}) are applied before
 the detail fetch; \code{limit} caps the result. Requests are throttled to 5
 req/s (\code{getOption("planscanR.lu_throttle_rate")}).
 }

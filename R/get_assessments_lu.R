@@ -23,10 +23,14 @@
 #' The search endpoint needs a constant `data-id` that the handler reads from
 #' the `<cmp-search-results>` element of `/fr/enquetes.html` (never hardcoded).
 #' Pages are requested from 1 until an empty page or until the reported
-#' `totalMatches` is reached; ids are de-duplicated. A malformed envelope or a
-#' failed first page is an error; a failed, short, empty-too-early or repeated
-#' later page raises a `planscanR_warning_partial` instead of returning a
-#' silently complete result. Inquiries closed or archived since about 2020
+#' `totalMatches` is reached; ids are de-duplicated and the number of UNIQUE ids
+#' is compared with the total. A malformed envelope or a failed first page is
+#' an error; a failed, short, empty-too-early or repeated later page, three
+#' consecutive failed pages, or fewer unique ids than the total (the warning
+#' names ids listed more than once, which suggests a shifted listing) raise a
+#' `planscanR_warning_partial` instead of returning a silently complete result.
+#' Known case: the portal lists inquiry 1041 twice, so a full crawl of all
+#' themes (and the "environement" theme) warns that 56 of 57 were retrieved. Inquiries closed or archived since about 2020
 #' remain listed; earlier ones are not on the portal.
 #'
 #' @section Records:
@@ -38,8 +42,9 @@
 #' (the portal exposes no decision date). `competent_authority` is the
 #' authority organising the inquiry (as written on the page; several are
 #' joined with `"; "`), `supervising_authority` the authority following the
-#' file, `jurisdiction` the municipalities. The requester ("Requérant") is
-#' only free text inside the description, so `proponent` is `NA`. Also kept:
+#' file, `jurisdiction` the municipalities. `proponent` is the
+#' requester ("Requérant : ...") line of the description when the page has one,
+#' else `NA`. Also kept:
 #' `native_id`, `reference_number`, `status_native`, `survey_type`,
 #' `nb_contributions`, `last_modified_native`, `procedure_type`,
 #' `municipalities_concerned`, `neighbouring_municipalities`, `related_links`
@@ -49,8 +54,11 @@
 #'
 #' @section Attachments:
 #' The detail page is fetched for every returned record (sidecar-first; a
-#' record whose detail fetch failed, or whose page looks unexpected, is skipped
-#' with a warning and retried next time, never cached). Every file link on the
+#' record whose detail fetch failed, or whose page looks unexpected, e.g. the
+#' few listed items whose page returns 404, is returned as a **listing-only
+#' record** (`detail_fetched = FALSE`: title, theme, status, dates,
+#' municipalities, reference number and `listing_json`, no attachments) with a
+#' `planscanR_warning_partial`; it is never cached and is retried next run). Every file link on the
 #' page (host `*download.public.lu`) is captured with its native label, grouped
 #' by the portal's own grouping into `attachment_urls_<slug>` columns: the
 #' accordion headings (normally `fichiers`), the per-case "Tout télécharger"
@@ -64,7 +72,8 @@
 #' @section Filter coverage:
 #' `theme` (a native theme slug, see [get_assessments_coverage()]; sent to the
 #' portal and re-checked client-side), `query` (case-insensitive title
-#' substring), and `date_range` (against the opening date) are applied before
+#' substring), and `date_range` (against the opening date of the
+#' listing, the same calendar day as `date_published`) are applied before
 #' the detail fetch; `limit` caps the result. Requests are throttled to 5
 #' req/s (`getOption("planscanR.lu_throttle_rate")`).
 #'
@@ -138,13 +147,12 @@ get_assessments_lu <- function(
     rec <- tryCatch(
       lu_load_or_fetch(entry, sidecar_index),
       error = function(e) {
-        warn_partial("Failed to load/parse {.url {entry$url}} (retried on the next run): {conditionMessage(e)}")
-        NULL
+        warn_partial(
+          "Failed to load/parse {.url {entry$url}}: {conditionMessage(e)}; keeping listing metadata only (retried on the next run)."
+        )
+        lu_listing_record(entry)
       }
     )
-    if (is.null(rec)) {
-      return(NULL)
-    }
     if (!is.null(rel)) {
       rec <- apply_relevance(rec, rel)
     }
@@ -346,6 +354,7 @@ lu_parse_item <- function(item) {
     open_date = lu_parse_date(hit$enquetes_publiques_enquiry_open_date),
     nb_contributions = if (length(nb) == 1L) nb else NA_integer_,
     last_modified_native = lu_chr(hit$last_modified),
+    description = lu_chr(hit$jcr_description),
     listing_json = as.character(jsonlite::toJSON(item, auto_unbox = TRUE, null = "null"))
   )
 }
@@ -361,7 +370,9 @@ lu_fetch_search <- function(theme = NULL) {
   max_pages <- NA_integer_
   per_page <- NA_integer_
   seen <- character(0)
-  counted <- 0
+  dups <- character(0)
+  skipped_total <- 0L
+  fail_streak <- 0L
   done <- FALSE
   warned <- FALSE
   warn <- function(msg, .envir = parent.frame()) {
@@ -370,8 +381,18 @@ lu_fetch_search <- function(theme = NULL) {
   }
   finish <- function() {
     done <<- TRUE
-    if (!warned && counted < total) {
-      warn("Luxembourg listing is incomplete: {counted} of {total} reported inquiries retrieved.")
+    got <- length(seen) + skipped_total
+    if (!warned && got < total) {
+      dup_note <- if (length(dups)) {
+        paste0(
+          "; listed more than once: ",
+          paste(unique(dups), collapse = ", "),
+          " (the listing may have shifted)"
+        )
+      } else {
+        ""
+      }
+      warn("Luxembourg listing is incomplete: {got} of {total} reported inquiries retrieved{dup_note}.")
     }
     NULL
   }
@@ -394,8 +415,15 @@ lu_fetch_search <- function(theme = NULL) {
           cli::cli_abort("Failed to fetch the first Luxembourg result page: {conditionMessage(j)}")
         }
         warn("Failed to fetch Luxembourg result page {pg}: {conditionMessage(j)}")
+        fail_streak <<- fail_streak + 1L
+        if (fail_streak >= 3L) {
+          warn("Stopping after 3 consecutive failed Luxembourg result pages.")
+          done <<- TRUE
+          return(NULL)
+        }
         next
       }
+      fail_streak <<- 0L
       problem <- lu_envelope_problem(j)
       if (!is.null(problem)) {
         if (pg == 1L) {
@@ -432,6 +460,8 @@ lu_fetch_search <- function(theme = NULL) {
         } else if (!e$id %in% seen) {
           seen <<- c(seen, e$id)
           entries[[length(entries) + 1L]] <- e
+        } else {
+          dups <<- c(dups, e$id)
         }
       }
       if (skipped > 0L) {
@@ -442,10 +472,10 @@ lu_fetch_search <- function(theme = NULL) {
         done <<- TRUE
         return(NULL)
       }
-      # raw items, not unique ids: the portal can list one inquiry twice (seen
-      # live), which must not look like a missing record
-      counted <<- counted + length(items)
-      if (counted >= total) {
+      # unique ids against the reported total: the portal lists inquiry 1041
+      # twice (seen live), so a full crawl of all themes still warns, naming it
+      skipped_total <<- skipped_total + skipped
+      if (length(seen) + skipped_total >= total) {
         done <<- TRUE
       }
       if (length(entries) > 0L) {
@@ -485,9 +515,12 @@ lu_load_or_fetch <- function(entry, sidecar_index) {
   if (length(hit) == 1L && !is.na(hit) && nzchar(hit) && file.exists(hit)) {
     # extras come back from the sidecar as plain JSON types; restore ours
     rec <- read_record_sidecar(hit)
-    rec$date_close <- as.Date(rec$date_close)
-    rec$nb_contributions <- as.integer(rec$nb_contributions)
-    return(rec)
+    # a listing-only record is never a warm hit: retry the detail page
+    if (!("detail_fetched" %in% names(rec) && isFALSE(as.logical(rec$detail_fetched)))) {
+      rec$date_close <- as.Date(rec$date_close)
+      rec$nb_contributions <- as.integer(rec$nb_contributions)
+      return(rec)
+    }
   }
   lu_build_record(entry, lu_fetch_detail(entry$url))
 }
@@ -554,12 +587,12 @@ lu_parse_detail <- function(html, id) {
     href <- rvest::html_attr(a, "href")
     abs <- if (startsWith(href, "//")) paste0("https:", href) else href
     label <- lu_text(rvest::html_text(a))
-    if (grepl("^https://[^/]*download\\.public\\.lu/", abs)) {
+    acc <- xml2::xml_find_first(a, "ancestor::details[1]")
+    if (!lu_is_missing_node(acc) || grepl("^https?://[^/]*download\\.public\\.lu/", abs)) {
       title_node <- rvest::html_element(a, ".cmp-list__item-title")
       if (!lu_is_missing_node(title_node)) {
         label <- lu_text(rvest::html_text(title_node))
       }
-      acc <- xml2::xml_find_first(a, "ancestor::details[1]")
       group <- if (!lu_is_missing_node(acc)) {
         lu_text(rvest::html_text(rvest::html_element(acc, "h3")))
       } else if (grepl("cmp-button", rvest::html_attr(a, "class") %||% "", fixed = TRUE)) {
@@ -572,7 +605,7 @@ lu_parse_detail <- function(html, id) {
       grepl("^(https?:)?//", href) &&
         !lu_is_missing_node(xml2::xml_find_first(a, "ancestor::div[contains(@class,'cmp-text')][1]"))
     ) {
-      related[[length(related) + 1L]] <- list(label = label, url = href)
+      related[[length(related) + 1L]] <- list(label = label, url = abs)
     }
   }
   list(
@@ -600,21 +633,53 @@ lu_section_value <- function(sections, label_rx) {
   if (nzchar(v)) v else NA_character_
 }
 
-#' Build a 1-row record from a listing entry and its detail page.
+#' Plain text of a listing description (HTML entities decoded); `NA` if absent.
 #' @noRd
-lu_build_record <- function(entry, html) {
-  d <- lu_parse_detail(html, entry$id)
+lu_listing_text <- function(x) {
+  if (is.null(x) || is.na(x)) {
+    return(NA_character_)
+  }
+  lu_text(xml2::xml_text(xml2::read_html(paste0("<p>", x, "</p>"))))
+}
+
+#' Listing-only record (detail page unavailable): title, theme, status, dates,
+#' municipalities, reference number and the raw listing item; no attachments.
+#' @noRd
+lu_listing_record <- function(entry) {
+  lu_build_record(entry, NULL)
+}
+
+#' Build a 1-row record from a listing entry and its detail page (`NULL` html
+#' gives the listing-only record).
+#' @noRd
+lu_build_record <- function(entry, html = NULL) {
+  fetched <- !is.null(html)
+  d <- if (fetched) {
+    lu_parse_detail(html, entry$id)
+  } else {
+    list(
+      h1 = entry$title,
+      domain = NA_character_,
+      state = NA_character_,
+      open_date = as.Date(NA),
+      close_date = as.Date(NA),
+      sections = list(),
+      related = list(),
+      files = data.frame(label = character(0), url = character(0), group = character(0))
+    )
+  }
   s <- d$sections
   files <- d$files
   or_na <- function(x, fallback) if (is.na(x) || !nzchar(x)) fallback else x
   details <- s[["D\u00e9tails de l'enqu\u00eate publique"]]
   description <- if (length(details)) paste(details, collapse = "\n") else NA_character_
-  reference <- if (is.na(description)) {
+  ref_text <- if (is.na(description)) lu_listing_text(entry$description) else description
+  reference <- if (is.na(ref_text)) {
     NA_character_
   } else {
     m <- regmatches(
-      description,
-      regexec("Num\u00e9ro de r\u00e9f\u00e9rence\\s*:\\s*([^[:space:]]+)", description)
+      ref_text,
+      regexec("Num\u00e9ro de r\u00e9f\u00e9rence\\s*:\\s*([^[:space:]]+)", ref_text)
     )[[1]]
     if (length(m) == 2L) m[2] else NA_character_
   }
@@ -635,7 +700,7 @@ lu_build_record <- function(entry, html) {
     title = or_na(entry$title, lu_text(sub(" - [0-9]+$", "", d$h1))),
     summary = description,
     competent_authority = lu_section_value(s, "Autorit\u00e9 en charge de l.organisation[^:]*"),
-    proponent = NA_character_,
+    proponent = lu_section_value(s, "Requ\u00e9rant"),
     date_published = if (is.na(d$open_date)) entry$open_date else d$open_date,
     date_decision = as.Date(NA),
     date_close = d$close_date,
@@ -661,7 +726,8 @@ lu_build_record <- function(entry, html) {
       NA_character_
     },
     attachment_labels_native = paste(sprintf("%s=%s", names(labels), labels), collapse = "; "),
-    detail_sections = as.character(jsonlite::toJSON(s, auto_unbox = FALSE)),
+    detail_fetched = fetched,
+    detail_sections = if (fetched) as.character(jsonlite::toJSON(s, auto_unbox = FALSE)) else NA_character_,
     listing_json = entry$listing_json,
     download_status = list(empty_download_status())
   )
@@ -705,7 +771,7 @@ lu_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
     rec[[paste0("local_path_", slug)]] <- list(ds$local_path[match(section_urls[[slug]], ds$url)])
   }
   rec$file_sha256 <- list(ds$sha256)
-  if (write_sidecar) {
+  if (write_sidecar && isTRUE(rec$detail_fetched)) {
     tryCatch(
       write_fetched_record_sidecar(rec, downloads = rec$download_status[[1]]),
       error = function(e) {

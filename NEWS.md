@@ -29,8 +29,10 @@
   (`listing_json`) are kept; every file link is captured with its native
   label, grouped by the portal's own grouping (`attachment_urls_fichiers`,
   `..._tout_telecharger`, `..._description`). Zip/7z files are downloaded
-  as-is, never unpacked. Failed pages or details give
-  `planscanR_warning_partial` or an error, never a silently complete result.
+  as-is, never unpacked. Failed pages give `planscanR_warning_partial` or an
+  error; a missing detail page gives a listing-only record
+  (`detail_fetched = FALSE`) with a warning; unique ids are compared with the
+  reported total (inquiry 1041 is listed twice, so full crawls warn).
   French, no geometry, 5 req/s by default.
 * New explicit source `"be_dsi"` (Flanders DSI planning dossiers,
   `get_assessments("be", source = "be_dsi")`): one record per dossier with every
