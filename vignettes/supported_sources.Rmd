@@ -1395,7 +1395,7 @@ national EIA register.
   appears under both countries with the same id; both are kept as `economy` and
   `name_prefix`). Borrower and implementing-entity text keeps only lines with an
   organisation word; names and titles are dropped. Codes without a mapping (including NL/DE/DK/AT) are an error;
-  `"Multicountry"` projects have no member list and are excluded.
+  `"Multicountry"` projects have no member list and are excluded unless the name prefix names a mapped country.
 - Only some Category A/B projects publish an assessment; Category C, financial
   intermediary and policy projects often have none. A failed detail page gives a
   listing-only record (`detail_status = "failed"`) and a partial-result warning,

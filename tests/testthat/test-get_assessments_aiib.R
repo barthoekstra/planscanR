@@ -367,3 +367,10 @@ test_that("leading job titles before the organisation are dropped", {
     "Yingkou Municipal Commission; Ministry of Finance, PRC; Economic Relations Division"
   )
 })
+
+test_that("aiib_org_line drops names and titles around an organisation", {
+  node <- xml2::read_html(
+    "<div><p>Ministry of Finance, Jo Person</p><p>Vice Chairman, Yingkou Municipal Commission</p></div>"
+  )
+  expect_identical(aiib_org_line(node), "Ministry of Finance; Yingkou Municipal Commission")
+})

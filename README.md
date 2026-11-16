@@ -165,7 +165,7 @@ Currently registered:
   with all linked project documents (ESIA, ESMP, IEE, RAP, ...) grouped by the
   page's own headings and labelled with the native link text; ISO-2 code mapped
   to AIIB country names (Asia-heavy; NL/DE/DK/AT are an error), "Multicountry"
-  projects excluded, partner-portal links listed but not downloaded
+  projects excluded unless the name prefix names a country, partner-portal links listed but not downloaded
   (`get_assessments("cn", source = "aiib")`).
 - `"be_dsi"` (with `country = "be"`): Flemish spatial-planning dossiers from the
   DSI portal, including plan-MER material; assessment reports are only a subset

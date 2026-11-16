@@ -62,7 +62,8 @@
 #' valid code absent from the table (including the NL/DE/DK/AT focus
 #' countries, which AIIB does not finance) is an error; a mapped code with no
 #' rows returns a typed empty result. Records with `economy = "Multicountry"`
-#' have no member list and are excluded from every country-filtered result.
+#' have no member list and are excluded from every country-filtered result,
+#' unless their name prefix names a mapped country.
 #' Output `country` is the requested code. After parsing, economy values not
 #' in the table raise a `planscanR_warning_partial`.
 #'
@@ -449,13 +450,13 @@ aiib_org_line <- function(node) {
     "Administration|Secretariat|State|City|Co\\.|Inc\\.?|PLC)\\b"
   )
   lines <- lines[grepl(words, lines, perl = TRUE)]
-  # drop a leading job title ("Vice Chairman, <organisation>")
+  # keep only comma segments that name an organisation, so a job title or a
+  # person's name on either side of the organisation never survives
   lines <- vapply(
     lines,
     function(l) {
       parts <- strsplit(l, ",\\s*")[[1]]
-      first <- which(grepl(words, parts, perl = TRUE))[1]
-      paste(parts[first:length(parts)], collapse = ", ")
+      paste(parts[grepl(words, parts, perl = TRUE) | grepl("^[A-Z]{2,5}$", parts)], collapse = ", ")
     },
     character(1),
     USE.NAMES = FALSE

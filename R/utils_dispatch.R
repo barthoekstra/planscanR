@@ -100,7 +100,7 @@ assessment_sources <- function() {
       handler = get_assessments_aiib,
       name = "Asian Infrastructure Investment Bank projects",
       granularity = "project (all project documents grouped by the native section heading)",
-      geography = "ISO-2 code mapped to AIIB English economy names (about 50 mapped, mostly Asia); matched on the economy field or the name prefix; \"Multicountry\" projects excluded; NL/DE/DK/AT are not mapped and raise an error",
+      geography = "ISO-2 code mapped to AIIB English economy names (about 50 mapped, mostly Asia); matched on the economy field or the name prefix; \"Multicountry\" projects excluded unless the name prefix names a mapped country; NL/DE/DK/AT are not mapped and raise an error",
       scope = "505 AIIB projects (as of 2026-11), 2016 to present, proposed to terminated; links to ESIA, ESMP, IEE, RAP, ESMPF, monitoring and procurement documents on each project page; anonymous PDF access",
       limitations = "Only some Category A/B projects publish an assessment; Category C, FI and policy projects often have none; partner-portal links are listed (external_urls_*) but not downloaded; no role classification (native link label kept); document_id is the project number (aiib_p<number>); a record whose detail page failed gets a path-based fallback id and is not cached; borrower/implementing text keeps organisation lines only",
       url = "https://www.aiib.org/en/projects/list/"

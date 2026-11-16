@@ -24,7 +24,7 @@
   record and every document link kept per native section heading with its full
   native label. External links are listed in `external_urls_*`, not downloaded.
   ISO-2 codes map to AIIB English country names; "Multicountry" projects are
-  excluded; a failed detail page is retried next run.
+  excluded unless the name prefix names a country; a failed detail page is retried next run.
 * New explicit source `"be_dsi"` (Flanders DSI planning dossiers,
   `get_assessments("be", source = "be_dsi")`): one record per dossier with every
   phase and document, grouped per native document code. `PLNMER` mixes plan-MER
