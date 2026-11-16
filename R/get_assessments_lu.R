@@ -30,7 +30,8 @@
 #' names ids listed more than once, which suggests a shifted listing) raise a
 #' `planscanR_warning_partial` instead of returning a silently complete result.
 #' Known case: the portal lists inquiry 1041 twice, so a full crawl of all
-#' themes (and the "environement" theme) warns that 56 of 57 were retrieved. Inquiries closed or archived since about 2020
+#' themes warns that one fewer unique inquiry than the total was retrieved
+#' (e.g. 56 of 57 for the "environement" theme). Inquiries closed or archived since about 2020
 #' remain listed; earlier ones are not on the portal.
 #'
 #' @section Records:
@@ -589,7 +590,9 @@ lu_parse_detail <- function(html, id) {
     abs <- if (startsWith(href, "//")) paste0("https:", href) else href
     label <- lu_text(rvest::html_text(a))
     acc <- xml2::xml_find_first(a, "ancestor::details[1]")
-    if (!lu_is_missing_node(acc) || grepl("^https?://[^/]*download\\.public\\.lu/", abs)) {
+    if (
+      (!lu_is_missing_node(acc) && grepl("^https?://", abs)) || grepl("^https?://[^/]*download\\.public\\.lu/", abs)
+    ) {
       title_node <- rvest::html_element(a, ".cmp-list__item-title")
       if (!lu_is_missing_node(title_node)) {
         label <- lu_text(rvest::html_text(title_node))
@@ -787,6 +790,10 @@ lu_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
 #' lines addressed with a French/German/Luxembourgish personal title become NA.
 #' @noRd
 lu_organisation <- function(x) {
-  personal <- "^\\s*(Monsieur|Madame|Mademoiselle|M\\.|Mme\\.?|Mlle\\.?|Herr|Frau|Mr\\.?|Mrs\\.?|Ms\\.?)\\s"
-  if (length(x) == 1L && !is.na(x) && grepl(personal, x, ignore.case = TRUE)) NA_character_ else x
+  # case-sensitive so organisation names such as "MS ..." are not dropped
+  personal <- paste0(
+    "^\\s*(Monsieur|Madame|Mademoiselle|Messieurs|Mesdames|MM\\.|M\\.|Mme\\.?|Mlle\\.?|",
+    "Herr|Frau|H\u00e4r|Madamm|Famille|Consorts|[E\u00c9]poux|Mr\\.?|Mrs\\.?|Ms\\.?)(\\s|(?<=\\.))"
+  )
+  if (length(x) == 1L && !is.na(x) && grepl(personal, x, perl = TRUE)) NA_character_ else x
 }

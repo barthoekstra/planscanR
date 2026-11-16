@@ -404,3 +404,10 @@ test_that("private-person requesters are not stored as proponent", {
   expect_identical(lu_organisation("LuxTram S.A."), "LuxTram S.A.")
   expect_identical(lu_organisation(NA_character_), NA_character_)
 })
+
+test_that("private-person titles cover plural, family and Luxembourgish forms", {
+  for (x in c("MM. Dupont et Martin", "M.Dupont", "Famille Weber", "Här Jo Muller", "Madamm Jo Muller")) {
+    expect_identical(lu_organisation(x), NA_character_, info = x)
+  }
+  expect_identical(lu_organisation("MS Energy S.A."), "MS Energy S.A.")
+})

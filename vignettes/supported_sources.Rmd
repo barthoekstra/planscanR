@@ -1369,7 +1369,8 @@ get_assessments_cy(limit = 5, download = FALSE)
 * **Completeness:** a malformed response or a failed first page is an error; a
   failed, short, early-empty or repeated later page, three consecutive failed
   pages, or fewer unique ids than the reported total (the portal lists
-  inquiry 1041 twice, so full crawls warn "56 of 57") gives a
+  inquiry 1041 twice, so crawls warn one short, e.g. "56 of 57" for the
+  `environement` theme) gives a
   `planscanR_warning_partial`. A listed inquiry whose detail page is missing
   (a few listed items return 404) is returned as a listing-only record
   (`detail_fetched = FALSE`, no attachments) with a warning, never cached and

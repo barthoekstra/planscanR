@@ -71,7 +71,8 @@ consecutive failed pages, or fewer unique ids than the total (the warning
 names ids listed more than once, which suggests a shifted listing) raise a
 \code{planscanR_warning_partial} instead of returning a silently complete result.
 Known case: the portal lists inquiry 1041 twice, so a full crawl of all
-themes (and the "environement" theme) warns that 56 of 57 were retrieved. Inquiries closed or archived since about 2020
+themes warns that one fewer unique inquiry than the total was retrieved
+(e.g. 56 of 57 for the "environement" theme). Inquiries closed or archived since about 2020
 remain listed; earlier ones are not on the portal.
 }
 
