@@ -16,10 +16,10 @@ and related advice) from European government portals.
   (`country`, `source_portal`, `document_id`, `url`, `retrieved_at`, `title`,
   `summary`, `attachment_urls`, `local_path`, …). `bind_results()` stacks
   results from several countries.
-* 22 countries are supported: Netherlands, Germany, France, Austria, Denmark,
+* 23 countries are supported: Netherlands, Germany, France, Austria, Denmark,
   Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech Republic, Croatia,
   Greece, Iceland, Ireland, Slovenia, Portugal, the United Kingdom, Italy,
-  Slovakia, Norway, Latvia, and Spain.
+  Slovakia, Norway, Latvia, Spain, and Cyprus.
   Coverage, honoured filters, geometry, and per-portal quirks differ by
   country — see `vignette("supported_sources")` and
   `get_assessments_coverage()`.
@@ -115,6 +115,17 @@ and related advice) from European government portals.
   (`IVN-` / `ATZ-` / `LEM-` / `MON-`). No geometry; `query` and `date_range`
   are matched client-side (the portal's own filters are POST/AJAX). Latvian.
   Throttled to 5 req/s by default (`getOption("planscanR.lv_throttle_rate")`).
+* Cyprus (`get_assessments_cy()`): fetches the Department of Environment EIA
+  register at **eia.moa.gov.cy**. Coverage is the portal's *current-year*
+  listing only (no archive or year selector exists; ids are never guessed), so
+  it is not national completeness; the SEA register is not covered. Both
+  *ΜΕΕΠ* (full EIA) and *Screening* rows are returned with the native labels
+  kept (`listing_type`, `native_type`); `document_id` is `cy_<no>`. Detail pages
+  supply all key/value metadata (`native_fields`) and the file list, grouped by
+  portal folder into `attachment_urls_<slug>` columns; large study `.zip` files
+  are downloaded as-is. Greek, no geometry, 5 req/s by default. Shared download
+  naming now takes the filename from `download.php?f=<path>` style URLs so
+  several files of one record no longer overwrite each other.
 * Spain (`get_assessments_es()`): fetches the national-competence environmental
   assessments from the MITECO/SABIA *Consulta pública de evaluaciones
   ambientales* portal at **sede.miteco.gob.es**. This is the first handler that

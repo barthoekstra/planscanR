@@ -47,7 +47,8 @@ get_assessments_coverage <- function() {
       "sk",
       "no",
       "lv",
-      "es"
+      "es",
+      "cy"
     ),
     source_portal = c(
       "commissiemer.nl",
@@ -71,7 +72,8 @@ get_assessments_coverage <- function() {
       "enviroportal.sk",
       "nve.no",
       "eva.gov.lv",
-      "sede.miteco.gob.es"
+      "sede.miteco.gob.es",
+      "eia.moa.gov.cy"
     ),
     base_url = c(
       "https://www.commissiemer.nl",
@@ -95,9 +97,11 @@ get_assessments_coverage <- function() {
       "https://www.enviroportal.sk/eia-sea/informacny-system",
       "https://www.nve.no/konsesjon/konsesjonssaker",
       "https://www.eva.gov.lv/lv/ietekmes-uz-vidi-novertejumu-projekti",
-      "https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido"
+      "https://sede.miteco.gob.es/portal/site/seMITECO/navServicioContenido",
+      "https://eia.moa.gov.cy/public"
     ),
     requires_auth = c(
+      FALSE,
       FALSE,
       FALSE,
       FALSE,
@@ -143,7 +147,8 @@ get_assessments_coverage <- function() {
       "supported (API Platform JSON; EIA/SEA via zbierka; no geometry)", # sk
       "supported (NVE energy/water concession cases; EIA docs by filename; no geometry)", # no
       "supported (metadata-only EIA register \u2014 documents via discovery; SEA opinions/decisions carry direct PDFs)", # lv
-      "supported (requires optional headless browser; TLS-fingerprinted portal)" # es
+      "supported (requires optional headless browser; TLS-fingerprinted portal)", # es
+      "supported (EIA register only, current-year listing window; Screening + MEEP; zip studies; no SEA, no geometry)" # cy
     ),
     facets = list(
       commissiemer_facets(),
@@ -167,9 +172,17 @@ get_assessments_coverage <- function() {
       enviroportal_sk_facets(),
       nve_no_facets(),
       eva_lv_facets(),
-      sabia_es_facets()
+      sabia_es_facets(),
+      eia_moa_cy_facets()
     )
   )
+}
+
+#' Static lookup of the Cyprus DoE EIA register facets: none server-side; the
+#' native listing labels are surfaced for reference.
+#' @noRd
+eia_moa_cy_facets <- function() {
+  list(listing_type = c("\u039c\u0395\u0395\u03a0", "Screening"))
 }
 
 #' Static lookup of the MITECO/SABIA (Spain) facet vocabularies.

@@ -12,7 +12,7 @@ follow-up advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R: no
 Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Twenty-two country handlers ship:
+**v0.1 scope.** Twenty-three country handlers ship:
 - Netherlands (`get_assessments_nl()`) — Commissie m.e.r. adviezenregister
   at `commissiemer.nl`.
 - Germany (`get_assessments_de()`) — UVP-Verbund federated portal at
@@ -415,6 +415,25 @@ Python, no Shiny, no project-specific scoring config.
   `getOption("planscanR.es_throttle_rate", 2)` (seconds between ficha
   fetches). Coverage `status` = `"supported (requires optional headless
   browser; TLS-fingerprinted portal)"`.
+- Cyprus (`get_assessments_cy()`) — Department of Environment **EIA register**
+  at `eia.moa.gov.cy/public/` (server-rendered HTML, `rvest`; Greek). **Coverage
+  is a current-year window, not national completeness:** the only enumerable
+  listing is `/public/currentYearView.html` (one finite table, no archive/year
+  selector; completions seen 2024-2026); `no=` ids are never guessed. The SEA
+  register (`/public/sea/`) is **not covered** (deferred: too few report-bearing
+  plans). Seams `cy_fetch_listing()` / `cy_fetch_detail(no)`; detail
+  `/public/eiaview.html?no=<id>` is sidecar-first. Both *ΜΕΕΠ* (full EIA) and
+  *Screening* rows are kept; `listing_type` holds the native listing label and
+  `native_type` the detail *Είδος* (no eligibility rule beyond native labels).
+  `document_id` = `cy_<no>`; extras `native_no`, `project_number`, `file_number`,
+  `category`, `district`, `area`, `town`, and every detail key/value in the
+  `native_fields` JSON. Attachments grouped by the download-path folder
+  (`meep`, `gnomatevseis`, `oikologiki_axiologisi`, ...) into
+  `attachment_urls_<slug>`; native Greek row labels in `attachment_labels_native`.
+  Main studies are often multi-MB `.zip` files, downloaded as-is (never
+  extracted; the default 50 MB cap skips the largest). Downloads use
+  `download.php?f=<path>`, so `slugify_filename()` takes the name from `f=`.
+  No geometry. Throttled 5 req/s (`planscanR.cy_throttle_rate`).
 - Austria (`get_assessments_at()`) — Umweltbundesamt UVP-DB at
   `secure.umweltbundesamt.at/uvpdb`. **Metadata-only**: the portal's HTML
   pages and document attachments sit behind a Keycloak login wall; only

@@ -282,6 +282,15 @@ test_that("SK coverage row signals the API Platform JSON register and exposes th
   expect_setequal(f$assessment_type, c("All", "EIA", "SEA"))
 })
 
+test_that("CY coverage row signals the current-year EIA register window", {
+  c <- get_assessments_coverage()
+  cy <- c[c$country == "cy", ]
+  expect_identical(cy$source_portal, "eia.moa.gov.cy")
+  expect_false(cy$requires_auth)
+  expect_match(cy$status, "current-year listing window")
+  expect_setequal(names(cy$facets[[1]]), "listing_type")
+})
+
 test_that("NO coverage row signals the NVE concession register and exposes the getall list filters", {
   c <- get_assessments_coverage()
   no <- c[c$country == "no", ]

@@ -29,7 +29,8 @@ supported_countries <- function() {
     "sk",
     "no",
     "lv",
-    "es"
+    "es",
+    "cy"
   )
 }
 

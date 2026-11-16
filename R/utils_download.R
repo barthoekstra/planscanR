@@ -54,6 +54,16 @@ slugify_filename <- function(url, country, document_id, max_chars = 200L) {
   # may show up from HTML scraping (e.g. unencoded spaces).
   raw <- sub("[#?].*$", "", url)
   raw <- basename(raw)
+  # Script endpoints like `download.php?f=%2Fdir%2Fname.zip` carry the real
+  # filename in the query; without it every file of a record collides.
+  qf <- regmatches(url, regexpr("[?&]f=[^&#]*", url))
+  if (grepl("\\.(php|aspx?|jsp)$", raw, ignore.case = TRUE) && length(qf) == 1L) {
+    qraw <- tryCatch(
+      basename(utils::URLdecode(gsub("+", " ", sub("^[?&]f=", "", qf), fixed = TRUE))),
+      error = function(e) ""
+    )
+    if (nzchar(qraw)) raw <- qraw
+  }
   if (!nzchar(raw) || raw %in% c("/", ".")) {
     raw <- "attachment"
   }
