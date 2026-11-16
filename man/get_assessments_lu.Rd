@@ -86,7 +86,8 @@ page; the listing's timestamps are shifted by one or two hours); \code{date_deci
 authority organising the inquiry (as written on the page; several are
 joined with \code{"; "}), \code{supervising_authority} the authority following the
 file, \code{jurisdiction} the municipalities. \code{proponent} is the
-requester ("Requérant : ...") line of the description when the page has one,
+requester ("Requérant : ...") line of the description when the page has one and it is not a private person
+(lines starting with a personal title such as "Monsieur" become \code{NA}),
 else \code{NA}. Also kept:
 \code{native_id}, \code{reference_number}, \code{status_native}, \code{survey_type},
 \code{nb_contributions}, \code{last_modified_native}, \code{procedure_type},

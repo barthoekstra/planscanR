@@ -397,3 +397,10 @@ test_that("three consecutive failed result pages stop the crawl with a warning",
     expect_identical(sort(res$document_id), c("lu_820", "lu_889"))
   })
 })
+
+test_that("private-person requesters are not stored as proponent", {
+  expect_identical(lu_organisation("Monsieur Kolen Rob"), NA_character_)
+  expect_identical(lu_organisation("Mme Jo Person"), NA_character_)
+  expect_identical(lu_organisation("LuxTram S.A."), "LuxTram S.A.")
+  expect_identical(lu_organisation(NA_character_), NA_character_)
+})

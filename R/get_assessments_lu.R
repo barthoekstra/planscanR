@@ -43,7 +43,8 @@
 #' authority organising the inquiry (as written on the page; several are
 #' joined with `"; "`), `supervising_authority` the authority following the
 #' file, `jurisdiction` the municipalities. `proponent` is the
-#' requester ("Requérant : ...") line of the description when the page has one,
+#' requester ("Requérant : ...") line of the description when the page has one and it is not a private person
+#' (lines starting with a personal title such as "Monsieur" become `NA`),
 #' else `NA`. Also kept:
 #' `native_id`, `reference_number`, `status_native`, `survey_type`,
 #' `nb_contributions`, `last_modified_native`, `procedure_type`,
@@ -700,7 +701,7 @@ lu_build_record <- function(entry, html = NULL) {
     title = or_na(entry$title, lu_text(sub(" - [0-9]+$", "", d$h1))),
     summary = description,
     competent_authority = lu_section_value(s, "Autorit\u00e9 en charge de l.organisation[^:]*"),
-    proponent = lu_section_value(s, "Requ\u00e9rant"),
+    proponent = lu_organisation(lu_section_value(s, "Requ\u00e9rant")),
     date_published = if (is.na(d$open_date)) entry$open_date else d$open_date,
     date_decision = as.Date(NA),
     date_close = d$close_date,
@@ -780,4 +781,12 @@ lu_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
     )
   }
   rec
+}
+
+#' Keep a requester only when it is not a private person (organisations-not-persons):
+#' lines addressed with a French/German/Luxembourgish personal title become NA.
+#' @noRd
+lu_organisation <- function(x) {
+  personal <- "^\\s*(Monsieur|Madame|Mademoiselle|M\\.|Mme\\.?|Mlle\\.?|Herr|Frau|Mr\\.?|Mrs\\.?|Ms\\.?)\\s"
+  if (length(x) == 1L && !is.na(x) && grepl(personal, x, ignore.case = TRUE)) NA_character_ else x
 }
