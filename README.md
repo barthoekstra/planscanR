@@ -164,6 +164,12 @@ Currently registered:
 - `"ifc"`: IFC project disclosures (disclosure type ESRS only), one record per
   project with its client documents (`get_assessments("eg", source = "ifc")`);
   document roles are not labelled by IFC and older files often 404.
+- `"aiib"`: Asian Infrastructure Investment Bank projects, one record per project
+  with all linked project documents (ESIA, ESMP, IEE, RAP, ...) grouped by the
+  page's own headings and labelled with the native link text; ISO-2 code mapped
+  to AIIB country names (Asia-heavy; NL/DE/DK/AT are an error), "Multicountry"
+  projects excluded unless the name prefix names a country, partner-portal links listed but not downloaded
+  (`get_assessments("cn", source = "aiib")`).
 - `"be_dsi"` (with `country = "be"`): Flemish spatial-planning dossiers from the
   DSI portal, including plan-MER material; assessment reports are only a subset
   of its documents (Wallonia and Brussels are not covered).

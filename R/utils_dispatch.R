@@ -104,6 +104,15 @@ assessment_sources <- function() {
       scope = "IFC private-sector investments, disclosure type ESRS only (other IFC types out of scope); projects 1999 to present, older files often 404 (2 of 2 sampled legacy cases); all sectors, mainly Category A/B; anonymous PDF access",
       limitations = "Document roles are not labelled by IFC (only file names; no classifier); older files often 404; pending projects list no files; relies on a public search key read from a detail page; no NL/DE/DK/AT projects",
       url = "https://disclosures.ifc.org/"
+    ),
+    aiib = list(
+      handler = get_assessments_aiib,
+      name = "Asian Infrastructure Investment Bank projects",
+      granularity = "project (all project documents grouped by the native section heading)",
+      geography = "ISO-2 code mapped to AIIB English economy names (about 50 mapped, mostly Asia); matched on the economy field or the name prefix; \"Multicountry\" projects excluded unless the name prefix names a mapped country; NL/DE/DK/AT are not mapped and raise an error",
+      scope = "505 AIIB projects (as of 2026-11), 2016 to present, proposed to terminated; links to ESIA, ESMP, IEE, RAP, ESMPF, monitoring and procurement documents on each project page; anonymous PDF access",
+      limitations = "Only some Category A/B projects publish an assessment; Category C, FI and policy projects often have none; partner-portal links are listed (external_urls_*) but not downloaded; no role classification (native link label kept); document_id is the project number (aiib_p<number>); a record whose detail page failed gets a path-based fallback id and is not cached; borrower/implementing text keeps organisation lines only",
+      url = "https://www.aiib.org/en/projects/list/"
     )
   )
 }

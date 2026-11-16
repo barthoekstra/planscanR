@@ -82,6 +82,9 @@ documents (`get_assessments("ke", source = "worldbank")`), the European
 Investment Bank register (`get_assessments("de", source = "eib")`), IFC project
 disclosures (`get_assessments("eg", source = "ifc")`) and Flemish
 planning dossiers (`get_assessments("be", source = "be_dsi")`). They are not in
+Investment Bank register (`get_assessments("de", source = "eib")`), Asian
+Infrastructure Investment Bank projects (`get_assessments("cn", source = "aiib")`)
+and Flemish planning dossiers (`get_assessments("be", source = "be_dsi")`). They are not in
 the country list above.
 
 ```{r}

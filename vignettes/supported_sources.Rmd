@@ -1393,6 +1393,35 @@ private-sector arm.
 - The listing needs a public search key that the portal prints in every detail
   page; it is read at runtime (once per session) and an unreadable page is an
   actionable error. Incomplete paging gives a `planscanR_warning_partial`.
+## Asian Infrastructure Investment Bank projects — `source = "aiib"`
+
+An explicit, opt-in source (`get_assessments("cn", source = "aiib")`) for the
+[AIIB project register](https://www.aiib.org/en/projects/list/): an
+international development bank portfolio (2016 onward, mostly Asia), not a
+national EIA register.
+- One record per **project** (`document_id = "aiib_p<project number>"`, so a status
+  move updates the same sidecar; only a record whose detail page failed gets a
+  path-based fallback id and is not cached). The whole register
+  is one `all-projects-data.js` request; the project page is fetched for each
+  returned record (sidecar-first) for the project number, E&S category,
+  description, borrower/implementing organisation and the document links.
+- Every document link is kept under its native heading
+  (`attachment_urls_aiib_documents`, `..._client_cofinancing_partner_documents`,
+  `..._procurement_documents`) with the full native label, including the language
+  suffix, in `attachment_labels_<section>`. No role is assigned: ESIA, ESMP, IEE
+  and RAP files are only recognisable from those labels. Links to other hosts are
+  listed in `external_urls_<section>` and not downloaded.
+- Geography: ISO-2 codes are mapped to AIIB's English economy names and matched
+  on the `economy` field or the name prefix before the colon (they differ for a
+  few rows, e.g. economy "Algeria" for an "Uzbekistan: ..." project, which then
+  appears under both countries with the same id; both are kept as `economy` and
+  `name_prefix`). Borrower and implementing-entity text keeps only lines with an
+  organisation word; names and titles are dropped. Codes without a mapping (including NL/DE/DK/AT) are an error;
+  `"Multicountry"` projects have no member list and are excluded unless the name prefix names a mapped country.
+- Only some Category A/B projects publish an assessment; Category C, financial
+  intermediary and policy projects often have none. A failed detail page gives a
+  listing-only record (`detail_status = "failed"`) and a partial-result warning,
+  and is retried on the next run.
 
 ## Adding a new source
 

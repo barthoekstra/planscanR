@@ -20,6 +20,7 @@ Python, no Shiny, no project-specific scoring config.
 `worldbank_<id>`), `"eib"` (EIB public register, one record per document,
 `eib_<id>`), `"ifc"` (IFC ESRS project disclosures, `ifc_<Project_Number>`) and
 `"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
+`eib_<id>`), `"aiib"` (AIIB projects with per-section document links, `aiib_p<project number>`) and `"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
 `get_assessments_sources()` lists them with scope and limitations.
 
 **v0.1 scope.** Twenty-three country handlers ship:
@@ -57,6 +58,11 @@ Python, no Shiny, no project-specific scoring config.
   from a detail page at runtime, project-detail page fetched per record for the
   client documents table; failed detail = `detail_fetched = FALSE`, retried.
   No role classifier (file names only).
+- AIIB projects (`get_assessments_aiib()`, explicit source `source = "aiib"`; not
+  in `supported_countries()`): one `all-projects-data.js` request, detail page per
+  returned record (sidecar-first; failures are not cached), ISO-2 to economy-name
+  table (economy or name prefix), links grouped per native heading with `attachment_labels_<slug>`,
+  external links in `external_urls_<slug>`.
 - Belgium (Flanders) (`get_assessments_be()`) — Departement Omgeving
   MER-register at `merregister.omgeving.vlaanderen.be`. Project-MER and
   ontheffingsaanvragen only (Plan-MER is a separate Flemish register).
