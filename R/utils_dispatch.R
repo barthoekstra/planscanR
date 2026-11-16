@@ -64,10 +64,20 @@ assert_country <- function(country) {
 #' Registry of explicit, opt-in assessment sources.
 #'
 #' Named list `source_id -> list(handler, name, granularity, geography, scope,
-#' limitations, url)`. Empty until source adapters register themselves here.
+#' limitations, url)`. Source adapters register themselves here.
 #' @noRd
 assessment_sources <- function() {
-  list()
+  list(
+    eib = list(
+      handler = get_assessments_eib,
+      name = "European Investment Bank public register",
+      granularity = "document (project_number kept)",
+      geography = "ISO-2 country tags; any tag equal to the requested code matches; regional/non-ISO and untagged rows excluded",
+      scope = "environmental and social documents of EIB-financed projects, all native document types (ESIA/EIA/SEA full reports, ESDS/ESCS/NTS summaries, permits, links), about 2011 onward",
+      limitations = "not national completeness; some rows have no file; totalItems can exceed listed rows; reports over the size cap are skipped_size",
+      url = "https://www.eib.org/en/registers/"
+    )
+  )
 }
 
 #' Validate a scalar ISO-2 format (two ASCII letters), independent of

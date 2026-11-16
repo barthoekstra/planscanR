@@ -3,7 +3,12 @@
 * `get_assessments()` gains an opt-in `source` argument (after all existing
   parameters) for explicit non-national sources, and `get_assessments_sources()`
   lists them. `source = NULL` keeps the national dispatch unchanged;
-  `get_assessments_coverage()` is unchanged. No source is registered yet.
+  `get_assessments_coverage()` is unchanged. The first source is `"eib"`, the
+  European Investment Bank public register
+  (`get_assessments("de", source = "eib")`): one record per register document,
+  all native document types with per-type attachment sections, ISO-2 country
+  tags, a `document_type` filter, and a partial-result warning when the
+  register's `totalItems` exceeds the listed rows.
 
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,

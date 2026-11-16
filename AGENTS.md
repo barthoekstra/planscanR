@@ -36,6 +36,11 @@ Python, no Shiny, no project-specific scoring config.
   `/assessments/{id}/documents/{docId}/links` and downloaded. Geometry is
   persisted as `<document_id>.geometry.geojson` next to the sidecar
   (EPSG:25832).
+- EIB public register (`get_assessments_eib()`, explicit source
+  `source = "eib"`, registered in `assessment_sources()`; not in
+  `supported_countries()`): one record per register document, ISO-2 tag match,
+  all native document types kept, `document_type` filter, listing is a single
+  call with a `totalItems` partial warning.
 - Belgium (Flanders) (`get_assessments_be()`) — Departement Omgeving
   MER-register at `merregister.omgeving.vlaanderen.be`. Project-MER and
   ontheffingsaanvragen only (Plan-MER is a separate Flemish register).

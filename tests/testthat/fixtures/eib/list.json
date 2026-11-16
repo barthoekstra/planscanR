@@ -1,0 +1,138 @@
+{
+ "data": [
+  {
+   "additionalInformation": [
+    "Environmental and Social Impact Assessment (ESIA)",
+    "German",
+    "20230138"
+   ],
+   "featured": false,
+   "id": "246230771",
+   "primaryTags": [
+    {
+     "label": "Germany",
+     "subType": "countries",
+     "type": "metadata",
+     "value": "DE"
+    },
+    {
+     "label": "Energy",
+     "subType": "sectors",
+     "type": "metadata",
+     "value": "1000"
+    }
+   ],
+   "startDate": 1765152000000,
+   "subType": "registers",
+   "title": "BORKUM RIFFGRUND 3 OFFSHORE WIND FARM - UVP-Bericht",
+   "type": "plr",
+   "url": "246230771"
+  },
+  {
+   "additionalInformation": [
+    "Environmental and Social Data Sheet (ESDS)",
+    "English",
+    "20120208"
+   ],
+   "featured": false,
+   "id": "46037098",
+   "primaryTags": [
+    {
+     "label": "Germany",
+     "subType": "countries",
+     "type": "metadata",
+     "value": "DE"
+    },
+    {
+     "label": "Italy",
+     "subType": "countries",
+     "type": "metadata",
+     "value": "IT"
+    },
+    {
+     "label": "Industry",
+     "subType": "sectors",
+     "type": "metadata",
+     "value": "3000"
+    }
+   ],
+   "startDate": 1391295600000,
+   "subType": "registers",
+   "title": "SDF Safety and Fuel Efficiency",
+   "type": "plr",
+   "url": "46037098"
+  },
+  {
+   "additionalInformation": [
+    "Environmental and Social Data Sheet (ESDS)",
+    "English",
+    "20120208"
+   ],
+   "featured": false,
+   "id": "900000001",
+   "primaryTags": [
+    {
+     "label": "EU Countries",
+     "subType": "countries",
+     "type": "metadata",
+     "value": "C7"
+    }
+   ],
+   "startDate": 1391295600000,
+   "subType": "registers",
+   "title": "Regional EU row",
+   "type": "plr",
+   "url": "46037098"
+  },
+  {
+   "additionalInformation": [
+    "Environmental and Social Data Sheet (ESDS)",
+    "English",
+    "20120208"
+   ],
+   "featured": false,
+   "id": "900000002",
+   "primaryTags": [],
+   "startDate": 1391295600000,
+   "subType": "registers",
+   "title": "Untagged row",
+   "type": "plr",
+   "url": "46037098"
+  },
+  {
+   "additionalInformation": [
+    "Environmental and Social Impact Assessment (ESIA)",
+    "English",
+    "20230138"
+   ],
+   "featured": false,
+   "id": "900000003",
+   "primaryTags": [
+    {
+     "label": "Germany",
+     "subType": "countries",
+     "type": "metadata",
+     "value": "DE"
+    },
+    {
+     "label": "Energy",
+     "subType": "sectors",
+     "type": "metadata",
+     "value": "1000"
+    }
+   ],
+   "startDate": 1765152000000,
+   "subType": "registers",
+   "title": "Link to Promoter website",
+   "type": "plr",
+   "url": "246230771"
+  }
+ ],
+ "itemPerPage": 5,
+ "message": "Success",
+ "pageNumber": 0,
+ "pageable": false,
+ "resultItems": 5,
+ "totalItems": 7,
+ "valid": true
+}
