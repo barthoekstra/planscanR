@@ -8,7 +8,7 @@
   (`get_assessments("de", source = "eib")`): one record per register document,
   all native document types with per-type attachment sections, ISO-2 country
   tags, a `document_type` filter, and a partial-result warning when the
-  register's `totalItems` exceeds the listed rows.
+  register's `totalItems` differs from the listed rows.
 
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,

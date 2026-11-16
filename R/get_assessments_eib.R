@@ -15,9 +15,9 @@
 #' The types are not reclassified. Labels such as `ESIA`, `Environmental Impact
 #' Assessment` and `SEA` identify full reports (although the `ESIA` bucket also
 #' holds permits, decisions and placeholder rows); `ESDS`, `ESCS` and `NTS` are
-#' summaries. A `Link to promoter website` row may have no file: the record `url`
-#' is the register page, and the download of its (non-existent) file is recorded
-#' as a failure in `download_status`. Coverage is EIB-financed projects only
+#' summaries. A `Link to promoter website` row may have no file; whether a file
+#' exists is only known after download, when a missing file is recorded as a
+#' failure in `download_status`. The record `url` is the register page. Coverage is EIB-financed projects only
 #' (publication from about 2011), not national completeness.
 #'
 #' @section Geography:
@@ -73,6 +73,14 @@ get_assessments_eib <- function(
     warn_partial("Unknown argument{?s} ignored: {.val {names(dots)}}")
   }
   date_range <- parse_date_range(date_range)
+  if (
+    !is.null(document_type) && (!is.character(document_type) || length(document_type) == 0L || anyNA(document_type))
+  ) {
+    cli::cli_abort(
+      "{.arg document_type} must be a non-empty character vector without NA.",
+      class = "planscanR_error_bad_input"
+    )
+  }
   if (!is.null(cache_dir)) {
     withr::local_options(list(planscanR.cache_dir = cache_dir))
   }
@@ -87,11 +95,25 @@ get_assessments_eib <- function(
     if (!eib_type_matches(eib_listing_type(entry), document_type)) {
       return(NULL)
     }
+    if (!grepl("^[0-9]+$", as.character(entry$id %||% ""))) {
+      warn_partial("Skipping EIB row with a non-numeric id: {.val {as.character(entry$id %||% NA)}}")
+      return(NULL)
+    }
     url <- eib_page_url(entry$id)
     hit <- sidecar_index[url]
+    rec <- NULL
     if (length(hit) == 1L && !is.na(hit) && file.exists(hit)) {
       rec <- read_record_sidecar(hit)
-    } else {
+      # Sidecar JSON hands extra date columns back as character.
+      for (col in intersect(c("document_date", "last_update_date", "status_date"), names(rec))) {
+        rec[[col]] <- as.Date(rec[[col]])
+      }
+      # A record cached without its item detail is retried, not served warm.
+      if (isFALSE(rec$detail_fetched[[1]])) {
+        rec <- NULL
+      }
+    }
+    if (is.null(rec)) {
       detail <- tryCatch(
         eib_fetch_item(entry$id),
         error = function(e) {
@@ -99,6 +121,9 @@ get_assessments_eib <- function(
           NULL
         }
       )
+      if (is.null(detail)) {
+        warn_partial("EIB item {.val {entry$id}} returned no detail, keeping listing metadata only.")
+      }
       rec <- eib_parse_entry(entry, detail, country)
     }
     if (!is.null(date_range)) {
@@ -141,7 +166,7 @@ eib_type_matches <- function(label, wanted) {
   }
   l <- tolower(label)
   w <- tolower(wanted)
-  any(l == w | grepl(paste0("(", w, ")"), l, fixed = TRUE))
+  any(l == w | vapply(paste0("(", w, ")"), grepl, logical(1), x = l, fixed = TRUE))
 }
 
 #' Country-tag values of a listing row (all tags whose subType is countries).
@@ -169,9 +194,22 @@ eib_fetch_listing <- function(country) {
     req <- req_planscanr("https://www.eib.org/provider-eib-plr/app/registers/list")
     req <- httr2::req_url_query(req, countries = toupper(country))
     payload <- perform_json(req)
-    rows <- payload$data %||% list()
+    if (!is.list(payload) || !is.list(payload$data) || isFALSE(payload$valid)) {
+      cli::cli_abort(
+        c(
+          "The EIB register listing for {.val {toupper(country)}} returned an invalid response (no {.field data} or {.field valid} is false).",
+          i = "The register API may have changed or be unavailable; retry later."
+        ),
+        class = "planscanR_error_bad_response"
+      )
+    }
+    rows <- payload$data
     total <- suppressWarnings(as.integer(payload$totalItems %||% NA))
-    if (!is.na(total) && total != length(rows)) {
+    if (is.na(total)) {
+      warn_partial(
+        "EIB register listing for {.val {toupper(country)}} has no {.field totalItems}; completeness is unknown."
+      )
+    } else if (total != length(rows)) {
       warn_partial(
         "EIB register listing for {.val {toupper(country)}} returned {length(rows)} rows but reports totalItems = {total}; the result may be incomplete."
       )
@@ -194,6 +232,8 @@ eib_ms_date <- function(ms) {
   as.Date(as.POSIXct(as.numeric(ms) / 1000, origin = "1970-01-01", tz = "UTC"))
 }
 
+na_or <- function(x, fallback) if (length(x) == 0L || is.na(x)) fallback else x
+
 eib_val <- function(x) {
   v <- if (is.list(x)) x$value else x
   if (is.null(v) || length(v) != 1L || is.na(v) || !nzchar(v)) NA_character_ else as.character(v)
@@ -206,10 +246,7 @@ eib_parse_entry <- function(entry, detail, country) {
   info <- unlist(entry$additionalInformation)
   cty <- eib_tags(entry, "countries")
   sec <- eib_tags(entry, "sectors")
-  label <- eib_val(detail$documentType) %||% eib_listing_type(entry)
-  if (is.na(label)) {
-    label <- eib_listing_type(entry)
-  }
+  label <- na_or(eib_val(detail$documentType), eib_listing_type(entry))
   pub <- eib_ms_date(detail$publicationDate)
   if (is.na(pub)) {
     pub <- eib_ms_date(entry$startDate)
@@ -239,7 +276,10 @@ eib_parse_entry <- function(entry, detail, country) {
     status = NA_character_,
     eib_id = id,
     project_number = as.character(detail$projectNumber %||% info[3L] %||% NA_character_),
-    language = eib_val(detail$documentLanguage) %||% as.character(info[2L] %||% NA_character_),
+    language = na_or(eib_val(detail$documentLanguage), as.character(info[2L])),
+    language_id = as.character(detail$documentLanguage$id %||% NA_character_),
+    sector_sections = join(na.omit(vapply(detail$sectors %||% list(), function(s) eib_val(s$section), character(1)))),
+    country_regions = join(na.omit(vapply(detail$countries %||% list(), function(c) eib_val(c$region), character(1)))),
     document_type_id = as.character(detail$documentType$id %||% NA_character_),
     document_focus = eib_val(detail$documentFocus),
     availability = eib_val(detail$availability),

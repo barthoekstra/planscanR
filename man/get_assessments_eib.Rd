@@ -51,9 +51,9 @@ register holds for the country are kept, with the native type label in
 \code{role} / \code{native_type} and one \verb{attachment_urls_<type-slug>} section each.
 The types are not reclassified. Labels such as \code{ESIA}, \verb{Environmental Impact Assessment} and \code{SEA} identify full reports (although the \code{ESIA} bucket also
 holds permits, decisions and placeholder rows); \code{ESDS}, \code{ESCS} and \code{NTS} are
-summaries. A \verb{Link to promoter website} row may have no file: the record \code{url}
-is the register page, and the download of its (non-existent) file is recorded
-as a failure in \code{download_status}. Coverage is EIB-financed projects only
+summaries. A \verb{Link to promoter website} row may have no file; whether a file
+exists is only known after download, when a missing file is recorded as a
+failure in \code{download_status}. The record \code{url} is the register page. Coverage is EIB-financed projects only
 (publication from about 2011), not national completeness.
 }
 

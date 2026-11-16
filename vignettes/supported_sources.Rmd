@@ -1326,8 +1326,8 @@ documents for EIB-financed projects.
   `ESIA`, `Environmental Impact Assessment` and `SEA` labels identify full
   reports (the `ESIA` bucket also holds permits and placeholder rows);
   `ESDS`, `ESCS` and `NTS` are summaries. "Link to promoter website" rows may
-  have no file: the record `url` is the register page and the failed download
-  is recorded in `download_status`. Use `document_type = "ESIA"` to filter.
+  have no file; that is only known after download, where a missing file is
+  recorded in `download_status`. The record `url` is the register page. Use `document_type = "ESIA"` to filter.
 - Geography: a record matches when any of its ISO-2 country tags equals the
   requested code (multi-country records included). Regional/non-ISO tags
   (`C7` "EU Countries", `A1`-`A9`, ...) and untagged rows are excluded; the full

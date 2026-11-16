@@ -5,7 +5,9 @@ Authors@R:
     person("Bart", "Hoekstra", email = "mail@barthoekstra.nl", role = c("aut", "cre"))
 Description: A unified R interface for fetching environmental-assessment
     records (EIA, SEA, follow-up advice) from European national portals into
-    one consistent table, with an on-disk cache for offline re-use. Handlers
+    one consistent table, with an on-disk cache for offline re-use. Opt-in
+    explicit sources (argument source), currently the European Investment Bank
+    public register, add non-national records. Handlers
     ship for the Netherlands (Commissie m.e.r.), Germany (UVP-Verbund),
     France (Projets-Environnement),
     Austria (Umweltbundesamt UVP-DB), Denmark (EA-Hub), Belgium (Flanders;
