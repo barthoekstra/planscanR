@@ -161,6 +161,9 @@ Currently registered:
 - `"eib"`: European Investment Bank public register; one record per document,
   ISO-2 country tags, all native document types
   (`get_assessments("de", source = "eib")`).
+- `"ifc"`: IFC project disclosures (disclosure type ESRS only), one record per
+  project with its client documents (`get_assessments("eg", source = "ifc")`);
+  document roles are not labelled by IFC and older files often 404.
 - `"be_dsi"` (with `country = "be"`): Flemish spatial-planning dossiers from the
   DSI portal, including plan-MER material; assessment reports are only a subset
   of its documents (Wallonia and Brussels are not covered).

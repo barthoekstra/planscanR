@@ -1371,6 +1371,29 @@ documents for EIB-financed projects.
 - Scope: EIB-financed projects only (publication since about 2011), not
   national completeness.
 
+## IFC project disclosures — `source = "ifc"`
+Not a national portal: an explicit, opt-in source
+(`get_assessments("eg", source = "ifc")`), backed by the
+[IFC disclosure portal](https://disclosures.ifc.org/) of the World Bank Group's
+private-sector arm.
+- One record per **project** of disclosure type `ESRS` (Environmental and Social
+  Review Summary; other IFC types are out of scope), `document_id =
+  "ifc_<Project_Number>"`. The ESRS review text is the record `summary`; every
+  native field is kept as an extra and the raw row as `listing_json`.
+- The project-detail page is fetched per record (sidecar first, bounded by
+  `limit`); its client documents table goes into `documents_json` and the file
+  links into `attachment_urls_document`. IFC does not label document roles: the
+  file name is the only label, there is no classifier, so ESIA, ESMP, SEP and
+  translations all appear. Older files often return 404 (recorded per file). A
+  record whose detail page failed has `detail_fetched = FALSE` and is retried.
+- Geography: IFC stores one World-Bank-style country name, so the ISO-2 code is
+  mapped through an internal table; a code IFC has no ESRS projects for
+  (including NL, DE, DK, AT) is an error, and regional pseudo-countries ("Africa
+  Region", "World Region") are never returned.
+- The listing needs a public search key that the portal prints in every detail
+  page; it is read at runtime (once per session) and an unreadable page is an
+  actionable error. Incomplete paging gives a `planscanR_warning_partial`.
+
 ## Adding a new source
 
 Adding a handler for another national portal is a matter of writing one

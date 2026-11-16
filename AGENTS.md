@@ -18,7 +18,8 @@ Python, no Shiny, no project-specific scoring config.
 `supported_countries()` or `get_assessments_coverage()`. Registered: `"worldbank"`
 (World Bank WDS API, one record per EA/ESA/SEA-typed document, `document_id`
 `worldbank_<id>`), `"eib"` (EIB public register, one record per document,
-`eib_<id>`) and `"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
+`eib_<id>`), `"ifc"` (IFC ESRS project disclosures, `ifc_<Project_Number>`) and
+`"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
 `get_assessments_sources()` lists them with scope and limitations.
 
 **v0.1 scope.** Twenty-three country handlers ship:
@@ -50,6 +51,12 @@ Python, no Shiny, no project-specific scoring config.
   `supported_countries()`): one record per register document, ISO-2 tag match,
   all native document types kept, `document_type` filter, listing is a single
   call with a `totalItems` partial warning.
+- IFC project disclosures (`get_assessments_ifc()`, explicit source
+  `source = "ifc"`; not in `supported_countries()`): ESRS projects only, ISO-2
+  mapped to IFC country names (`ifc_country_names()`), public search key read
+  from a detail page at runtime, project-detail page fetched per record for the
+  client documents table; failed detail = `detail_fetched = FALSE`, retried.
+  No role classifier (file names only).
 - Belgium (Flanders) (`get_assessments_be()`) — Departement Omgeving
   MER-register at `merregister.omgeving.vlaanderen.be`. Project-MER and
   ontheffingsaanvragen only (Plan-MER is a separate Flemish register).

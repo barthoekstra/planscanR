@@ -23,6 +23,13 @@
   phase and document, grouped per native document code. `PLNMER` mixes plan-MER
   reports, screening and decision letters; they are not classified. Flanders
   only.
+* New explicit source `"ifc"` (IFC project disclosures,
+  `get_assessments("eg", source = "ifc")`): one record per IFC project of
+  disclosure type ESRS with its review text as `summary`, every native field
+  as an extra and the client documents table in `documents_json` (links in
+  `attachment_urls_document`). The public search key is read from a project
+  page at runtime. IFC labels no document roles (file names only, no
+  classifier) and older files often 404. NL/DE/DK/AT have no ESRS projects.
 
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental Assessments,
