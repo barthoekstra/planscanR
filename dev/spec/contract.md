@@ -240,3 +240,34 @@ Keep filename/extension resolution compatible and exclude attempt files from cac
 lookup. Offline failure fixtures cover interruption, invalid bodies, size ceilings
 and publication failure. Durable queues, disk reservations, sidecar concurrency,
 legacy corpus reconciliation and HTTP range resume belong to later ACQ tasks.
+
+## SRCX — Source expansion (2026-11-16)
+
+Adopted from the BIOGAIN handoff (`/data/biogain-docs/spec2.md`, `Plans2.md`).
+Additive only; nothing above changes.
+
+- Existing country calls, default portals, return types, cache paths and
+  sidecar merges stay as they are. New national adapters use the handler
+  pattern; second portals and banks are opt-in only.
+- Additive API: `get_assessments(country, ..., source = NULL)`, with `source`
+  after the existing positional parameters. `NULL` keeps current dispatch.
+  Added only when the first bank/second portal passes its probe.
+- Organisation sources need a scalar ISO-2 `country`, validated independently
+  of `supported_countries()` and mapped to the source's geography vocabulary.
+  No records is a valid typed-empty result; an unmapped code is an error.
+  Global/geography-unknown records are excluded. The full native country list
+  is kept as an extra; multi-country records keep one source-prefixed ID.
+- Seven required columns unchanged. New sources use source-prefixed IDs, keep
+  native IDs/labels/language as extras and native record granularity.
+- All exposed metadata and attachment entries are captured (including
+  paginated document lists); document roles come from source fields or
+  existing sections, never a new classifier. Unknown stays unknown.
+- A shipped source must show anonymous access to substantive EIA/SEA/ESIA
+  reports or chapters. Summary-only/metadata-only does not qualify.
+- Reuse HTTP, retry, throttle, safe-download, checksum, relevance and sidecar
+  helpers. No new cache layout/schema version, credentials, CAPTCHA/login
+  bypass, proxy rotation or new browser stack.
+- Coverage claims name region, sector, assessment type, horizon, granularity,
+  access and omissions. `get_assessments_coverage()` stays backward compatible.
+- Effort caps and stop rules in `Plans.md` (SRCX) are requirements. A deferred
+  source is not reopened without fresh user direction or new evidence.

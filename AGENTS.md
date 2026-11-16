@@ -31,8 +31,9 @@ Python, no Shiny, no project-specific scoring config.
   a `<document_id>.geometry.geojson` in **EPSG:4326** (WGS84; ODS always serves
   4326).
 - Denmark (`get_assessments_dk()`) — Danmarks Miljøportal EA-Hub at
-  `eahub.miljoeportal.dk`. **Metadata-only** in v0.x (records carry full
-  metadata + polygon geometry; document downloads deferred). Geometry is
+  `eahub.miljoeportal.dk`. Full metadata + polygon geometry; with
+  `download = TRUE` documents are resolved per section via
+  `/assessments/{id}/documents/{docId}/links` and downloaded. Geometry is
   persisted as `<document_id>.geometry.geojson` next to the sidecar
   (EPSG:25832).
 - Belgium (Flanders) (`get_assessments_be()`) — Departement Omgeving
