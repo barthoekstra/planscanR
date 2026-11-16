@@ -5,7 +5,8 @@
 #' public register of Project-MER dossiers (project-level EIA) and
 #' dossier-MER-plicht ontheffingsaanvragen (exemption requests). Plan-MER
 #' (SEA) lives in a separate Flemish register and is out of scope for this
-#' handler.
+#' handler; Flemish planning dossiers are the explicit source `be_dsi`
+#' (`get_assessments("be", source = "be_dsi")`).
 #'
 #' @section URL enumeration:
 #' The portal is a Vue SPA backed by a public REST API. The SPA reads the
@@ -552,7 +553,14 @@ be_record_first_created <- function(documenten) {
 #' Coordinates are kept in the source EPSG:31370; downstream tools that
 #' need WGS84 reproject with `sf`.
 #' @noRd
-be_save_geometry_to_geojson <- function(country, document_id, title = NULL, created_iso = NULL, geometry = NULL) {
+be_save_geometry_to_geojson <- function(
+  country,
+  document_id,
+  title = NULL,
+  created_iso = NULL,
+  geometry = NULL,
+  source_portal = be_source_portal()
+) {
   if (is.null(geometry) || !is.list(geometry)) {
     return(NULL)
   }
@@ -578,7 +586,7 @@ be_save_geometry_to_geojson <- function(country, document_id, title = NULL, crea
         geometry = geometry,
         properties = list(
           document_id = document_id,
-          source_portal = be_source_portal(),
+          source_portal = source_portal,
           title = title %||% NULL,
           created = created_iso %||% NULL,
           crs = be_geometry_crs()

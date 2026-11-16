@@ -91,6 +91,10 @@ documents are chosen with `source =` (for example
 ```{r}
 get_assessments_sources()
 ```
+Some opt-in sources beyond the national portals are chosen with `source`,
+for example Flemish planning dossiers with
+`get_assessments("be", source = "be_dsi")`; list them with
+`get_assessments_sources()`.
 
 ## Working offline
 

@@ -161,6 +161,9 @@ per assessment-typed document; all sectors, mostly 2000s to present, anonymous
 PDF access; the type label also covers site-level ESMP-grade files, so review
 before treating a record as a full EIA report). A code with no World Bank
 documents at all (e.g. `"uk"`; the bank uses `"gb"`) is an error.
+`source = "be_dsi"` (with `country = "be"`) fetches Flemish spatial-planning
+dossiers from the DSI portal, including plan-MER material; assessment reports
+are only a subset of its documents (Wallonia and Brussels are not covered).
 
 ## License
 

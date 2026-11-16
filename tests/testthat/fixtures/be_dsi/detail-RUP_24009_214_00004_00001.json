@@ -1,0 +1,3079 @@
+{
+  "id": "67c701fc-e1fb-41ba-bc50-1b2ed40c0345",
+  "procedureCode": "gemRUP",
+  "fichelink": "https://dsi.omgeving.vlaanderen.be/fiche-detail/67c701fc-e1fb-41ba-bc50-1b2ed40c0345",
+  "algplanid": "RUP_24009_214_00004_00001",
+  "naam": "Kern Verona",
+  "plannendeOverheid": "Bertem",
+  "status": "DEFINITIEF",
+  "omschrijving": "",
+  "contact": "omgeving@bertem.be",
+  "payload": [],
+  "herinterpretatie": false,
+  "fases": [
+    {
+      "id": "8dfebdf8-f56d-49b7-b233-7fd21fa99b3a",
+      "code": "DV",
+      "geodata": [
+        {
+          "id": "384aa04a-27c3-4249-b6ad-18a5f6a8ccfd",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 3399,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.CT.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "8057c02b-8521-4f76-9d3a-4973edd860f5",
+          "originId": null,
+          "code": "GV",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 5764,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.GV.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "553fdcf9-b661-49e4-8309-a9b2a3231bd3",
+          "originId": null,
+          "code": "LN",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2979,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.LN.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "e136f5db-210d-435a-b0b5-d65e016756e3",
+          "originId": null,
+          "code": "LNIA",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 6944,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.LNIA.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "7101bcf6-8f4b-4234-9e45-eea7a2b0cdfd",
+          "originId": null,
+          "code": "OV",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 26059,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.OV.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "1f464de1-3a82-48a4-8181-e381d10354a7",
+          "originId": null,
+          "code": "OVIA",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2523,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.OVIA.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "1386a6a8-084e-494b-ac90-925a462782e9",
+          "originId": null,
+          "code": "PT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2119,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.PT.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "5d2bb09e-4737-4069-a17c-9c3411b9beb1",
+          "originId": null,
+          "code": "RPC",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 7653,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Geodata.RPC.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "dossierstukken": [
+        {
+          "id": "4a1c5982-a01a-4ea5-8729-0503ea13e54b",
+          "originId": null,
+          "code": "BS",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 2064453,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.EvolutiefDossierstuk.BS.1_1",
+          "omschrijving": "Gemeenteraad 17 december 2024"
+        },
+        {
+          "id": "4d2506ef-8935-44bd-a226-febf5761c203",
+          "originId": null,
+          "code": "GECORO",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 2064453,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Dossierstuk.GECORO.1_1",
+          "omschrijving": "advies Gecoro binnen besluit GR"
+        },
+        {
+          "id": "38f4aa15-1306-4e1c-868f-6a146c35464e",
+          "originId": null,
+          "code": "GP",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 11569532,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Dossierstuk.GP.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "8861fed4-c3b4-4aa0-84f3-ec066cbd5c53",
+          "originId": null,
+          "code": "PN",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 293637,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.EvolutiefDossierstuk.PN.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "3927c566-5712-4fb2-bce1-d2d254bd4d89",
+          "originId": null,
+          "code": "SV",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 409996,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Dossierstuk.SV.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "0ed31de3-2b45-4fa7-82bf-f56943fecc9f",
+          "originId": null,
+          "code": "TN",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 11262345,
+          "payload": [
+            {
+              "label": "Erfgoedlandschap opgenomen in dit RUP",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.DV.5.Dossierstuk.TN.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "workflow": [],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [
+        {
+          "label": "Planelement compleet",
+          "value": true,
+          "type": "Boolean"
+        },
+        {
+          "label": "Datum Definitieve Vaststelling door Gemeenteraad",
+          "value": "2024-12-17",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Datum Publicatie Belgisch Staatsblad",
+          "value": "2025-02-17",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Numac",
+          "value": "2025700371",
+          "type": "String"
+        },
+        {
+          "label": "Link Belgisch Staatsblad",
+          "value": "https://www.ejustice.just.fgov.be/cgi/api2.pl?lg=nl&pd=2025-02-17&numac=2025700371",
+          "type": "URL"
+        }
+      ],
+      "volgorde": 5
+    },
+    {
+      "id": "2179e39a-770d-49fc-affa-b7d4a39b4ff2",
+      "code": "VV",
+      "geodata": [
+        {
+          "id": "374846c3-afbc-4104-9a6e-3343c13efb1d",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2880,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Geodata.CT.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "dossierstukken": [
+        {
+          "id": "ac042542-3d36-4e8f-8b70-83a1529bd1b0",
+          "originId": null,
+          "code": "BS",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 3174966,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Dossierstuk.BS.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "2f8ee70b-1c47-474c-b35b-0b9c6961ddd4",
+          "originId": null,
+          "code": "GP",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 11562858,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Dossierstuk.GP.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "155e3e71-aa00-440e-be5c-928224a1e1f5",
+          "originId": null,
+          "code": "PN",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 301677,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.EvolutiefDossierstuk.PN.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "5f72addb-c1db-434b-a038-51cc9076ba0d",
+          "originId": null,
+          "code": "SV",
+          "type": "DOSSIERSTUK",
+          "verordenend": true,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 407326,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Dossierstuk.SV.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "bd88dbe6-dfe7-4920-abc6-7fc9fe2bb985",
+          "originId": null,
+          "code": "TN",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 11256877,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Dossierstuk.TN.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "workflow": [
+        {
+          "id": "0d77d9c2-710c-475c-9d14-900061b30a4a",
+          "originId": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 285918,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "advies.omgevingsplanning@vlaanderen.be",
+                "organisatieId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+                "organisatieNaam": "Departement Omgeving",
+                "contactToelichting": "",
+                "organisatieNisCode": "02000",
+                "organisatieOvoCode": "OVO003323",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2024-07-22",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADV.1_1",
+          "omschrijving": "Beste, \n\nIn bijlage bezorg ik u het advies van het Departement Omgeving, afdeling GOP. \nMet vriendelijke groeten"
+        },
+        {
+          "id": "f0ba5ba5-6a26-490c-8dea-5d3da0761b70",
+          "originId": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 306091,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "7179342f-896f-4970-b121-15106933dcb2",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "7179342f-896f-4970-b121-15106933dcb2",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "wegen.verkeer@mow.vlaanderen.be",
+                "organisatieId": "939dbfb4-7fcd-4d30-88a7-5438f6d4964b",
+                "organisatieNaam": "Agentschap Wegen en Verkeer",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000098",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2024-08-13",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADV.1_2",
+          "omschrijving": "Beste,\nGelieve in bijlage het gunstige advies van AWV te vinden,\nGroet,\nKim"
+        },
+        {
+          "id": "c3aef98b-a603-4593-861c-cb20b29ddc20",
+          "originId": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 190314,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "Adviesvraag.vlaamsbrabant@lv.vlaanderen.be",
+                "organisatieId": "72bd591e-350c-45cd-9a8d-57841e5fba83",
+                "organisatieNaam": "Departement Landbouw en Visserij",
+                "contactToelichting": "Vlaams-Brabant",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000082",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2024-09-02",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADV.1_3",
+          "omschrijving": "Beste\n\nAls bijlage het advies van het Agentschap Landbouw en ZEevisserij"
+        },
+        {
+          "id": "58d8c961-dd6d-49a4-bdc9-420208e3e896",
+          "originId": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 271344,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "advies.departement@mow.vlaanderen.be",
+                "organisatieId": "c284b196-2ca7-48fe-a92a-d239a054a753",
+                "organisatieNaam": "Departement Mobiliteit en Openbare Werken",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000096",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2024-09-10",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADV.1_4",
+          "omschrijving": ""
+        },
+        {
+          "id": "bc2e8f87-8f77-469f-a61b-019063bbf9e2",
+          "originId": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 5,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 456292,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "d0467278-d51d-4654-a025-85d8a6ba171d",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "d0467278-d51d-4654-a025-85d8a6ba171d",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "aandachtsgebieden@vlaanderen.be",
+                "organisatieId": "2f961e21-62f3-4102-b2d4-ed030851f21e",
+                "organisatieNaam": "Departement Zorg",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000056",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2024-09-16",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADV.1_5",
+          "omschrijving": ""
+        },
+        {
+          "id": "2d368c63-453d-47ea-999e-fa4e432d8ca5",
+          "originId": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 6,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 175309,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "737af702-c035-4f19-8842-df12b1839e5c",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "737af702-c035-4f19-8842-df12b1839e5c",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "watertoets@vmm.be",
+                "organisatieId": "0a9bab13-c8b9-48b2-90ab-b7887777bbe3",
+                "organisatieNaam": "Vlaamse Milieumaatschappij",
+                "contactToelichting": "Water",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000092",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2024-09-20",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADV.1_6",
+          "omschrijving": "Er werd een voorwaardelijk gunstig advies verleend."
+        },
+        {
+          "id": "5274077b-4623-4c2b-b09a-eb6827e78ded",
+          "originId": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 7,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 197409,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "b8e21f63-9856-4626-98bb-c345cb345edc",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "b8e21f63-9856-4626-98bb-c345cb345edc",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "meradvies@ovam.be",
+                "organisatieId": "8d593d11-8405-44c1-8e9b-bcfc74e9702f",
+                "organisatieNaam": "Openbare Vlaamse Afvalstoffenmaatschappij",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000091",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2024-09-25",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADV.1_7",
+          "omschrijving": ""
+        },
+        {
+          "id": "8aa5b80a-80c6-4893-b386-aeee598aabcd",
+          "originId": null,
+          "code": "ADVVRG",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 57735,
+          "payload": [
+            {
+              "label": "Adviesverleners",
+              "value": [
+                "7179342f-896f-4970-b121-15106933dcb2",
+                "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                "b8e21f63-9856-4626-98bb-c345cb345edc",
+                "af234bee-8499-4532-8075-85dc6e796ce0",
+                "737af702-c035-4f19-8842-df12b1839e5c",
+                "d0467278-d51d-4654-a025-85d8a6ba171d"
+              ],
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": [
+                {
+                  "contactId": "7179342f-896f-4970-b121-15106933dcb2",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "wegen.verkeer@mow.vlaanderen.be",
+                  "organisatieId": "939dbfb4-7fcd-4d30-88a7-5438f6d4964b",
+                  "organisatieNaam": "Agentschap Wegen en Verkeer",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000098",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advies.omgevingsplanning@vlaanderen.be",
+                  "organisatieId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+                  "organisatieNaam": "Departement Omgeving",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "02000",
+                  "organisatieOvoCode": "OVO003323",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "Adviesvraag.vlaamsbrabant@lv.vlaanderen.be",
+                  "organisatieId": "72bd591e-350c-45cd-9a8d-57841e5fba83",
+                  "organisatieNaam": "Departement Landbouw en Visserij",
+                  "contactToelichting": "Vlaams-Brabant",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000082",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advies.departement@mow.vlaanderen.be",
+                  "organisatieId": "c284b196-2ca7-48fe-a92a-d239a054a753",
+                  "organisatieNaam": "Departement Mobiliteit en Openbare Werken",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000096",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "b8e21f63-9856-4626-98bb-c345cb345edc",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "meradvies@ovam.be",
+                  "organisatieId": "8d593d11-8405-44c1-8e9b-bcfc74e9702f",
+                  "organisatieNaam": "Openbare Vlaamse Afvalstoffenmaatschappij",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000091",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "af234bee-8499-4532-8075-85dc6e796ce0",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "ruimtelijkeplanning@vlaamsbrabant.be",
+                  "organisatieId": "6b415cd8-dbc9-427a-b4de-7ba4f87411cf",
+                  "organisatieNaam": "Provincie Vlaams-Brabant",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "20001",
+                  "organisatieOvoCode": "OVO000232",
+                  "organisatieKboNummer": "0253973219"
+                },
+                {
+                  "contactId": "737af702-c035-4f19-8842-df12b1839e5c",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "watertoets@vmm.be",
+                  "organisatieId": "0a9bab13-c8b9-48b2-90ab-b7887777bbe3",
+                  "organisatieNaam": "Vlaamse Milieumaatschappij",
+                  "contactToelichting": "Water",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000092",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "d0467278-d51d-4654-a025-85d8a6ba171d",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "aandachtsgebieden@vlaanderen.be",
+                  "organisatieId": "2f961e21-62f3-4102-b2d4-ed030851f21e",
+                  "organisatieNaam": "Departement Zorg",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000056",
+                  "organisatieKboNummer": null
+                }
+              ]
+            },
+            {
+              "label": "Begindatum Openbaar Onderzoek",
+              "value": "2024-07-24",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Duur Openbaar Onderzoek",
+              "value": 60,
+              "type": "Duration",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesvraag",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.VV.4.Workflow.ADVVRG.1_1",
+          "omschrijving": "adviesvraag"
+        }
+      ],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [
+        {
+          "label": "Planelement compleet",
+          "value": true,
+          "type": "Boolean"
+        },
+        {
+          "label": "Datum Voorlopige Vaststelling",
+          "value": "2024-04-30",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Datum Publicatie Belgisch Staatsblad",
+          "value": "2024-05-22",
+          "type": "LocalDate"
+        },
+        {
+          "label": "Numac",
+          "value": "2024701565",
+          "type": "String"
+        },
+        {
+          "label": "Link Belgisch Staatsblad",
+          "value": "https://www.ejustice.just.fgov.be/cgi/api2.pl?lg=nl&pd=2024-05-22&numac=2024701565",
+          "type": "URL"
+        }
+      ],
+      "volgorde": 4
+    },
+    {
+      "id": "cd65f2c8-3205-4ce0-8aa3-25f17a4ecfe2",
+      "code": "PV",
+      "geodata": [
+        {
+          "id": "4c7ce36b-e1da-402d-86aa-2e092d77eada",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2724,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Geodata.CT.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "dossierstukken": [
+        {
+          "id": "36068879-90d9-4ea8-bb9f-7ced7f6c0a05",
+          "originId": null,
+          "code": "GP",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 11483240,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Dossierstuk.GP.1_1",
+          "omschrijving": "Grafisch plan"
+        },
+        {
+          "id": "acea8524-0c7e-4d48-afb9-2ba89e899441",
+          "originId": null,
+          "code": "PN",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 286435,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.EvolutiefDossierstuk.PN.1_1",
+          "omschrijving": "Procesnota"
+        },
+        {
+          "id": "d72ab64a-bdbc-4af2-ba62-f071199275c4",
+          "originId": null,
+          "code": "SV",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 369217,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Dossierstuk.SV.1_1",
+          "omschrijving": "Stedenbouwkundige voorschriften"
+        },
+        {
+          "id": "88996378-9a13-4c6d-9cef-4af3c906f38b",
+          "originId": null,
+          "code": "TN",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 10981840,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Dossierstuk.TN.1_1",
+          "omschrijving": "Toelichtingsnota"
+        }
+      ],
+      "workflow": [
+        {
+          "id": "cfee0cba-76c6-4286-82ef-17059258b360",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "AA",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 74893,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "Gecoro",
+              "type": "String",
+              "computedValue": null
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-11-20",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Ad hoc advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.AA.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "f5a57731-62a2-49bf-83fa-6291760b4fbc",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "AA",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 99766,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "Provincie Vlaams-Brabant, De Watertoets",
+              "type": "String",
+              "computedValue": null
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-11-22",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Ad hoc advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.AA.1_2",
+          "omschrijving": "betreft bijlage advies Provincie Vlaams-Brabant"
+        },
+        {
+          "id": "2d758cef-9b30-4b91-87e7-dd01d2fe74e5",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 176207,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "b8e21f63-9856-4626-98bb-c345cb345edc",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "b8e21f63-9856-4626-98bb-c345cb345edc",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "meradvies@ovam.be",
+                "organisatieId": "8d593d11-8405-44c1-8e9b-bcfc74e9702f",
+                "organisatieNaam": "Openbare Vlaamse Afvalstoffenmaatschappij",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000091",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-11-30",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_1",
+          "omschrijving": "Gelieve ons te verontschuldigen voor de plenaire vergadering."
+        },
+        {
+          "id": "981b4a56-d544-4fe0-8b2e-7874797160fe",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 273030,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "advies.departement@mow.vlaanderen.be",
+                "organisatieId": "c284b196-2ca7-48fe-a92a-d239a054a753",
+                "organisatieNaam": "Departement Mobiliteit en Openbare Werken",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000096",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-11-30",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_2",
+          "omschrijving": ""
+        },
+        {
+          "id": "8dbf18f2-3a15-42aa-9365-d08fcfeb5f30",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 212525,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "af234bee-8499-4532-8075-85dc6e796ce0",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "af234bee-8499-4532-8075-85dc6e796ce0",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "ruimtelijkeplanning@vlaamsbrabant.be",
+                "organisatieId": "6b415cd8-dbc9-427a-b4de-7ba4f87411cf",
+                "organisatieNaam": "Provincie Vlaams-Brabant",
+                "contactToelichting": "",
+                "organisatieNisCode": "20001",
+                "organisatieOvoCode": "OVO000232",
+                "organisatieKboNummer": "0253973219"
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-12-04",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_3",
+          "omschrijving": ""
+        },
+        {
+          "id": "27cdd3b9-742b-44fd-8010-d578a0ebe411",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 265183,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "737af702-c035-4f19-8842-df12b1839e5c",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "737af702-c035-4f19-8842-df12b1839e5c",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "watertoets@vmm.be",
+                "organisatieId": "0a9bab13-c8b9-48b2-90ab-b7887777bbe3",
+                "organisatieNaam": "Vlaamse Milieumaatschappij",
+                "contactToelichting": "Water",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000092",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-12-06",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_4",
+          "omschrijving": ""
+        },
+        {
+          "id": "23633e41-7012-4b90-ac85-364e7665b4fd",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 5,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 1704748,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "Adviesvraag.vlaamsbrabant@lv.vlaanderen.be",
+                "organisatieId": "72bd591e-350c-45cd-9a8d-57841e5fba83",
+                "organisatieNaam": "Departement Landbouw en Visserij",
+                "contactToelichting": "Vlaams-Brabant",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000082",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-12-08",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_5",
+          "omschrijving": ""
+        },
+        {
+          "id": "4c0bebdc-a9e6-44cc-b0f2-ed92f696a000",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 6,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 332462,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "7179342f-896f-4970-b121-15106933dcb2",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "7179342f-896f-4970-b121-15106933dcb2",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "wegen.verkeer@mow.vlaanderen.be",
+                "organisatieId": "939dbfb4-7fcd-4d30-88a7-5438f6d4964b",
+                "organisatieNaam": "Agentschap Wegen en Verkeer",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000098",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-12-08",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_6",
+          "omschrijving": ""
+        },
+        {
+          "id": "f0e206af-d5e2-4c45-84c2-e5504f9e10f5",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 7,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 451251,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "advies.omgevingsplanning@vlaanderen.be",
+                "organisatieId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+                "organisatieNaam": "Departement Omgeving",
+                "contactToelichting": "",
+                "organisatieNisCode": "02000",
+                "organisatieOvoCode": "OVO003323",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-12-08",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_7",
+          "omschrijving": "Beste, \nIn bijlage bezorg ik je het advies van het Departement Omgeving. \nMet vriendelijke groeten"
+        },
+        {
+          "id": "b0304df1-34ad-417e-b45e-8eb3cda55c25",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 8,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 534386,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "d0467278-d51d-4654-a025-85d8a6ba171d",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "d0467278-d51d-4654-a025-85d8a6ba171d",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "aandachtsgebieden@vlaanderen.be",
+                "organisatieId": "2f961e21-62f3-4102-b2d4-ed030851f21e",
+                "organisatieNaam": "Departement Zorg",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000056",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2023-12-11",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezig op plenaire vergadering",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV.1_8",
+          "omschrijving": "we geven wel suggesties voor het vervolgtraject "
+        },
+        {
+          "id": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "originId": null,
+          "code": "ADVVRG",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 71841,
+          "payload": [
+            {
+              "label": "Adviesverleners",
+              "value": [
+                "5834c404-93c2-4066-bfdd-c655fce46fa9",
+                "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                "03003cd7-dce7-45d4-9736-ed08f2581d67",
+                "f0bb5a0d-480a-4089-822e-0a535ffb9b01",
+                "51d0b4f4-3380-44e1-b6b6-74feeb57517f",
+                "737af702-c035-4f19-8842-df12b1839e5c",
+                "af234bee-8499-4532-8075-85dc6e796ce0",
+                "af7f0e97-f4e0-40d5-ab71-091cd01eb53c",
+                "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                "b8e21f63-9856-4626-98bb-c345cb345edc",
+                "d0467278-d51d-4654-a025-85d8a6ba171d",
+                "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                "24762a2c-f595-4f43-b241-4897a0af95a3",
+                "7179342f-896f-4970-b121-15106933dcb2"
+              ],
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": [
+                {
+                  "contactId": "5834c404-93c2-4066-bfdd-c655fce46fa9",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "adviezen.oe@vlaanderen.be",
+                  "organisatieId": "e35da07e-b36f-458d-9984-3fe0f321a51e",
+                  "organisatieNaam": "Onroerend Erfgoed",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000104",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "Adviesvraag.vlaamsbrabant@lv.vlaanderen.be",
+                  "organisatieId": "72bd591e-350c-45cd-9a8d-57841e5fba83",
+                  "organisatieNaam": "Departement Landbouw en Visserij",
+                  "contactToelichting": "Vlaams-Brabant",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000082",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "03003cd7-dce7-45d4-9736-ed08f2581d67",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "aves.vbr@vlaanderen.be",
+                  "organisatieId": "5d712544-a602-46bf-952b-43f690167974",
+                  "organisatieNaam": "Agentschap voor Natuur en Bos",
+                  "contactToelichting": "Vlaams-Brabant",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000089",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "f0bb5a0d-480a-4089-822e-0a535ffb9b01",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "ruimtelijke.economie@vlaanderen.be",
+                  "organisatieId": "a20e1fef-465c-4e56-8384-f73516124eab",
+                  "organisatieNaam": "Agentschap Ondernemen",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000039",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "51d0b4f4-3380-44e1-b6b6-74feeb57517f",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "rup.wonen@vlaanderen.be",
+                  "organisatieId": "0b3bd096-c37e-42b9-a7e5-4822ffa9117d",
+                  "organisatieNaam": "Agentschap Wonen-Vlaanderen",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000106",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "737af702-c035-4f19-8842-df12b1839e5c",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "watertoets@vmm.be",
+                  "organisatieId": "0a9bab13-c8b9-48b2-90ab-b7887777bbe3",
+                  "organisatieNaam": "Vlaamse Milieumaatschappij",
+                  "contactToelichting": "Water",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000092",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "af234bee-8499-4532-8075-85dc6e796ce0",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "ruimtelijkeplanning@vlaamsbrabant.be",
+                  "organisatieId": "6b415cd8-dbc9-427a-b4de-7ba4f87411cf",
+                  "organisatieNaam": "Provincie Vlaams-Brabant",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "20001",
+                  "organisatieOvoCode": "OVO000232",
+                  "organisatieKboNummer": "0253973219"
+                },
+                {
+                  "contactId": "af7f0e97-f4e0-40d5-ab71-091cd01eb53c",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "Advies-DSI.Vlaams-Brabant@vlm.be",
+                  "organisatieId": "f57d8d7d-220a-427d-8bb1-6faceb497ae0",
+                  "organisatieNaam": "Vlaamse Landmaatschappij",
+                  "contactToelichting": "(Vlaams-Brabant)",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000094",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advies.omgevingsplanning@vlaanderen.be",
+                  "organisatieId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+                  "organisatieNaam": "Departement Omgeving",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "02000",
+                  "organisatieOvoCode": "OVO003323",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "b8e21f63-9856-4626-98bb-c345cb345edc",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "meradvies@ovam.be",
+                  "organisatieId": "8d593d11-8405-44c1-8e9b-bcfc74e9702f",
+                  "organisatieNaam": "Openbare Vlaamse Afvalstoffenmaatschappij",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000091",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "d0467278-d51d-4654-a025-85d8a6ba171d",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "aandachtsgebieden@vlaanderen.be",
+                  "organisatieId": "2f961e21-62f3-4102-b2d4-ed030851f21e",
+                  "organisatieNaam": "Departement Zorg",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000056",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advies.departement@mow.vlaanderen.be",
+                  "organisatieId": "c284b196-2ca7-48fe-a92a-d239a054a753",
+                  "organisatieNaam": "Departement Mobiliteit en Openbare Werken",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000096",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "24762a2c-f595-4f43-b241-4897a0af95a3",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "vastgoedbeheer@delijn.be",
+                  "organisatieId": "520c4b83-8a2f-4af3-a736-7675c772b88c",
+                  "organisatieNaam": "Vlaamse Vervoermaatschappij - De Lijn",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000100",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "7179342f-896f-4970-b121-15106933dcb2",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "wegen.verkeer@mow.vlaanderen.be",
+                  "organisatieId": "939dbfb4-7fcd-4d30-88a7-5438f6d4964b",
+                  "organisatieNaam": "Agentschap Wegen en Verkeer",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000098",
+                  "organisatieKboNummer": null
+                }
+              ]
+            },
+            {
+              "label": "Plenaire Vergadering",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Tijdstip Plenaire Vergadering",
+              "value": "14:00",
+              "type": "LocalTime",
+              "computedValue": null
+            },
+            {
+              "label": "Locatie Plenaire Vergadering",
+              "value": "Gemeentehuis Bertem. Zaal De Vleugt",
+              "type": "String",
+              "computedValue": null
+            },
+            {
+              "label": "Einddatum adviesperiode/Datum Plenaire Vergadering",
+              "value": "2023-12-12",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesvraag",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADVVRG.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "58e59dd7-d994-4159-b14d-508611820fbd",
+          "originId": null,
+          "code": "ADVVRG_RVR",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": "VVG",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 71841,
+          "payload": [
+            {
+              "label": "Zijn er Seveso-inrichtingen gelegen binnen het plangebied of in de nabijheid ervan?",
+              "value": "Nee",
+              "type": "CONFIGURATIE",
+              "computedValue": null
+            },
+            {
+              "label": "Kunnen er zich Seveso-inrichtingen in het plangebied vestigen?",
+              "value": "Nee",
+              "type": "CONFIGURATIE",
+              "computedValue": null
+            },
+            {
+              "label": "Reden geen nieuwe Seveso-inrichtingen",
+              "value": "Impliciet verbod",
+              "type": "CONFIGURATIE",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesvraag RVR",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Datum plenaire vergadering",
+              "value": "2023-12-12",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Datum gewenste beslissing",
+              "value": "2023-12-08",
+              "type": "LocalDate",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADVVRG_RVR.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "e22b7901-230d-48f0-b576-33a61022478c",
+          "originId": "58e59dd7-d994-4159-b14d-508611820fbd",
+          "code": "ADV_RVR",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 253059,
+          "payload": [
+            {
+              "label": "RVR vereist",
+              "value": "Nee",
+              "type": "CONFIGURATIE",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.ADV_RVR.1_1",
+          "omschrijving": "Automatisch advies: Ja\nRVR vereist: Nee\n"
+        },
+        {
+          "id": "76c4920c-ab14-4841-a88b-db4a73bf715d",
+          "originId": "709511a9-6422-4e89-94c8-9120dc4258c3",
+          "code": "VPV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 103496,
+          "payload": [
+            {
+              "label": "Verslag plenaire vergadering",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            },
+            {
+              "label": "Aanwezigen op de plenaire vergadering",
+              "value": [
+                "7179342f-896f-4970-b121-15106933dcb2",
+                "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                "af234bee-8499-4532-8075-85dc6e796ce0",
+                "1c58efb4-5b4b-4627-bb2b-f033a277803f"
+              ],
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": [
+                {
+                  "contactId": "7179342f-896f-4970-b121-15106933dcb2",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "wegen.verkeer@mow.vlaanderen.be",
+                  "organisatieId": "939dbfb4-7fcd-4d30-88a7-5438f6d4964b",
+                  "organisatieNaam": "Agentschap Wegen en Verkeer",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000098",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "Adviesvraag.vlaamsbrabant@lv.vlaanderen.be",
+                  "organisatieId": "72bd591e-350c-45cd-9a8d-57841e5fba83",
+                  "organisatieNaam": "Departement Landbouw en Visserij",
+                  "contactToelichting": "Vlaams-Brabant",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000082",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "af234bee-8499-4532-8075-85dc6e796ce0",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "ruimtelijkeplanning@vlaamsbrabant.be",
+                  "organisatieId": "6b415cd8-dbc9-427a-b4de-7ba4f87411cf",
+                  "organisatieNaam": "Provincie Vlaams-Brabant",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "20001",
+                  "organisatieOvoCode": "OVO000232",
+                  "organisatieKboNummer": "0253973219"
+                },
+                {
+                  "contactId": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advies.omgevingsplanning@vlaanderen.be",
+                  "organisatieId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+                  "organisatieNaam": "Departement Omgeving",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "02000",
+                  "organisatieOvoCode": "OVO003323",
+                  "organisatieKboNummer": null
+                }
+              ]
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.PV.3.Workflow.VPV.1_1",
+          "omschrijving": "verslag"
+        }
+      ],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [],
+      "volgorde": 3
+    },
+    {
+      "id": "56b9e6be-8e7a-4abf-a99e-9e0674c443f9",
+      "code": "SP",
+      "geodata": [
+        {
+          "id": "22afd8f4-7b39-4600-ad08-b7a867828fca",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 2804,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.SP.2.Geodata.CT.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "dossierstukken": [
+        {
+          "id": "e7029fe2-6549-4cc8-8cb3-a27a04804a73",
+          "originId": null,
+          "code": "PLNMER",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "F",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 231235,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.SP.2.Dossierstuk.PLNMER.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "717ca137-9ad4-4599-a9a8-1cad6a7858b2",
+          "originId": null,
+          "code": "PN",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 286968,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.SP.2.EvolutiefDossierstuk.PN.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "461904f7-393f-46e8-83d4-b293cd98f51e",
+          "originId": null,
+          "code": "SCN",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 9412149,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.SP.2.EvolutiefDossierstuk.SCN.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "workflow": [],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [],
+      "volgorde": 2
+    },
+    {
+      "id": "56dc7200-022b-47a9-a69a-4ad82430ef72",
+      "code": "ST",
+      "geodata": [
+        {
+          "id": "b6d2cf4b-eba7-4faf-bcfa-769c48078f58",
+          "originId": null,
+          "code": "CT",
+          "type": "GEODATA",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "zip",
+          "size": 3036,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Geodata.CT.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "dossierstukken": [
+        {
+          "id": "a1794bb6-0b3f-4742-91b2-d98aa03155d1",
+          "originId": null,
+          "code": "PN",
+          "type": "EVOLUTIEF_DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 289651,
+          "payload": [
+            {
+              "label": "Versie",
+              "value": "1",
+              "type": "EVOLUTIEF_STUK_VERSIES",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.EvolutiefDossierstuk.PN.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "65e5fffb-fb4e-4c97-99d2-579c523eff48",
+          "originId": null,
+          "code": "SN",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 7566594,
+          "payload": [],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Dossierstuk.SN.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "d53a96ee-1279-4c71-9ebe-7e194a537cfe",
+          "originId": null,
+          "code": "VPM",
+          "type": "DOSSIERSTUK",
+          "verordenend": false,
+          "groepering": "V",
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 142435,
+          "payload": [
+            {
+              "label": "Bevat geen persoonsgegevens",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Dossierstuk.VPM.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "workflow": [
+        {
+          "id": "b9204d6d-1893-488d-9284-9590d2bd43da",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "AA",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 169095,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "Agentschap Wonen Vlaanderen",
+              "type": "String",
+              "computedValue": null
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-01-11",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Ad hoc advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.AA.1_1",
+          "omschrijving": ""
+        },
+        {
+          "id": "51507496-94d7-464b-a3de-9793bcb6d8bf",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "AA",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 7773044,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "Agentschap zorg en gezondheid",
+              "type": "String",
+              "computedValue": null
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-01-19",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Ad hoc advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.AA.1_2",
+          "omschrijving": ""
+        },
+        {
+          "id": "467ff0f6-59ac-4c98-abb9-f7a9fc73fc39",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "AA",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 97377,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "Departement landbouw en visserij ",
+              "type": "String",
+              "computedValue": null
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-03-09",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Ad hoc advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.AA.1_3",
+          "omschrijving": ""
+        },
+        {
+          "id": "31c99857-e201-4fee-aa1d-c7e59207740c",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "AA",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 263837,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "GECORO Bertem",
+              "type": "String",
+              "computedValue": null
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-03-09",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Ad hoc advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.AA.1_4",
+          "omschrijving": ""
+        },
+        {
+          "id": "f726b6d5-35a0-4463-832c-2b6ca5a19628",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": null,
+          "size": 0,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "737af702-c035-4f19-8842-df12b1839e5c",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "737af702-c035-4f19-8842-df12b1839e5c",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "watertoets@vmm.be",
+                "organisatieId": "0a9bab13-c8b9-48b2-90ab-b7887777bbe3",
+                "organisatieNaam": "Vlaamse Milieumaatschappij",
+                "contactToelichting": "Water",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000092",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-01-21",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_1",
+          "omschrijving": "Geachte heer, \nGeachte mevrouw,\n\nVolgens bijlage 1 bij het besluit van de Vlaamse Regering van 17 februari 2017 betreffende het geïntegreerde planningsproces voor ruimtelijke uitvoeringsplannen, planmilieueffectrapportage, ruimtelijke veiligheidsrapportage en andere effectbeoordelingen moet de bevoegde overheid advies vragen over de startnota, respectievelijk over het voorontwerp van ruimtelijk uitvoeringsplan en, in voorkomend geval, over het ontwerp van de effectbeoordelingsrapporten aan de Vlaamse Milieumaatschappij, afdeling operationeel waterbeheer indien: \n1°\ter onbevaarbare waterlopen van eerste categorie liggen binnen de begrenzing van het voorgenomen uitvoeringsplan; \n2°\tde gronden die binnen de begrenzing van het voorgenomen uitvoeringsplan liggen, geheel of gedeeltelijk in overstromingsgebieden liggen die met die waterlopen verbonden zijn en die op de plannen van aanleg of de ruimtelijke uitvoeringsplannen aangegeven zijn; \n3°\tde gronden die binnen de begrenzing van het voorgenomen uitvoeringsplan liggen, in waterwingebieden en beschermingszones type I, II en III liggen die afgebakend zijn conform het besluit van de Vlaamse regering van 27 maart 1985 houdende nadere regelen voor de afbakening van waterwingebieden en de beschermingszones en het voorgenomen uitvoeringsplan in de bijkomende afbakening van industriegebied, een bedrijventerrein of een daarmee vergelijkbaar gebied voorziet;\n4°\ter oppervlaktewater voor oppervlaktewaterwinning, bestemd voor drinkwaterproductie, is binnen de begrenzing van het voorgenomen uitvoeringsplan en het voorgenomen uitvoeringsplan in de bijkomende afbakening van industriegebied, een bedrijventerrein of een daarmee vergelijkbaar gebied voorziet; \n5°\thet voorgenomen uitvoeringsplan betrekking heeft op nieuwe infrastructuren die gevolgen hebben op de behandeling, de collectering en de zuivering van afvalwater, waaronder de afbakening van 5 hectare harde bestemmingszones buiten de goedgekeurde zoneringsplannen; \n6°\tde gronden die binnen de begrenzing van het voorgenomen uitvoeringsplan liggen, geheel of gedeeltelijk afstromen naar een onbevaarbare waterloop van eerste categorie en geheel of gedeeltelijk in effectief of mogelijk overstromingsgevoelig gebied liggen op de kaart van de overstromingsgevoelige gebieden, opgenomen in bijlage I bij het besluit van de Vlaamse Regering van 20 juli 2006 tot vaststelling van nadere regels voor de toepassing van de watertoets, tot aanwijzing van de adviesinstantie en tot vaststelling van nadere regels voor de adviesprocedure bij de watertoets, vermeld in artikel 8 van het decreet van 18 juli 2003 betreffende het integraal waterbeleid; \n7°\thet voorgenomen uitvoeringsplan voorziet in de afbakening van ontginningszones; \n\nGeen enkele van deze gevallen is hier van toepassing. De VMM afdeling Operationeel Waterbeheer is bijgevolg niet bevoegd om advies te geven over dit dossier. \n"
+        },
+        {
+          "id": "bc3fe99b-7a01-412b-b514-50753f1ec36e",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 2,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 213035,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "03003cd7-dce7-45d4-9736-ed08f2581d67",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "03003cd7-dce7-45d4-9736-ed08f2581d67",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "aves.vbr@vlaanderen.be",
+                "organisatieId": "5d712544-a602-46bf-952b-43f690167974",
+                "organisatieNaam": "Agentschap voor Natuur en Bos",
+                "contactToelichting": "Vlaams-Brabant",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000089",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-01-22",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_2",
+          "omschrijving": ""
+        },
+        {
+          "id": "f2943b3b-b717-4bd0-98fc-78df3c4ed513",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 3,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 155727,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "b8e21f63-9856-4626-98bb-c345cb345edc",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "b8e21f63-9856-4626-98bb-c345cb345edc",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "meradvies@ovam.be",
+                "organisatieId": "8d593d11-8405-44c1-8e9b-bcfc74e9702f",
+                "organisatieNaam": "Openbare Vlaamse Afvalstoffenmaatschappij",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000091",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-02-02",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_3",
+          "omschrijving": ""
+        },
+        {
+          "id": "4d678cb0-20dc-4a99-bce0-b09aa52317c5",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 4,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 210602,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "24762a2c-f595-4f43-b241-4897a0af95a3",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "24762a2c-f595-4f43-b241-4897a0af95a3",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "vastgoedbeheer@delijn.be",
+                "organisatieId": "520c4b83-8a2f-4af3-a736-7675c772b88c",
+                "organisatieNaam": "Vlaamse Vervoermaatschappij - De Lijn",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000100",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-02-26",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_4",
+          "omschrijving": ""
+        },
+        {
+          "id": "d679f1e7-391b-477e-abb5-0b9e4de4f9f9",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 5,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 343052,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "advies.departement@mow.vlaanderen.be",
+                "organisatieId": "c284b196-2ca7-48fe-a92a-d239a054a753",
+                "organisatieNaam": "Departement Mobiliteit en Openbare Werken",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000096",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-03-01",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_5",
+          "omschrijving": ""
+        },
+        {
+          "id": "490e07fb-fef8-461c-9dff-b8fdb11065f2",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 6,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 383903,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "7179342f-896f-4970-b121-15106933dcb2",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "7179342f-896f-4970-b121-15106933dcb2",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "wegen.verkeer@mow.vlaanderen.be",
+                "organisatieId": "939dbfb4-7fcd-4d30-88a7-5438f6d4964b",
+                "organisatieNaam": "Agentschap Wegen en Verkeer",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000098",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-03-03",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_6",
+          "omschrijving": ""
+        },
+        {
+          "id": "4bcf24e8-2563-4e0a-9e1c-559f5b12efe5",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 7,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 1810632,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "af234bee-8499-4532-8075-85dc6e796ce0",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "af234bee-8499-4532-8075-85dc6e796ce0",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "ruimtelijkeplanning@vlaamsbrabant.be",
+                "organisatieId": "6b415cd8-dbc9-427a-b4de-7ba4f87411cf",
+                "organisatieNaam": "Provincie Vlaams-Brabant",
+                "contactToelichting": "",
+                "organisatieNisCode": "20001",
+                "organisatieOvoCode": "OVO000232",
+                "organisatieKboNummer": "0253973219"
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-02-25",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_7",
+          "omschrijving": ""
+        },
+        {
+          "id": "b497281b-1673-400d-901a-187f0da1bf26",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 8,
+          "versie": 1,
+          "fileExtension": null,
+          "size": 0,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": true,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "advies.omgevingsplanning@vlaanderen.be",
+                "organisatieId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+                "organisatieNaam": "Departement Omgeving",
+                "contactToelichting": "",
+                "organisatieNisCode": "02000",
+                "organisatieOvoCode": "OVO003323",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-03-10",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_8",
+          "omschrijving": ""
+        },
+        {
+          "id": "d74d7fca-a51a-4f2e-ab4c-602d163f9037",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 9,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 129015,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "af7f0e97-f4e0-40d5-ab71-091cd01eb53c",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "af7f0e97-f4e0-40d5-ab71-091cd01eb53c",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "Advies-DSI.Vlaams-Brabant@vlm.be",
+                "organisatieId": "f57d8d7d-220a-427d-8bb1-6faceb497ae0",
+                "organisatieNaam": "Vlaamse Landmaatschappij",
+                "contactToelichting": "(Vlaams-Brabant)",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000094",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-03-11",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_9",
+          "omschrijving": "ons digitaal handtekensysteem werkte niet; onze brief is ook digitaal per e-mail overgemaakt."
+        },
+        {
+          "id": "0afc4ff0-a322-42bd-a8eb-e9c49cf068f5",
+          "originId": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "code": "ADV",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 10,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 314577,
+          "payload": [
+            {
+              "label": "Geen advies",
+              "value": false,
+              "type": "Boolean",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesverlener",
+              "value": "ac60e722-2ec8-42a6-9e04-048e093306ff",
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": {
+                "contactId": "ac60e722-2ec8-42a6-9e04-048e093306ff",
+                "contactRol": "ADVIESVERLENER",
+                "contactEmail": "info@onroerenderfgoed.be",
+                "organisatieId": "e35da07e-b36f-458d-9984-3fe0f321a51e",
+                "organisatieNaam": "Onroerend Erfgoed",
+                "contactToelichting": "",
+                "organisatieNisCode": null,
+                "organisatieOvoCode": "OVO000104",
+                "organisatieKboNummer": null
+              }
+            },
+            {
+              "label": "Datum advies",
+              "value": "2021-03-11",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Advies",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADV.1_10",
+          "omschrijving": ""
+        },
+        {
+          "id": "46d66e20-e082-4268-8dbf-dd4a9bcafd0a",
+          "originId": null,
+          "code": "ADVVRG",
+          "type": "WORKFLOW",
+          "verordenend": false,
+          "groepering": null,
+          "index": 1,
+          "versie": 1,
+          "fileExtension": "pdf",
+          "size": 31607,
+          "payload": [
+            {
+              "label": "Adviesverleners",
+              "value": [
+                "064b92b5-7c05-4b52-a792-fde90dbf2a0f",
+                "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                "e90dc684-00d7-4e2c-9a5c-aabe23811795",
+                "51d0b4f4-3380-44e1-b6b6-74feeb57517f",
+                "b8e21f63-9856-4626-98bb-c345cb345edc",
+                "ac60e722-2ec8-42a6-9e04-048e093306ff",
+                "baab8913-b155-40bd-91ee-c3f5afcfd8c8",
+                "391b25e1-3bbd-48c0-b968-fa830a8bd3ea",
+                "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                "4bfb64ce-caa3-4418-be94-da46d69c6a11",
+                "af7f0e97-f4e0-40d5-ab71-091cd01eb53c",
+                "f0bb5a0d-480a-4089-822e-0a535ffb9b01",
+                "af234bee-8499-4532-8075-85dc6e796ce0",
+                "24762a2c-f595-4f43-b241-4897a0af95a3",
+                "7179342f-896f-4970-b121-15106933dcb2",
+                "a9c4933e-fad1-4b4e-a574-1d95634f8590",
+                "737af702-c035-4f19-8842-df12b1839e5c",
+                "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                "950c341c-68a0-4101-b5e4-ca7c60b95aed"
+              ],
+              "type": "PLANNENDE_OVERHEDEN",
+              "computedValue": [
+                {
+                  "contactId": "064b92b5-7c05-4b52-a792-fde90dbf2a0f",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "BCAA.Airports@mobilit.fgov.be",
+                  "organisatieId": "8998d1d5-aa5f-48d3-aabf-52be7b4d5ed6",
+                  "organisatieNaam": "Federale Overheidsdienst Mobiliteit en Vervoer",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": null,
+                  "organisatieKboNummer": "0308357852"
+                },
+                {
+                  "contactId": "f6888483-54c8-48a0-bac5-ed6a394c1783",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "Adviesvraag.vlaamsbrabant@lv.vlaanderen.be",
+                  "organisatieId": "72bd591e-350c-45cd-9a8d-57841e5fba83",
+                  "organisatieNaam": "Departement Landbouw en Visserij",
+                  "contactToelichting": "Vlaams-Brabant",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000082",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "e90dc684-00d7-4e2c-9a5c-aabe23811795",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "omgeving@bertem.be",
+                  "organisatieId": "35abdf3b-ea03-437f-9da5-0128ecc4bbdd",
+                  "organisatieNaam": "Bertem",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "24009",
+                  "organisatieOvoCode": "OVO002017",
+                  "organisatieKboNummer": "0207516256"
+                },
+                {
+                  "contactId": "51d0b4f4-3380-44e1-b6b6-74feeb57517f",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "rup.wonen@vlaanderen.be",
+                  "organisatieId": "0b3bd096-c37e-42b9-a7e5-4822ffa9117d",
+                  "organisatieNaam": "Agentschap Wonen-Vlaanderen",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000106",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "b8e21f63-9856-4626-98bb-c345cb345edc",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "meradvies@ovam.be",
+                  "organisatieId": "8d593d11-8405-44c1-8e9b-bcfc74e9702f",
+                  "organisatieNaam": "Openbare Vlaamse Afvalstoffenmaatschappij",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000091",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "ac60e722-2ec8-42a6-9e04-048e093306ff",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "info@onroerenderfgoed.be",
+                  "organisatieId": "e35da07e-b36f-458d-9984-3fe0f321a51e",
+                  "organisatieNaam": "Onroerend Erfgoed",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000104",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "baab8913-b155-40bd-91ee-c3f5afcfd8c8",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advisering_lucht@vmm.be",
+                  "organisatieId": "0a9bab13-c8b9-48b2-90ab-b7887777bbe3",
+                  "organisatieNaam": "Vlaamse Milieumaatschappij",
+                  "contactToelichting": "Lucht",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000092",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "391b25e1-3bbd-48c0-b968-fa830a8bd3ea",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "energie@vlaanderen.be",
+                  "organisatieId": "7690a1a7-9bbe-4813-aaa0-8c8bc989c21c",
+                  "organisatieNaam": "Vlaams Energieagentschap",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000090",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "1c58efb4-5b4b-4627-bb2b-f033a277803f",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advies.omgevingsplanning@vlaanderen.be",
+                  "organisatieId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+                  "organisatieNaam": "Departement Omgeving",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "02000",
+                  "organisatieOvoCode": "OVO003323",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "4bfb64ce-caa3-4418-be94-da46d69c6a11",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "kennisbeheer@toerismevlaanderen.be",
+                  "organisatieId": "615aa27a-075b-4f83-b3e9-302275b475e9",
+                  "organisatieNaam": "Toerisme Vlaanderen",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000034",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "af7f0e97-f4e0-40d5-ab71-091cd01eb53c",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "Advies-DSI.Vlaams-Brabant@vlm.be",
+                  "organisatieId": "f57d8d7d-220a-427d-8bb1-6faceb497ae0",
+                  "organisatieNaam": "Vlaamse Landmaatschappij",
+                  "contactToelichting": "(Vlaams-Brabant)",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000094",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "f0bb5a0d-480a-4089-822e-0a535ffb9b01",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "ruimtelijke.economie@vlaanderen.be",
+                  "organisatieId": "a20e1fef-465c-4e56-8384-f73516124eab",
+                  "organisatieNaam": "Agentschap Ondernemen",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000039",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "af234bee-8499-4532-8075-85dc6e796ce0",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "ruimtelijkeplanning@vlaamsbrabant.be",
+                  "organisatieId": "6b415cd8-dbc9-427a-b4de-7ba4f87411cf",
+                  "organisatieNaam": "Provincie Vlaams-Brabant",
+                  "contactToelichting": "",
+                  "organisatieNisCode": "20001",
+                  "organisatieOvoCode": "OVO000232",
+                  "organisatieKboNummer": "0253973219"
+                },
+                {
+                  "contactId": "24762a2c-f595-4f43-b241-4897a0af95a3",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "vastgoedbeheer@delijn.be",
+                  "organisatieId": "520c4b83-8a2f-4af3-a736-7675c772b88c",
+                  "organisatieNaam": "Vlaamse Vervoermaatschappij - De Lijn",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000100",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "7179342f-896f-4970-b121-15106933dcb2",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "wegen.verkeer@mow.vlaanderen.be",
+                  "organisatieId": "939dbfb4-7fcd-4d30-88a7-5438f6d4964b",
+                  "organisatieNaam": "Agentschap Wegen en Verkeer",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000098",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "a9c4933e-fad1-4b4e-a574-1d95634f8590",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "anb@vlaanderen.be",
+                  "organisatieId": "5d712544-a602-46bf-952b-43f690167974",
+                  "organisatieNaam": "Agentschap voor Natuur en Bos",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000089",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "737af702-c035-4f19-8842-df12b1839e5c",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "watertoets@vmm.be",
+                  "organisatieId": "0a9bab13-c8b9-48b2-90ab-b7887777bbe3",
+                  "organisatieNaam": "Vlaamse Milieumaatschappij",
+                  "contactToelichting": "Water",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000092",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "5190b00b-62e5-44ac-960a-bbc5fec90bcf",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "advies.departement@mow.vlaanderen.be",
+                  "organisatieId": "c284b196-2ca7-48fe-a92a-d239a054a753",
+                  "organisatieNaam": "Departement Mobiliteit en Openbare Werken",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000096",
+                  "organisatieKboNummer": null
+                },
+                {
+                  "contactId": "950c341c-68a0-4101-b5e4-ca7c60b95aed",
+                  "contactRol": "ADVIESVERLENER",
+                  "contactEmail": "info@zorg-en-gezondheid.be",
+                  "organisatieId": "3278a26a-90e1-4db5-be66-72a41fca47b2",
+                  "organisatieNaam": "Vlaams agentschap Zorg en Gezondheid",
+                  "contactToelichting": "",
+                  "organisatieNisCode": null,
+                  "organisatieOvoCode": "OVO000059",
+                  "organisatieKboNummer": null
+                }
+              ]
+            },
+            {
+              "label": "Begindatum participatie- en adviesperiode",
+              "value": "2021-01-11",
+              "type": "LocalDate",
+              "computedValue": null
+            },
+            {
+              "label": "Duur participatie- en adviesperiode",
+              "value": 60,
+              "type": "Duration",
+              "computedValue": null
+            },
+            {
+              "label": "Adviesvraag",
+              "value": null,
+              "type": "File",
+              "computedValue": null
+            }
+          ],
+          "link": "https://download.dsi.omgeving.vlaanderen.be/be.vl.omg.dsi.stukonderdeel.RUP_24009_214_00004_00001.ST.1.Workflow.ADVVRG.1_1",
+          "omschrijving": ""
+        }
+      ],
+      "inspraakstukken": [],
+      "contour": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100000, 200000],
+              [100010, 200000],
+              [100010, 200010],
+              [100000, 200000]
+            ]
+          ]
+        ]
+      },
+      "payload": [
+        {
+          "label": "Datum goedkeuring Startnota",
+          "value": "2020-12-21",
+          "type": "LocalDate"
+        }
+      ],
+      "volgorde": 1
+    }
+  ]
+}

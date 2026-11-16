@@ -86,6 +86,15 @@ assessment_sources <- function() {
       scope = "environmental and social documents of EIB-financed projects, all native document types (ESIA/EIA/SEA full reports, ESDS/ESCS/NTS summaries, permits, links), about 2011 onward",
       limitations = "not national completeness; some rows have no file; totalItems can exceed listed rows; reports over the size cap are skipped_size",
       url = "https://www.eib.org/en/registers/"
+    ),
+    be_dsi = list(
+      handler = get_assessments_be_dsi,
+      name = "Flanders DSI planning dossiers (Departement Omgeving)",
+      granularity = "planning dossier (all phases and documents)",
+      geography = "Flanders only (country = \"be\"); not Wallonia or Brussels",
+      scope = "Flemish spatial plans (RUP, BPA, ...); plan-MER reports are a subset of the documents",
+      limitations = "Document code PLNMER mixes plan-MER reports, screening and decision letters; native code/description/phase kept, no classification. No server-side pre-filter to report-bearing dossiers.",
+      url = "https://dsi.omgeving.vlaanderen.be/"
     )
   )
 }

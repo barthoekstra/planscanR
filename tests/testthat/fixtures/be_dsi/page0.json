@@ -1,0 +1,72 @@
+{
+  "_embedded": {
+    "ficheOverzichtZoekResultaats": [
+      {
+        "dossierId": "2ba01672-59b0-48cc-83c7-7737c072a15f",
+        "algplanid": "RUP_02000_212_00462_00001",
+        "procedureCode": "gewRUP",
+        "procedureVersie": "1.0.0",
+        "dossierNaam": "Historisch gegroeid bedrijf 'AVR' te Roeselare",
+        "dossierRoepnaam": null,
+        "dossierOmschrijving": "Het GRUP heeft betrekking op delen van het grondgebied van de gemeente(n) Roeselare.",
+        "dossierStatus": "DEFINITIEF",
+        "dossierThema": "Bedrijventerrein",
+        "plannendeOverheidId": "55e4b6ca-37f4-461c-b0b1-4d4946907ad1",
+        "plannendeOverheidNaam": "Vlaams Gewest",
+        "plannendeOverheidNisCode": "02000",
+        "plannendeOverheidEmail": "omgevingsplanning@vlaanderen.be",
+        "actieveFaseId": "825a44f9-0206-4346-b4d1-85aecb8a8d07",
+        "actieveFaseCode": "BG",
+        "actieveFaseVolgorde": 3,
+        "actieveFaseInformatie": null,
+        "actieveFaseDatumPublicatieBelgischStaatsblad": "2016-10-06",
+        "datumBesluitTotGoedkeuring": "2016-09-16",
+        "datumBesluitTotGoedkeuringSort": "2016-09-16",
+        "actieveFaseTijdstipEerstePublicatie": "2020-04-29T18:08:19.117",
+        "ficheLink": "https://dsi.omgeving.vlaanderen.be/fiche-detail/2ba01672-59b0-48cc-83c7-7737c072a15f",
+        "fasedatum": "2016-09-16",
+        "_links": {
+          "fiche": {
+            "href": "https://dsi.omgeving.vlaanderen.be/api/fiches/dossiers/2ba01672-59b0-48cc-83c7-7737c072a15f"
+          }
+        }
+      },
+      {
+        "dossierId": "67c701fc-e1fb-41ba-bc50-1b2ed40c0345",
+        "algplanid": "RUP_24009_214_00004_00001",
+        "procedureCode": "gemRUP",
+        "procedureVersie": "4.0.0",
+        "dossierNaam": "Kern Verona",
+        "dossierRoepnaam": null,
+        "dossierOmschrijving": "",
+        "dossierStatus": "DEFINITIEF",
+        "dossierThema": null,
+        "plannendeOverheidId": "35abdf3b-ea03-437f-9da5-0128ecc4bbdd",
+        "plannendeOverheidNaam": "Bertem",
+        "plannendeOverheidNisCode": "24009",
+        "plannendeOverheidEmail": "omgeving@bertem.be",
+        "actieveFaseId": "8dfebdf8-f56d-49b7-b233-7fd21fa99b3a",
+        "actieveFaseCode": "DV",
+        "actieveFaseVolgorde": 5,
+        "actieveFaseInformatie": null,
+        "actieveFaseDatumPublicatieBelgischStaatsblad": "2025-02-17",
+        "datumBesluitTotGoedkeuring": null,
+        "datumBesluitTotGoedkeuringSort": "1900-01-01",
+        "actieveFaseTijdstipEerstePublicatie": "2024-12-24T09:45:26.689",
+        "ficheLink": "https://dsi.omgeving.vlaanderen.be/fiche-detail/67c701fc-e1fb-41ba-bc50-1b2ed40c0345",
+        "fasedatum": "2024-12-17",
+        "_links": {
+          "fiche": {
+            "href": "https://dsi.omgeving.vlaanderen.be/api/fiches/dossiers/67c701fc-e1fb-41ba-bc50-1b2ed40c0345"
+          }
+        }
+      }
+    ]
+  },
+  "page": {
+    "size": 2,
+    "totalElements": 3,
+    "totalPages": 2,
+    "number": 0
+  }
+}

@@ -265,7 +265,10 @@ get_assessments_dk(query = "vindmølle", limit = 20, download = FALSE)
 * **Authentication:** none.
 * **Coverage:** ~3,000 Project-MER dossiers (project-level EIA) and dossier
   MER-plicht ontheffingsaanvragen (exemption requests). Plan-MER (SEA) lives
-  in a separate Flemish register and is out of scope for this handler.
+  in a separate Flemish register and is out of scope for this handler. Flemish
+  planning dossiers (DSI, including plan-MER material) are available as the
+  explicit source `get_assessments("be", source = "be_dsi")`; assessment
+  reports are only a subset of their documents.
 * **Throttle:** 5 requests/second by default
   (`getOption("planscanR.be_throttle_rate")`).
 
