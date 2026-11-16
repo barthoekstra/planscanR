@@ -27,8 +27,29 @@ independent reviewer (Opus) per adapter; implementation was by Sonnet workers.
 | GB-MARINE | MMO marine licence register (Oracle Fox app) | 0 / 0 / 0 | 1, 0 | deferred—too costly | stateful session app, no GET listing/export (needs session emulation). Reconsider on a bulk export or stable case URLs | none | n/a |
 | US | EPA e-NEPA EIS database | 1 dossier / 1 / 0 | 1, 0 | insufficient report access | every file download requires an ALTCHA CAPTCHA; not bypassed. Envirofacts API (user suggestion) checked: covers facility/compliance programmes, no NEPA/EIS tables or document URLs found (table catalog itself 403). Reconsider on CAPTCHA-free EIS file URLs | none | n/a |
 
-Not started (remaining ordered queue, batch ended at six reached integrations): CA, AU, ADB,
-IDB, IFC, AIIB, GE, TR, UA, LU; optional/rejected list unchanged.
+Batch 1 ended at six reached integrations; its not-started queue was taken up in batch 2 below.
+
+## Batch 2 (2026-11-16, user direction "continue"; TLS verification may be disabled per host)
+
+| ID | Scope / granularity | Sampled / eligible / reports OK | Approaches, retries | Decision | Blocker / limitation / reconsider when | Changed files | Tests / review |
+|---|---|---|---|---|---|---|---|
+| IFC | IFC disclosure search API (public page-embedded key read at runtime, never stored); ESRS projects; per project with client-document table | probe 10 / 5 / 3 (49251, 49962, 50108); smoke 5 | 1, 0 | implemented (`source = "ifc"`) | no native document roles (file names only); older files often 404; 134 countries mapped, regional pseudo-countries excluded. Shared fix: JSON error envelopes (`{"error":{"code"/"message"}}`) are no longer accepted as downloads | `R/get_assessments_ifc.R`, registry, `R/utils_download.R`, tests, docs | REQUEST_CHANGES → 1 correction → APPROVE |
+| AIIB | `all-projects-data.js` (505 projects) + static detail pages; per project (`aiib_p<project number>`) | probe 9 / 4 / 4; smoke 5 | 1, 0 | implemented (`source = "aiib"`) | country = English economy names (economy OR name prefix); borrower/implementing keep organisation segments only (no personal names); Multicountry excluded unless prefixed | `R/get_assessments_aiib.R`, registry, tests, docs | REQUEST_CHANGES → 1 correction → APPROVE (+ lead privacy hardening) |
+| GE | ei.gov.ge POST listing + record JSON; per case (`ge_<GUID>`) | 12 / 8 / 3 EIA reports in RAR bundles (Igoeti 337 pp, Ternali-Chai 130 pp, Kanioni 204 pp; extracted for verification only) | 1, 0 | implemented (country `"ge"`) | recent portal only; reports inside RAR5 bundles kept as-is; SEA and some EIA bundles exceed the 50 MiB cap | `R/get_assessments_ge.R`, dispatch/coverage, tests, docs | REQUEST_CHANGES → 1 correction → APPROVE (+ lead pagination one-liner) |
+| LU | enquetes.public.lu JSON search + detail pages (~2,100 inquiries since ~2020); per inquiry | 3 / 3 / 3 (820 EIA 149 pp, 889 EIA 134 pp, 5105 SEA 185 pp) | 1, 0 | implemented (country `"lu"`) | all themes, no native EIA flag; duplicate 1041 warns; 404 detail pages give listing-only records; private-person requesters dropped from `proponent`; Luxtram/6199 EIA dossiers exceed the cap | `R/get_assessments_lu.R`, dispatch/coverage, tests, docs | REQUEST_CHANGES → 1 correction → APPROVE (+ lead privacy follow-ups) |
+| CA | IAAC registry (6,846 projects) via the site's JSON POST (needs X-Requested-With); per project, paginated document lists | 5 / 5 / 3 Impact Statement chapters | 1, 0 | deferred—too costly | probe PASS; implementation interrupted by a usage limit and passed the 4-hour elapsed cap. Unmerged WIP on branch `srcx/ca` (`0e5056a`). Reconsider with fresh direction | none | not reviewed |
+| GB-SCOT (re-probe) | Energy Consents Unit, ASP.NET WebForms (TLS verification disabled for this host) | 3 EIA cases / 3 / 4 PDFs | 2, 0 | deferred—too costly | listing covers only the last 28–90 days (advanced search returned 0); files only via viewstate postbacks (session emulation). Reconsider on a working search post or an export | none | n/a |
+| ADB | ADB project documents | 0 / 0 / 0 | 2, 0 | unavailable during probe | Cloudflare challenge; sitemap has no type/country | none | n/a |
+| IDB | CKAN projects + iadb.org documents | 0 files | 2, 0 | unavailable during probe | document hosts behind Cloudflare; IDB country codes are not ISO | none | n/a |
+| AU | EPBC ArcGIS layer (8,111) + portal | 1 / 1 / 0 | 2, 0 | insufficient report access | document lists built client-side (needs JS/session) | none | n/a |
+| TR | e-ÇED JSF portal | 0 / 0 / 0 | 2, 0 | unavailable during probe | portal timed out; JSF ViewState app | none | n/a |
+| UA-EIA | eia.menr.gov.ua (2,239 cases, 2018–2023) | 6 / 3 / 0 | 1, 0 | insufficient report access | documents listed by name only, no file URLs | none | n/a |
+| UA-SEA | eco.gov.ua / my.eco.gov.ua | 0 / 0 / 0 | 1, 0 | unavailable during probe | no anonymous SEA case list | none | n/a |
+
+Batch 2 closeout: integration branch `srcx/source-expansion` now also holds IFC, AIIB, GE and LU.
+Offline suite: 3995 pass, 0 fail, 25 skip (live tests). `R CMD check` (vignettes skipped; pandoc
+missing): 0 errors, 0 warnings, 1 NOTE (worktree `.git`). Not merged, pushed or released.
+Kept for later (unmerged branches): `srcx/ebrd`, `srcx/cl`, `srcx/ca`.
 
 ## Effort ledger (cumulative agent-hours, approximate)
 
@@ -40,7 +61,8 @@ IDB, IFC, AIIB, GE, TR, UA, LU; optional/rejected list unchanged.
 | Implementations + correction passes (CY, EIB, WB, BE-SEA, EBRD, CL) | 5.5 | CL ~1.5 h incl. long live smoke |
 | Independent reviews (13 passes, Opus) | 2.5 | |
 | Integration, docs consolidation, final checks (lead) | 1.5 | |
-| **Total** | **~13** | under the 24 h batch cap |
+| **Batch 1 total** | **~13** | under the 24 h batch cap |
+| Batch 2: 12 probes, 5 implementations + corrections, 9 reviews, integration | ~11 | under the 24 h batch cap |
 
 ## Baseline (SRCX-0.2, 2026-11-16, `2d8955a`, R 4.6.1, Linux only)
 
