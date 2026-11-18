@@ -245,6 +245,29 @@ test_that("a failed or unexpected detail page keeps a listing-only record and is
   })
 })
 
+test_that("a detail page that returns HTTP 404 is cached as listing-only and not refetched", {
+  with_temp_cache({
+    calls <- lu_mock(detail = function(url) {
+      if (grepl("/889\\.html$", url)) {
+        rlang::abort("HTTP 404 Not Found.", class = c("httr2_http_404", "httr2_http", "httr2_error"))
+      }
+      lu_html(sprintf("detail_%s.html", sub(".*/([0-9]+)\\.html$", "\\1", url)))
+    })
+    expect_warning(res <- get_assessments_lu(), "cached as not found", class = "planscanR_warning_partial")
+    lo <- res[res$document_id == "lu_889", ]
+    expect_false(lo$detail_fetched)
+    expect_true(lo$detail_not_found)
+    expect_false(any(res$detail_not_found[res$document_id != "lu_889"]))
+    expect_true("lu_889" %in% index_cache(country = "lu")$document_id)
+    calls$details <- character()
+    expect_no_warning(res2 <- get_assessments_lu())
+    expect_length(calls$details, 0L)
+    expect_true(res2$detail_not_found[res2$document_id == "lu_889"])
+    get_assessments_lu(refresh = TRUE, query = "alzingen") |> expect_warning("cached as not found")
+    expect_identical(basename(calls$details), "889.html")
+  })
+})
+
 test_that("a sidecar with detail_fetched = FALSE is a cache miss", {
   with_temp_cache({
     e <- planscanR:::lu_parse_item(lu_items()[[2]])

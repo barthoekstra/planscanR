@@ -60,7 +60,10 @@
 #' few listed items whose page returns 404, is returned as a **listing-only
 #' record** (`detail_fetched = FALSE`: title, theme, status, dates,
 #' municipalities, reference number and `listing_json`, no attachments) with a
-#' `planscanR_warning_partial`; it is never cached and is retried next run). Every file link on the
+#' `planscanR_warning_partial`; it is not cached and is retried next run,
+#' except a page that returns HTTP 404 (about 330 listed inquiries): that
+#' listing-only record is cached with `detail_not_found = TRUE` and only
+#' rechecked with `refresh = TRUE`). Every file link on the
 #' page (host `*download.public.lu`) is captured with its native label, grouped
 #' by the portal's own grouping into `attachment_urls_<slug>` columns: the
 #' accordion headings (normally `fichiers`), the per-case "Tout télécharger"
@@ -149,10 +152,14 @@ get_assessments_lu <- function(
     rec <- tryCatch(
       lu_load_or_fetch(entry, sidecar_index),
       error = function(e) {
-        warn_partial(
-          "Failed to load/parse {.url {entry$url}}: {conditionMessage(e)}; keeping listing metadata only (retried on the next run)."
-        )
-        lu_listing_record(entry)
+        gone <- inherits(e, "httr2_http_404")
+        warn_partial(paste0(
+          "Failed to load/parse {.url {entry$url}}: {conditionMessage(e)}; keeping listing metadata only (",
+          if (gone) "cached as not found; recheck with {.code refresh = TRUE})." else "retried on the next run)."
+        ))
+        rec <- lu_listing_record(entry)
+        rec$detail_not_found <- gone
+        rec
       }
     )
     if (!is.null(rel)) {
@@ -517,8 +524,8 @@ lu_load_or_fetch <- function(entry, sidecar_index) {
   if (length(hit) == 1L && !is.na(hit) && nzchar(hit) && file.exists(hit)) {
     # extras come back from the sidecar as plain JSON types; restore ours
     rec <- read_record_sidecar(hit)
-    # a listing-only record is never a warm hit: retry the detail page
-    if (!("detail_fetched" %in% names(rec) && isFALSE(as.logical(rec$detail_fetched)))) {
+    # a listing-only record is a warm hit only when its page was a 404
+    if (!isFALSE(as.logical(rec$detail_fetched %||% TRUE)) || isTRUE(as.logical(rec$detail_not_found))) {
       rec$date_close <- as.Date(rec$date_close)
       rec$nb_contributions <- as.integer(rec$nb_contributions)
       return(rec)
@@ -731,6 +738,7 @@ lu_build_record <- function(entry, html = NULL) {
     },
     attachment_labels_native = paste(sprintf("%s=%s", names(labels), labels), collapse = "; "),
     detail_fetched = fetched,
+    detail_not_found = FALSE,
     detail_sections = if (fetched) as.character(jsonlite::toJSON(s, auto_unbox = FALSE)) else NA_character_,
     listing_json = entry$listing_json,
     download_status = list(empty_download_status())
@@ -775,7 +783,7 @@ lu_finalise_record <- function(rec, download, overwrite, max_file_size_mb, write
     rec[[paste0("local_path_", slug)]] <- list(ds$local_path[match(section_urls[[slug]], ds$url)])
   }
   rec$file_sha256 <- list(ds$sha256)
-  if (write_sidecar && isTRUE(rec$detail_fetched)) {
+  if (write_sidecar && (isTRUE(rec$detail_fetched) || isTRUE(rec$detail_not_found))) {
     tryCatch(
       write_fetched_record_sidecar(rec, downloads = rec$download_status[[1]]),
       error = function(e) {

@@ -105,7 +105,10 @@ record whose detail fetch failed, or whose page looks unexpected, e.g. the
 few listed items whose page returns 404, is returned as a \strong{listing-only
 record} (\code{detail_fetched = FALSE}: title, theme, status, dates,
 municipalities, reference number and \code{listing_json}, no attachments) with a
-\code{planscanR_warning_partial}; it is never cached and is retried next run). Every file link on the
+\code{planscanR_warning_partial}; it is not cached and is retried next run,
+except a page that returns HTTP 404 (about 330 listed inquiries): that
+listing-only record is cached with \code{detail_not_found = TRUE} and only
+rechecked with \code{refresh = TRUE}). Every file link on the
 page (host \verb{*download.public.lu}) is captured with its native label, grouped
 by the portal's own grouping into \verb{attachment_urls_<slug>} columns: the
 accordion headings (normally \code{fichiers}), the per-case "Tout télécharger"
