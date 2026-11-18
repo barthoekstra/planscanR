@@ -7,7 +7,8 @@ for the Flemish *MER-register*
 Omgeving's public register of Project-MER dossiers (project-level EIA)
 and dossier-MER-plicht ontheffingsaanvragen (exemption requests).
 Plan-MER (SEA) lives in a separate Flemish register and is out of scope
-for this handler.
+for this handler; Flemish planning dossiers are the explicit source
+`be_dsi` (`get_assessments("be", source = "be_dsi")`).
 
 ## Usage
 

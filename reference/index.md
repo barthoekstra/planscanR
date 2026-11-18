@@ -51,8 +51,16 @@ plus portal coverage and result helpers.
   : Fetch environmental-assessment records from Latvia.
 - [`get_assessments_es()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md)
   : Fetch environmental-assessment records from Spain.
+- [`get_assessments_cy()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_cy.md)
+  : Fetch environmental-assessment records from Cyprus.
+- [`get_assessments_ge()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ge.md)
+  : Fetch environmental-assessment records from Georgia.
+- [`get_assessments_lu()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lu.md)
+  : Fetch public-inquiry records from Luxembourg.
 - [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md)
   : List supported countries and portals.
+- [`get_assessments_sources()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sources.md)
+  : Explicit assessment sources.
 - [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)
   : Countries supported by the current version of planscanR.
 - [`bind_results()`](https://barthoekstra.github.io/planscanR/reference/bind_results.md)

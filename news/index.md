@@ -2,6 +2,71 @@
 
 ## planscanR 0.0.0.9000
 
+- [`get_assessments()`](https://barthoekstra.github.io/planscanR/reference/get_assessments.md)
+  gains an opt-in `source` argument (after all existing parameters) for
+  explicit non-national sources, and
+  [`get_assessments_sources()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sources.md)
+  lists them. `source = NULL` keeps the national dispatch unchanged;
+  [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md)
+  is unchanged.
+- New explicit source `"worldbank"`
+  (`get_assessments("ke", source = "worldbank")`): World Bank Documents
+  & Reports (WDS API), one record per disclosed document of type
+  Environmental Assessment, Environmental and Social Assessment or
+  Strategic Environmental Assessment/Analysis for the given ISO-2
+  country (multi-country records included, global/regional-only records
+  excluded). Raw `docty`, `majdocty`, `count`, `countrycode`,
+  `projectid` and all other fields are kept as extras; the type label
+  also holds ESMP-grade site files and plans, and no title heuristic is
+  applied. A country code with no World Bank documents at all is an
+  error; all native fields are requested (`fl = "*"`).
+- New explicit source `"eib"`, the European Investment Bank public
+  register (`get_assessments("de", source = "eib")`): one record per
+  register document, all native document types with per-type attachment
+  sections, ISO-2 country tags, a `document_type` filter, and a
+  partial-result warning when the register’s `totalItems` differs from
+  the listed rows.
+- New explicit source `"aiib"` (Asian Infrastructure Investment Bank
+  projects, `get_assessments("cn", source = "aiib")`): one record per
+  project from the bank’s project data file, with the project page
+  fetched for every returned record and every document link kept per
+  native section heading with its full native label. External links are
+  listed in `external_urls_*`, not downloaded. ISO-2 codes map to AIIB
+  English country names; “Multicountry” projects are excluded unless the
+  name prefix names a country; a failed detail page is retried next run.
+- Luxembourg
+  ([`get_assessments_lu()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lu.md),
+  country `"lu"`): the national public-inquiry portal
+  `enquetes.public.lu`, listed through its anonymous JSON search
+  endpoint (`/ctie/searchresults`, `data-id` read from the page) with a
+  detail page fetched per record. **All inquiries are returned (all
+  themes, about 2020 onward)**: the portal has no native EIA flag and no
+  title heuristic is applied, so filter on the native `theme` (new
+  `theme` argument, e.g. `"environement"`), `query` or `date_range`.
+  Native theme, inquiry type, status, dates, municipalities, authorities
+  and the raw listing item (`listing_json`) are kept; every file link is
+  captured with its native label, grouped by the portal’s own grouping
+  (`attachment_urls_fichiers`, `..._tout_telecharger`,
+  `..._description`). Zip/7z files are downloaded as-is, never unpacked.
+  Failed pages give `planscanR_warning_partial` or an error; a missing
+  detail page gives a listing-only record (`detail_fetched = FALSE`)
+  with a warning; unique ids are compared with the reported total
+  (inquiry 1041 is listed twice, so full crawls warn). French, no
+  geometry, 5 req/s by default.
+- New explicit source `"be_dsi"` (Flanders DSI planning dossiers,
+  `get_assessments("be", source = "be_dsi")`): one record per dossier
+  with every phase and document, grouped per native document code.
+  `PLNMER` mixes plan-MER reports, screening and decision letters; they
+  are not classified. Flanders only.
+- New explicit source `"ifc"` (IFC project disclosures,
+  `get_assessments("eg", source = "ifc")`): one record per IFC project
+  of disclosure type ESRS with its review text as `summary`, every
+  native field as an extra and the client documents table in
+  `documents_json` (links in `attachment_urls_document`). The public
+  search key is read from a project page at runtime. IFC labels no
+  document roles (file names only, no classifier) and older files
+  often 404. NL/DE/DK/AT have no ESRS projects.
+
 First development version: a pure-R fetcher for environmental-assessment
 records (Environmental Impact Assessments, Strategic Environmental
 Assessments, and related advice) from European government portals.
@@ -15,12 +80,12 @@ Assessments, and related advice) from European government portals.
   `summary`, `attachment_urls`, `local_path`, …).
   [`bind_results()`](https://barthoekstra.github.io/planscanR/reference/bind_results.md)
   stacks results from several countries.
-- 22 countries are supported: Netherlands, Germany, France, Austria,
+- 25 countries are supported: Netherlands, Germany, France, Austria,
   Denmark, Belgium (Flanders), Estonia, Finland, Bulgaria, the Czech
   Republic, Croatia, Greece, Iceland, Ireland, Slovenia, Portugal, the
-  United Kingdom, Italy, Slovakia, Norway, Latvia, and Spain. Coverage,
-  honoured filters, geometry, and per-portal quirks differ by country —
-  see
+  United Kingdom, Italy, Slovakia, Norway, Latvia, Spain, Cyprus,
+  Georgia, and Luxembourg. Coverage, honoured filters, geometry, and
+  per-portal quirks differ by country — see
   [`vignette("supported_sources")`](https://barthoekstra.github.io/planscanR/articles/supported_sources.md)
   and
   [`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md).
@@ -139,6 +204,42 @@ Assessments, and related advice) from European government portals.
   `date_range` are matched client-side (the portal’s own filters are
   POST/AJAX). Latvian. Throttled to 5 req/s by default
   (`getOption("planscanR.lv_throttle_rate")`).
+- Georgia
+  ([`get_assessments_ge()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ge.md)):
+  fetches the recent environmental decision portal **ei.gov.ge**
+  (Georgian). Only the recent portal is covered (the legacy archive is
+  out of scope and the portal’s historical horizon is undocumented). The
+  listing (`POST /ka/Home/Table`, finite pages) is enumerated per
+  procedure (`procedure` = `eia`, `eia_screening`, `eia_scoping`,
+  `sea_screening`, `sea_scoping`, `sea_report_review`), deduplicated to
+  one record per case (`ge_<GUID>`); the `/ka/record` detail JSON is
+  kept whole in `detail_json`. Application/decision PDFs go in
+  `attachment_urls_main_document`; accompanying bundles (listed only
+  when the record says they exist) go in
+  `attachment_urls_accompanying_bundle`. **The EIA report is inside the
+  RAR5 bundle of the EIA procedure’s application/annex entry** (SEA: the
+  report-review procedure); screening/scoping bundles hold
+  screening/scoping material. Bundles are downloaded as-is (no
+  extraction); SEA bundles (500+ MB) and some EIA bundles (e.g. 75 MB)
+  exceed the default 50 MB cap. Attachment labels are
+  `"<procedure> | <category>"`; the listing-row cells are kept as
+  `listing_*` extras (later event rows are not merged). 2 req/s by
+  default.
+- Cyprus
+  ([`get_assessments_cy()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_cy.md)):
+  fetches the Department of Environment EIA register at
+  **eia.moa.gov.cy**. Coverage is the portal’s *current-year* listing
+  only (no archive or year selector exists; ids are never guessed), so
+  it is not national completeness; the SEA register is not covered. Both
+  *ΜΕΕΠ* (full EIA) and *Screening* rows are returned with the native
+  labels kept (`listing_type`, `native_type`); `document_id` is
+  `cy_<no>`. Detail pages supply all key/value metadata
+  (`native_fields`) and the file list, grouped by portal folder into
+  `attachment_urls_<slug>` columns; large study `.zip` files are
+  downloaded as-is. Greek, no geometry, 5 req/s by default. Shared
+  download naming now takes the filename from `download.php?f=<path>`
+  style URLs so several files of one record no longer overwrite each
+  other.
 - Spain
   ([`get_assessments_es()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md)):
   fetches the national-competence environmental assessments from the

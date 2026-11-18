@@ -70,16 +70,32 @@ environmental-assessment portals (currently Netherlands, Germany,
 France, Austria, Denmark, Belgium (Flanders), Estonia, Finland,
 Bulgaria, the Czech Republic, Croatia, Greece, Iceland, Ireland,
 Slovenia, Portugal, the United Kingdom, Italy, Slovakia, Norway, Latvia,
-and Spain). There is no shared API behind the scenes — each country
-gives us a different mix of HTML pages, sitemaps, search endpoints, and
-undocumented JSON handlers, and each one comes with its own quirks. This
-vignette describes what each handler does, where it pulls data from, and
-what to expect (or watch out for) when using it.</p>
+Spain, Cyprus, Georgia, and Luxembourg). There is no shared API behind
+the scenes — each country gives us a different mix of HTML pages,
+sitemaps, search endpoints, and undocumented JSON handlers, and each one
+comes with its own quirks. This vignette describes what each handler
+does, where it pulls data from, and what to expect (or watch out for)
+when using it.</p>
 <p>For the runtime equivalent — the same information in tabular form,
 including the valid vocabularies for the search facets each handler
 accepts — call:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_coverage.html">get_assessments_coverage</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Explicit, opt-in sources (not national portals) are chosen with
+<code>get_assessments(country, source = "&lt;id&gt;")</code> and listed,
+with granularity, geography, scope and limitations, by:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_sources.html">get_assessments_sources</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code>"worldbank"</code> queries the World Bank Documents &amp;
+Reports API for documents typed <em>Environmental Assessment</em>,
+<em>Environmental and Social Assessment</em> or <em>Strategic
+Environmental Assessment/Analysis</em>, filtered server-side on the
+ISO-2 country code (multi-country records included; global/regional-only
+records excluded). The bank’s type label does not separate full EA/ESIA
+reports from site-level ESMP-grade files filed under the same label, and
+planscanR adds no title heuristic: the raw
+<code>docty</code>/<code>majdocty</code> strings are kept so downstream
+screening can decide.</p>
 <div class="section level2">
 <h2 id="a-note-on-stability">A note on stability<a class="anchor" aria-label="anchor" href="#a-note-on-stability"></a>
 </h2>
@@ -143,7 +159,7 @@ sections, which are exposed as separate list-columns
 (<code>attachment_urls_source</code> and the deduplicated
 <code>attachment_urls</code> union). See
 <code><a href="../reference/get_assessments_nl.html">?get_assessments_nl</a></code> for the section layout.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_nl.html">get_assessments_nl</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -186,7 +202,7 @@ curated slug (<code>uvp_bericht</code>, <code>berichte</code>,
 and any unknown heading is auto-slugged from its title so a new section
 type appears without a code change. See <code><a href="../reference/get_assessments_de.html">?get_assessments_de</a></code>
 for the full layout.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_de.html">get_assessments_de</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"windenergie"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -241,7 +257,7 @@ préfecture web pages are kept only as extras.</p>
 <code>MultiPolygon</code>). OpenDataSoft always serves WGS84, so each is
 saved as a sibling <code>&lt;document_id&gt;.geometry.geojson</code>
 with <code>geometry_crs = "EPSG:4326"</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_fr.html">get_assessments_fr</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"éolien"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -281,7 +297,7 @@ record returns <code>attachment_urls = character(0)</code>. The
 effect. If you need attachments, point
 <code>get_assessments(..., discover = TRUE)</code> at a web-search
 backend — see [<code><a href="../reference/discover_attachments.html">?discover_attachments</a></code>].</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_at.html">get_assessments_at</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"Windpark"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -334,7 +350,7 @@ URLs reachable via
 resolving them costs an extra HTTP call per document. The current
 handler is scan + classify only; a future release will add the download
 phase.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_dk.html">get_assessments_dk</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"vindmølle"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -352,7 +368,10 @@ geometry, and document downloads.</li>
 <strong>Coverage:</strong> ~3,000 Project-MER dossiers
 (project-level EIA) and dossier MER-plicht ontheffingsaanvragen
 (exemption requests). Plan-MER (SEA) lives in a separate Flemish
-register and is out of scope for this handler.</li>
+register and is out of scope for this handler. Flemish planning dossiers
+(DSI, including plan-MER material) are available as the explicit source
+<code>get_assessments("be", source = "be_dsi")</code>; assessment
+reports are only a subset of their documents.</li>
 <li>
 <strong>Throttle:</strong> 5 requests/second by default
 (<code>getOption("planscanR.be_throttle_rate")</code>).</li>
@@ -392,7 +411,7 @@ own <code>attachment_urls_&lt;slug&gt;</code> /
 <code>local_path_&lt;slug&gt;</code> column. The deduplicated union is
 at <code>attachment_urls</code> / <code>local_path</code> as the schema
 requires.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_be.html">get_assessments_be</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"wind"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -466,7 +485,7 @@ Each type becomes its own <code>attachment_urls_&lt;slug&gt;</code> /
 <code>local_path_&lt;slug&gt;</code> column. The deduplicated union is
 at <code>attachment_urls</code> / <code>local_path</code> as the schema
 requires.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Both registers, wind-themed slice</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_ee.html">get_assessments_ee</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"tuulepark"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -542,7 +561,7 @@ Each type becomes its own <code>attachment_urls_&lt;slug&gt;</code> /
 <code>local_path_&lt;slug&gt;</code> column; the deduplicated union is
 at <code>attachment_urls</code> / <code>local_path</code> as the schema
 requires.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Wind-themed slice (server-side full-text)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_fi.html">get_assessments_fi</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"tuulivoima"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -615,7 +634,7 @@ are typed only by the table-row label they sit under (Уведомление,
 transliterated to ASCII). The deduplicated union is at
 <code>attachment_urls</code> / <code>local_path</code> as the schema
 requires.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Both registers, wind-themed slice</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_bg.html">get_assessments_bg</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"вятър"</span>, limit <span class="op">=</span> <span class="fl">20</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -707,7 +726,7 @@ transliterated to ASCII). The deduplicated union is at
 requires. Note that some attachments are very large ZIP bundles (e.g. a
 79 MB <code>oznameni.zip</code>); the <code>max_file_size_mb</code> cap
 skips oversized files rather than fetching them.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Both registers, first few records</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_cz.html">get_assessments_cz</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -791,7 +810,7 @@ at <code>attachment_urls</code> / <code>local_path</code> as the schema
 requires. The <code>href</code> is captured verbatim (with its spaces
 and Croatian diacritics) and percent-encoded only for the network
 request at download time.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Both registers, first few records</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_hr.html">get_assessments_hr</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -878,7 +897,7 @@ to percent-encode at request time. It lands under the single slug
 the deduplicated union at <code>attachment_urls</code> /
 <code>local_path</code>. Records whose <code>diavgeia_doc_url</code> is
 <code>null</code> yield zero attachments (still schema-valid).</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># AEPO decisions, first few records</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_gr.html">get_assessments_gr</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -990,7 +1009,7 @@ deduplicated union at <code>attachment_urls</code> /
 form <code>files/&lt;uuid&gt;</code>), anonymous. PDFs are large (often
 10-16 MB) — set <code>max_file_size_mb</code> accordingly. The top-level
 <code>Issue.files</code> collection is usually empty and is ignored.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent EIA cases (screening + full), first few records</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_is.html">get_assessments_is</a></span><span class="op">(</span>assessment_type <span class="op">=</span> <span class="st">"EIA"</span>, limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1094,7 +1113,7 @@ the deduplicated union goes to <code>attachment_urls</code> /
 <code>local_path</code>. A record may carry <strong>0</strong>
 attachments (still schema-valid). The full EIAR is <em>not</em> here —
 see the off-portal caveat above.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent EIA applications, first few records (portal hosts the notice PDF only)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_ie.html">get_assessments_ie</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1180,7 +1199,7 @@ onward</strong>.</li>
 <strong>Language:</strong> Slovenian (ISO-639-1 <code>sl</code>); no
 normalisation.</li>
 </ul>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent screening + CPVO records (no PDFs downloaded yet)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_si.html">get_assessments_si</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1267,7 +1286,7 @@ when the detail page exposes a full decision date, otherwise against the
 <strong>Language:</strong> Portuguese (ISO-639-1 <code>pt</code>);
 no normalisation.</li>
 </ul>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent AIA procedures (no PDFs downloaded yet)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_pt.html">get_assessments_pt</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1344,7 +1363,7 @@ GPTBot / CCBot) with <code>Disallow: /</code>.</li>
 <strong>Language:</strong> English (ISO-639-1 <code>en</code>); no
 normalisation.</li>
 </ul>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent NSIP applications (no PDFs downloaded yet)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_gb.html">get_assessments_gb</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1438,7 +1457,7 @@ smaller (~270 plans).</li>
 <strong>Language:</strong> Italian (ISO-639-1 <code>it</code>);
 portal-native values kept verbatim.</li>
 </ul>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent VIA/VAS records (no PDFs downloaded yet)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_it.html">get_assessments_it</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1539,7 +1558,7 @@ recommended for exploratory runs.</li>
 <strong>Language:</strong> Slovak (ISO-639-1 <code>sk</code>);
 portal-native values kept verbatim.</li>
 </ul>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent records (no PDFs downloaded yet)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_sk.html">get_assessments_sk</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1644,7 +1663,7 @@ requests/second) by default, honouring NVE’s <code>robots.txt</code>
 <strong>Language:</strong> Norwegian (ISO-639-1 <code>no</code>);
 portal-native values kept verbatim.</li>
 </ul>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent concession cases (no PDFs downloaded yet)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_no.html">get_assessments_no</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1748,7 +1767,7 @@ via <code>getOption("planscanR.lv_throttle_rate")</code>
 <strong>Language:</strong> Latvian (ISO-639-1 <code>lv</code>);
 portal-native values kept verbatim.</li>
 </ul>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Recent records across both halves (no PDFs downloaded yet)</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_lv.html">get_assessments_lv</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1829,7 +1848,7 @@ client-side; <code>limit</code>.</li>
 <strong>Language:</strong> Spanish (ISO-639-1 <code>es</code>);
 portal-native values kept verbatim.</li>
 </ul>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Requires {chromote} + a Chrome/Chromium binary.</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_es.html">get_assessments_es</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -1838,6 +1857,214 @@ portal-native values kept verbatim.</li>
 <span></span>
 <span><span class="co"># Title substring + download the national-competence PDFs through the browser</span></span>
 <span><span class="fu"><a href="../reference/get_assessments_es.html">get_assessments_es</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"eólica"</span>, limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="cyprus--cy">Cyprus — <code>"cy"</code><a class="anchor" aria-label="anchor" href="#cyprus--cy"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> Department of Environment (Ministry of
+Agriculture) EIA register, <a href="https://eia.moa.gov.cy/public/" class="external-link">eia.moa.gov.cy</a>,
+server-rendered HTML.</li>
+<li>
+<strong>Coverage window:</strong> only the <em>current-year</em>
+listing (<code>/public/currentYearView.html</code>, one finite table;
+completions seen 2024–2026) is enumerable. There is no archive or year
+selector and ids are never guessed, so this is <strong>not national
+completeness</strong>. The SEA register (<code>/public/sea/</code>) is
+not covered.</li>
+<li>
+<strong>Records:</strong> both <em>ΜΕΕΠ</em> (full EIA) and
+<em>Screening</em> rows, with the native labels kept
+(<code>listing_type</code>, <code>native_type</code>); no eligibility
+rule is applied. <code>document_id</code> is <code>cy_&lt;no&gt;</code>;
+<code>project_number</code>, <code>file_number</code>,
+<code>category</code>, <code>district</code>, <code>area</code>,
+<code>town</code> and the full key/value set
+(<code>native_fields</code>) are extras. No proponent field, no
+geometry. Greek (<code>el</code>).</li>
+<li>
+<strong>Attachments:</strong> grouped by portal folder into
+<code>attachment_urls_&lt;slug&gt;</code> (<code>meep</code>,
+<code>gnomatevseis</code>, <code>oikologiki_axiologisi</code>, …); the
+native Greek row labels are in <code>attachment_labels_native</code>.
+Study files are often large <code>.zip</code> archives, downloaded as-is
+and bounded by <code>max_file_size_mb</code>.</li>
+</ul>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_cy.html">get_assessments_cy</a></span><span class="op">(</span>limit <span class="op">=</span> <span class="fl">5</span>, download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="georgia--ge">Georgia — <code>"ge"</code><a class="anchor" aria-label="anchor" href="#georgia--ge"></a>
+</h2>
+<ul>
+<li>
+<strong>Portal:</strong> recent environmental decision portal of the
+Ministry of Environmental Protection and Agriculture, <a href="https://ei.gov.ge/" class="external-link">ei.gov.ge</a> (Georgian, <code>/ka</code>).
+The legacy archive is out of scope and the portal’s historical horizon
+is undocumented, so this is <strong>not national
+completeness</strong>.</li>
+<li>
+<strong>Records:</strong> one per case
+(<code>ge_&lt;GUID&gt;</code>), enumerated from the POST listing per
+<code>procedure</code> (<code>eia</code>, <code>eia_screening</code>,
+<code>eia_scoping</code>, <code>sea_screening</code>,
+<code>sea_scoping</code>, <code>sea_report_review</code>; default all).
+Native procedure, category and status are kept
+(<code>procedure_native</code>, <code>category_native</code>,
+<code>status</code>, <code>procedures_native</code>) and the full detail
+JSON is in <code>detail_json</code>. No geometry;
+<code>competent_authority</code> is not exposed.</li>
+<li>
+<strong>Attachments:</strong>
+<code>attachment_urls_main_document</code> (application letters and
+decisions, PDF) and <code>attachment_urls_accompanying_bundle</code>
+(only where the record flags accompanying documents). <strong>The EIA
+report is inside the RAR5 bundle of the EIA procedure’s
+application/annex entry</strong> (for SEA, of the report-review
+procedure); screening and scoping bundles hold screening and scoping
+material only, and accompanying files can also be PDFs. Bundles are
+downloaded as-is (no extraction). SEA bundles (500+ MB) and some EIA
+bundles (e.g. 75 MB) exceed the default 50 MB cap
+(<code>skipped_size</code>). Labels in
+<code>attachment_labels_native</code> are
+<code>"&lt;native procedure&gt; | &lt;native category&gt;"</code>.</li>
+<li>
+<strong>Listing row:</strong> <code>status</code>,
+<code>procedure_native</code> and the <code>listing_*</code> cells
+(<code>listing_row_id</code>, <code>listing_municipality</code>,
+<code>listing_comment_deadline</code>,
+<code>listing_public_hearing</code>) come from the row that first
+surfaced the case (a nested-document event row is resolved to its
+enclosing procedure); later event rows are not merged. An empty
+procedure grid is an error and the case is retried on the next run.</li>
+</ul>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">get_assessments_ge</span>(<span class="at">limit =</span> <span class="dv">5</span>, <span class="at">download =</span> <span class="cn">FALSE</span>, <span class="at">procedure =</span> <span class="st">"eia"</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="do">## Luxembourg — `"lu"`</span></span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="sc">*</span> <span class="er">**</span>Portal<span class="sc">:</span><span class="er">**</span> national public<span class="sc">-</span>inquiry portal</span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>  [enquetes.public.lu](https<span class="sc">:</span><span class="er">//</span>enquetes.public.lu), listed through its anonymous</span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>  JSON search <span class="fu">endpoint</span> (<span class="st">`</span><span class="at">/ctie/searchresults</span><span class="st">`</span>, <span class="dv">21</span> items per page; the constant</span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>  <span class="st">`</span><span class="at">data-id</span><span class="st">`</span> is read from the list page) plus one HTML detail page per record.</span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a><span class="sc">*</span> <span class="er">**</span>Scope<span class="sc">:</span><span class="er">**</span> <span class="er">*</span>all<span class="sc">*</span> public <span class="fu">inquiries</span> (about <span class="dv">2</span>,<span class="dv">100</span> since about <span class="dv">2020</span><span class="sc">:</span> classified</span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a>  establishments, water permits, environment, ...). The portal has <span class="sc">**</span>no native</span>
+<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a>  <span class="st">"EIA report"</span> flag<span class="sc">**</span> and no title heuristic is applied, so <span class="st">`</span><span class="at">assessment_type</span><span class="st">`</span></span>
+<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a>  is <span class="st">`</span><span class="at">NA</span><span class="st">`</span>; the native <span class="st">`</span><span class="at">theme</span><span class="st">`</span> (e.g. <span class="st">`</span><span class="at">"environement"</span><span class="st">`</span>, the portal<span class="st">'s spelling,</span></span>
+<span id="cb26-11"><a href="#cb26-11" tabindex="-1"></a><span class="st">  about 57 inquiries mixing EIAs, Natura 2000, plans and permits), `survey_type`</span></span>
+<span id="cb26-12"><a href="#cb26-12" tabindex="-1"></a><span class="st">  and status are kept as columns. Filter with `theme`, `query` or `date_range`.</span></span>
+<span id="cb26-13"><a href="#cb26-13" tabindex="-1"></a><span class="st">* **Records:** `document_id` is `lu_&lt;native id&gt;`; the raw listing item is in</span></span>
+<span id="cb26-14"><a href="#cb26-14" tabindex="-1"></a><span class="st">  `listing_json` and every text section of the page in `detail_sections`.</span></span>
+<span id="cb26-15"><a href="#cb26-15" tabindex="-1"></a><span class="st">  Opening/closing dates, municipalities, organising and supervising</span></span>
+<span id="cb26-16"><a href="#cb26-16" tabindex="-1"></a><span class="st">  authorities, reference number and procedure type are extras. `proponent`</span></span>
+<span id="cb26-17"><a href="#cb26-17" tabindex="-1"></a><span class="st">  is the "Requérant" line of the description when present, else `NA`; no</span></span>
+<span id="cb26-18"><a href="#cb26-18" tabindex="-1"></a><span class="st">  geometry. French (`fr`).</span></span>
+<span id="cb26-19"><a href="#cb26-19" tabindex="-1"></a><span class="st">* **Completeness:** a malformed response or a failed first page is an error; a</span></span>
+<span id="cb26-20"><a href="#cb26-20" tabindex="-1"></a><span class="st">  failed, short, early-empty or repeated later page, three consecutive failed</span></span>
+<span id="cb26-21"><a href="#cb26-21" tabindex="-1"></a><span class="st">  pages, or fewer unique ids than the reported total (the portal lists</span></span>
+<span id="cb26-22"><a href="#cb26-22" tabindex="-1"></a><span class="st">  inquiry 1041 twice, so crawls warn one short, e.g. "56 of 57" for the</span></span>
+<span id="cb26-23"><a href="#cb26-23" tabindex="-1"></a><span class="st">  `environement` theme) gives a</span></span>
+<span id="cb26-24"><a href="#cb26-24" tabindex="-1"></a><span class="st">  `planscanR_warning_partial`. A listed inquiry whose detail page is missing</span></span>
+<span id="cb26-25"><a href="#cb26-25" tabindex="-1"></a><span class="st">  (a few listed items return 404) is returned as a listing-only record</span></span>
+<span id="cb26-26"><a href="#cb26-26" tabindex="-1"></a><span class="st">  (`detail_fetched = FALSE`, no attachments) with a warning, never cached and</span></span>
+<span id="cb26-27"><a href="#cb26-27" tabindex="-1"></a><span class="st">  retried next run.</span></span>
+<span id="cb26-28"><a href="#cb26-28" tabindex="-1"></a><span class="st">* **Attachments:** every file link on the page with its native label, grouped</span></span>
+<span id="cb26-29"><a href="#cb26-29" tabindex="-1"></a><span class="st">  into `attachment_urls_fichiers`, `attachment_urls_tout_telecharger` (the</span></span>
+<span id="cb26-30"><a href="#cb26-30" tabindex="-1"></a><span class="st">  per-case zip duplicating the others) and `attachment_urls_description`</span></span>
+<span id="cb26-31"><a href="#cb26-31" tabindex="-1"></a><span class="st">  (links inside the description, e.g. a 7z dossier). Zip and 7z files are</span></span>
+<span id="cb26-32"><a href="#cb26-32" tabindex="-1"></a><span class="st">  downloaded as-is, never unpacked, bounded by `max_file_size_mb` (the main EIA</span></span>
+<span id="cb26-33"><a href="#cb26-33" tabindex="-1"></a><span class="st">  report is often inside a zip; very large ones are reported `skipped_size`).</span></span>
+<span id="cb26-34"><a href="#cb26-34" tabindex="-1"></a><span class="st">get_assessments_lu(theme = "environement", limit = 5, download = FALSE)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="european-investment-bank-register--source--eib">European Investment Bank register — <code>source = "eib"</code><a class="anchor" aria-label="anchor" href="#european-investment-bank-register--source--eib"></a>
+</h2>
+<p>Not a national portal: an explicit, opt-in source
+(<code>get_assessments("de", source = "eib")</code>, see
+<code><a href="../reference/get_assessments_sources.html">get_assessments_sources()</a></code>), backed by the <a href="https://www.eib.org/en/registers/" class="external-link">EIB public register</a> of
+documents for EIB-financed projects. - One record per register
+<strong>document</strong> (<code>document_id = "eib_&lt;id&gt;"</code>);
+the project number is kept as <code>project_number</code>. All native
+document types are kept in <code>role</code> / <code>native_type</code>,
+each with its own <code>attachment_urls_&lt;type&gt;</code> section.
+<code>ESIA</code>, <code>Environmental Impact Assessment</code> and
+<code>SEA</code> labels identify full reports (the <code>ESIA</code>
+bucket also holds permits and placeholder rows); <code>ESDS</code>,
+<code>ESCS</code> and <code>NTS</code> are summaries. “Link to promoter
+website” rows may have no file; that is only known after download, where
+a missing file is recorded in <code>download_status</code>. The record
+<code>url</code> is the register page. Use
+<code>document_type = "ESIA"</code> to filter. - Geography: a record
+matches when any of its ISO-2 country tags equals the requested code
+(multi-country records included). Regional/non-ISO tags (<code>C7</code>
+“EU Countries”, <code>A1</code>-<code>A9</code>, …) and untagged rows
+are excluded; the full tag list stays in <code>country_codes</code>. -
+One listing request per call; if <code>totalItems</code> differs from
+the returned rows a <code>planscanR_warning_partial</code> states both
+numbers. Files above <code>max_file_size_mb</code> are kept in the
+record with status <code>skipped_size</code>. - Scope: EIB-financed
+projects only (publication since about 2011), not national
+completeness.</p>
+</div>
+<div class="section level2">
+<h2 id="ifc-project-disclosures--source--ifc">IFC project disclosures — <code>source = "ifc"</code><a class="anchor" aria-label="anchor" href="#ifc-project-disclosures--source--ifc"></a>
+</h2>
+<p>Not a national portal: an explicit, opt-in source
+(<code>get_assessments("eg", source = "ifc")</code>), backed by the <a href="https://disclosures.ifc.org/" class="external-link">IFC disclosure portal</a> of the
+World Bank Group’s private-sector arm. - One record per
+<strong>project</strong> of disclosure type <code>ESRS</code>
+(Environmental and Social Review Summary; other IFC types are out of
+scope), <code>document_id =   "ifc_&lt;Project_Number&gt;"</code>. The
+ESRS review text is the record <code>summary</code>; every native field
+is kept as an extra and the raw row as <code>listing_json</code>. - The
+project-detail page is fetched per record (sidecar first, bounded by
+<code>limit</code>); its client documents table goes into
+<code>documents_json</code> and the file links into
+<code>attachment_urls_document</code>. IFC does not label document
+roles: the file name is the only label, there is no classifier, so ESIA,
+ESMP, SEP and translations all appear. Older files often return 404
+(recorded per file). A record whose detail page failed has
+<code>detail_fetched = FALSE</code> and is retried. - Geography: IFC
+stores one World-Bank-style country name, so the ISO-2 code is mapped
+through an internal table; a code IFC has no ESRS projects for
+(including NL, DE, DK, AT) is an error, and regional pseudo-countries
+(“Africa Region”, “World Region”) are never returned. - The listing
+needs a public search key that the portal prints in every detail page;
+it is read at runtime (once per session) and an unreadable page is an
+actionable error. Incomplete paging gives a
+<code>planscanR_warning_partial</code>. ## Asian Infrastructure
+Investment Bank projects — <code>source = "aiib"</code></p>
+<p>An explicit, opt-in source
+(<code>get_assessments("cn", source = "aiib")</code>) for the <a href="https://www.aiib.org/en/projects/list/" class="external-link">AIIB project register</a>:
+an international development bank portfolio (2016 onward, mostly Asia),
+not a national EIA register. - One record per <strong>project</strong>
+(<code>document_id = "aiib_p&lt;project number&gt;"</code>, so a status
+move updates the same sidecar; only a record whose detail page failed
+gets a path-based fallback id and is not cached). The whole register is
+one <code>all-projects-data.js</code> request; the project page is
+fetched for each returned record (sidecar-first) for the project number,
+E&amp;S category, description, borrower/implementing organisation and
+the document links. - Every document link is kept under its native
+heading (<code>attachment_urls_aiib_documents</code>,
+<code>..._client_cofinancing_partner_documents</code>,
+<code>..._procurement_documents</code>) with the full native label,
+including the language suffix, in
+<code>attachment_labels_&lt;section&gt;</code>. No role is assigned:
+ESIA, ESMP, IEE and RAP files are only recognisable from those labels.
+Links to other hosts are listed in
+<code>external_urls_&lt;section&gt;</code> and not downloaded. -
+Geography: ISO-2 codes are mapped to AIIB’s English economy names and
+matched on the <code>economy</code> field or the name prefix before the
+colon (they differ for a few rows, e.g. economy “Algeria” for an
+“Uzbekistan: …” project, which then appears under both countries with
+the same id; both are kept as <code>economy</code> and
+<code>name_prefix</code>). Borrower and implementing-entity text keeps
+only lines with an organisation word; names and titles are dropped.
+Codes without a mapping (including NL/DE/DK/AT) are an error;
+<code>"Multicountry"</code> projects have no member list and are
+excluded unless the name prefix names a mapped country. - Only some
+Category A/B projects publish an assessment; Category C, financial
+intermediary and policy projects often have none. A failed detail page
+gives a listing-only record (<code>detail_status = "failed"</code>) and
+a partial-result warning, and is retried on the next run.</p>
 </div>
 <div class="section level2">
 <h2 id="adding-a-new-source">Adding a new source<a class="anchor" aria-label="anchor" href="#adding-a-new-source"></a>

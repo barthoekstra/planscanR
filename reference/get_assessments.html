@@ -71,7 +71,8 @@ freely. See <strong>Return value</strong> for details.</p>
 <span>  relevance_model <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  discover <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  search_backend <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  source <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -83,7 +84,7 @@ freely. See <strong>Return value</strong> for details.</p>
 <dd><p>Character scalar, ISO-3166-1 alpha-2 country code (any case).
 v0.1 supports <code>"nl"</code>, <code>"de"</code>, <code>"fr"</code>, <code>"at"</code>, <code>"dk"</code>, <code>"be"</code> (Flanders),
 <code>"ee"</code>, <code>"fi"</code>, <code>"bg"</code>, <code>"cz"</code>, <code>"hr"</code>, <code>"gr"</code>, <code>"is"</code>, <code>"ie"</code>, <code>"si"</code>,
-<code>"pt"</code>, <code>"gb"</code>, <code>"it"</code>, <code>"sk"</code>, <code>"no"</code>, <code>"lv"</code>, and <code>"es"</code>. Note that
+<code>"pt"</code>, <code>"gb"</code>, <code>"it"</code>, <code>"sk"</code>, <code>"no"</code>, <code>"lv"</code>, <code>"es"</code>, <code>"cy"</code>, <code>"ge"</code>, and <code>"lu"</code>. Note that
 <code>"es"</code> (Spain) requires the optional {chromote} headless-browser
 transport — see <code><a href="get_assessments_es.html">get_assessments_es()</a></code>. See <code><a href="supported_countries.html">supported_countries()</a></code>.</p></dd>
 
@@ -185,8 +186,18 @@ pass. Defaults to <code><a href="search_backend_tavily.html">search_backend_tavi
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Forwarded to the country handler. Common search parameters are
-documented in <code><a href="get_assessments_nl.html">get_assessments_nl()</a></code>.</p></dd>
+<dd><p>Forwarded to the country or source handler. Common search
+parameters are documented in <code><a href="get_assessments_nl.html">get_assessments_nl()</a></code>.</p></dd>
+
+
+<dt id="arg-source">source<a class="anchor" aria-label="anchor" href="#arg-source"></a></dt>
+<dd><p>Optional single string naming an explicit, opt-in source from
+<code><a href="get_assessments_sources.html">get_assessments_sources()</a></code> (e.g. a development bank or a second portal).
+<code>NULL</code> (default) keeps the national-portal dispatch on <code>country</code>. With a
+source, <code>country</code> must be a scalar ISO-2 code; it need not be in
+<code><a href="supported_countries.html">supported_countries()</a></code> because the source maps it to its own geography
+vocabulary. Must be named in full (it follows <code>...</code>). Records from a source
+carry source-prefixed <code>document_id</code>s.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -198,7 +209,7 @@ documented in <code><a href="get_assessments_nl.html">get_assessments_nl()</a></
 <dd><p>Character (e.g. <code>"commissiemer.nl"</code>).</p></dd>
 
 <dt><code>document_id</code></dt>
-<dd><p>Character. Portal-native ID, unique within the portal.</p></dd>
+<dd><p>Character. Portal-native ID (source-prefixed for explicit sources), unique within the portal.</p></dd>
 
 <dt><code>url</code></dt>
 <dd><p>Character. Canonical portal landing URL.</p></dd>

@@ -14,7 +14,23 @@ advice) from European national portals — modelled on
 [`aloftdata/getRad`](https://github.com/aloftdata/getRad). It is pure-R:
 no Python, no Shiny, no project-specific scoring config.
 
-**v0.1 scope.** Twenty-two country handlers ship: - Netherlands
+**Explicit sources.** Beyond the country handlers, opt-in sources live
+in the `assessment_sources()` registry (`R/utils_dispatch.R`) and are
+selected with `get_assessments(country, source = "<id>")`; they are not
+in
+[`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)
+or
+[`get_assessments_coverage()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_coverage.md).
+Registered: `"worldbank"` (World Bank WDS API, one record per
+EA/ESA/SEA-typed document, `worldbank_<id>`), `"eib"` (EIB public
+register, one record per document, `eib_<id>`), `"ifc"` (IFC ESRS
+project disclosures, `ifc_<Project_Number>`), `"aiib"` (AIIB projects
+with per-section document links, `aiib_p<project number>`) and
+`"be_dsi"` (Flanders DSI planning dossiers, `be_dsi_<algplanid>`).
+[`get_assessments_sources()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sources.md)
+lists them with scope and limitations.
+
+**v0.1 scope.** Twenty-five country handlers ship: - Netherlands
 ([`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md))
 — Commissie m.e.r. adviezenregister at `commissiemer.nl`. - Germany
 ([`get_assessments_de()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_de.md))
@@ -36,10 +52,31 @@ are dropped). Records with a `localisation` Feature get a
 `<document_id>.geometry.geojson` in **EPSG:4326** (WGS84; ODS always
 serves 4326). - Denmark
 ([`get_assessments_dk()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_dk.md))
-— Danmarks Miljøportal EA-Hub at `eahub.miljoeportal.dk`.
-**Metadata-only** in v0.x (records carry full metadata + polygon
-geometry; document downloads deferred). Geometry is persisted as
-`<document_id>.geometry.geojson` next to the sidecar (EPSG:25832). -
+— Danmarks Miljøportal EA-Hub at `eahub.miljoeportal.dk`. Full
+metadata + polygon geometry; with `download = TRUE` documents are
+resolved per section via `/assessments/{id}/documents/{docId}/links` and
+downloaded. Geometry is persisted as `<document_id>.geometry.geojson`
+next to the sidecar (EPSG:25832). - EIB public register
+([`get_assessments_eib()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_eib.md),
+explicit source `source = "eib"`, registered in `assessment_sources()`;
+not in
+[`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)):
+one record per register document, ISO-2 tag match, all native document
+types kept, `document_type` filter, listing is a single call with a
+`totalItems` partial warning. - IFC project disclosures
+(`get_assessments_ifc()`, explicit source `source = "ifc"`; not in
+[`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)):
+ESRS projects only, ISO-2 mapped to IFC country names
+(`ifc_country_names()`), public search key read from a detail page at
+runtime, project-detail page fetched per record for the client documents
+table; failed detail = `detail_fetched = FALSE`, retried. No role
+classifier (file names only). - AIIB projects (`get_assessments_aiib()`,
+explicit source `source = "aiib"`; not in
+[`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)):
+one `all-projects-data.js` request, detail page per returned record
+(sidecar-first; failures are not cached), ISO-2 to economy-name table
+(economy or name prefix), links grouped per native heading with
+`attachment_labels_<slug>`, external links in `external_urls_<slug>`. -
 Belgium (Flanders)
 ([`get_assessments_be()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_be.md))
 — Departement Omgeving MER-register at
@@ -48,7 +85,13 @@ ontheffingsaanvragen only (Plan-MER is a separate Flemish register).
 Full metadata, polygon geometry (EPSG:31370, persisted in the same
 GeoJSON layout as DK), and direct anonymous document downloads. The
 geometry sidecar’s CRS is the only thing that distinguishes it from a DK
-file. - Estonia
+file. Plan-MER lives in the explicit second portal `source = "be_dsi"`
+(`get_assessments("be", source = "be_dsi")`,
+`R/get_assessments_be_dsi.R`): Flanders DSI planning dossiers (one
+record per dossier, `be_dsi_<algplanid>`, documents grouped per native
+code, e.g. `attachment_urls_plnmer`). Flemish only; `PLNMER` mixes
+plan-MER reports, screening and decision letters and is not
+classified. - Estonia
 ([`get_assessments_ee()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ee.md))
 — Keskkonnaamet KOTKAS at `kotkas.envir.ee`. Merges both Estonian
 registers — **KMH** (EIA) and **KSH** (SEA) — into one result tibble;
@@ -468,6 +511,71 @@ client-side; `codigo` → server-side `<Codigo>` + client-side;
 `getOption("planscanR.es_throttle_rate", 2)` (seconds between ficha
 fetches). Coverage `status` =
 `"supported (requires optional headless browser; TLS-fingerprinted portal)"`. -
+Georgia
+([`get_assessments_ge()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ge.md))
+— recent environmental decision portal `ei.gov.ge` (Georgian). **Recent
+portal only** (legacy archive excluded). Seams
+`ge_fetch_table(procedure_id, page)` (POST `/ka/Home/Table`, HTML
+fragment, 5 rows/page, last page from the pagination links) and
+`ge_fetch_record(id)` (`/ka/record?id=`, JSON, kept whole in
+`detail_json`). One record per case (`/ka/info/<GUID>`, `ge_<GUID>`),
+deduped across pages and procedures; `procedure` filter picks the
+procedure GUIDs. A response without the results table errors
+(`planscanR_error_bad_response`); failed/empty pages warn partial.
+Files: `/download/files/?file=<GUID>&accompany=false|true`; bundles only
+where `HasAccompanyingDocument` is true. The EIA report is inside the
+accompanying bundle (RAR5, kept as-is, no extractor) of the EIA
+procedure’s application/annex entry (SEA: the report-review procedure);
+screening/scoping bundles hold only that material; accompanying files
+can be PDFs. SEA bundles and some EIA bundles exceed the default 50 MB
+cap. Labels are `"<procedure> | <category>"`. The listing row that
+surfaced a case may be a nested-document event: `ge_build_record()`
+resolves it to the enclosing procedure, else uses the row cells
+(`listing_*` extras; later rows not merged). An empty grid aborts
+(retried next run). A failed detail fetch writes no sidecar (retried
+next run). - Cyprus
+([`get_assessments_cy()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_cy.md))
+— Department of Environment **EIA register** at `eia.moa.gov.cy/public/`
+(server-rendered HTML, `rvest`; Greek). **Coverage is a current-year
+window, not national completeness:** the only enumerable listing is
+`/public/currentYearView.html` (one finite table, no archive/year
+selector; completions seen 2024-2026); `no=` ids are never guessed. The
+SEA register (`/public/sea/`) is **not covered** (deferred: too few
+report-bearing plans). Seams `cy_fetch_listing()` /
+`cy_fetch_detail(no)`; detail `/public/eiaview.html?no=<id>` is
+sidecar-first. Both *ΜΕΕΠ* (full EIA) and *Screening* rows are kept;
+`listing_type` holds the native listing label and `native_type` the
+detail *Είδος* (no eligibility rule beyond native labels). `document_id`
+= `cy_<no>`; extras `native_no`, `project_number`, `file_number`,
+`category`, `district`, `area`, `town`, and every detail key/value in
+the `native_fields` JSON. Attachments grouped by the download-path
+folder (`meep`, `gnomatevseis`, `oikologiki_axiologisi`, …) into
+`attachment_urls_<slug>`; native Greek row labels in
+`attachment_labels_native`. Main studies are often multi-MB `.zip`
+files, downloaded as-is (never extracted; the default 50 MB cap skips
+the largest). Downloads use `download.php?f=<path>`, so
+`slugify_filename()` takes the name from `f=`. No geometry. Throttled 5
+req/s (`planscanR.cy_throttle_rate`). - Luxembourg
+([`get_assessments_lu()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lu.md))
+— national public-inquiry portal `enquetes.public.lu` (JSON search
+`/ctie/searchresults?id=<data-id>&page=N`, 1-based, 21/page, `data-id`
+read from `/fr/enquetes.html`; detail page per record, sidecar-first;
+French). **All themes are returned** (~2,100 inquiries since ~2020): the
+portal has no EIA flag, `assessment_type` is `NA` and no title heuristic
+exists; the `theme` filter (native slug, `"environement"` sic) is sent
+as `r=f/aem_theme/...` and re-checked client-side. Items without a
+`page` object are identified through `hitMetaData$b64_uri`; a failed or
+unexpected detail page (3904/4420 return 404) yields a listing-only
+record (`detail_fetched = FALSE`, no attachments) plus a partial
+warning, never cached (a sidecar with `detail_fetched = FALSE` is a
+cache miss). Unique ids are compared with `totalMatches`; inquiry 1041
+is listed twice, so full crawls warn. `proponent` = the “Requérant” line
+when present. Listing close-date timestamps are shifted 1-2 h, so the
+dates come from the detail page. Files (host `*download.public.lu`) are
+grouped by accordion heading (`fichiers`), the “Tout telecharger” button
+(`tout_telecharger`) and description links (`description`); zip/7z are
+downloaded as-is. Seams `lu_fetch_home()` / `lu_fetch_page()` /
+`lu_fetch_detail()`; throttle `planscanR.lu_throttle_rate` (5 req/s). -
 Austria
 ([`get_assessments_at()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_at.md))
 — Umweltbundesamt UVP-DB at `secure.umweltbundesamt.at/uvpdb`.

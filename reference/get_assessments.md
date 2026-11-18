@@ -24,7 +24,8 @@ get_assessments(
   relevance_model = NULL,
   discover = FALSE,
   search_backend = NULL,
-  ...
+  ...,
+  source = NULL
 )
 ```
 
@@ -35,9 +36,9 @@ get_assessments(
   Character scalar, ISO-3166-1 alpha-2 country code (any case). v0.1
   supports `"nl"`, `"de"`, `"fr"`, `"at"`, `"dk"`, `"be"` (Flanders),
   `"ee"`, `"fi"`, `"bg"`, `"cz"`, `"hr"`, `"gr"`, `"is"`, `"ie"`,
-  `"si"`, `"pt"`, `"gb"`, `"it"`, `"sk"`, `"no"`, `"lv"`, and `"es"`.
-  Note that `"es"` (Spain) requires the optional {chromote}
-  headless-browser transport — see
+  `"si"`, `"pt"`, `"gb"`, `"it"`, `"sk"`, `"no"`, `"lv"`, `"es"`,
+  `"cy"`, `"ge"`, and `"lu"`. Note that `"es"` (Spain) requires the
+  optional {chromote} headless-browser transport — see
   [`get_assessments_es()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md).
   See
   [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md).
@@ -152,9 +153,21 @@ get_assessments(
 
 - ...:
 
-  Forwarded to the country handler. Common search parameters are
-  documented in
+  Forwarded to the country or source handler. Common search parameters
+  are documented in
   [`get_assessments_nl()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_nl.md).
+
+- source:
+
+  Optional single string naming an explicit, opt-in source from
+  [`get_assessments_sources()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sources.md)
+  (e.g. a development bank or a second portal). `NULL` (default) keeps
+  the national-portal dispatch on `country`. With a source, `country`
+  must be a scalar ISO-2 code; it need not be in
+  [`supported_countries()`](https://barthoekstra.github.io/planscanR/reference/supported_countries.md)
+  because the source maps it to its own geography vocabulary. Must be
+  named in full (it follows `...`). Records from a source carry
+  source-prefixed `document_id`s.
 
 ## Value
 
@@ -170,7 +183,8 @@ A tibble with at least these required columns:
 
 - `document_id`:
 
-  Character. Portal-native ID, unique within the portal.
+  Character. Portal-native ID (source-prefixed for explicit sources),
+  unique within the portal.
 
 - `url`:
 

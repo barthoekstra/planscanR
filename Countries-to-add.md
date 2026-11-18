@@ -23,3 +23,7 @@
   <https://www.gov.uk/government/publications/environmental-impact-assessment-regulations-public-register>
   and also here:
   <https://national-infrastructure-consenting.planninginspectorate.gov.uk/>)
+
+Source-expansion outcomes (2026-11-16, incl. Lithuania, Portugal SEA,
+UK, banks and non-European registers): see
+`dev/source-expansion-decisions.md`.

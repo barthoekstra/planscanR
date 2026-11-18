@@ -129,6 +129,20 @@ on), so you can fetch from several countries and stack the results:</p>
 <p>To see which countries and search options are available, use:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_coverage.html">get_assessments_coverage</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Beyond the national portals, opt-in sources are chosen with
+<code>source =</code> and listed with
+<code><a href="../reference/get_assessments_sources.html">get_assessments_sources()</a></code>: for example World Bank project
+documents (<code>get_assessments("ke", source = "worldbank")</code>),
+the European Investment Bank register
+(<code>get_assessments("de", source = "eib")</code>), IFC project
+disclosures (<code>get_assessments("eg", source = "ifc")</code>), Asian
+Infrastructure Investment Bank projects
+(<code>get_assessments("cn", source = "aiib")</code>) and Flemish
+planning dossiers
+(<code>get_assessments("be", source = "be_dsi")</code>). They are not in
+the country list above.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/get_assessments_sources.html">get_assessments_sources</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="working-offline">Working offline<a class="anchor" aria-label="anchor" href="#working-offline"></a>
@@ -136,7 +150,7 @@ on), so you can fetch from several countries and stack the results:</p>
 <p>Every record you fetch is saved to the offline metadata cache under
 the cache root, which you can read back later without going to the
 portal at all:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/index_cache.html">index_cache</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"nl"</span><span class="op">)</span></span></code></pre></div>
 <p>This is handy for picking up where you left off, or for re-scoring an
 existing set of records against new topics. The cache root resolves
@@ -150,7 +164,7 @@ any derived artefacts) in place.</p>
 <p><code><a href="../reference/get_assessments.html">get_assessments()</a></code> accepts an optional <code>topic</code>
 (and <code>relevance_threshold</code>) to score records during the fetch
 and gate PDF downloads on the score:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_assessments.html">get_assessments</a></span><span class="op">(</span></span>
 <span>  <span class="st">"nl"</span>,</span>
 <span>  topic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>wind <span class="op">=</span> <span class="st">"wind energy"</span>, solar <span class="op">=</span> <span class="st">"solar energy"</span><span class="op">)</span>,</span>
@@ -188,8 +202,12 @@ date and region filters.</li>
 <code><a href="../reference/get_assessments_si.html">?get_assessments_si</a></code>, <code><a href="../reference/get_assessments_pt.html">?get_assessments_pt</a></code>,
 <code><a href="../reference/get_assessments_gb.html">?get_assessments_gb</a></code>, <code><a href="../reference/get_assessments_it.html">?get_assessments_it</a></code>,
 <code><a href="../reference/get_assessments_sk.html">?get_assessments_sk</a></code>, <code><a href="../reference/get_assessments_no.html">?get_assessments_no</a></code>,
-<code><a href="../reference/get_assessments_lv.html">?get_assessments_lv</a></code>, <code><a href="../reference/get_assessments_es.html">?get_assessments_es</a></code> — the
-portal-specific details for each country.</li>
+<code><a href="../reference/get_assessments_lv.html">?get_assessments_lv</a></code>, <code><a href="../reference/get_assessments_es.html">?get_assessments_es</a></code>,
+<code><a href="../reference/get_assessments_cy.html">?get_assessments_cy</a></code>, <code><a href="../reference/get_assessments_ge.html">?get_assessments_ge</a></code> — the
+<code><a href="../reference/get_assessments_no.html">?get_assessments_no</a></code>, <code><a href="../reference/get_assessments_lv.html">?get_assessments_lv</a></code>,
+<code><a href="../reference/get_assessments_es.html">?get_assessments_es</a></code>, <code><a href="../reference/get_assessments_cy.html">?get_assessments_cy</a></code>,
+<code><a href="../reference/get_assessments_lu.html">?get_assessments_lu</a></code> — the portal-specific details for each
+country.</li>
 <li>
 <a href="https://barthoekstra.github.io/planscanR.screen/"><strong>planscanR.screen</strong></a>
 — score records by topic relevance, classify them, and learn a selection

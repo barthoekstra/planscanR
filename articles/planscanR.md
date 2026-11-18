@@ -68,6 +68,23 @@ To see which countries and search options are available, use:
 get_assessments_coverage()
 ```
 
+Beyond the national portals, opt-in sources are chosen with `source =`
+and listed with
+[`get_assessments_sources()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sources.md):
+for example World Bank project documents
+(`get_assessments("ke", source = "worldbank")`), the European Investment
+Bank register (`get_assessments("de", source = "eib")`), IFC project
+disclosures (`get_assessments("eg", source = "ifc")`), Asian
+Infrastructure Investment Bank projects
+(`get_assessments("cn", source = "aiib")`) and Flemish planning dossiers
+(`get_assessments("be", source = "be_dsi")`). They are not in the
+country list above.
+
+``` r
+
+get_assessments_sources()
+```
+
 ## Working offline
 
 Every record you fetch is saved to the offline metadata cache under the
@@ -139,7 +156,15 @@ see its “Scoring records” vignette for the walkthrough. Without it, omit
   [`?get_assessments_sk`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sk.md),
   [`?get_assessments_no`](https://barthoekstra.github.io/planscanR/reference/get_assessments_no.md),
   [`?get_assessments_lv`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lv.md),
-  [`?get_assessments_es`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md)
+  [`?get_assessments_es`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md),
+  [`?get_assessments_cy`](https://barthoekstra.github.io/planscanR/reference/get_assessments_cy.md),
+  [`?get_assessments_ge`](https://barthoekstra.github.io/planscanR/reference/get_assessments_ge.md)
+  — the
+  [`?get_assessments_no`](https://barthoekstra.github.io/planscanR/reference/get_assessments_no.md),
+  [`?get_assessments_lv`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lv.md),
+  [`?get_assessments_es`](https://barthoekstra.github.io/planscanR/reference/get_assessments_es.md),
+  [`?get_assessments_cy`](https://barthoekstra.github.io/planscanR/reference/get_assessments_cy.md),
+  [`?get_assessments_lu`](https://barthoekstra.github.io/planscanR/reference/get_assessments_lu.md)
   — the portal-specific details for each country.
 - [**planscanR.screen**](https://barthoekstra.github.io/planscanR.screen/)
   — score records by topic relevance, classify them, and learn a

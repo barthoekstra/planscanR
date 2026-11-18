@@ -5,11 +5,12 @@ environmental-assessment portals (currently Netherlands, Germany,
 France, Austria, Denmark, Belgium (Flanders), Estonia, Finland,
 Bulgaria, the Czech Republic, Croatia, Greece, Iceland, Ireland,
 Slovenia, Portugal, the United Kingdom, Italy, Slovakia, Norway, Latvia,
-and Spain). There is no shared API behind the scenes — each country
-gives us a different mix of HTML pages, sitemaps, search endpoints, and
-undocumented JSON handlers, and each one comes with its own quirks. This
-vignette describes what each handler does, where it pulls data from, and
-what to expect (or watch out for) when using it.
+Spain, Cyprus, Georgia, and Luxembourg). There is no shared API behind
+the scenes — each country gives us a different mix of HTML pages,
+sitemaps, search endpoints, and undocumented JSON handlers, and each one
+comes with its own quirks. This vignette describes what each handler
+does, where it pulls data from, and what to expect (or watch out for)
+when using it.
 
 For the runtime equivalent — the same information in tabular form,
 including the valid vocabularies for the search facets each handler
@@ -19,6 +20,24 @@ accepts — call:
 
 get_assessments_coverage()
 ```
+
+Explicit, opt-in sources (not national portals) are chosen with
+`get_assessments(country, source = "<id>")` and listed, with
+granularity, geography, scope and limitations, by:
+
+``` r
+
+get_assessments_sources()
+```
+
+`"worldbank"` queries the World Bank Documents & Reports API for
+documents typed *Environmental Assessment*, *Environmental and Social
+Assessment* or *Strategic Environmental Assessment/Analysis*, filtered
+server-side on the ISO-2 country code (multi-country records included;
+global/regional-only records excluded). The bank’s type label does not
+separate full EA/ESIA reports from site-level ESMP-grade files filed
+under the same label, and planscanR adds no title heuristic: the raw
+`docty`/`majdocty` strings are kept so downstream screening can decide.
 
 ## A note on stability
 
@@ -250,7 +269,10 @@ get_assessments_dk(query = "vindmølle", limit = 20, download = FALSE)
 - **Coverage:** ~3,000 Project-MER dossiers (project-level EIA) and
   dossier MER-plicht ontheffingsaanvragen (exemption requests). Plan-MER
   (SEA) lives in a separate Flemish register and is out of scope for
-  this handler.
+  this handler. Flemish planning dossiers (DSI, including plan-MER
+  material) are available as the explicit source
+  `get_assessments("be", source = "be_dsi")`; assessment reports are
+  only a subset of their documents.
 - **Throttle:** 5 requests/second by default
   (`getOption("planscanR.be_throttle_rate")`).
 
@@ -1390,6 +1412,186 @@ get_assessments_es(assessment_type = "SEA", limit = 10, download = FALSE)
 # Title substring + download the national-competence PDFs through the browser
 get_assessments_es(query = "eólica", limit = 5, download = TRUE)
 ```
+
+## Cyprus — `"cy"`
+
+- **Portal:** Department of Environment (Ministry of Agriculture) EIA
+  register, [eia.moa.gov.cy](https://eia.moa.gov.cy/public/),
+  server-rendered HTML.
+- **Coverage window:** only the *current-year* listing
+  (`/public/currentYearView.html`, one finite table; completions seen
+  2024–2026) is enumerable. There is no archive or year selector and ids
+  are never guessed, so this is **not national completeness**. The SEA
+  register (`/public/sea/`) is not covered.
+- **Records:** both *ΜΕΕΠ* (full EIA) and *Screening* rows, with the
+  native labels kept (`listing_type`, `native_type`); no eligibility
+  rule is applied. `document_id` is `cy_<no>`; `project_number`,
+  `file_number`, `category`, `district`, `area`, `town` and the full
+  key/value set (`native_fields`) are extras. No proponent field, no
+  geometry. Greek (`el`).
+- **Attachments:** grouped by portal folder into
+  `attachment_urls_<slug>` (`meep`, `gnomatevseis`,
+  `oikologiki_axiologisi`, …); the native Greek row labels are in
+  `attachment_labels_native`. Study files are often large `.zip`
+  archives, downloaded as-is and bounded by `max_file_size_mb`.
+
+``` r
+
+get_assessments_cy(limit = 5, download = FALSE)
+```
+
+## Georgia — `"ge"`
+
+- **Portal:** recent environmental decision portal of the Ministry of
+  Environmental Protection and Agriculture,
+  [ei.gov.ge](https://ei.gov.ge/) (Georgian, `/ka`). The legacy archive
+  is out of scope and the portal’s historical horizon is undocumented,
+  so this is **not national completeness**.
+- **Records:** one per case (`ge_<GUID>`), enumerated from the POST
+  listing per `procedure` (`eia`, `eia_screening`, `eia_scoping`,
+  `sea_screening`, `sea_scoping`, `sea_report_review`; default all).
+  Native procedure, category and status are kept (`procedure_native`,
+  `category_native`, `status`, `procedures_native`) and the full detail
+  JSON is in `detail_json`. No geometry; `competent_authority` is not
+  exposed.
+- **Attachments:** `attachment_urls_main_document` (application letters
+  and decisions, PDF) and `attachment_urls_accompanying_bundle` (only
+  where the record flags accompanying documents). **The EIA report is
+  inside the RAR5 bundle of the EIA procedure’s application/annex
+  entry** (for SEA, of the report-review procedure); screening and
+  scoping bundles hold screening and scoping material only, and
+  accompanying files can also be PDFs. Bundles are downloaded as-is (no
+  extraction). SEA bundles (500+ MB) and some EIA bundles (e.g. 75 MB)
+  exceed the default 50 MB cap (`skipped_size`). Labels in
+  `attachment_labels_native` are
+  `"<native procedure> | <native category>"`.
+- **Listing row:** `status`, `procedure_native` and the `listing_*`
+  cells (`listing_row_id`, `listing_municipality`,
+  `listing_comment_deadline`, `listing_public_hearing`) come from the
+  row that first surfaced the case (a nested-document event row is
+  resolved to its enclosing procedure); later event rows are not merged.
+  An empty procedure grid is an error and the case is retried on the
+  next run.
+
+``` r
+get_assessments_ge(limit = 5, download = FALSE, procedure = "eia")
+## Luxembourg — `"lu"`
+* **Portal:** national public-inquiry portal
+  [enquetes.public.lu](https://enquetes.public.lu), listed through its anonymous
+  JSON search endpoint (`/ctie/searchresults`, 21 items per page; the constant
+  `data-id` is read from the list page) plus one HTML detail page per record.
+* **Scope:** *all* public inquiries (about 2,100 since about 2020: classified
+  establishments, water permits, environment, ...). The portal has **no native
+  "EIA report" flag** and no title heuristic is applied, so `assessment_type`
+  is `NA`; the native `theme` (e.g. `"environement"`, the portal's spelling,
+  about 57 inquiries mixing EIAs, Natura 2000, plans and permits), `survey_type`
+  and status are kept as columns. Filter with `theme`, `query` or `date_range`.
+* **Records:** `document_id` is `lu_<native id>`; the raw listing item is in
+  `listing_json` and every text section of the page in `detail_sections`.
+  Opening/closing dates, municipalities, organising and supervising
+  authorities, reference number and procedure type are extras. `proponent`
+  is the "Requérant" line of the description when present, else `NA`; no
+  geometry. French (`fr`).
+* **Completeness:** a malformed response or a failed first page is an error; a
+  failed, short, early-empty or repeated later page, three consecutive failed
+  pages, or fewer unique ids than the reported total (the portal lists
+  inquiry 1041 twice, so crawls warn one short, e.g. "56 of 57" for the
+  `environement` theme) gives a
+  `planscanR_warning_partial`. A listed inquiry whose detail page is missing
+  (a few listed items return 404) is returned as a listing-only record
+  (`detail_fetched = FALSE`, no attachments) with a warning, never cached and
+  retried next run.
+* **Attachments:** every file link on the page with its native label, grouped
+  into `attachment_urls_fichiers`, `attachment_urls_tout_telecharger` (the
+  per-case zip duplicating the others) and `attachment_urls_description`
+  (links inside the description, e.g. a 7z dossier). Zip and 7z files are
+  downloaded as-is, never unpacked, bounded by `max_file_size_mb` (the main EIA
+  report is often inside a zip; very large ones are reported `skipped_size`).
+get_assessments_lu(theme = "environement", limit = 5, download = FALSE)
+```
+
+## European Investment Bank register — `source = "eib"`
+
+Not a national portal: an explicit, opt-in source
+(`get_assessments("de", source = "eib")`, see
+[`get_assessments_sources()`](https://barthoekstra.github.io/planscanR/reference/get_assessments_sources.md)),
+backed by the [EIB public register](https://www.eib.org/en/registers/)
+of documents for EIB-financed projects. - One record per register
+**document** (`document_id = "eib_<id>"`); the project number is kept as
+`project_number`. All native document types are kept in `role` /
+`native_type`, each with its own `attachment_urls_<type>` section.
+`ESIA`, `Environmental Impact Assessment` and `SEA` labels identify full
+reports (the `ESIA` bucket also holds permits and placeholder rows);
+`ESDS`, `ESCS` and `NTS` are summaries. “Link to promoter website” rows
+may have no file; that is only known after download, where a missing
+file is recorded in `download_status`. The record `url` is the register
+page. Use `document_type = "ESIA"` to filter. - Geography: a record
+matches when any of its ISO-2 country tags equals the requested code
+(multi-country records included). Regional/non-ISO tags (`C7` “EU
+Countries”, `A1`-`A9`, …) and untagged rows are excluded; the full tag
+list stays in `country_codes`. - One listing request per call; if
+`totalItems` differs from the returned rows a
+`planscanR_warning_partial` states both numbers. Files above
+`max_file_size_mb` are kept in the record with status `skipped_size`. -
+Scope: EIB-financed projects only (publication since about 2011), not
+national completeness.
+
+## IFC project disclosures — `source = "ifc"`
+
+Not a national portal: an explicit, opt-in source
+(`get_assessments("eg", source = "ifc")`), backed by the [IFC disclosure
+portal](https://disclosures.ifc.org/) of the World Bank Group’s
+private-sector arm. - One record per **project** of disclosure type
+`ESRS` (Environmental and Social Review Summary; other IFC types are out
+of scope), `document_id = "ifc_<Project_Number>"`. The ESRS review text
+is the record `summary`; every native field is kept as an extra and the
+raw row as `listing_json`. - The project-detail page is fetched per
+record (sidecar first, bounded by `limit`); its client documents table
+goes into `documents_json` and the file links into
+`attachment_urls_document`. IFC does not label document roles: the file
+name is the only label, there is no classifier, so ESIA, ESMP, SEP and
+translations all appear. Older files often return 404 (recorded per
+file). A record whose detail page failed has `detail_fetched = FALSE`
+and is retried. - Geography: IFC stores one World-Bank-style country
+name, so the ISO-2 code is mapped through an internal table; a code IFC
+has no ESRS projects for (including NL, DE, DK, AT) is an error, and
+regional pseudo-countries (“Africa Region”, “World Region”) are never
+returned. - The listing needs a public search key that the portal prints
+in every detail page; it is read at runtime (once per session) and an
+unreadable page is an actionable error. Incomplete paging gives a
+`planscanR_warning_partial`. \## Asian Infrastructure Investment Bank
+projects — `source = "aiib"`
+
+An explicit, opt-in source (`get_assessments("cn", source = "aiib")`)
+for the [AIIB project register](https://www.aiib.org/en/projects/list/):
+an international development bank portfolio (2016 onward, mostly Asia),
+not a national EIA register. - One record per **project**
+(`document_id = "aiib_p<project number>"`, so a status move updates the
+same sidecar; only a record whose detail page failed gets a path-based
+fallback id and is not cached). The whole register is one
+`all-projects-data.js` request; the project page is fetched for each
+returned record (sidecar-first) for the project number, E&S category,
+description, borrower/implementing organisation and the document
+links. - Every document link is kept under its native heading
+(`attachment_urls_aiib_documents`,
+`..._client_cofinancing_partner_documents`, `..._procurement_documents`)
+with the full native label, including the language suffix, in
+`attachment_labels_<section>`. No role is assigned: ESIA, ESMP, IEE and
+RAP files are only recognisable from those labels. Links to other hosts
+are listed in `external_urls_<section>` and not downloaded. - Geography:
+ISO-2 codes are mapped to AIIB’s English economy names and matched on
+the `economy` field or the name prefix before the colon (they differ for
+a few rows, e.g. economy “Algeria” for an “Uzbekistan: …” project, which
+then appears under both countries with the same id; both are kept as
+`economy` and `name_prefix`). Borrower and implementing-entity text
+keeps only lines with an organisation word; names and titles are
+dropped. Codes without a mapping (including NL/DE/DK/AT) are an error;
+`"Multicountry"` projects have no member list and are excluded unless
+the name prefix names a mapped country. - Only some Category A/B
+projects publish an assessment; Category C, financial intermediary and
+policy projects often have none. A failed detail page gives a
+listing-only record (`detail_status = "failed"`) and a partial-result
+warning, and is retried on the next run.
 
 ## Adding a new source
 
